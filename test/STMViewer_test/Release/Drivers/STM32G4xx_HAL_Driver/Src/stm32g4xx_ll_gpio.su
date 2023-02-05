@@ -1,0 +1,4 @@
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_bus.h:581:22:LL_AHB2_GRP1_ForceReset	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_gpio.c:108:13:LL_GPIO_DeInit	8	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_gpio.c:168:13:LL_GPIO_Init	32	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_gpio.c:240:6:LL_GPIO_StructInit	0	static

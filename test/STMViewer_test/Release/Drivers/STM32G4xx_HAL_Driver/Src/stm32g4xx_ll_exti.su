@@ -1,0 +1,3 @@
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_exti.c:79:10:LL_EXTI_DeInit	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_exti.c:121:10:LL_EXTI_Init	16	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_exti.c:268:6:LL_EXTI_StructInit	0	static

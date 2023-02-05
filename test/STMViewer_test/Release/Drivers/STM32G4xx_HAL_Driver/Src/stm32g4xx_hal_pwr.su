@@ -1,0 +1,16 @@
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:86:6:HAL_PWR_DeInit	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:104:6:HAL_PWR_EnableBkUpAccess	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:114:6:HAL_PWR_DisableBkUpAccess	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:308:19:HAL_PWR_ConfigPVD	8	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:354:6:HAL_PWR_EnablePVD	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:363:6:HAL_PWR_DisablePVD	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:388:6:HAL_PWR_EnableWakeUpPin	8	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:409:6:HAL_PWR_DisableWakeUpPin	8	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:441:6:HAL_PWR_EnterSLEEPMode	16	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:516:6:HAL_PWR_EnterSTOPMode	8	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:549:6:HAL_PWR_EnterSTANDBYMode	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:575:6:HAL_PWR_EnableSleepOnExit	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:588:6:HAL_PWR_DisableSleepOnExit	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:602:6:HAL_PWR_EnableSEVOnPend	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:615:6:HAL_PWR_DisableSEVOnPend	0	static
+../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_pwr.c:629:13:HAL_PWR_PVDCallback	0	static

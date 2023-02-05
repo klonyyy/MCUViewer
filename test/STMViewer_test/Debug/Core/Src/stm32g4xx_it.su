@@ -1,0 +1,9 @@
+../Core/Src/stm32g4xx_it.c:69:6:NMI_Handler	4	static
+../Core/Src/stm32g4xx_it.c:84:6:HardFault_Handler	4	static
+../Core/Src/stm32g4xx_it.c:99:6:MemManage_Handler	4	static
+../Core/Src/stm32g4xx_it.c:114:6:BusFault_Handler	4	static
+../Core/Src/stm32g4xx_it.c:129:6:UsageFault_Handler	4	static
+../Core/Src/stm32g4xx_it.c:144:6:SVC_Handler	4	static
+../Core/Src/stm32g4xx_it.c:157:6:DebugMon_Handler	4	static
+../Core/Src/stm32g4xx_it.c:170:6:PendSV_Handler	4	static
+../Core/Src/stm32g4xx_it.c:183:6:SysTick_Handler	8	static
