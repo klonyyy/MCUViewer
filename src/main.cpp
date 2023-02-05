@@ -14,9 +14,5 @@ int main(int ac, char** av)
 {
 	Gui gui;
 
-	while (1)
-	{
-	}
-
-	return (0);
+	return 0;
 }

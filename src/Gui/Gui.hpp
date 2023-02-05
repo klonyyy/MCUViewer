@@ -13,6 +13,7 @@ class Gui
 	std::thread threadHandle;
 
 	void mainThread();
+	void drawMenu();
 };
 
 #endif

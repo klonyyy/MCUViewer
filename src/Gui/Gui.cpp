@@ -78,7 +78,9 @@ void Gui::mainThread()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
+
 	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	ImGuiStyle& style = ImGui::GetStyle();
 
@@ -89,6 +91,8 @@ void Gui::mainThread()
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
+	bool show_demo_window = true;
+	bool p_open = true;
 	bool done = false;
 	while (!done)
 	{
@@ -112,10 +116,14 @@ void Gui::mainThread()
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
 
-		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-		// if (show_demo_window)
-		// 	ImGui::ShowDemoWindow(&show_demo_window);
-		// ImPlot::ShowDemoWindow();
+		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+		if (show_demo_window)
+			ImPlot::ShowDemoWindow();
+
+		ImGui::Begin("STMViewer", &p_open, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar);
+
+		drawMenu();
 
 		static ScrollingBuffer sdata1, sdata2;
 		ImVec2 mouse = ImGui::GetMousePos();
@@ -127,28 +135,39 @@ void Gui::mainThread()
 		static float history = 10.0f;
 		ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
 
-		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
+		static ImPlotAxisFlags flags = 0;
 
-		if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150)))
+		if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 300), ImPlotFlags_NoFrame))
 		{
-			ImPlot::SetupAxes(NULL, NULL, flags, flags);
-			ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
-			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
+			ImPlot::SetupAxes("time[s]", NULL, flags, flags);
+			ImPlot::SetupAxisLimits(ImAxis_X1, t - 10, t, ImPlotCond_Once);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1, ImPlotCond_Once);
 			ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-			// ImPlot::PlotLine("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
 			ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
+			ImPlot::PlotLine("Mouse x", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
 			ImPlot::EndPlot();
 		}
+
+		ImGui::End();
 
 		// Rendering
 		ImGui::Render();
 		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+			SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+		}
+
 		SDL_GL_SwapWindow(window);
 	}
 
-	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
@@ -156,4 +175,35 @@ void Gui::mainThread()
 	SDL_GL_DeleteContext(gl_context);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+}
+
+void Gui::drawMenu()
+{
+	ImGui::BeginMainMenuBar();
+
+	if (ImGui::BeginMenu("File"))
+	{
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Edit"))
+	{
+		if (ImGui::MenuItem("Undo", "CTRL+Z"))
+		{
+		}
+		if (ImGui::MenuItem("Redo", "CTRL+Y", false, false))
+		{
+		}  // Disabled item
+		ImGui::Separator();
+		if (ImGui::MenuItem("Cut", "CTRL+X"))
+		{
+		}
+		if (ImGui::MenuItem("Copy", "CTRL+C"))
+		{
+		}
+		if (ImGui::MenuItem("Paste", "CTRL+V"))
+		{
+		}
+		ImGui::EndMenu();
+	}
+	ImGui::EndMainMenuBar();
 }
