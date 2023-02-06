@@ -12,13 +12,21 @@ set(MDTOOL_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
 
+set(CMAKE_BUILD_TYPE Release)
+
+add_compile_options(-Wall
+    -Wextra
+    -Wno-unused-parameter
+    -Wno-missing-field-initializers)
+
 find_package(libusb REQUIRED)
 find_package(SDL2 REQUIRED)
 
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/VarReader.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -40,7 +48,8 @@ add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCE
 
 target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc

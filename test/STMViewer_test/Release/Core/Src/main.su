@@ -1,4 +1,0 @@
-../Core/Src/main.c:106:6:SystemClock_Config	88	static
-../Core/Src/main.c:63:5:main	40	static
-../Core/Src/main.c:193:6:Error_Handler	0	static
-../Core/Src/main.c:212:6:assert_failed	0	static

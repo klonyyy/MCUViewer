@@ -2,52 +2,26 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <unistd.h>
 
+#include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
 #include "implot.h"
 #include "iostream"
 
-struct ScrollingBuffer
-{
-	int MaxSize;
-	int Offset;
-	ImVector<ImVec2> Data;
-	ScrollingBuffer(int max_size = 2000)
-	{
-		MaxSize = max_size;
-		Offset = 0;
-		Data.reserve(MaxSize);
-	}
-	void AddPoint(float x, float y)
-	{
-		if (Data.size() < MaxSize)
-			Data.push_back(ImVec2(x, y));
-		else
-		{
-			Data[Offset] = ImVec2(x, y);
-			Offset = (Offset + 1) % MaxSize;
-		}
-	}
-	void Erase()
-	{
-		if (Data.size() > 0)
-		{
-			Data.shrink(0);
-			Offset = 0;
-		}
-	}
-};
-
 Gui::Gui()
 {
+	vals = new VarReader();
+	dataHandle = std::thread(&Gui::dataHandler, this);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
 Gui::~Gui()
 {
 	threadHandle.join();
+	dataHandle.join();
 }
 
 void Gui::mainThread()
@@ -93,7 +67,7 @@ void Gui::mainThread()
 
 	bool show_demo_window = true;
 	bool p_open = true;
-	bool done = false;
+
 	while (!done)
 	{
 		// Poll and handle events (inputs, window resize, etc.)
@@ -125,16 +99,6 @@ void Gui::mainThread()
 
 		drawMenu();
 
-		static ScrollingBuffer sdata1, sdata2;
-		ImVec2 mouse = ImGui::GetMousePos();
-		static float t = 0;
-		t += ImGui::GetIO().DeltaTime;
-		sdata1.AddPoint(t, mouse.x * 0.0005f);
-		sdata2.AddPoint(t, mouse.y * 0.0005f);
-
-		static float history = 10.0f;
-		ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
-
 		static ImPlotAxisFlags flags = 0;
 
 		if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 300), ImPlotFlags_NoFrame))
@@ -143,9 +107,27 @@ void Gui::mainThread()
 			ImPlot::SetupAxisLimits(ImAxis_X1, t - 10, t, ImPlotCond_Once);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1, ImPlotCond_Once);
 			ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 			ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 			ImPlot::PlotLine("Mouse x", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
 			ImPlot::EndPlot();
+		}
+
+		static int clicked = 0;
+		if (ImGui::Button("Button"))
+			clicked++;
+		if (clicked & 1)
+		{
+			vals->start();
+			ImGui::SameLine();
+			ImGui::Text("RUN");
+		}
+		else
+		{
+			vals->stop();
+			ImGui::SameLine();
+			ImGui::Text("STOP");
 		}
 
 		ImGui::End();
@@ -206,4 +188,22 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
+}
+
+void Gui::dataHandler()
+{
+	while (!done)
+	{
+		auto start = std::chrono::steady_clock::now();
+
+		sdata1.AddPoint(t, vals->geta() * 0.5f);
+		sdata2.AddPoint(t, 1 * 0.0005f);
+		usleep(1000);
+
+		auto finish = std::chrono::steady_clock::now();
+		double elapsed_seconds = std::chrono::duration_cast<
+									 std::chrono::duration<double> >(finish - start)
+									 .count();
+		t += elapsed_seconds;
+	}
 }

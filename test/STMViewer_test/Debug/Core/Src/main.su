@@ -1,7 +1,0 @@
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_gpio.h:923:22:LL_GPIO_ResetOutputPin	16	static
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_bus.h:451:22:LL_AHB2_GRP1_EnableClock	24	static
-../Core/Src/main.c:63:5:main	8	static
-../Core/Src/main.c:106:6:SystemClock_Config	88	static
-../Core/Src/main.c:153:13:MX_GPIO_Init	32	static
-../Core/Src/main.c:193:6:Error_Handler	4	static
-../Core/Src/main.c:212:6:assert_failed	16	static
