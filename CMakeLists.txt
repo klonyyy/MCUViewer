@@ -26,7 +26,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/VarReader.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/VarReader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -49,7 +50,9 @@ add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCE
 target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScrollingBuffer)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc

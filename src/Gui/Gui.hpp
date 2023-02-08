@@ -3,51 +3,35 @@
 
 #include <thread>
 
+#include "ScrollingBuffer.hpp"
 #include "VarReader.hpp"
 #include "imgui.h"
 
-struct ScrollingBuffer
-{
-	int MaxSize;
-	int Offset;
-	ImVector<ImVec2> Data;
-	ScrollingBuffer(int max_size = 200000)
-	{
-		MaxSize = max_size;
-		Offset = 0;
-		Data.reserve(MaxSize);
-	}
-	void AddPoint(float x, float y)
-	{
-		if (Data.size() < MaxSize)
-			Data.push_back(ImVec2(x, y));
-		else
-		{
-			Data[Offset] = ImVec2(x, y);
-			Offset = (Offset + 1) % MaxSize;
-		}
-	}
-	void Erase()
-	{
-		if (Data.size() > 0)
-		{
-			Data.shrink(0);
-			Offset = 0;
-		}
-	}
-};
 class Gui
 {
    public:
 	Gui();
 	~Gui();
 
+	void begin();
+
    private:
+	enum class state
+	{
+		STOP = 0,
+		RUN = 1,
+	};
+	state viewerState = state::STOP;
 	VarReader* vals;
 	std::thread threadHandle;
 	std::thread dataHandle;
 
-	ScrollingBuffer sdata1, sdata2;
+	ScrollingBuffer<float> time;
+	ScrollingBuffer<float> sdata1;
+	ScrollingBuffer<float> sdata2;
+
+	std::chrono::time_point<std::chrono::steady_clock> start;
+
 	float t = 0;
 	bool done = false;
 

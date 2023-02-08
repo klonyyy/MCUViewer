@@ -14,5 +14,7 @@ int main(int ac, char** av)
 {
 	Gui gui;
 
+	gui.begin();
+
 	return 0;
 }

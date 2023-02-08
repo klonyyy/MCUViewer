@@ -4,6 +4,8 @@
 #include <SDL_opengl.h>
 #include <unistd.h>
 
+#include <mutex>
+
 #include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -11,17 +13,25 @@
 #include "implot.h"
 #include "iostream"
 
+std::mutex mtx;
+
 Gui::Gui()
 {
 	vals = new VarReader();
-	dataHandle = std::thread(&Gui::dataHandler, this);
 	threadHandle = std::thread(&Gui::mainThread, this);
+	dataHandle = std::thread(&Gui::dataHandler, this);
 }
 
 Gui::~Gui()
 {
-	threadHandle.join();
-	dataHandle.join();
+	if (threadHandle.joinable())
+		threadHandle.join();
+	if (dataHandle.joinable())
+		dataHandle.join();
+}
+
+void Gui::begin()
+{
 }
 
 void Gui::mainThread()
@@ -65,7 +75,7 @@ void Gui::mainThread()
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 	bool p_open = true;
 
 	while (!done)
@@ -89,7 +99,6 @@ void Gui::mainThread()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
-
 		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 		if (show_demo_window)
@@ -97,10 +106,31 @@ void Gui::mainThread()
 
 		ImGui::Begin("STMViewer", &p_open, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar);
 
+		static int clicked = 0;
+		if (ImGui::Button("Button"))
+			clicked++;
+		if (clicked & 1)
+		{
+			if (viewerState == state::STOP)
+			{
+				viewerState = state::RUN;
+				vals->start();
+			}
+			ImGui::SameLine();
+			ImGui::Text("RUN");
+		}
+		else
+		{
+			vals->stop();
+			viewerState = state::STOP;
+			ImGui::SameLine();
+			ImGui::Text("STOP");
+		}
+
 		drawMenu();
 
 		static ImPlotAxisFlags flags = 0;
-
+		mtx.lock();
 		if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 300), ImPlotFlags_NoFrame))
 		{
 			ImPlot::SetupAxes("time[s]", NULL, flags, flags);
@@ -108,27 +138,12 @@ void Gui::mainThread()
 			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1, ImPlotCond_Once);
 			ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-			ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
+			ImPlot::PlotLine("Mouse Y", time.getFirstElement(), sdata2.getFirstElement(), sdata2.getSize(), 0, sdata2.getOffset(), sizeof(float));
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-			ImPlot::PlotLine("Mouse x", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
+			ImPlot::PlotLine("Mouse x", time.getFirstElement(), sdata1.getFirstElement(), sdata1.getSize(), 0, sdata1.getOffset(), sizeof(float));
 			ImPlot::EndPlot();
 		}
-
-		static int clicked = 0;
-		if (ImGui::Button("Button"))
-			clicked++;
-		if (clicked & 1)
-		{
-			vals->start();
-			ImGui::SameLine();
-			ImGui::Text("RUN");
-		}
-		else
-		{
-			vals->stop();
-			ImGui::SameLine();
-			ImGui::Text("STOP");
-		}
+		mtx.unlock();
 
 		ImGui::End();
 
@@ -167,26 +182,6 @@ void Gui::drawMenu()
 	{
 		ImGui::EndMenu();
 	}
-	if (ImGui::BeginMenu("Edit"))
-	{
-		if (ImGui::MenuItem("Undo", "CTRL+Z"))
-		{
-		}
-		if (ImGui::MenuItem("Redo", "CTRL+Y", false, false))
-		{
-		}  // Disabled item
-		ImGui::Separator();
-		if (ImGui::MenuItem("Cut", "CTRL+X"))
-		{
-		}
-		if (ImGui::MenuItem("Copy", "CTRL+C"))
-		{
-		}
-		if (ImGui::MenuItem("Paste", "CTRL+V"))
-		{
-		}
-		ImGui::EndMenu();
-	}
 	ImGui::EndMainMenuBar();
 }
 
@@ -194,16 +189,20 @@ void Gui::dataHandler()
 {
 	while (!done)
 	{
-		auto start = std::chrono::steady_clock::now();
+		start = std::chrono::steady_clock::now();
+		std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
-		sdata1.AddPoint(t, vals->geta() * 0.5f);
-		sdata2.AddPoint(t, 1 * 0.0005f);
-		usleep(1000);
+		static float t = 0;
 
+		mtx.lock();
+		sdata1.addPoint(0.5f);
+		sdata2.addPoint(vals->geta());
+		time.addPoint(t);
 		auto finish = std::chrono::steady_clock::now();
 		double elapsed_seconds = std::chrono::duration_cast<
 									 std::chrono::duration<double> >(finish - start)
 									 .count();
 		t += elapsed_seconds;
+		mtx.unlock();
 	}
 }
