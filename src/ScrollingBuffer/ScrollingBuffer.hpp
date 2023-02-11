@@ -1,7 +1,7 @@
 #ifndef __SCROLLINGBUFFER_HPP
 #define __SCROLLINGBUFFER_HPP
 
-#include <array>
+#include <vector>
 
 #include "imgui.h"
 #include "iostream"
@@ -34,7 +34,7 @@ class ScrollingBuffer
 
 	T* getFirstElement()
 	{
-		return &data.Data[0];
+		return &data[0];
 	}
 
 	int getOffset()
@@ -45,7 +45,7 @@ class ScrollingBuffer
    private:
 	static const int maxSize = 20000;
 	int offset = 0;
-	ImVector<T> data;
+	std::vector<T> data;
 };
 
 #endif

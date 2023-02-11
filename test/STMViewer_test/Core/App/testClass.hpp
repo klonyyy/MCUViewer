@@ -17,6 +17,7 @@ public:
 	~TestClass() = default;
 
 	float getSin(float x);
+	float getCos(float x);
 
 private:
 	volatile uint8_t ua = 250;

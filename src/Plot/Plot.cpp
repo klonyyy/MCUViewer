@@ -12,46 +12,70 @@ Plot::Plot()
 Plot::~Plot()
 {
 }
-
-bool Plot::start()
+bool Plot::addSeries(std::string name, uint32_t address)
 {
-	if (plotterState == state::RUN)
-		return false;
+	seriesPtr[address] = new Series();
+	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
+	seriesPtr[address]->seriesName = name;
 
-	std::cout << "Plot in run mode!" << std::endl;
-	plotterState = state::RUN;
-	threadHandle = std::thread(&Plot::threadHandler, this);
+	std::cout << "Active Series:" << std::endl;
+	for (auto& series : seriesPtr)
+		std::cout << " - " << series.second->seriesName << std::endl;
+
 	return true;
 }
-bool Plot::stop()
+bool Plot::removeVariable(uint32_t address)
 {
-	if (plotterState == state::STOP)
-		return false;
-
-	std::cout << "Plot in stop mode!" << std::endl;
-	plotterState = state::STOP;
-	threadHandle.join();
+	delete seriesPtr[address]->buffer;
+	delete seriesPtr[address];
+	seriesPtr.erase(address);
 	return true;
 }
+bool Plot::removeAllVariables()
+{
+	for (auto& addr : seriesPtr)
+	{
+		delete seriesPtr[addr.first]->buffer;
+		delete seriesPtr[addr.first];
+	}
+	seriesPtr.clear();
+	return true;
+}
+
+std::vector<uint32_t> Plot::getVariableAddesses()
+{
+	std::vector<uint32_t> addresses;
+
+	for (auto& addr : seriesPtr)
+		addresses.push_back(addr.first);
+
+	return addresses;
+}
+
+bool Plot::addPoint(float t, uint32_t address, float value)
+{
+	seriesPtr[address]->buffer->addPoint(value);
+	time.addPoint(t);
+
+	return true;
+}
+
 void Plot::draw()
 {
-	// if (ImPlot::BeginPlot("##Plot", ImVec2(-1, 300), ImPlotFlags_NoFrame))
-	// {
-	// 	ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-	// 	ImPlot::SetupAxisLimits(ImAxis_X1, t - 10, t, ImPlotCond_Once);
-	// 	ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1, ImPlotCond_Once);
-	// 	ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-	// 	ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-	// 	ImPlot::PlotLine("Mouse Y", time.getFirstElement(), sdata2.getFirstElement(), sdata2.getSize(), 0, sdata2.getOffset(), sizeof(float));
-	// 	ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-	// 	ImPlot::PlotLine("Mouse x", time.getFirstElement(), sdata1.getFirstElement(), sdata1.getSize(), 0, sdata1.getOffset(), sizeof(float));
-	// 	ImPlot::EndPlot();
-	// }
-}
-void Plot::threadHandler()
-{
-	while (plotterState == state::RUN)
+	if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 300), ImPlotFlags_NoChild))
 	{
-		usleep(100);
+		ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+		ImPlot::SetupAxisLimits(ImAxis_X1, 0, 10, ImPlotCond_Once);
+		ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 0.1, ImPlotCond_Once);
+		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+		ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+
+		for (auto& ser : seriesPtr)
+		{
+			ImPlot::PlotLine(ser.second->seriesName.c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+		}
+
+		ImPlot::EndPlot();
 	}
 }

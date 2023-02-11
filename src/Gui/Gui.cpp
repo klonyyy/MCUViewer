@@ -4,8 +4,7 @@
 #include <SDL_opengl.h>
 #include <unistd.h>
 
-#include <mutex>
-
+#include "ElfReader.hpp"
 #include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -15,23 +14,36 @@
 
 std::mutex mtx;
 
-Gui::Gui()
+Gui::Gui(PlotHandler* plotHandler, std::mutex* mtx) : plotHandler(plotHandler), mtx(mtx)
 {
-	vals = new VarReader();
+	std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
+
+	ElfReader* elf = new ElfReader(file);
+	std::vector<std::string> names({"sinTest", "cosTest", "test.ua", "test.ub"});
+	addresses = elf->getVariableAddressBatch(names);
+	std::cout << "Variables addresses: " << std::endl;
+	for (auto& adr : addresses)
+		std::cout << " - " << unsigned(adr) << std::endl;
+
 	threadHandle = std::thread(&Gui::mainThread, this);
-	dataHandle = std::thread(&Gui::dataHandler, this);
+
+	plotHandler->addPlot("test1");
+	plotHandler->getPlot("test1")->addSeries(std::string("testsin"), addresses[0]);
+	plotHandler->getPlot("test1")->addSeries(std::string("testcos"), addresses[1]);
+
+	plotHandler->addPlot("test2");
+	plotHandler->getPlot("test2")->addSeries(std::string("testsin1"), addresses[2]);
+	plotHandler->getPlot("test2")->addSeries(std::string("testcos2"), addresses[3]);
+
+	plotHandler->addPlot("test3");
+	plotHandler->getPlot("test3")->addSeries(std::string("testsin1"), addresses[0]);
+	plotHandler->getPlot("test3")->addSeries(std::string("testcos2"), addresses[1]);
 }
 
 Gui::~Gui()
 {
 	if (threadHandle.joinable())
 		threadHandle.join();
-	if (dataHandle.joinable())
-		dataHandle.join();
-}
-
-void Gui::begin()
-{
 }
 
 void Gui::mainThread()
@@ -53,7 +65,7 @@ void Gui::mainThread()
 
 	SDL_Window* window;
 
-	window = SDL_CreateWindow("STMViewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 800, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	window = SDL_CreateWindow("STMViewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 1000, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, gl_context);
 	SDL_GL_SetSwapInterval(1);	// Enable vsync
@@ -77,6 +89,8 @@ void Gui::mainThread()
 
 	bool show_demo_window = false;
 	bool p_open = true;
+
+	std::cout << "STARTING IMGUI THREAD" << std::endl;
 
 	while (!done)
 	{
@@ -104,7 +118,7 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		ImGui::Begin("STMViewer", &p_open, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar);
+		ImGui::Begin("STMViewer", &p_open, 0);
 
 		static int clicked = 0;
 		if (ImGui::Button("Button"))
@@ -114,39 +128,23 @@ void Gui::mainThread()
 			if (viewerState == state::STOP)
 			{
 				viewerState = state::RUN;
-				vals->start();
+				plotHandler->setViewerState((PlotHandler::state)state::RUN);
 			}
 			ImGui::SameLine();
 			ImGui::Text("RUN");
 		}
 		else
 		{
-			vals->stop();
+			plotHandler->setViewerState((PlotHandler::state)state::STOP);
 			viewerState = state::STOP;
 			ImGui::SameLine();
 			ImGui::Text("STOP");
 		}
 
-		drawMenu();
+		plotHandler->drawAll();
 
-		static ImPlotAxisFlags flags = 0;
-		mtx.lock();
-		if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 300), ImPlotFlags_NoFrame))
-		{
-			ImPlot::SetupAxes("time[s]", NULL, flags, flags);
-			ImPlot::SetupAxisLimits(ImAxis_X1, t - 10, t, ImPlotCond_Once);
-			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1, ImPlotCond_Once);
-			ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-			ImPlot::PlotLine("Mouse Y", time.getFirstElement(), sdata2.getFirstElement(), sdata2.getSize(), 0, sdata2.getOffset(), sizeof(float));
-			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-			ImPlot::PlotLine("Mouse x", time.getFirstElement(), sdata1.getFirstElement(), sdata1.getSize(), 0, sdata1.getOffset(), sizeof(float));
-			ImPlot::EndPlot();
-		}
-		mtx.unlock();
-
+		// drawMenu();
 		ImGui::End();
-
 		// Rendering
 		ImGui::Render();
 		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -183,26 +181,4 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
-}
-
-void Gui::dataHandler()
-{
-	while (!done)
-	{
-		start = std::chrono::steady_clock::now();
-		std::this_thread::sleep_for(std::chrono::microseconds(1000));
-
-		static float t = 0;
-
-		mtx.lock();
-		sdata1.addPoint(0.5f);
-		sdata2.addPoint(vals->geta());
-		time.addPoint(t);
-		auto finish = std::chrono::steady_clock::now();
-		double elapsed_seconds = std::chrono::duration_cast<
-									 std::chrono::duration<double> >(finish - start)
-									 .count();
-		t += elapsed_seconds;
-		mtx.unlock();
-	}
 }

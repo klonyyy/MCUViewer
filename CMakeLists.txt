@@ -12,7 +12,8 @@ set(MDTOOL_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-Wall
     -Wextra
@@ -27,7 +28,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/VarReader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -52,7 +54,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScrollingBuffer)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScrollingBuffer
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc

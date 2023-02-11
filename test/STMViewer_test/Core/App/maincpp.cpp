@@ -11,6 +11,7 @@
 
 TestClass test;
 volatile float sinTest = 0.0f;
+volatile float cosTest = 0.0f;
 
 void maincpp()
 {
@@ -18,7 +19,8 @@ void maincpp()
 
 	while (1)
 	{
-		sinTest = test.getSin(x);
+		sinTest = 0.01f*test.getSin(x);
+		cosTest = 0.01f*test.getCos(x);
 		x += 0.001f;
 
 		if (x > 6.28f)

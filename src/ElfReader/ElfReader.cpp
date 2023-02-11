@@ -27,27 +27,18 @@ std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string
 
 	std::string out = exec(cmdFull.c_str());
 	std::string delimiter = "= ";
-	uint32_t pos = 0;
-	uint32_t pos2 = 0;
-
-	std::cout << out << std::endl;
+	int32_t pos = 0;
+	int32_t pos2 = 0;
 
 	std::vector<uint32_t> addresses;
 
-	while (out.length() > 0 && (pos = out.find(delimiter)) != std::string::npos)
+	while (out.length() > 0 && (pos = out.find(delimiter)) != -1)
 	{
 		if ((pos2 = out.find('$', 1)) == -1)
-		{
 			pos2 = out.length();
-			std::cout << "testa";
-		}
 		addresses.push_back(atoi((out.substr(pos + delimiter.length(), pos2)).c_str()));
-		std::cout << "pos: " << pos << "    pos2:" << pos2 << std::endl;
-		std::cout << "token" << std::endl;
 		out.erase(0, pos2);
-		std::cout << "out = " << out << std::endl;
 	}
-
 	return addresses;
 }
 

@@ -17,12 +17,14 @@ add_library(GTest::GTest INTERFACE IMPORTED)
 
 include_directories(${EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/src/
-    ${CMAKE_SOURCE_DIR}/src/ElfReader)
+    ${CMAKE_SOURCE_DIR}/src/ElfReader
+    ${CMAKE_SOURCE_DIR}/src/Variable)
 
 target_link_libraries(GTest::GTest INTERFACE gtest_main gmock gmock_main)
 
 add_executable(${EXECUTABLE} main.cpp
     ElfReaderTest.cpp
+    VariableTest.cpp
     ${CMAKE_SOURCE_DIR}/src/ElfReader/ElfReader.cpp)
 
 add_compile_options(-Wall -Wextra -Wpedantic -O3)

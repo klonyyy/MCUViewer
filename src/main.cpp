@@ -1,20 +1,17 @@
 
 #include <stdio.h>
-#include <stlink.h>
-#include <string.h>
 
-#include <iostream>
-#include <vector>
+#include <mutex>
 
-#include "ElfReader.hpp"
 #include "Gui.hpp"
-#include "IElfReader.hpp"
+#include "PlotHandler.hpp"
+
+std::mutex m;
 
 int main(int ac, char** av)
 {
-	Gui gui;
-
-	gui.begin();
+	PlotHandler plotHandler(&m);
+	Gui gui(&plotHandler, &m);
 
 	return 0;
 }

@@ -13,3 +13,9 @@ float TestClass::getSin(float x)
 {
 	return sinf(x);
 }
+
+float TestClass::getCos(float x)
+{
+	return cosf(x);
+}
+
