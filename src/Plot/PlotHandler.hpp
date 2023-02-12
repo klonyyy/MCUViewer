@@ -111,8 +111,13 @@ class PlotHandler
 				for (auto& plot : plotsMap)
 				{
 					std::vector<uint32_t> addresses = plot.second->getVariableAddesses();
+					std::vector<Variable::type> types = plot.second->getVariableTypes();
+					int i = 0;
 					for (auto& adr : addresses)
-						plot.second->addPoint(t, adr, vals->getFloat(adr));
+					{
+						plot.second->addPoint(t, adr, vals->getFloat(adr, types[i++]));
+					}
+
 					plot.second->addTimePoint(t);
 				}
 				mtx.unlock();

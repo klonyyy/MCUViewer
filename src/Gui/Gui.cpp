@@ -17,26 +17,20 @@ Gui::Gui(PlotHandler* plotHandler) : plotHandler(plotHandler)
 	std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
 
 	ElfReader* elf = new ElfReader(file);
-	std::vector<std::string> names({"sinTest", "cosTest", "test.triangle", "test.triangle", "test.a", "test.b", "test.c"});
-	addresses = elf->getVariableAddressBatch(names);
-	std::cout << "Variables addresses: " << std::endl;
-	for (auto& adr : addresses)
-		std::cout << " - " << unsigned(adr) << std::endl;
+	std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
+	std::vector<Variable> vars = elf->getVariableVectorBatch(names);
 
 	threadHandle = std::thread(&Gui::mainThread, this);
 
 	plotHandler->addPlot("test1");
-	plotHandler->getPlot("test1")->addSeries(std::string("testsin"), addresses[0]);
-	plotHandler->getPlot("test1")->addSeries(std::string("testcos"), addresses[1]);
+	plotHandler->getPlot("test1")->addSeries(vars[5]);
+	plotHandler->getPlot("test1")->addSeries(vars[6]);
+	plotHandler->getPlot("test1")->addSeries(vars[7]);
 
 	plotHandler->addPlot("test2");
-	plotHandler->getPlot("test2")->addSeries(std::string("tri"), addresses[2]);
-	plotHandler->getPlot("test2")->addSeries(std::string("triangle"), addresses[3]);
-
-	plotHandler->addPlot("test3");
-	plotHandler->getPlot("test3")->addSeries(std::string("a"), addresses[4]);
-	plotHandler->getPlot("test3")->addSeries(std::string("b"), addresses[5]);
-	plotHandler->getPlot("test3")->addSeries(std::string("c"), addresses[6]);
+	plotHandler->getPlot("test2")->addSeries(vars[0]);
+	plotHandler->getPlot("test2")->addSeries(vars[3]);
+	plotHandler->getPlot("test2")->addSeries(vars[4]);
 }
 
 Gui::~Gui()
@@ -64,7 +58,7 @@ void Gui::mainThread()
 
 	SDL_Window* window;
 
-	window = SDL_CreateWindow("STMViewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 1000, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	window = SDL_CreateWindow("STMViewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1500, 1000, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, gl_context);
 	SDL_GL_SetSwapInterval(1);	// Enable vsync

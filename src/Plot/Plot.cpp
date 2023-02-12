@@ -18,6 +18,18 @@ bool Plot::addSeries(std::string name, uint32_t address)
 	seriesPtr[address] = new Series();
 	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
 	seriesPtr[address]->seriesName = name;
+
+	return true;
+}
+
+bool Plot::addSeries(Variable var)
+{
+	uint32_t address = var.getAddress();
+	seriesPtr[address] = new Series();
+	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
+	seriesPtr[address]->seriesName = var.getName();
+	seriesPtr[address]->type = var.getType();
+
 	return true;
 }
 bool Plot::removeVariable(uint32_t address)
@@ -46,6 +58,16 @@ std::vector<uint32_t> Plot::getVariableAddesses()
 		addresses.push_back(addr.first);
 
 	return addresses;
+}
+
+std::vector<Variable::type> Plot::getVariableTypes()
+{
+	std::vector<Variable::type> types;
+
+	for (auto& entry : seriesPtr)
+		types.push_back(entry.second->type);
+
+	return types;
 }
 
 bool Plot::addPoint(float t, uint32_t address, float value)

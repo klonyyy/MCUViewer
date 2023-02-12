@@ -8,18 +8,22 @@ class Variable
    public:
 	enum class type
 	{
-		U8 = 0,
-		I8 = 1,
-		U16 = 2,
-		I16 = 3,
-		U32 = 4,
-		I32 = 5,
-		F32 = 6
+		UNKNOWN = 0,
+		U8 = 1,
+		I8 = 2,
+		U16 = 3,
+		I16 = 4,
+		U32 = 5,
+		I32 = 6,
+		F32 = 7
+
 	};
 
-	Variable() = default;
+	Variable(std::string name) : name(name)
+	{
+	}
 	template <typename T>
-	Variable(type type_, T value_) : varType(type_)
+	Variable(std::string name, type type_, T value_) : name(name), varType(type_)
 	{
 		setValue<T>(value_);
 	}
@@ -27,7 +31,7 @@ class Variable
 
 	void setType(type varType_)
 	{
-		varType = varType;
+		varType = varType_;
 	}
 
 	type getType()
@@ -47,9 +51,25 @@ class Variable
 		return *(T*)&value;
 	}
 
+	void setAddress(uint32_t addr)
+	{
+		address = addr;
+	}
+	uint32_t getAddress()
+	{
+		return address;
+	}
+
+	std::string getName()
+	{
+		return name;
+	}
+
    private:
+	std::string name;
 	type varType;
 	uint32_t value;
+	uint32_t address;
 };
 
 #endif

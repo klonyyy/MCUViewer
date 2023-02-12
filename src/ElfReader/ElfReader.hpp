@@ -3,6 +3,7 @@
 #define _ELFREADER_HPP
 
 #include "IElfReader.hpp"
+#include "Variable.hpp"
 
 class ElfReader : public IElfReader
 {
@@ -11,8 +12,9 @@ class ElfReader : public IElfReader
 	ElfReader(std::string& filename);
 	~ElfReader() = default;
 
-	uint32_t getVariableAddress(std::string& varName) override;
 	std::vector<uint32_t> getVariableAddressBatch(std::vector<std::string>& varNames);
+	std::vector<Variable> getVariableVectorBatch(std::vector<std::string>& varNames);
+	Variable::type getTypeFromString(std::string strType);
 
    private:
 	std::string elfname;

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <thread>
 
+#include "Variable.hpp"
 #include "stlink.h"
 
 class VarReader
@@ -21,8 +22,7 @@ class VarReader
 	bool stop();
 
 	uint32_t getValue(uint32_t address);
-
-	float getFloat(uint32_t address);
+	float getFloat(uint32_t address, Variable::type type);
 
    private:
 	std::mutex* mtx;
