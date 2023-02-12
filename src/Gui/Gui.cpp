@@ -78,8 +78,6 @@ void Gui::mainThread()
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-	ImGuiStyle& style = ImGui::GetStyle();
-
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
@@ -87,7 +85,7 @@ void Gui::mainThread()
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	bool show_demo_window = false;
+	bool show_demo_window = true;
 	bool p_open = true;
 
 	std::cout << "STARTING IMGUI THREAD" << std::endl;
@@ -120,27 +118,7 @@ void Gui::mainThread()
 
 		ImGui::Begin("STMViewer", &p_open, 0);
 
-		static int clicked = 0;
-		if (ImGui::Button("Button"))
-			clicked++;
-		if (clicked & 1)
-		{
-			if (viewerState == state::STOP)
-			{
-				viewerState = state::RUN;
-				plotHandler->setViewerState((PlotHandler::state)state::RUN);
-			}
-			ImGui::SameLine();
-			ImGui::Text("RUN");
-		}
-		else
-		{
-			plotHandler->setViewerState((PlotHandler::state)state::STOP);
-			viewerState = state::STOP;
-			ImGui::SameLine();
-			ImGui::Text("STOP");
-		}
-
+		drawStartButton();
 		plotHandler->drawAll();
 
 		// drawMenu();
@@ -181,4 +159,39 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
+}
+
+void Gui::drawStartButton()
+{
+	if (viewerState == state::RUN)
+	{
+		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
+		ImGui::PushStyleColor(ImGuiCol_Button, color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+	}
+	else if (viewerState == state::STOP)
+	{
+		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
+		ImGui::PushStyleColor(ImGuiCol_Button, color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+	}
+
+	if (ImGui::Button(viewerStateMap.at(viewerState).c_str()))
+	{
+		if (viewerState == state::STOP)
+		{
+			viewerState = state::RUN;
+			plotHandler->eraseAllPlotData();
+			plotHandler->setViewerState((PlotHandler::state)state::RUN);
+		}
+		else
+		{
+			plotHandler->setViewerState((PlotHandler::state)state::STOP);
+			viewerState = state::STOP;
+		}
+	}
+
+	ImGui::PopStyleColor(3);
 }

@@ -21,6 +21,7 @@ class Gui
 
    private:
 	state viewerState = state::STOP;
+	const std::map<state, std::string> viewerStateMap{{state::RUN, "RUNNING"}, {state::STOP, "STOPPED"}};
 	std::thread threadHandle;
 	std::vector<uint32_t> addresses;
 	PlotHandler* plotHandler;
@@ -29,6 +30,7 @@ class Gui
 	bool done = false;
 	void mainThread();
 	void drawMenu();
+	void drawStartButton();
 };
 
 #endif

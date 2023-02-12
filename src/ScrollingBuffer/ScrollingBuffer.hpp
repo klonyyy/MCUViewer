@@ -1,6 +1,7 @@
 #ifndef __SCROLLINGBUFFER_HPP
 #define __SCROLLINGBUFFER_HPP
 
+#include <mutex>
 #include <vector>
 
 #include "imgui.h"
@@ -18,6 +19,7 @@ class ScrollingBuffer
 
 	void addPoint(T x)
 	{
+		std::lock_guard<std::mutex> lock(mtx);
 		if (data.size() < maxSize)
 			data.push_back(x);
 		else
@@ -29,20 +31,31 @@ class ScrollingBuffer
 
 	int getSize()
 	{
+		std::lock_guard<std::mutex> lock(mtx);
 		return data.size();
 	}
 
 	T* getFirstElement()
 	{
-		return &data[0];
+		std::lock_guard<std::mutex> lock(mtx);
+		return &data.data()[0];
 	}
 
 	int getOffset()
 	{
+		std::lock_guard<std::mutex> lock(mtx);
 		return offset;
 	}
 
+	void erase()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		data.clear();
+		offset = 0;
+	}
+
    private:
+	std::mutex mtx;
 	static const int maxSize = 20000;
 	int offset = 0;
 	std::vector<T> data;

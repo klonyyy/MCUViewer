@@ -33,7 +33,7 @@ class PlotHandler
 
 	bool addPlot(std::string name)
 	{
-		plotsMap[name] = new Plot();
+		plotsMap[name] = new Plot(name);
 		return true;
 	}
 	bool removePlot(std::string name)
@@ -56,6 +56,18 @@ class PlotHandler
 		for (auto& plot : plotsMap)
 			if (plot.second != nullptr)
 				plot.second->draw();
+
+		return false;
+	}
+
+	bool eraseAllPlotData()
+	{
+		if (plotsMap.empty())
+			return false;
+
+		for (auto& plot : plotsMap)
+			if (plot.second != nullptr)
+				plot.second->erase();
 
 		return false;
 	}
@@ -90,7 +102,7 @@ class PlotHandler
 			if (viewerState == state::RUN)
 			{
 				mtx->lock();
-				std::this_thread::sleep_for(std::chrono::microseconds(100));
+				std::this_thread::sleep_for(std::chrono::microseconds(10));
 				auto finish = std::chrono::steady_clock::now();
 				double t = std::chrono::duration_cast<
 							   std::chrono::duration<double> >(finish - start)
@@ -101,6 +113,7 @@ class PlotHandler
 					std::vector<uint32_t> addresses = plot.second->getVariableAddesses();
 					for (auto& adr : addresses)
 						plot.second->addPoint(t, adr, vals->getFloat(adr));
+					plot.second->addTimePoint(t);
 				}
 				mtx->unlock();
 			}
@@ -117,7 +130,6 @@ class PlotHandler
 					vals->stop();
 				stateChangeOrdered = false;
 			}
-			// std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
 	}
 };
