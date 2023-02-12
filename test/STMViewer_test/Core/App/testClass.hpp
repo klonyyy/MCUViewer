@@ -18,8 +18,13 @@ public:
 
 	float getSin(float x);
 	float getCos(float x);
+	void spin();
 
 private:
+	volatile float triangle = 0.0f;
+	volatile float a,b,c;
+	volatile float x;
+	volatile int8_t tri = 0;
 	volatile uint8_t ua = 250;
 	volatile uint16_t ub = 65000;
 	volatile uint32_t uc = 4290000000;

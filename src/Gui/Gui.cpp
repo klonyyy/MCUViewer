@@ -12,14 +12,12 @@
 #include "implot.h"
 #include "iostream"
 
-std::mutex mtx;
-
-Gui::Gui(PlotHandler* plotHandler, std::mutex* mtx) : plotHandler(plotHandler), mtx(mtx)
+Gui::Gui(PlotHandler* plotHandler) : plotHandler(plotHandler)
 {
 	std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
 
 	ElfReader* elf = new ElfReader(file);
-	std::vector<std::string> names({"sinTest", "cosTest", "test.ua", "test.ub"});
+	std::vector<std::string> names({"sinTest", "cosTest", "test.triangle", "test.triangle", "test.a", "test.b", "test.c"});
 	addresses = elf->getVariableAddressBatch(names);
 	std::cout << "Variables addresses: " << std::endl;
 	for (auto& adr : addresses)
@@ -32,12 +30,13 @@ Gui::Gui(PlotHandler* plotHandler, std::mutex* mtx) : plotHandler(plotHandler), 
 	plotHandler->getPlot("test1")->addSeries(std::string("testcos"), addresses[1]);
 
 	plotHandler->addPlot("test2");
-	plotHandler->getPlot("test2")->addSeries(std::string("testsin1"), addresses[2]);
-	plotHandler->getPlot("test2")->addSeries(std::string("testcos2"), addresses[3]);
+	plotHandler->getPlot("test2")->addSeries(std::string("tri"), addresses[2]);
+	plotHandler->getPlot("test2")->addSeries(std::string("triangle"), addresses[3]);
 
 	plotHandler->addPlot("test3");
-	plotHandler->getPlot("test3")->addSeries(std::string("testsin1"), addresses[0]);
-	plotHandler->getPlot("test3")->addSeries(std::string("testcos2"), addresses[1]);
+	plotHandler->getPlot("test3")->addSeries(std::string("a"), addresses[4]);
+	plotHandler->getPlot("test3")->addSeries(std::string("b"), addresses[5]);
+	plotHandler->getPlot("test3")->addSeries(std::string("c"), addresses[6]);
 }
 
 Gui::~Gui()
@@ -120,10 +119,9 @@ void Gui::mainThread()
 
 		drawStartButton();
 		plotHandler->drawAll();
+		drawMenu();
 
-		// drawMenu();
 		ImGui::End();
-		// Rendering
 		ImGui::Render();
 		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
 		glClear(GL_COLOR_BUFFER_BIT);

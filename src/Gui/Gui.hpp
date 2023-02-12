@@ -16,7 +16,7 @@ class Gui
 		RUN = 1,
 	};
 
-	Gui(PlotHandler* plotHandler, std::mutex* mtx);
+	Gui(PlotHandler* plotHandler);
 	~Gui();
 
    private:
@@ -25,7 +25,7 @@ class Gui
 	std::thread threadHandle;
 	std::vector<uint32_t> addresses;
 	PlotHandler* plotHandler;
-	std::mutex* mtx;
+	std::mutex mtx;
 
 	bool done = false;
 	void mainThread();

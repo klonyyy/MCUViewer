@@ -19,7 +19,7 @@ class PlotHandler
 		RUN = 1,
 	};
 
-	PlotHandler(std::mutex* mtx) : mtx(mtx)
+	PlotHandler()
 	{
 		dataHandle = std::thread(&PlotHandler::dataHandler, this);
 		vals = new VarReader();
@@ -88,7 +88,7 @@ class PlotHandler
 	std::map<std::string, Plot*>::iterator it;
 	std::map<std::string, Plot*> plotsMap;
 
-	std::mutex* mtx;
+	std::mutex mtx;
 	std::thread dataHandle;
 
 	bool stateChangeOrdered = false;
@@ -101,7 +101,7 @@ class PlotHandler
 		{
 			if (viewerState == state::RUN)
 			{
-				mtx->lock();
+				mtx.lock();
 				std::this_thread::sleep_for(std::chrono::microseconds(10));
 				auto finish = std::chrono::steady_clock::now();
 				double t = std::chrono::duration_cast<
@@ -115,7 +115,7 @@ class PlotHandler
 						plot.second->addPoint(t, adr, vals->getFloat(adr));
 					plot.second->addTimePoint(t);
 				}
-				mtx->unlock();
+				mtx.unlock();
 			}
 			if (stateChangeOrdered)
 			{

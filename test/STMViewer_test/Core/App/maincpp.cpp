@@ -31,6 +31,8 @@ void maincpp()
 		else
 			LED_G_OFF;
 
+		test.spin();
+
 		for(volatile uint32_t l=0;l<0xfff;l++)
 		{
 			__asm__ __volatile__("nop");
