@@ -22,8 +22,8 @@ class Gui
    private:
 	state viewerState = state::STOP;
 	const std::map<state, std::string> viewerStateMap{{state::RUN, "RUNNING"}, {state::STOP, "STOPPED"}};
+	std::vector<Variable> vars;
 	std::thread threadHandle;
-	std::vector<uint32_t> addresses;
 	PlotHandler* plotHandler;
 	std::mutex mtx;
 
@@ -31,6 +31,8 @@ class Gui
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();
+	void drawAddVariableButton();
+	void drawVarTable();
 };
 
 #endif

@@ -94,6 +94,16 @@ void Plot::draw()
 		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 		ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 
+		if (ImPlot::BeginDragDropTargetAxis(ImAxis_X1))
+		{
+			// if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+			// {
+			// 	int i = *(int*)payload->Data;
+			// 	dndx = &dnd[i];
+			// }
+			ImPlot::EndDragDropTarget();
+		}
+
 		for (auto& ser : seriesPtr)
 		{
 			ImPlot::PlotLine(ser.second->seriesName.c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));

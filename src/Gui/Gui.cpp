@@ -12,13 +12,56 @@
 #include "implot.h"
 #include "iostream"
 
+struct InputTextCallback_UserData
+{
+	std::string* Str;
+	ImGuiInputTextCallback ChainCallback;
+	void* ChainCallbackUserData;
+};
+
+static int InputTextCallback(ImGuiInputTextCallbackData* data)
+{
+	InputTextCallback_UserData* user_data = (InputTextCallback_UserData*)data->UserData;
+	if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+	{
+		// Resize string callback
+		// If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
+		std::string* str = user_data->Str;
+		IM_ASSERT(data->Buf == str->c_str());
+		str->resize(data->BufTextLen);
+		data->Buf = (char*)str->c_str();
+	}
+	else if (user_data->ChainCallback)
+	{
+		// Forward to user callback, if any
+		data->UserData = user_data->ChainCallbackUserData;
+		return user_data->ChainCallback(data);
+	}
+	return 0;
+}
+namespace ImGui
+{
+bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data);
+}
+bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+{
+	IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+	flags |= ImGuiInputTextFlags_CallbackResize;
+
+	InputTextCallback_UserData cb_user_data;
+	cb_user_data.Str = str;
+	cb_user_data.ChainCallback = callback;
+	cb_user_data.ChainCallbackUserData = user_data;
+	return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+}
+
 Gui::Gui(PlotHandler* plotHandler) : plotHandler(plotHandler)
 {
 	std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
 
 	ElfReader* elf = new ElfReader(file);
 	std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
-	std::vector<Variable> vars = elf->getVariableVectorBatch(names);
+	vars = elf->getVariableVectorBatch(names);
 
 	threadHandle = std::thread(&Gui::mainThread, this);
 
@@ -81,8 +124,6 @@ void Gui::mainThread()
 	bool show_demo_window = true;
 	bool p_open = true;
 
-	std::cout << "STARTING IMGUI THREAD" << std::endl;
-
 	while (!done)
 	{
 		// Poll and handle events (inputs, window resize, etc.)
@@ -109,13 +150,17 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		ImGui::Begin("STMViewer", &p_open, 0);
-
+		ImGui::Begin("Plots", &p_open, 0);
 		drawStartButton();
 		plotHandler->drawAll();
 		drawMenu();
-
 		ImGui::End();
+
+		ImGui::Begin("VarViewer", &p_open, 0);
+		drawAddVariableButton();
+		drawVarTable();
+		ImGui::End();
+
 		ImGui::Render();
 		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -186,4 +231,51 @@ void Gui::drawStartButton()
 	}
 
 	ImGui::PopStyleColor(3);
+}
+void Gui::drawAddVariableButton()
+{
+	static int clicked = 0;
+	if (ImGui::Button("Add variable"))
+	{
+		Variable* newVar = new Variable("new");
+		newVar->setAddress(0x2000000);
+		newVar->setType(Variable::type::U8);
+		vars.push_back(*newVar);
+	}
+}
+
+void Gui::drawVarTable()
+{
+	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+
+	ImVec2 outer_size = ImVec2(0.0f, 300);
+	if (ImGui::BeginTable("table_scrolly", 3, flags, outer_size))
+	{
+		ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
+		ImGui::TableHeadersRow();
+
+		// Demonstrate using clipper for large vertical lists
+		ImGuiListClipper clipper;
+		clipper.Begin(vars.size());
+		while (clipper.Step())
+		{
+			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::PushID(row);
+				ImGui::InputText("##edit", &vars[row].getName(), 0, NULL, NULL);
+				ImGui::PopID();
+
+				ImGui::TableSetColumnIndex(1);
+				ImGui::Text(std::to_string(vars[row].getAddress()).c_str());
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(std::to_string((uint8_t)vars[row].getType()).c_str());
+			}
+		}
+		ImGui::EndTable();
+	}
 }

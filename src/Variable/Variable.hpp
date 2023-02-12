@@ -60,7 +60,7 @@ class Variable
 		return address;
 	}
 
-	std::string getName()
+	std::string& getName()
 	{
 		return name;
 	}
