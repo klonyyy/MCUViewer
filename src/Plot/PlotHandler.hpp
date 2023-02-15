@@ -33,19 +33,25 @@ class PlotHandler
 
 	bool addPlot(std::string name)
 	{
-		plotsMap[name] = new Plot(name);
+		uint32_t newId = plotsMap.size();
+		plotsMap[newId] = new Plot(name);
 		return true;
 	}
-	bool removePlot(std::string name)
+	bool removePlot(uint32_t id)
 	{
-		delete plotsMap[name];
-		plotsMap.erase(name);
+		delete plotsMap[id];
+		plotsMap.erase(id);
 		return true;
 	}
 
-	Plot* getPlot(std::string name)
+	Plot* getPlot(uint32_t id)
 	{
-		return plotsMap[name];
+		return plotsMap[id];
+	}
+
+	uint32_t getPlotsCount()
+	{
+		return plotsMap.size();
 	}
 
 	bool drawAll()
@@ -85,8 +91,7 @@ class PlotHandler
 	state viewerStateTemp = state::STOP;
 	VarReader* vals;
 
-	std::map<std::string, Plot*>::iterator it;
-	std::map<std::string, Plot*> plotsMap;
+	std::map<uint32_t, Plot*> plotsMap;
 
 	std::mutex mtx;
 	std::thread dataHandle;

@@ -4,13 +4,15 @@
 #include <SDL_opengl.h>
 #include <unistd.h>
 
+#include <iostream>
+#include <sstream>
+
 #include "ElfReader.hpp"
 #include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
 #include "implot.h"
-#include "iostream"
 
 struct InputTextCallback_UserData
 {
@@ -62,18 +64,19 @@ Gui::Gui(PlotHandler* plotHandler) : plotHandler(plotHandler)
 	ElfReader* elf = new ElfReader(file);
 	std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
 	vars = elf->getVariableVectorBatch(names);
-
+	/* TODO reserve is not the best solution! */
+	vars.reserve(200);
 	threadHandle = std::thread(&Gui::mainThread, this);
 
 	plotHandler->addPlot("test1");
-	plotHandler->getPlot("test1")->addSeries(vars[5]);
-	plotHandler->getPlot("test1")->addSeries(vars[6]);
-	plotHandler->getPlot("test1")->addSeries(vars[7]);
+	plotHandler->getPlot(0)->addSeries(vars[5]);
+	plotHandler->getPlot(0)->addSeries(vars[6]);
+	plotHandler->getPlot(0)->addSeries(vars[7]);
 
 	plotHandler->addPlot("test2");
-	plotHandler->getPlot("test2")->addSeries(vars[0]);
-	plotHandler->getPlot("test2")->addSeries(vars[3]);
-	plotHandler->getPlot("test2")->addSeries(vars[4]);
+	plotHandler->getPlot(1)->addSeries(vars[0]);
+	plotHandler->getPlot(1)->addSeries(vars[3]);
+	plotHandler->getPlot(1)->addSeries(vars[4]);
 }
 
 Gui::~Gui()
@@ -151,14 +154,17 @@ void Gui::mainThread()
 			ImPlot::ShowDemoWindow();
 
 		ImGui::Begin("Plots", &p_open, 0);
-		drawStartButton();
+
 		plotHandler->drawAll();
 		drawMenu();
 		ImGui::End();
 
 		ImGui::Begin("VarViewer", &p_open, 0);
+		drawStartButton();
+		ImGui::SameLine();
 		drawAddVariableButton();
 		drawVarTable();
+		drawPlotsTree();
 		ImGui::End();
 
 		ImGui::Render();
@@ -215,7 +221,7 @@ void Gui::drawStartButton()
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button(viewerStateMap.at(viewerState).c_str()))
+	if (ImGui::Button(viewerStateMap.at(viewerState).c_str(), ImVec2(200, 50)))
 	{
 		if (viewerState == state::STOP)
 		{
@@ -234,11 +240,10 @@ void Gui::drawStartButton()
 }
 void Gui::drawAddVariableButton()
 {
-	static int clicked = 0;
 	if (ImGui::Button("Add variable"))
 	{
 		Variable* newVar = new Variable("new");
-		newVar->setAddress(0x2000000);
+		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
 		vars.push_back(*newVar);
 	}
@@ -269,13 +274,41 @@ void Gui::drawVarTable()
 				ImGui::PushID(row);
 				ImGui::InputText("##edit", &vars[row].getName(), 0, NULL, NULL);
 				ImGui::PopID();
-
 				ImGui::TableSetColumnIndex(1);
-				ImGui::Text(std::to_string(vars[row].getAddress()).c_str());
+				ImGui::Text(("0x" + intToHexString(vars[row].getAddress())).c_str());
 				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(std::to_string((uint8_t)vars[row].getType()).c_str());
+				ImGui::Text(vars[row].getTypeStr().c_str());
 			}
 		}
 		ImGui::EndTable();
 	}
+}
+
+void Gui::drawPlotsTree()
+{
+	if (ImGui::TreeNode("Plots"))
+	{
+		for (int i = 0; i < plotHandler->getPlotsCount(); i++)
+		{
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+			if (ImGui::TreeNode((void*)(intptr_t)i, (plotHandler->getPlot(i)->getName()).c_str(), i))
+			{
+				ImGui::Text("blah blah");
+				ImGui::SameLine();
+				if (ImGui::SmallButton("button"))
+				{
+				}
+				ImGui::TreePop();
+			}
+		}
+		ImGui::TreePop();
+	}
+}
+
+std::string Gui::intToHexString(uint32_t var)
+{
+	std::stringstream ss;
+	ss << std::hex << var;
+	return ss.str();
 }

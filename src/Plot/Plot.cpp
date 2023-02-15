@@ -13,7 +13,13 @@ Plot::~Plot()
 {
 	removeAllVariables();
 }
-bool Plot::addSeries(std::string name, uint32_t address)
+
+std::string Plot::getName()
+{
+	return name;
+}
+
+bool Plot::addSeries(std::string* name, uint32_t address)
 {
 	seriesPtr[address] = new Series();
 	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
@@ -22,16 +28,22 @@ bool Plot::addSeries(std::string name, uint32_t address)
 	return true;
 }
 
-bool Plot::addSeries(Variable var)
+bool Plot::addSeries(Variable& var)
 {
 	uint32_t address = var.getAddress();
 	seriesPtr[address] = new Series();
 	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
-	seriesPtr[address]->seriesName = var.getName();
+	seriesPtr[address]->seriesName = &var.getName();
 	seriesPtr[address]->type = var.getType();
 
 	return true;
 }
+
+Plot::Series& Plot::getSeries(uint32_t address)
+{
+	return *seriesPtr[address];
+}
+
 bool Plot::removeVariable(uint32_t address)
 {
 	delete seriesPtr[address]->buffer;
@@ -106,9 +118,10 @@ void Plot::draw()
 
 		for (auto& ser : seriesPtr)
 		{
-			ImPlot::PlotLine(ser.second->seriesName.c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
+			ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 		}
+		mtx.unlock();
 
 		ImPlot::EndPlot();
 	}

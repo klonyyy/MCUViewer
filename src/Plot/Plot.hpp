@@ -13,14 +13,16 @@ class Plot
 	struct Series
 	{
 		Variable::type type;
-		std::string seriesName;
+		std::string* seriesName;
 		ScrollingBuffer<float>* buffer;
 	};
 
 	Plot(std::string name);
 	~Plot();
-	bool addSeries(std::string name, uint32_t address);
-	bool addSeries(Variable var);
+	std::string getName();
+	bool addSeries(std::string* name, uint32_t address);
+	bool addSeries(Variable& var);
+	Series& getSeries(uint32_t address);
 	bool removeVariable(uint32_t address);
 	bool removeAllVariables();
 	std::vector<uint32_t> getVariableAddesses();

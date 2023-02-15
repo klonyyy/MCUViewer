@@ -39,6 +39,11 @@ class Variable
 		return varType;
 	}
 
+	std::string getTypeStr()
+	{
+		return std::string(types[static_cast<uint8_t>(varType)]);
+	}
+
 	template <typename T>
 	void setValue(T val)
 	{
@@ -65,11 +70,24 @@ class Variable
 		return name;
 	}
 
+	void setName(std::string name_)
+	{
+		name = name_;
+	}
+
    private:
 	std::string name;
 	type varType;
 	uint32_t value;
 	uint32_t address;
+	const char* types[8] = {"UNKNOWN",
+							"U8",
+							"I8",
+							"U16",
+							"I16",
+							"U32",
+							"I32",
+							"F32"};
 };
 
 #endif

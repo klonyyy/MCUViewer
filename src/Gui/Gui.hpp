@@ -33,6 +33,8 @@ class Gui
 	void drawStartButton();
 	void drawAddVariableButton();
 	void drawVarTable();
+	void drawPlotsTree();
+	std::string intToHexString(uint32_t i);
 };
 
 #endif
