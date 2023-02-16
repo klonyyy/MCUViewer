@@ -4,6 +4,7 @@
 #include <mutex>
 #include <thread>
 
+#include "ConfigHandler.hpp"
 #include "PlotHandler.hpp"
 #include "imgui.h"
 
@@ -16,7 +17,7 @@ class Gui
 		RUN = 1,
 	};
 
-	Gui(PlotHandler* plotHandler);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler);
 	~Gui();
 
    private:
@@ -25,6 +26,7 @@ class Gui
 	std::vector<Variable> vars;
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
+	ConfigHandler* configHandler;
 	std::mutex mtx;
 
 	bool done = false;

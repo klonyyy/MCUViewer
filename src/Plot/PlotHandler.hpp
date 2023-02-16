@@ -31,11 +31,11 @@ class PlotHandler
 		delete vals;
 	}
 
-	bool addPlot(std::string name)
+	uint32_t addPlot(std::string name)
 	{
 		uint32_t newId = plotsMap.size();
 		plotsMap[newId] = new Plot(name);
-		return true;
+		return newId;
 	}
 	bool removePlot(uint32_t id)
 	{

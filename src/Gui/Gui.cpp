@@ -57,26 +57,28 @@ bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags f
 	return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
 }
 
-Gui::Gui(PlotHandler* plotHandler) : plotHandler(plotHandler)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler) : plotHandler(plotHandler), configHandler(configHandler)
 {
 	std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
 
-	ElfReader* elf = new ElfReader(file);
-	std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
-	vars = elf->getVariableVectorBatch(names);
+	// ElfReader* elf = new ElfReader(file);
+	// std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
+	// vars = elf->getVariableVectorBatch(names);
 	/* TODO reserve is not the best solution! */
 	vars.reserve(200);
 	threadHandle = std::thread(&Gui::mainThread, this);
 
-	plotHandler->addPlot("test1");
-	plotHandler->getPlot(0)->addSeries(vars[5]);
-	plotHandler->getPlot(0)->addSeries(vars[6]);
-	plotHandler->getPlot(0)->addSeries(vars[7]);
+	configHandler->readConfigFile(vars);
 
-	plotHandler->addPlot("test2");
-	plotHandler->getPlot(1)->addSeries(vars[0]);
-	plotHandler->getPlot(1)->addSeries(vars[3]);
-	plotHandler->getPlot(1)->addSeries(vars[4]);
+	// plotHandler->addPlot("test1");
+	// plotHandler->getPlot(0)->addSeries(vars[5]);
+	// plotHandler->getPlot(0)->addSeries(vars[6]);
+	// plotHandler->getPlot(0)->addSeries(vars[7]);
+
+	// plotHandler->addPlot("test2");
+	// plotHandler->getPlot(1)->addSeries(vars[0]);
+	// plotHandler->getPlot(1)->addSeries(vars[3]);
+	// plotHandler->getPlot(1)->addSeries(vars[4]);
 }
 
 Gui::~Gui()
