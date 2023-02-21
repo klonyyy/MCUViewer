@@ -29,6 +29,8 @@ class Gui
 	ConfigHandler* configHandler;
 	std::mutex mtx;
 	std::string projectConfigFile;
+	std::string projectElfFile;
+	bool showAcqusitionSettingsWindow = false;
 
 	bool done = false;
 	void mainThread();
@@ -37,6 +39,7 @@ class Gui
 	void drawAddVariableButton();
 	void drawVarTable();
 	void drawPlotsTree();
+	void drawAcqusitionSettingsWindow();
 	std::string intToHexString(uint32_t i);
 };
 

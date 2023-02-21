@@ -24,6 +24,10 @@ class ConfigHandler
 		file = std::make_unique<mINI::INIFile>(configFilePath);
 		return true;
 	}
+	std::string getElfFilePath()
+	{
+		return std::string(ini->get("elf").get("file_path"));
+	}
 
 	bool readConfigFile(std::vector<Variable>& vars)
 	{

@@ -147,7 +147,8 @@ void Gui::mainThread()
 			ImPlot::ShowDemoWindow();
 
 		ImGui::Begin("Plots", &p_open, 0);
-
+		if (showAcqusitionSettingsWindow)
+			drawAcqusitionSettingsWindow();
 		plotHandler->drawAll();
 		drawMenu();
 		ImGui::End();
@@ -206,6 +207,7 @@ void Gui::drawMenu()
 				configHandler->changeConfigFile(std::string(outPath));
 				vars.clear();
 				plotHandler->removeAllPlots();
+				projectElfFile = configHandler->getElfFilePath();
 				configHandler->readConfigFile(vars);
 				std::cout << outPath << std::endl;
 				NFD_FreePath(outPath);
@@ -239,6 +241,11 @@ void Gui::drawMenu()
 		{
 			done = true;
 		}
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Options"))
+	{
+		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -344,6 +351,33 @@ void Gui::drawPlotsTree()
 		}
 		ImGui::TreePop();
 	}
+}
+
+void Gui::drawAcqusitionSettingsWindow()
+{
+	ImGui::Begin("Acqusition Settings", &showAcqusitionSettingsWindow, 0);
+	ImGui::Text("Please pick *.elf file");
+	ImGui::InputText("##", &projectElfFile, 0, NULL, NULL);
+	ImGui::SameLine();
+	if (ImGui::SmallButton("..."))
+	{
+		nfdchar_t* outPath;
+		nfdfilteritem_t filterItem[1] = {{"Executable files", "elf"}};
+		nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+		if (result == NFD_OKAY)
+		{
+			std::cout << outPath << std::endl;
+			projectElfFile = std::string(outPath);
+			NFD_FreePath(outPath);
+		}
+		else if (result == NFD_ERROR)
+		{
+			std::cout << "Error: %s\n"
+					  << NFD_GetError() << std::endl;
+		}
+	}
+
+	ImGui::End();
 }
 
 std::string Gui::intToHexString(uint32_t var)
