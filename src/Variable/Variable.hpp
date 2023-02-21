@@ -19,61 +19,24 @@ class Variable
 
 	};
 
-	Variable(std::string name) : name(name)
-	{
-	}
+	Variable(std::string name);
 	template <typename T>
-	Variable(std::string name, type type_, T value_) : name(name), varType(type_)
-	{
-		setValue<T>(value_);
-	}
+	Variable(std::string name, type type_, T value_);
 	~Variable() = default;
 
-	void setType(type varType_)
-	{
-		varType = varType_;
-	}
-
-	type getType()
-	{
-		return varType;
-	}
-
-	std::string getTypeStr()
-	{
-		return std::string(types[static_cast<uint8_t>(varType)]);
-	}
+	void setType(type varType_);
+	type getType();
+	std::string getTypeStr();
 
 	template <typename T>
-	void setValue(T val)
-	{
-		value = *(uint32_t*)&val;
-	}
-
+	void setValue(T val);
 	template <typename T>
-	T getValue()
-	{
-		return *(T*)&value;
-	}
+	T getValue();
 
-	void setAddress(uint32_t addr)
-	{
-		address = addr;
-	}
-	uint32_t getAddress()
-	{
-		return address;
-	}
-
-	std::string& getName()
-	{
-		return name;
-	}
-
-	void setName(std::string name_)
-	{
-		name = name_;
-	}
+	void setAddress(uint32_t addr);
+	uint32_t getAddress();
+	std::string& getName();
+	void setName(std::string name_);
 
    private:
 	std::string name;

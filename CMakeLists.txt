@@ -30,7 +30,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/VarReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/PlotHandler.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
