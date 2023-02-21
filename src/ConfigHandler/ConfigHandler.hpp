@@ -10,12 +10,20 @@
 class ConfigHandler
 {
    public:
-	ConfigHandler(std::string configFilePath, PlotHandler* plotHandler) : plotHandler(plotHandler)
+	ConfigHandler(std::string configFilePath, PlotHandler* plotHandler) : configFilePath(configFilePath), plotHandler(plotHandler)
 	{
-		file = new mINI::INIFile(configFilePath);
-		ini = new mINI::INIStructure();
+		ini = std::make_unique<mINI::INIStructure>();
+		file = std::make_unique<mINI::INIFile>(configFilePath);
 	}
 	~ConfigHandler() = default;
+
+	bool changeConfigFile(std::string newConfigFilePath)
+	{
+		configFilePath = newConfigFilePath;
+		file.reset();
+		file = std::make_unique<mINI::INIFile>(configFilePath);
+		return true;
+	}
 
 	bool readConfigFile(std::vector<Variable>& vars)
 	{
@@ -74,10 +82,11 @@ class ConfigHandler
 	}
 
    private:
-	PlotHandler* plotHandler;
 	std::string configFilePath;
-	mINI::INIFile* file;
-	mINI::INIStructure* ini;
+	PlotHandler* plotHandler;
+
+	std::unique_ptr<mINI::INIFile> file;
+	std::unique_ptr<mINI::INIStructure> ini;
 };
 
 #endif

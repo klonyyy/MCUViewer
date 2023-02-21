@@ -44,6 +44,13 @@ class PlotHandler
 		return true;
 	}
 
+	bool removeAllPlots()
+	{
+		for (auto& plot : plotsMap)
+			removePlot(plot.first);
+		return true;
+	}
+
 	Plot* getPlot(uint32_t id)
 	{
 		return plotsMap[id];

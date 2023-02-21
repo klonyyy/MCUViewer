@@ -1,0 +1,24 @@
+version: 2.1
+
+jobs:
+  build:
+    macos:
+      xcode: 13.3
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            brew install cmake
+      - run: 
+          name: Configure
+          command: mkdir build && mkdir install && cd build && cmake -DCMAKE_INSTALL_PREFIX="../install" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra -Werror -pedantic" -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -pedantic" -DNFD_BUILD_TESTS=ON ..
+      - run:
+          name: Build
+          command: cmake --build build --target install
+
+workflows:
+  main: 
+    jobs:
+      - build:
+          name: MacOS 12 - Clang

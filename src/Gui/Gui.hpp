@@ -28,6 +28,7 @@ class Gui
 	PlotHandler* plotHandler;
 	ConfigHandler* configHandler;
 	std::mutex mtx;
+	std::string projectConfigFile;
 
 	bool done = false;
 	void mainThread();

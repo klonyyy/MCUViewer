@@ -46,6 +46,8 @@ set(IMPLOT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_items.cpp)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
+
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES})
@@ -66,6 +68,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
     ${SDL2_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
 
-target_link_libraries(${EXECUTABLE} pthread GL dl SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.a ${LIBUSB_LIBRARY})
+target_link_libraries(${EXECUTABLE} pthread dl GL SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.a ${LIBUSB_LIBRARY} nfd)

@@ -13,6 +13,7 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
 #include "implot.h"
+#include "nfd.h"
 
 struct InputTextCallback_UserData
 {
@@ -59,7 +60,7 @@ bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags f
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler) : plotHandler(plotHandler), configHandler(configHandler)
 {
-	std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
+	// std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
 
 	// ElfReader* elf = new ElfReader(file);
 	// std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
@@ -67,18 +68,6 @@ Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler) : plotHandler(p
 	/* TODO reserve is not the best solution! */
 	vars.reserve(200);
 	threadHandle = std::thread(&Gui::mainThread, this);
-
-	configHandler->readConfigFile(vars);
-
-	// plotHandler->addPlot("test1");
-	// plotHandler->getPlot(0)->addSeries(vars[5]);
-	// plotHandler->getPlot(0)->addSeries(vars[6]);
-	// plotHandler->getPlot(0)->addSeries(vars[7]);
-
-	// plotHandler->addPlot("test2");
-	// plotHandler->getPlot(1)->addSeries(vars[0]);
-	// plotHandler->getPlot(1)->addSeries(vars[3]);
-	// plotHandler->getPlot(1)->addSeries(vars[4]);
 }
 
 Gui::~Gui()
@@ -89,7 +78,7 @@ Gui::~Gui()
 
 void Gui::mainThread()
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0)
 	{
 		printf("Error: %s\n", SDL_GetError());
 		return;
@@ -125,6 +114,8 @@ void Gui::mainThread()
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init(glsl_version);
+
+	NFD_Init();
 
 	bool show_demo_window = true;
 	bool p_open = true;
@@ -192,6 +183,7 @@ void Gui::mainThread()
 
 	SDL_GL_DeleteContext(gl_context);
 	SDL_DestroyWindow(window);
+	NFD_Quit();
 	SDL_Quit();
 }
 
@@ -201,6 +193,52 @@ void Gui::drawMenu()
 
 	if (ImGui::BeginMenu("File"))
 	{
+		if (ImGui::MenuItem("New"))
+		{
+		}
+		if (ImGui::MenuItem("Open", "Ctrl+O"))
+		{
+			nfdchar_t* outPath;
+			nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
+			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+			if (result == NFD_OKAY)
+			{
+				configHandler->changeConfigFile(std::string(outPath));
+				vars.clear();
+				plotHandler->removeAllPlots();
+				configHandler->readConfigFile(vars);
+				std::cout << outPath << std::endl;
+				NFD_FreePath(outPath);
+			}
+			else if (result == NFD_ERROR)
+			{
+				std::cout << "Error: %s\n"
+						  << NFD_GetError() << std::endl;
+			}
+		}
+		if (ImGui::BeginMenu("Open Recent"))
+		{
+			ImGui::MenuItem("fish_hat.c");
+			ImGui::MenuItem("fish_hat.inl");
+			ImGui::MenuItem("fish_hat.h");
+			if (ImGui::BeginMenu("More.."))
+			{
+				ImGui::MenuItem("Hello");
+				ImGui::MenuItem("Sailor");
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::MenuItem("Save", "Ctrl+S"))
+		{
+		}
+		if (ImGui::MenuItem("Save As.."))
+		{
+		}
+		if (ImGui::MenuItem("Quit"))
+		{
+			done = true;
+		}
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -277,7 +315,7 @@ void Gui::drawVarTable()
 				ImGui::InputText("##edit", &vars[row].getName(), 0, NULL, NULL);
 				ImGui::PopID();
 				ImGui::TableSetColumnIndex(1);
-				ImGui::Text(("0x" + intToHexString(vars[row].getAddress())).c_str());
+				ImGui::Text(("0x" + std::string(intToHexString(vars[row].getAddress()))).c_str());
 				ImGui::TableSetColumnIndex(2);
 				ImGui::Text(vars[row].getTypeStr().c_str());
 			}
@@ -290,7 +328,7 @@ void Gui::drawPlotsTree()
 {
 	if (ImGui::TreeNode("Plots"))
 	{
-		for (int i = 0; i < plotHandler->getPlotsCount(); i++)
+		for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
 		{
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 

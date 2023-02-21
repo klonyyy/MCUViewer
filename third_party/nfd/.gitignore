@@ -1,0 +1,7 @@
+# VS CMake default output
+/.vs/
+/out/
+/CMakeSettings.json
+
+# Mac OS X rubbish
+.DS_Store
