@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "ElfReader.hpp"
+#include "ImguiPlugins.hpp"
 #include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -149,7 +150,13 @@ void Gui::mainThread()
 		ImGui::Begin("Plots", &p_open, 0);
 		if (showAcqusitionSettingsWindow)
 			drawAcqusitionSettingsWindow();
-		plotHandler->drawAll();
+
+		for (int k = 0; k < plotHandler->getPlotsCount(); k++)
+		{
+			Plot* plt = plotHandler->getPlot(k);
+			drawPlot(plt, plt->getTimeSeries(), plt->getSeriesMap());
+		}
+
 		drawMenu();
 		ImGui::End();
 
@@ -319,7 +326,19 @@ void Gui::drawVarTable()
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
 				ImGui::PushID(row);
-				ImGui::InputText("##edit", &vars[row].getName(), 0, NULL, NULL);
+				ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
+				ImPlot::ItemIcon(color);
+				ImGui::SameLine();
+				const char* test = vars[row].getName().c_str();
+				ImGui::SelectableInput("test", false, ImGuiSelectableFlags_None, vars[row].getName().data(), 20);
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+				{
+					ImGui::SetDragDropPayload("MY_DND", &row, sizeof(int));
+					ImPlot::ItemIcon(0xaabbcc);
+					ImGui::SameLine();
+					ImGui::TextUnformatted(test);
+					ImGui::EndDragDropSource();
+				}
 				ImGui::PopID();
 				ImGui::TableSetColumnIndex(1);
 				ImGui::Text(("0x" + std::string(intToHexString(vars[row].getAddress()))).c_str());
@@ -378,6 +397,34 @@ void Gui::drawAcqusitionSettingsWindow()
 	}
 
 	ImGui::End();
+}
+
+void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, Plot::Series*>& seriesPtr)
+{
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
+	{
+		ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+		ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
+		ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
+		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+		ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+
+		if (ImPlot::BeginDragDropTargetPlot())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+				plot->addSeries(vars[*(int*)payload->Data]);
+
+			ImPlot::EndDragDropTarget();
+		}
+
+		for (auto& ser : seriesPtr)
+		{
+			ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+		}
+
+		ImPlot::EndPlot();
+	}
 }
 
 std::string Gui::intToHexString(uint32_t var)

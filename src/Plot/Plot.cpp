@@ -14,7 +14,7 @@ Plot::~Plot()
 	removeAllVariables();
 }
 
-std::string Plot::getName()
+std::string Plot::getName() const
 {
 	return name;
 }
@@ -42,6 +42,16 @@ bool Plot::addSeries(Variable& var)
 Plot::Series& Plot::getSeries(uint32_t address)
 {
 	return *seriesPtr[address];
+}
+
+std::map<uint32_t, Plot::Series*>& Plot::getSeriesMap()
+{
+	return seriesPtr;
+}
+
+ScrollingBuffer<float>& Plot::getTimeSeries()
+{
+	return time;
 }
 
 bool Plot::removeVariable(uint32_t address)
@@ -94,37 +104,6 @@ bool Plot::addTimePoint(float t)
 {
 	time.addPoint(t);
 	return true;
-}
-
-void Plot::draw()
-{
-	if (ImPlot::BeginPlot(name.c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
-	{
-		ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-		ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-		ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
-		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-		ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-
-		if (ImPlot::BeginDragDropTargetAxis(ImAxis_X1))
-		{
-			// if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-			// {
-			// 	int i = *(int*)payload->Data;
-			// 	dndx = &dnd[i];
-			// }
-			ImPlot::EndDragDropTarget();
-		}
-
-		for (auto& ser : seriesPtr)
-		{
-			ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
-			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-		}
-		mtx.unlock();
-
-		ImPlot::EndPlot();
-	}
 }
 
 void Plot::erase()

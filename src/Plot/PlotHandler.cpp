@@ -42,18 +42,6 @@ uint32_t PlotHandler::getPlotsCount()
 	return plotsMap.size();
 }
 
-bool PlotHandler::drawAll()
-{
-	if (plotsMap.empty())
-		return false;
-
-	for (auto& plot : plotsMap)
-		if (plot.second != nullptr)
-			plot.second->draw();
-
-	return false;
-}
-
 bool PlotHandler::eraseAllPlotData()
 {
 	if (plotsMap.empty())
@@ -63,7 +51,7 @@ bool PlotHandler::eraseAllPlotData()
 		if (plot.second != nullptr)
 			plot.second->erase();
 
-	return false;
+	return true;
 }
 
 void PlotHandler::setViewerState(state state)

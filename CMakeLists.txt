@@ -60,7 +60,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScrollingBuffer
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc

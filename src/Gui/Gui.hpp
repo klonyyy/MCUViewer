@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "ConfigHandler.hpp"
+#include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "imgui.h"
 
@@ -40,6 +41,7 @@ class Gui
 	void drawVarTable();
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
+	void drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, Plot::Series*>& seriesPtr);
 	std::string intToHexString(uint32_t i);
 };
 

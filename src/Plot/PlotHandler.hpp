@@ -27,7 +27,6 @@ class PlotHandler
 	bool removeAllPlots();
 	Plot* getPlot(uint32_t id);
 	uint32_t getPlotsCount();
-	bool drawAll();
 	bool eraseAllPlotData();
 	void setViewerState(state state);
 

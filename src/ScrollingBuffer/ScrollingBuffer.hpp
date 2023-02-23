@@ -35,7 +35,7 @@ class ScrollingBuffer
 		return data.size();
 	}
 
-	T* getFirstElement()
+	T* getFirstElement() const
 	{
 		std::lock_guard<std::mutex> lock(mtx);
 		return &data.data()[0];
@@ -55,10 +55,10 @@ class ScrollingBuffer
 	}
 
    private:
-	std::mutex mtx;
+	mutable std::mutex mtx;
 	static const int maxSize = 20000;
 	int offset = 0;
-	std::vector<T> data;
+	mutable std::vector<T> data;
 };
 
 #endif
