@@ -11,7 +11,6 @@ Plot::Plot(std::string name) : name(name)
 }
 Plot::~Plot()
 {
-	removeAllVariables();
 }
 
 std::string Plot::getName() const
@@ -21,8 +20,8 @@ std::string Plot::getName() const
 
 bool Plot::addSeries(std::string* name, uint32_t address)
 {
-	seriesPtr[address] = new Series();
-	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
+	seriesPtr[address] = std::make_shared<Series>();
+	seriesPtr[address]->buffer = std::make_unique<ScrollingBuffer<float>>();
 	seriesPtr[address]->seriesName = name;
 
 	return true;
@@ -31,20 +30,20 @@ bool Plot::addSeries(std::string* name, uint32_t address)
 bool Plot::addSeries(Variable& var)
 {
 	uint32_t address = var.getAddress();
-	seriesPtr[address] = new Series();
-	seriesPtr[address]->buffer = new ScrollingBuffer<float>();
+	seriesPtr[address] = std::make_shared<Series>();
+	seriesPtr[address]->buffer = std::make_unique<ScrollingBuffer<float>>();
 	seriesPtr[address]->seriesName = &var.getName();
 	seriesPtr[address]->type = var.getType();
 
 	return true;
 }
 
-Plot::Series& Plot::getSeries(uint32_t address)
+std::shared_ptr<Plot::Series> Plot::getSeries(uint32_t address)
 {
-	return *seriesPtr[address];
+	return seriesPtr[address];
 }
 
-std::map<uint32_t, Plot::Series*>& Plot::getSeriesMap()
+std::map<uint32_t, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
 {
 	return seriesPtr;
 }
@@ -56,8 +55,8 @@ ScrollingBuffer<float>& Plot::getTimeSeries()
 
 bool Plot::removeVariable(uint32_t address)
 {
-	delete seriesPtr[address]->buffer;
-	delete seriesPtr[address];
+	seriesPtr[address]->buffer.reset();
+	seriesPtr[address].reset();
 	seriesPtr.erase(address);
 	return true;
 }
@@ -65,8 +64,8 @@ bool Plot::removeAllVariables()
 {
 	for (auto& addr : seriesPtr)
 	{
-		delete seriesPtr[addr.first]->buffer;
-		delete seriesPtr[addr.first];
+		seriesPtr[addr.first]->buffer.reset();
+		seriesPtr[addr.first].reset();
 	}
 	seriesPtr.clear();
 	return true;

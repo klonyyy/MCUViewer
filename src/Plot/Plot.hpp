@@ -15,7 +15,7 @@ class Plot
 	{
 		Variable::type type;
 		std::string* seriesName;
-		ScrollingBuffer<float>* buffer;
+		std::unique_ptr<ScrollingBuffer<float>> buffer;
 	};
 
 	Plot(std::string name);
@@ -23,8 +23,8 @@ class Plot
 	std::string getName() const;
 	bool addSeries(std::string* name, uint32_t address);
 	bool addSeries(Variable& var);
-	Series& getSeries(uint32_t address);
-	std::map<uint32_t, Series*>& getSeriesMap();
+	std::shared_ptr<Plot::Series> getSeries(uint32_t address);
+	std::map<uint32_t, std::shared_ptr<Plot::Series>>& getSeriesMap();
 	ScrollingBuffer<float>& getTimeSeries();
 	bool removeVariable(uint32_t address);
 	bool removeAllVariables();
@@ -37,7 +37,7 @@ class Plot
    private:
 	std::mutex mtx;
 	std::string name;
-	std::map<uint32_t, Series*> seriesPtr;
+	std::map<uint32_t, std::shared_ptr<Series>> seriesPtr;
 	ScrollingBuffer<float> time;
 };
 

@@ -9,6 +9,7 @@
 
 #include "ElfReader.hpp"
 #include "ImguiPlugins.hpp"
+#include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
@@ -398,7 +399,7 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::End();
 }
 
-void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, Plot::Series*>& seriesPtr)
+void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesPtr)
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
 	{
