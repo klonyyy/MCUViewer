@@ -1,6 +1,6 @@
 #include "PlotHandler.hpp"
 
-PlotHandler::PlotHandler()
+PlotHandler::PlotHandler(bool& done) : done(done)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
 	vals = new VarReader();
@@ -63,7 +63,7 @@ void PlotHandler::setViewerState(state state)
 }
 void PlotHandler::dataHandler()
 {
-	while (1)
+	while (!done)
 	{
 		if (viewerState == state::RUN)
 		{

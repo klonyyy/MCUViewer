@@ -9,7 +9,6 @@
 
 #include "ElfReader.hpp"
 #include "ImguiPlugins.hpp"
-#include "VarReader.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
@@ -59,7 +58,7 @@ bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags f
 	return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
 }
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler) : plotHandler(plotHandler), configHandler(configHandler)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
 {
 	// std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
 

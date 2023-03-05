@@ -19,7 +19,7 @@ class PlotHandler
 		RUN = 1,
 	};
 
-	PlotHandler();
+	PlotHandler(bool& done);
 	~PlotHandler();
 
 	uint32_t addPlot(std::string name);
@@ -31,6 +31,7 @@ class PlotHandler
 	void setViewerState(state state);
 
    private:
+	bool& done;
 	state viewerState = state::STOP;
 	state viewerStateTemp = state::STOP;
 	VarReader* vals;

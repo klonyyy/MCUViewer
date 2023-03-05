@@ -18,7 +18,7 @@ class Gui
 		RUN = 1,
 	};
 
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done);
 	~Gui();
 
    private:
@@ -33,7 +33,7 @@ class Gui
 	std::string projectElfFile;
 	bool showAcqusitionSettingsWindow = false;
 
-	bool done = false;
+	bool& done;
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();
