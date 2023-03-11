@@ -10,7 +10,7 @@ bool done = false;
 int main(int ac, char** av)
 {
 	PlotHandler plotHandler(done);
-	ConfigHandler configHandler("/home/klonyyy/STMViewer/Project.cfg", &plotHandler);
+	ConfigHandler configHandler("", &plotHandler);
 	Gui gui(&plotHandler, &configHandler, done);
 
 	while (!done)

@@ -21,7 +21,10 @@ add_compile_options(-Wall
     -Wno-missing-field-initializers)
 
 find_package(libusb REQUIRED)
-find_package(SDL2 REQUIRED)
+
+if(UNIX)
+    find_package(SDL2 REQUIRED)
+endif()
 
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
@@ -73,4 +76,8 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
 
-target_link_libraries(${EXECUTABLE} pthread dl GL SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.a ${LIBUSB_LIBRARY} nfd)
+if(UNIX)
+    target_link_libraries(${EXECUTABLE} pthread dl GL SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.a ${LIBUSB_LIBRARY} nfd)
+elseif(WIN32)
+    target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/lib/libSDL2.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.dll.a ${LIBUSB_LIBRARY})
+endif()
