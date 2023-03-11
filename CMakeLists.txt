@@ -82,3 +82,25 @@ if(UNIX)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/lib/libSDL2.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a ${LIBUSB_LIBRARY} nfd)
 endif()
+
+if(WIN32)
+    add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/bin/SDL2.dll
+            ${CMAKE_BINARY_DIR}/SDL2.dll)
+
+    add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libusb-1.0.dll
+            ${CMAKE_BINARY_DIR}/libusb-1.0.dll)
+
+    add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.dll
+            ${CMAKE_BINARY_DIR}/libstlink.dll)
+endif()
+
+add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
+        ${CMAKE_BINARY_DIR}/imgui.ini)
