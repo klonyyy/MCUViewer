@@ -215,7 +215,7 @@ void Gui::drawMenu()
 				vars.clear();
 				plotHandler->removeAllPlots();
 				projectElfFile = configHandler->getElfFilePath();
-				configHandler->readConfigFile(vars);
+				configHandler->readConfigFile(vars, projectElfFile);
 				std::cout << outPath << std::endl;
 				NFD_FreePath(outPath);
 			}
@@ -394,6 +394,11 @@ void Gui::drawAcqusitionSettingsWindow()
 			std::cout << "Error: %s\n"
 					  << NFD_GetError() << std::endl;
 		}
+	}
+
+	if (ImGui::Button("Done"))
+	{
+		showAcqusitionSettingsWindow = false;
 	}
 
 	ImGui::End();

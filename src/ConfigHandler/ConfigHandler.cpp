@@ -18,13 +18,15 @@ std::string ConfigHandler::getElfFilePath()
 	return std::string(ini->get("elf").get("file_path"));
 }
 
-bool ConfigHandler::readConfigFile(std::vector<Variable>& vars)
+bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elfPath)
 {
 	if (!file->read(*ini))
 		return false;
 
 	uint32_t varId = 0;
 	Variable newVar("xxx");
+
+	elfPath = ini->get("elf").get("file_path");
 
 	while (!newVar.getName().empty())
 	{
