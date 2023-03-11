@@ -72,12 +72,13 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
     ${SDL2_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/include/SDL2/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} pthread dl GL SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.a ${LIBUSB_LIBRARY} nfd)
+    target_link_libraries(${EXECUTABLE} pthread dl GL SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a ${LIBUSB_LIBRARY} nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/lib/libSDL2.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/libstlink.dll.a ${LIBUSB_LIBRARY})
+    target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/lib/libSDL2.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a ${LIBUSB_LIBRARY} nfd)
 endif()

@@ -5,6 +5,7 @@
 #include <map>
 #include <mutex>
 #include <thread>
+#include <memory>
 
 #include "ScrollingBuffer.hpp"
 #include "Variable.hpp"
