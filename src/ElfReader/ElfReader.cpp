@@ -12,9 +12,9 @@
 #define _UNIX
 #endif
 
-ElfReader::ElfReader(std::string& filename)
+ElfReader::ElfReader(std::string& filename) : elfname(filename)
 {
-	elfname = filename;
+
 }
 
 std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string>& varNames)
@@ -50,6 +50,8 @@ std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string
 
 std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>& varNames)
 {
+	std::cout<<elfname<<std::endl;
+
 	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
 
 	for (auto& name : varNames)

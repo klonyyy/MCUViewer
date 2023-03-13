@@ -17,7 +17,7 @@ class ElfReader : public IElfReader
 	Variable::type getTypeFromString(std::string strType);
 
    private:
-	std::string elfname;
+	std::string& elfname;
 	std::string exec(const char* cmd);
 };
 

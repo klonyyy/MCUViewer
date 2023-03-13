@@ -61,9 +61,7 @@ bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags f
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
 {
-	ElfReader* elf = new ElfReader(projectElfFile);
-	std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
-	vars = elf->getVariableVectorBatch(names);
+	elfReader = std::make_unique<ElfReader>(projectElfFile);
 	/* TODO reserve is not the best solution! */
 	vars.reserve(200);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -162,6 +160,7 @@ void Gui::mainThread()
 		drawStartButton();
 		ImGui::SameLine();
 		drawAddVariableButton();
+		drawUpdateAddressesFromElf();
 		drawVarTable();
 		drawPlotsTree();
 		ImGui::End();
@@ -214,6 +213,7 @@ void Gui::drawMenu()
 				plotHandler->removeAllPlots();
 				projectElfFile = configHandler->getElfFilePath();
 				configHandler->readConfigFile(vars, projectElfFile);
+				std::replace(projectElfFile.begin(), projectElfFile.end(), '\\', '/');
 				std::cout << outPath << std::endl;
 				NFD_FreePath(outPath);
 			}
@@ -298,6 +298,17 @@ void Gui::drawAddVariableButton()
 		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
 		vars.push_back(*newVar);
+	}
+}
+void Gui::drawUpdateAddressesFromElf()
+{
+	if (ImGui::Button("Update Variable addresses"))
+	{
+		std::vector<std::string> names;
+		for(auto& var : vars)
+			names.push_back(var.getName());
+
+		vars = elfReader->getVariableVectorBatch(names);
 	}
 }
 
@@ -385,6 +396,7 @@ void Gui::drawAcqusitionSettingsWindow()
 		{
 			std::cout << outPath << std::endl;
 			projectElfFile = std::string(outPath);
+			std::replace(projectElfFile.begin(), projectElfFile.end(), '\\', '/');
 			NFD_FreePath(outPath);
 		}
 		else if (result == NFD_ERROR)

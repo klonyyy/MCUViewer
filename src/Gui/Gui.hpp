@@ -8,6 +8,7 @@
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "imgui.h"
+#include "ElfReader.hpp"
 
 class Gui
 {
@@ -33,11 +34,14 @@ class Gui
 	std::string projectElfFile;
 	bool showAcqusitionSettingsWindow = false;
 
+	std::unique_ptr<ElfReader> elfReader;
+
 	bool& done;
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();
 	void drawAddVariableButton();
+	void drawUpdateAddressesFromElf();
 	void drawVarTable();
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
