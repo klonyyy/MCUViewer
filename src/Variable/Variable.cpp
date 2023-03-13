@@ -7,6 +7,7 @@ template <typename T>
 Variable::Variable(std::string name, Variable::type type_, T value_) : name(name), varType(type_)
 {
 	setValue<T>(value_);
+	name.reserve(50);
 }
 
 void Variable::setType(type varType_)

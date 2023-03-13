@@ -16,48 +16,8 @@
 #include "implot.h"
 #include "nfd.h"
 
-struct InputTextCallback_UserData
-{
-	std::string* Str;
-	ImGuiInputTextCallback ChainCallback;
-	void* ChainCallbackUserData;
-};
 
-static int InputTextCallback(ImGuiInputTextCallbackData* data)
-{
-	InputTextCallback_UserData* user_data = (InputTextCallback_UserData*)data->UserData;
-	if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
-	{
-		// Resize string callback
-		// If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
-		std::string* str = user_data->Str;
-		IM_ASSERT(data->Buf == str->c_str());
-		str->resize(data->BufTextLen);
-		data->Buf = (char*)str->c_str();
-	}
-	else if (user_data->ChainCallback)
-	{
-		// Forward to user callback, if any
-		data->UserData = user_data->ChainCallbackUserData;
-		return user_data->ChainCallback(data);
-	}
-	return 0;
-}
-namespace ImGui
-{
-bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data);
-}
-bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
-{
-	IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
-	flags |= ImGuiInputTextFlags_CallbackResize;
 
-	InputTextCallback_UserData cb_user_data;
-	cb_user_data.Str = str;
-	cb_user_data.ChainCallback = callback;
-	cb_user_data.ChainCallbackUserData = user_data;
-	return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
-}
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
 {
@@ -295,6 +255,7 @@ void Gui::drawAddVariableButton()
 	if (ImGui::Button("Add variable"))
 	{
 		Variable* newVar = new Variable("new");
+		
 		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
 		vars.push_back(*newVar);
@@ -339,7 +300,10 @@ void Gui::drawVarTable()
 				ImPlot::ItemIcon(color);
 				ImGui::SameLine();
 				const char* test = vars[row].getName().c_str();
-				ImGui::SelectableInput("test", false, ImGuiSelectableFlags_None, vars[row].getName().data(), 20);
+				char variable[100] = {0};
+				memcpy(variable,vars[row].getName().data(),(vars[row].getName().length()));
+				ImGui::SelectableInput(test, false, ImGuiSelectableFlags_None, variable, 20);
+				vars[row].setName(variable);
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
 					ImGui::SetDragDropPayload("MY_DND", &row, sizeof(int));
