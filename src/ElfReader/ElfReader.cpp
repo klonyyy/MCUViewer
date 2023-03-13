@@ -6,9 +6,10 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <array>
 
 #if defined(unix) || defined(__unix__) || defined(__unix)
-#define PLATFORM_UNIX
+#define _UNIX
 #endif
 
 ElfReader::ElfReader(std::string& filename)
@@ -129,9 +130,15 @@ std::string ElfReader::exec(const char* cmd)
 {
 	std::array<char, 128> buffer;
 	std::string result;
-#ifdef PLATFORM_UNIX
+
+#ifdef _UNIX
 	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+#elif _WIN32
+	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd, "r"), _pclose);
+#else
+	#error "Your system is not supported!"
 #endif
+
 	if (!pipe)
 		throw std::runtime_error("popen() failed!");
 	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
