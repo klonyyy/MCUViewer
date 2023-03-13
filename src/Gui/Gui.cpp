@@ -61,11 +61,9 @@ bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags f
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
 {
-	// std::string file("~/STMViewer/test/STMViewer_test/Debug/STMViewer_test.elf");
-
-	// ElfReader* elf = new ElfReader(file);
-	// std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
-	// vars = elf->getVariableVectorBatch(names);
+	ElfReader* elf = new ElfReader(projectElfFile);
+	std::vector<std::string> names({"test.ua", "test.ia", "test.ub", "dupa", "test.tri", "test.triangle", "test.a", "test.b", "test.c"});
+	vars = elf->getVariableVectorBatch(names);
 	/* TODO reserve is not the best solution! */
 	vars.reserve(200);
 	threadHandle = std::thread(&Gui::mainThread, this);

@@ -7,6 +7,10 @@
 #include <sstream>
 #include <string>
 
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define PLATFORM_UNIX
+#endif
+
 ElfReader::ElfReader(std::string& filename)
 {
 	elfname = filename;
@@ -77,7 +81,6 @@ std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>
 
 			var.setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
 			std::string type = temp.substr(typePos + 7, temp.find('\n', typePos));
-			std::cout << type << std::endl;
 			var.setType(getTypeFromString(type));
 			std::cout << "NAME: " << var.getName() << std::endl;
 			std::cout << "ADDRESS: " << var.getAddress() << std::endl;
@@ -124,12 +127,14 @@ Variable::type ElfReader::getTypeFromString(std::string strType)
 
 std::string ElfReader::exec(const char* cmd)
 {
-	// std::array<char, 128> buffer;
+	std::array<char, 128> buffer;
 	std::string result;
-	// std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-	// if (!pipe)
-	// 	throw std::runtime_error("popen() failed!");
-	// while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-	// 	result += buffer.data();
+#ifdef PLATFORM_UNIX
+	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+#endif
+	if (!pipe)
+		throw std::runtime_error("popen() failed!");
+	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+		result += buffer.data();
 	return result;
 }
