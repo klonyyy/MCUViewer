@@ -1,12 +1,12 @@
 #include "ElfReader.hpp"
 
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <array>
 
 #if defined(unix) || defined(__unix__) || defined(__unix)
 #define _UNIX
@@ -50,7 +50,7 @@ std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string
 
 std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>& varNames)
 {
-	std::cout<<elfname<<std::endl;
+	std::cout << elfname << std::endl;
 
 	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
 
@@ -90,9 +90,29 @@ std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>
 			std::cout << "TYPE: " << unsigned((int)var.getType()) << std::endl;
 			vars.push_back(var);
 		}
-
-		// vars.push_back(var);
 		out.erase(0, temp.length());
+	}
+	return vars;
+}
+
+std::vector<Variable>& ElfReader::updateVariableVectorBatch(std::vector<Variable>& vars)
+{
+	std::vector<std::string> names;
+	for (auto& var : vars)
+		names.push_back(var.getName());
+
+	std::vector<Variable> tempVars = getVariableVectorBatch(names);
+
+	for (auto& entry : vars)
+	{
+		for (auto& tempEntry : tempVars)
+		{
+			if (entry.getName() == tempEntry.getName())
+			{
+				entry.setAddress(tempEntry.getAddress());
+				entry.setType(tempEntry.getType());
+			}
+		}
 	}
 	return vars;
 }
@@ -138,7 +158,7 @@ std::string ElfReader::exec(const char* cmd)
 #elif _WIN32
 	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd, "r"), _pclose);
 #else
-	#error "Your system is not supported!"
+#error "Your system is not supported!"
 #endif
 
 	if (!pipe)

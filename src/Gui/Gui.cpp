@@ -16,9 +16,6 @@
 #include "implot.h"
 #include "nfd.h"
 
-
-
-
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfFile);
@@ -255,7 +252,7 @@ void Gui::drawAddVariableButton()
 	if (ImGui::Button("Add variable"))
 	{
 		Variable* newVar = new Variable("new");
-		
+
 		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
 		vars.push_back(*newVar);
@@ -264,13 +261,7 @@ void Gui::drawAddVariableButton()
 void Gui::drawUpdateAddressesFromElf()
 {
 	if (ImGui::Button("Update Variable addresses"))
-	{
-		std::vector<std::string> names;
-		for(auto& var : vars)
-			names.push_back(var.getName());
-
-		vars = elfReader->getVariableVectorBatch(names);
-	}
+		vars = elfReader->updateVariableVectorBatch(vars);
 }
 
 void Gui::drawVarTable()
@@ -296,20 +287,24 @@ void Gui::drawVarTable()
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
 				ImGui::PushID(row);
+
 				ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 				ImPlot::ItemIcon(color);
+
 				ImGui::SameLine();
-				const char* test = vars[row].getName().c_str();
-				char variable[100] = {0};
-				memcpy(variable,vars[row].getName().data(),(vars[row].getName().length()));
-				ImGui::SelectableInput(test, false, ImGuiSelectableFlags_None, variable, 20);
-				vars[row].setName(variable);
+
+				char variable[maxVariableNameLength] = {0};
+				memcpy(variable, vars[row].getName().data(), (vars[row].getName().length()));
+				ImGui::SelectableInput(vars[row].getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
+				if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+					vars[row].setName(variable);
+
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
 					ImGui::SetDragDropPayload("MY_DND", &row, sizeof(int));
 					ImPlot::ItemIcon(0xaabbcc);
 					ImGui::SameLine();
-					ImGui::TextUnformatted(test);
+					ImGui::TextUnformatted(vars[row].getName().c_str());
 					ImGui::EndDragDropSource();
 				}
 				ImGui::PopID();

@@ -31,6 +31,7 @@ private:
 	volatile int8_t	ia = -120;
 	volatile int16_t ib =  -32000;
 	volatile int32_t ic = -2000000000;
+	volatile float square = 21.37f;
 };
 
 #endif /* APP_TESTCLASS_HPP_ */

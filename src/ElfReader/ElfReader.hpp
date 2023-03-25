@@ -14,6 +14,7 @@ class ElfReader : public IElfReader
 
 	std::vector<uint32_t> getVariableAddressBatch(std::vector<std::string>& varNames);
 	std::vector<Variable> getVariableVectorBatch(std::vector<std::string>& varNames);
+	std::vector<Variable>& updateVariableVectorBatch(std::vector<Variable>& vars);
 	Variable::type getTypeFromString(std::string strType);
 
    private:

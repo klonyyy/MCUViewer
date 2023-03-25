@@ -5,10 +5,10 @@
 #include <thread>
 
 #include "ConfigHandler.hpp"
+#include "ElfReader.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "imgui.h"
-#include "ElfReader.hpp"
 
 class Gui
 {
@@ -33,6 +33,8 @@ class Gui
 	std::string projectConfigFile;
 	std::string projectElfFile;
 	bool showAcqusitionSettingsWindow = false;
+
+	static constexpr uint32_t maxVariableNameLength = 100;
 
 	std::unique_ptr<ElfReader> elfReader;
 
