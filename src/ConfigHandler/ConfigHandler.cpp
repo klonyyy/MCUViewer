@@ -1,5 +1,7 @@
 #include "ConfigHandler.hpp"
 
+#include <random>
+
 ConfigHandler::ConfigHandler(std::string configFilePath, PlotHandler* plotHandler) : configFilePath(configFilePath), plotHandler(plotHandler)
 {
 	ini = std::make_unique<mINI::INIStructure>();
@@ -28,11 +30,16 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 
 	elfPath = ini->get("elf").get("file_path");
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0, 1);
+
 	while (!newVar.getName().empty())
 	{
 		newVar.setName(ini->get(std::string("var" + std::to_string(varId))).get("name"));
 		newVar.setAddress(atoi(ini->get(std::string("var" + std::to_string(varId))).get("address").c_str()));
 		newVar.setType(static_cast<Variable::type>(atoi(ini->get(std::string("var" + std::to_string(varId))).get("type").c_str())));
+		newVar.setColor(dis(gen), dis(gen), dis(gen), 1.0f);
 
 		varId++;
 

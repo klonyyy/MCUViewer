@@ -3,9 +3,9 @@
 
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <thread>
-#include <memory>
 
 #include "ScrollingBuffer.hpp"
 #include "Variable.hpp"
@@ -15,6 +15,7 @@ class Plot
 	struct Series
 	{
 		Variable::type type;
+		Variable::Color* color;
 		std::string* seriesName;
 		std::unique_ptr<ScrollingBuffer<float>> buffer;
 	};
@@ -22,7 +23,7 @@ class Plot
 	Plot(std::string name);
 	~Plot();
 	std::string getName() const;
-	bool addSeries(std::string* name, uint32_t address);
+	bool addSeries(std::string* name, uint32_t address, Variable::Color& color);
 	bool addSeries(Variable& var);
 	std::shared_ptr<Plot::Series> getSeries(uint32_t address);
 	std::map<uint32_t, std::shared_ptr<Plot::Series>>& getSeriesMap();

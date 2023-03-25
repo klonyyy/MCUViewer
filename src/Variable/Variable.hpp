@@ -19,6 +19,14 @@ class Variable
 
 	};
 
+	struct Color
+	{
+		float r;
+		float g;
+		float b;
+		float a;
+	};
+
 	Variable(std::string name);
 	template <typename T>
 	Variable(std::string name, type type_, T value_);
@@ -38,6 +46,9 @@ class Variable
 	std::string& getName();
 	void setName(std::string name_);
 
+	void setColor(float r, float g, float b, float a);
+	Color& getColor();
+
    private:
 	std::string name;
 	type varType;
@@ -51,6 +62,8 @@ class Variable
 							"U32",
 							"I32",
 							"F32"};
+
+	Color color;
 };
 
 #endif

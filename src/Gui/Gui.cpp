@@ -288,9 +288,7 @@ void Gui::drawVarTable()
 				ImGui::TableSetColumnIndex(0);
 				ImGui::PushID(row);
 
-				ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
-				ImPlot::ItemIcon(color);
-
+				ImGui::ColorEdit4("##Color", &vars[row].getColor().r, ImGuiColorEditFlags_NoInputs);
 				ImGui::SameLine();
 
 				char variable[maxVariableNameLength] = {0};
@@ -393,6 +391,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 
 		for (auto& ser : seriesPtr)
 		{
+			ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
 			ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 		}

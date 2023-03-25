@@ -18,12 +18,12 @@ std::string Plot::getName() const
 	return name;
 }
 
-bool Plot::addSeries(std::string* name, uint32_t address)
+bool Plot::addSeries(std::string* name, uint32_t address, Variable::Color& color)
 {
 	seriesPtr[address] = std::make_shared<Series>();
 	seriesPtr[address]->buffer = std::make_unique<ScrollingBuffer<float>>();
 	seriesPtr[address]->seriesName = name;
-
+	seriesPtr[address]->color = &color;
 	return true;
 }
 
@@ -34,6 +34,7 @@ bool Plot::addSeries(Variable& var)
 	seriesPtr[address]->buffer = std::make_unique<ScrollingBuffer<float>>();
 	seriesPtr[address]->seriesName = &var.getName();
 	seriesPtr[address]->type = var.getType();
+	seriesPtr[address]->color = &var.getColor();
 
 	return true;
 }

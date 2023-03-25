@@ -55,3 +55,15 @@ void Variable::setName(std::string name_)
 {
 	name = name_;
 }
+
+void Variable::setColor(float r, float g, float b, float a)
+{
+	color.r = r;
+	color.g = g;
+	color.b = b;
+	color.a = a;
+}
+Variable::Color& Variable::getColor()
+{
+	return color;
+}
