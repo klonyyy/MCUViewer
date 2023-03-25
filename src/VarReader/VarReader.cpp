@@ -9,7 +9,6 @@ VarReader::VarReader()
 }
 VarReader::~VarReader()
 {
-	stlink_close(sl);
 }
 
 bool VarReader::start()

@@ -82,3 +82,30 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 
 	return true;
 }
+
+bool ConfigHandler::saveConfigFile(std::vector<Variable>& vars, std::string& elfPath, std::string newSavePath)
+{
+	(*ini)["elf"]["file_path"] = elfPath;
+
+	auto getFieldFromID = [](uint32_t id)
+	{ return std::string("var" + std::to_string(id)); };
+
+	uint32_t varId = 0;
+	for (auto& var : vars)
+	{
+		(*ini)[getFieldFromID(varId)]["name"] = var.getName();
+		(*ini)[getFieldFromID(varId)]["address"] = std::to_string(var.getAddress());
+		(*ini)[getFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var.getType()));
+		(*ini)[getFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var.getColorU32()));
+
+		varId++;
+	}
+
+	if (newSavePath != "")
+	{
+		file.reset();
+		file = std::make_unique<mINI::INIFile>(newSavePath);
+	}
+
+	return file->write(*ini, true);
+}

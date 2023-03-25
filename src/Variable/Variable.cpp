@@ -63,7 +63,26 @@ void Variable::setColor(float r, float g, float b, float a)
 	color.b = b;
 	color.a = a;
 }
+
+void Variable::setColor(uint32_t AaBbGgRr)
+{
+	color.r = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0x000000ff));
+	color.g = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0x0000ff00) >> 8);
+	color.b = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0x00ff0000) >> 16);
+	color.a = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0xff000000) >> 24);
+}
+
 Variable::Color& Variable::getColor()
 {
 	return color;
+}
+
+uint32_t Variable::getColorU32()
+{
+	uint32_t a = UINT8_MAX * color.a;
+	uint32_t r = UINT8_MAX * color.r;
+	uint32_t g = UINT8_MAX * color.g;
+	uint32_t b = UINT8_MAX * color.b;
+
+	return static_cast<uint32_t>((a << 24) | (b << 16) | (g << 8) | r);
 }

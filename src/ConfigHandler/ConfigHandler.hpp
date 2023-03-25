@@ -16,6 +16,7 @@ class ConfigHandler
 	bool changeConfigFile(std::string newConfigFilePath);
 	std::string getElfFilePath();
 	bool readConfigFile(std::vector<Variable>& vars, std::string& elfPath);
+	bool saveConfigFile(std::vector<Variable>& vars, std::string& elfPath, std::string newPath);
 
    private:
 	std::string configFilePath;

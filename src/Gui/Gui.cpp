@@ -195,9 +195,23 @@ void Gui::drawMenu()
 		}
 		if (ImGui::MenuItem("Save", "Ctrl+S"))
 		{
+			configHandler->saveConfigFile(vars, projectElfFile, projectConfigFile);
 		}
 		if (ImGui::MenuItem("Save As.."))
 		{
+			nfdchar_t* outPath;
+			nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
+			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+			if (result == NFD_OKAY)
+			{
+				configHandler->saveConfigFile(vars, projectElfFile, std::string(outPath));
+				NFD_FreePath(outPath);
+			}
+			else if (result == NFD_ERROR)
+			{
+				std::cout << "Error: %s\n"
+						  << NFD_GetError() << std::endl;
+			}
 		}
 		if (ImGui::MenuItem("Quit"))
 		{

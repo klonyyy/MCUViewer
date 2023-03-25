@@ -47,7 +47,10 @@ class Variable
 	void setName(std::string name_);
 
 	void setColor(float r, float g, float b, float a);
+	void setColor(uint32_t AaBbGgRr);
+
 	Color& getColor();
+	uint32_t getColorU32();
 
    private:
 	std::string name;
