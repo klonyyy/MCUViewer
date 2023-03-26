@@ -47,7 +47,7 @@ class Gui
 	void drawVarTable();
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
-	void drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesPtr);
+	void drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesMap);
 	std::string intToHexString(uint32_t i);
 };
 

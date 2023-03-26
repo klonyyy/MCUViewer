@@ -66,10 +66,10 @@ void Variable::setColor(float r, float g, float b, float a)
 
 void Variable::setColor(uint32_t AaBbGgRr)
 {
-	color.r = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0x000000ff));
-	color.g = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0x0000ff00) >> 8);
-	color.b = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0x00ff0000) >> 16);
-	color.a = static_cast<float>(UINT8_MAX / (AaBbGgRr & 0xff000000) >> 24);
+	color.r = static_cast<float>((AaBbGgRr & 0x000000ff) / 255.0f);
+	color.g = static_cast<float>(((AaBbGgRr & 0x0000ff00) >> 8) / 255.0f);
+	color.b = static_cast<float>(((AaBbGgRr & 0x00ff0000) >> 16) / 255.0f);
+	color.a = static_cast<float>(((AaBbGgRr & 0xff000000) >> 24) / 255.0f);
 }
 
 Variable::Color& Variable::getColor()

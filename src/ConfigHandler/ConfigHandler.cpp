@@ -30,17 +30,15 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 
 	elfPath = ini->get("elf").get("file_path");
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<> dis(0, 1);
+	auto varFieldFromID = [](uint32_t id)
+	{ return std::string("var" + std::to_string(id)); };
 
 	while (!newVar.getName().empty())
 	{
-		newVar.setName(ini->get(std::string("var" + std::to_string(varId))).get("name"));
-		newVar.setAddress(atoi(ini->get(std::string("var" + std::to_string(varId))).get("address").c_str()));
-		newVar.setType(static_cast<Variable::type>(atoi(ini->get(std::string("var" + std::to_string(varId))).get("type").c_str())));
-		newVar.setColor(dis(gen), dis(gen), dis(gen), 1.0f);
-
+		newVar.setName(ini->get(varFieldFromID(varId)).get("name"));
+		newVar.setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
+		newVar.setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
+		newVar.setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
 		varId++;
 
 		if (!newVar.getName().empty())
@@ -65,16 +63,18 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 			std::cout << "ADDING PLOT: " << plotName << std::endl;
 
 			uint32_t seriesNumber = 0;
-
-			for (auto& var : vars)
+			std::string varName = "xxx";
+			while (varName != "")
 			{
-				std::string varIdStr = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
+				varName = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
 
-				if (!varIdStr.empty())
+				for (auto& var : vars)
 				{
-					uint32_t varId = atoi(varIdStr.c_str());
-					plotHandler->getPlot(plotId)->addSeries(vars[varId]);
-					std::cout << "ADDING SERIES: " << vars[varId].getName() << std::endl;
+					if (varName == var.getName())
+					{
+						plotHandler->getPlot(plotId)->addSeries(var);
+						std::cout << "ADDING SERIES: " << var.getName() << std::endl;
+					}
 				}
 			}
 		}
@@ -85,20 +85,42 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 
 bool ConfigHandler::saveConfigFile(std::vector<Variable>& vars, std::string& elfPath, std::string newSavePath)
 {
+	(*ini).clear();
+
 	(*ini)["elf"]["file_path"] = elfPath;
 
-	auto getFieldFromID = [](uint32_t id)
+	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
+
+	auto plotFieldFromID = [](uint32_t id)
+	{ return std::string("plot" + std::to_string(id)); };
+
+	auto seriesFieldFromID = [](uint32_t id)
+	{ return std::string("series" + std::to_string(id)); };
 
 	uint32_t varId = 0;
 	for (auto& var : vars)
 	{
-		(*ini)[getFieldFromID(varId)]["name"] = var.getName();
-		(*ini)[getFieldFromID(varId)]["address"] = std::to_string(var.getAddress());
-		(*ini)[getFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var.getType()));
-		(*ini)[getFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var.getColorU32()));
+		(*ini)[varFieldFromID(varId)]["name"] = var.getName();
+		(*ini)[varFieldFromID(varId)]["address"] = std::to_string(var.getAddress());
+		(*ini)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var.getType()));
+		(*ini)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var.getColorU32()));
 
 		varId++;
+	}
+
+	for (uint32_t plotId = 0; plotId < plotHandler->getPlotsCount(); plotId++)
+	{
+		Plot* plt = plotHandler->getPlot(plotId);
+		(*ini)[plotFieldFromID(plotId)]["name"] = plt->getName();
+		(*ini)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
+
+		uint32_t serId = 0;
+
+		for (auto& [key, value] : plt->getSeriesMap())
+		{
+			(*ini)[plotFieldFromID(plotId)][seriesFieldFromID(serId++)] = *value.get()->seriesName;
+		}
 	}
 
 	if (newSavePath != "")
@@ -107,5 +129,5 @@ bool ConfigHandler::saveConfigFile(std::vector<Variable>& vars, std::string& elf
 		file = std::make_unique<mINI::INIFile>(newSavePath);
 	}
 
-	return file->write(*ini, true);
+	return file->generate(*ini, true);
 }

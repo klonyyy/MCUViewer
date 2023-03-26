@@ -61,4 +61,6 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 		return (float)*(int32_t*)&value;
 	else if (type == Variable::type::F32)
 		return *(float*)&value;
+
+	return 0.0f;
 }

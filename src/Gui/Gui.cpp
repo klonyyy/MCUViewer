@@ -104,7 +104,7 @@ void Gui::mainThread()
 		if (showAcqusitionSettingsWindow)
 			drawAcqusitionSettingsWindow();
 
-		for (int k = 0; k < plotHandler->getPlotsCount(); k++)
+		for (uint32_t k = 0; k < plotHandler->getPlotsCount(); k++)
 		{
 			Plot* plt = plotHandler->getPlot(k);
 			drawPlot(plt, plt->getTimeSeries(), plt->getSeriesMap());
@@ -201,7 +201,7 @@ void Gui::drawMenu()
 		{
 			nfdchar_t* outPath;
 			nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+			nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
 			if (result == NFD_OKAY)
 			{
 				configHandler->saveConfigFile(vars, projectElfFile, std::string(outPath));
@@ -311,6 +311,31 @@ void Gui::drawVarTable()
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter))
 					vars[row].setName(variable);
 
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (ImGui::Button("Delete"))
+					{
+						ImGui::CloseCurrentPopup();
+						for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
+						{
+							if (plotHandler->getPlot(i)->removeVariable(vars[row].getAddress()))
+							{
+								std::cout << "deleting " << vars[row].getName() << " for plot " << (int)i << "succeded" << std::endl;
+							}
+							else
+							{
+								std::cout << "deleting " << vars[row].getName() << " for plot " << (int)i << "FAILED" << std::endl;
+							}
+						}
+
+						// std::string name = vars[row].getName();
+						// vars.erase(std::remove_if(vars.begin(), vars.end(), [name](Variable& var)
+						// 						  { return var.getName() == name; }),
+						// 		   vars.end());
+					}
+					ImGui::EndPopup();
+				}
+
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
 					ImGui::SetDragDropPayload("MY_DND", &row, sizeof(int));
@@ -385,7 +410,7 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::End();
 }
 
-void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesPtr)
+void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesMap)
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
 	{
@@ -403,7 +428,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 			ImPlot::EndDragDropTarget();
 		}
 
-		for (auto& ser : seriesPtr)
+		for (auto& ser : seriesMap)
 		{
 			ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
 			ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
