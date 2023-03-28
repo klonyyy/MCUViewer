@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <thread>
+#include <map>
 
 #include "ConfigHandler.hpp"
 #include "ElfReader.hpp"
@@ -25,7 +26,7 @@ class Gui
    private:
 	state viewerState = state::STOP;
 	const std::map<state, std::string> viewerStateMap{{state::RUN, "RUNNING"}, {state::STOP, "STOPPED"}};
-	std::vector<Variable> vars;
+	std::map<std::string, std::shared_ptr<Variable>> vars;
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
 	ConfigHandler* configHandler;

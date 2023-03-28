@@ -19,8 +19,6 @@
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfFile);
-	/* TODO reserve is not the best solution! */
-	vars.reserve(200);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
@@ -265,17 +263,23 @@ void Gui::drawAddVariableButton()
 {
 	if (ImGui::Button("Add variable"))
 	{
-		Variable* newVar = new Variable("new");
+		uint32_t num = 0;
+		while (vars.find(std::string("new") + std::to_string(num)) != vars.end())
+		{
+			num++;
+		}
+		std::string newName = std::string("new") + std::to_string(num);
 
+		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
-		vars.push_back(*newVar);
+		vars.emplace(newName, newVar);
 	}
 }
 void Gui::drawUpdateAddressesFromElf()
 {
 	if (ImGui::Button("Update Variable addresses"))
-		vars = elfReader->updateVariableVectorBatch(vars);
+		elfReader->updateVariableMap(vars);
 }
 
 void Gui::drawVarTable()
@@ -291,65 +295,62 @@ void Gui::drawVarTable()
 		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
 		ImGui::TableHeadersRow();
 
-		// Demonstrate using clipper for large vertical lists
-		ImGuiListClipper clipper;
-		clipper.Begin(vars.size());
-		while (clipper.Step())
+		uint32_t row = 0;
+		for (auto& [keyName, var] : vars)
 		{
-			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::PushID(row++);
+
+			ImGui::ColorEdit4("##Color", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
+			ImGui::SameLine();
+
+			char variable[maxVariableNameLength] = {0};
+			memcpy(variable, var->getName().data(), (var->getName().length()));
+			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter))
 			{
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::PushID(row);
-
-				ImGui::ColorEdit4("##Color", &vars[row].getColor().r, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-
-				char variable[maxVariableNameLength] = {0};
-				memcpy(variable, vars[row].getName().data(), (vars[row].getName().length()));
-				ImGui::SelectableInput(vars[row].getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
-				if (ImGui::IsKeyPressed(ImGuiKey_Enter))
-					vars[row].setName(variable);
-
-				if (ImGui::BeginPopupContextItem())
-				{
-					if (ImGui::Button("Delete"))
-					{
-						ImGui::CloseCurrentPopup();
-						for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
-						{
-							if (plotHandler->getPlot(i)->removeVariable(vars[row].getAddress()))
-							{
-								std::cout << "deleting " << vars[row].getName() << " for plot " << (int)i << "succeded" << std::endl;
-							}
-							else
-							{
-								std::cout << "deleting " << vars[row].getName() << " for plot " << (int)i << "FAILED" << std::endl;
-							}
-						}
-
-						// std::string name = vars[row].getName();
-						// vars.erase(std::remove_if(vars.begin(), vars.end(), [name](Variable& var)
-						// 						  { return var.getName() == name; }),
-						// 		   vars.end());
-					}
-					ImGui::EndPopup();
-				}
-
-				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-				{
-					ImGui::SetDragDropPayload("MY_DND", &row, sizeof(int));
-					ImPlot::ItemIcon(0xaabbcc);
-					ImGui::SameLine();
-					ImGui::TextUnformatted(vars[row].getName().c_str());
-					ImGui::EndDragDropSource();
-				}
-				ImGui::PopID();
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text(("0x" + std::string(intToHexString(vars[row].getAddress()))).c_str());
-				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(vars[row].getTypeStr().c_str());
+				auto varr = vars.extract(var->getName());
+				varr.key() = std::string(variable);
+				var->setName(variable);
+				vars.insert(std::move(varr));
 			}
+
+			if (ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::Button("Delete"))
+				{
+					ImGui::CloseCurrentPopup();
+					for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
+					{
+						if (plotHandler->getPlot(i)->removeVariable(var->getAddress()))
+						{
+							std::cout << "deleting " << var->getName() << " for plot " << (int)i << "succeded" << std::endl;
+						}
+						else
+						{
+							std::cout << "deleting " << var->getName() << " for plot " << (int)i << "FAILED" << std::endl;
+						}
+					}
+
+					vars.erase(keyName);
+				}
+				ImGui::EndPopup();
+			}
+
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			{
+				ImGui::SetDragDropPayload("MY_DND", &var->getName(), sizeof(var->getName()));
+				ImPlot::ItemIcon(0xaabbcc);
+				ImGui::SameLine();
+				ImGui::TextUnformatted(var->getName().c_str());
+				ImGui::EndDragDropSource();
+			}
+			ImGui::PopID();
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text(("0x" + std::string(intToHexString(var->getAddress()))).c_str());
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text(var->getTypeStr().c_str());
 		}
 		ImGui::EndTable();
 	}
@@ -423,8 +424,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 		if (ImPlot::BeginDragDropTargetPlot())
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(vars[*(int*)payload->Data]);
-
+				plot->addSeries(*vars[*(std::string*)payload->Data]);
 			ImPlot::EndDragDropTarget();
 		}
 

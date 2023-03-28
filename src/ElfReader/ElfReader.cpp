@@ -14,7 +14,6 @@
 
 ElfReader::ElfReader(std::string& filename) : elfname(filename)
 {
-
 }
 
 std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string>& varNames)
@@ -48,13 +47,13 @@ std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string
 	return addresses;
 }
 
-std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>& varNames)
+bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable>>& vars)
 {
 	std::cout << elfname << std::endl;
 
 	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
 
-	for (auto& name : varNames)
+	for (auto& [name, var] : vars)
 	{
 		cmdFull += (std::string("-ex ") + "\"p /d &" + name + "\" ");
 		cmdFull += (std::string("-ex ") + "\"ptype " + name + "\" ");
@@ -63,7 +62,6 @@ std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>
 	std::string out = exec(cmdFull.c_str());
 	std::string delimiter = "+p /d &";
 	int32_t start = 0;
-	std::vector<Variable> vars;
 	/* get rid of file and other start commands */
 	out.erase(0, out.find(delimiter));
 
@@ -80,41 +78,19 @@ std::vector<Variable> ElfReader::getVariableVectorBatch(std::vector<std::string>
 
 		if (addrPos < end && typePos < end && addrPos > 0 && typePos > 0)
 		{
-			Variable var(temp.substr(delimiter.length(), temp.find('$', 0) - delimiter.length() - 1));
+			std::string varName = temp.substr(delimiter.length(), temp.find('$', 0) - delimiter.length() - 1);
+			std::shared_ptr<Variable> var = vars[varName];
 
-			var.setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
+			vars[varName]->setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
 			std::string type = temp.substr(typePos + 7, temp.find('\n', typePos));
-			var.setType(getTypeFromString(type));
-			std::cout << "NAME: " << var.getName() << std::endl;
-			std::cout << "ADDRESS: " << var.getAddress() << std::endl;
-			std::cout << "TYPE: " << unsigned((int)var.getType()) << std::endl;
-			vars.push_back(var);
+			vars[varName]->setType(getTypeFromString(type));
+			std::cout << "NAME: " << vars[varName]->getName() << std::endl;
+			std::cout << "ADDRESS: " << vars[varName]->getAddress() << std::endl;
+			std::cout << "TYPE: " << unsigned((int)vars[varName]->getType()) << std::endl;
 		}
 		out.erase(0, temp.length());
 	}
-	return vars;
-}
-
-std::vector<Variable>& ElfReader::updateVariableVectorBatch(std::vector<Variable>& vars)
-{
-	std::vector<std::string> names;
-	for (auto& var : vars)
-		names.push_back(var.getName());
-
-	std::vector<Variable> tempVars = getVariableVectorBatch(names);
-
-	for (auto& entry : vars)
-	{
-		for (auto& tempEntry : tempVars)
-		{
-			if (entry.getName() == tempEntry.getName())
-			{
-				entry.setAddress(tempEntry.getAddress());
-				entry.setType(tempEntry.getType());
-			}
-		}
-	}
-	return vars;
+	return true;
 }
 
 Variable::type ElfReader::getTypeFromString(std::string strType)

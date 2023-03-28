@@ -20,31 +20,35 @@ std::string ConfigHandler::getElfFilePath()
 	return std::string(ini->get("elf").get("file_path"));
 }
 
-bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elfPath)
+bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath)
 {
 	if (!file->read(*ini))
 		return false;
 
 	uint32_t varId = 0;
-	Variable newVar("xxx");
+	std::string name = "xxx";
 
 	elfPath = ini->get("elf").get("file_path");
 
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	while (!newVar.getName().empty())
+	while (!name.empty())
 	{
-		newVar.setName(ini->get(varFieldFromID(varId)).get("name"));
-		newVar.setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
-		newVar.setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
-		newVar.setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
+		name = ini->get(varFieldFromID(varId)).get("name");
+
+		std::shared_ptr<Variable> newVar = std::make_shared<Variable>("");
+
+		newVar->setName(name);
+		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
+		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
+		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
 		varId++;
 
-		if (!newVar.getName().empty())
+		if (!newVar->getName().empty())
 		{
-			vars.push_back(newVar);
-			std::cout << "ADDING VARIABLE: " << newVar.getName() << std::endl;
+			vars[newVar->getName()] = newVar;
+			std::cout << "ADDING VARIABLE: " << newVar->getName() << std::endl;
 		}
 	}
 
@@ -63,19 +67,13 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 			std::cout << "ADDING PLOT: " << plotName << std::endl;
 
 			uint32_t seriesNumber = 0;
-			std::string varName = "xxx";
+			std::string varName = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
+
 			while (varName != "")
 			{
+				plotHandler->getPlot(plotId)->addSeries(*vars[varName]);
+				std::cout << "ADDING SERIES: " << varName << std::endl;
 				varName = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
-
-				for (auto& var : vars)
-				{
-					if (varName == var.getName())
-					{
-						plotHandler->getPlot(plotId)->addSeries(var);
-						std::cout << "ADDING SERIES: " << var.getName() << std::endl;
-					}
-				}
 			}
 		}
 	}
@@ -83,7 +81,7 @@ bool ConfigHandler::readConfigFile(std::vector<Variable>& vars, std::string& elf
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::vector<Variable>& vars, std::string& elfPath, std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, std::string newSavePath)
 {
 	(*ini).clear();
 
@@ -99,12 +97,12 @@ bool ConfigHandler::saveConfigFile(std::vector<Variable>& vars, std::string& elf
 	{ return std::string("series" + std::to_string(id)); };
 
 	uint32_t varId = 0;
-	for (auto& var : vars)
+	for (auto& [key, var] : vars)
 	{
-		(*ini)[varFieldFromID(varId)]["name"] = var.getName();
-		(*ini)[varFieldFromID(varId)]["address"] = std::to_string(var.getAddress());
-		(*ini)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var.getType()));
-		(*ini)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var.getColorU32()));
+		(*ini)[varFieldFromID(varId)]["name"] = var->getName();
+		(*ini)[varFieldFromID(varId)]["address"] = std::to_string(var->getAddress());
+		(*ini)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var->getType()));
+		(*ini)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var->getColorU32()));
 
 		varId++;
 	}

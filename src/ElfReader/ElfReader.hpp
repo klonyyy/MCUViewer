@@ -2,6 +2,9 @@
 #ifndef _ELFREADER_HPP
 #define _ELFREADER_HPP
 
+#include <memory>
+#include <map>
+
 #include "IElfReader.hpp"
 #include "Variable.hpp"
 
@@ -13,8 +16,7 @@ class ElfReader : public IElfReader
 	~ElfReader() = default;
 
 	std::vector<uint32_t> getVariableAddressBatch(std::vector<std::string>& varNames);
-	std::vector<Variable> getVariableVectorBatch(std::vector<std::string>& varNames);
-	std::vector<Variable>& updateVariableVectorBatch(std::vector<Variable>& vars);
+	bool updateVariableMap(std::map<std::string, std::shared_ptr<Variable>>& vars);
 	Variable::type getTypeFromString(std::string strType);
 
    private:

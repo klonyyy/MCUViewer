@@ -2,6 +2,7 @@
 #define _CONFIGHANDLER_HPP
 
 #include <string>
+#include <map>
 
 #include "PlotHandler.hpp"
 #include "Variable.hpp"
@@ -15,8 +16,8 @@ class ConfigHandler
 
 	bool changeConfigFile(std::string newConfigFilePath);
 	std::string getElfFilePath();
-	bool readConfigFile(std::vector<Variable>& vars, std::string& elfPath);
-	bool saveConfigFile(std::vector<Variable>& vars, std::string& elfPath, std::string newPath);
+	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath);
+	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, std::string newPath);
 
    private:
 	std::string configFilePath;
