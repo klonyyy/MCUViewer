@@ -125,3 +125,12 @@ bool Plot::getVisibility()
 {
 	return visibility;
 }
+
+void Plot::setType(type_E newType)
+{
+	type = newType;
+}
+Plot::type_E Plot::getType()
+{
+	return type;
+}

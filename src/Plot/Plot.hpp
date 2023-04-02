@@ -20,6 +20,13 @@ class Plot
 		std::unique_ptr<ScrollingBuffer<float>> buffer;
 	};
 
+	enum class type_E : uint8_t
+	{
+		CURVE = 0,
+		BAR = 1,
+		TABLE = 2,
+	};
+
 	Plot(std::string name);
 	~Plot();
 	std::string getName() const;
@@ -38,12 +45,16 @@ class Plot
 	void setVisibility(bool state);
 	bool getVisibility();
 
+	void setType(type_E newType);
+	type_E getType();
+
    private:
 	std::mutex mtx;
 	std::string name;
 	std::map<uint32_t, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<float> time;
 	bool visibility = true;
+	type_E type = type_E::CURVE;
 };
 
 #endif

@@ -41,6 +41,12 @@ class ScrollingBuffer
 		return &data.data()[0];
 	}
 
+	T* getLastElement()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		return &data.back();
+	}
+
 	int getOffset()
 	{
 		std::lock_guard<std::mutex> lock(mtx);

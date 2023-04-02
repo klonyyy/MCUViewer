@@ -364,15 +364,18 @@ void Gui::drawPlotsTree()
 		{
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
+			const char* plotTypes[3] = {"curve", "bar", "table"};
+
+			int32_t typeCombo = (int32_t)plotHandler->getPlot(i)->getType();
+
 			if (ImGui::TreeNode((void*)(intptr_t)i, (plotHandler->getPlot(i)->getName()).c_str(), i))
 			{
-				ImGui::Text("blah blah");
-				ImGui::SameLine();
-				if (ImGui::SmallButton("button"))
-				{
-				}
+				ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
 				ImGui::TreePop();
 			}
+
+			if (typeCombo != (int32_t)plotHandler->getPlot(i)->getType())
+				plotHandler->getPlot(i)->setType(static_cast<Plot::type_E>(typeCombo));
 		}
 		ImGui::TreePop();
 	}
@@ -413,26 +416,62 @@ void Gui::drawAcqusitionSettingsWindow()
 
 void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesMap)
 {
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
+	if (plot->getType() == Plot::type_E::CURVE)
 	{
-		ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-		ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-		ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
-		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-		ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-
-		if (ImPlot::BeginDragDropTargetPlot())
+		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(*vars[*(std::string*)payload->Data]);
-			ImPlot::EndDragDropTarget();
-		}
-
-		for (auto& ser : seriesMap)
-		{
-			ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
-			ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
+			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+
+			if (ImPlot::BeginDragDropTargetPlot())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+					plot->addSeries(*vars[*(std::string*)payload->Data]);
+				ImPlot::EndDragDropTarget();
+			}
+
+			for (auto& ser : seriesMap)
+			{
+				ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
+				ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
+				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+			}
+
+			ImPlot::EndPlot();
+		}
+	}
+	else if (plot->getType() == Plot::type_E::BAR)
+	{
+		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
+		{
+			static const double positions[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+			std::vector<const char*> glabels;
+			for (const auto& [key, series] : seriesMap)
+				glabels.push_back(series->seriesName->c_str());
+			glabels.push_back(nullptr);
+
+			ImPlot::SetupAxes("Variables", "Value", 0, 0);
+			ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
+			ImPlot::SetupAxisTicks(ImAxis_X1, positions, seriesMap.size(), glabels.data());
+
+			if (ImPlot::BeginDragDropTargetPlot())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+					plot->addSeries(*vars[*(std::string*)payload->Data]);
+				ImPlot::EndDragDropTarget();
+			}
+
+			float xs = 0.0f;
+
+			for (auto& ser : seriesMap)
+			{
+				ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
+				ImPlot::PlotBars(ser.second->seriesName->c_str(), &xs, ser.second->buffer->getLastElement(), 1, 0.5f);
+				xs += 1.0f;
+			}
 		}
 
 		ImPlot::EndPlot();
