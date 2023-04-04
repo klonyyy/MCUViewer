@@ -11,40 +11,37 @@ template <typename T>
 class ScrollingBuffer
 {
    public:
-	ScrollingBuffer()
-	{
-		data.reserve(maxSize);
-	}
+	ScrollingBuffer() = default;
 	~ScrollingBuffer() = default;
 
 	void addPoint(T x)
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		if (data.size() < maxSize)
-			data.push_back(x);
-		else
-		{
-			data[offset] = x;
-			offset = (offset + 1) % maxSize;
-		}
+		data[offset] = x;
+		offset = (offset + 1) % maxSize;
+		if (offset == 0)
+			isFull = true;
 	}
 
 	int getSize()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		return data.size();
+		return isFull ? data.size() : offset;
 	}
 
 	T* getFirstElement() const
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		return &data.data()[0];
+		return &data[0];
 	}
 
 	T* getLastElement()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		return &data.back();
+		if (data.size() < maxSize)
+			return &data.back();
+		else
+			return &data[offset];
 	}
 
 	int getOffset()
@@ -56,15 +53,16 @@ class ScrollingBuffer
 	void erase()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		data.clear();
 		offset = 0;
+		isFull = false;
 	}
 
    private:
 	mutable std::mutex mtx;
-	static const int maxSize = 20000;
+	static constexpr int maxSize = 10000;
 	int offset = 0;
-	mutable std::vector<T> data;
+	bool isFull = false;
+	mutable std::array<T, maxSize> data;
 };
 
 #endif
