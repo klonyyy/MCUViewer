@@ -16,7 +16,7 @@
 #include "implot.h"
 #include "nfd.h"
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done) : plotHandler(plotHandler), configHandler(configHandler), done(done)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfFile);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -74,13 +74,8 @@ void Gui::mainThread()
 
 	while (!done)
 	{
-		// Poll and handle events (inputs, window resize, etc.)
-		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		SDL_Event event;
-		while (SDL_PollEvent(&event))
+		if (SDL_PollEvent(&event))
 		{
 			ImGui_ImplSDL2_ProcessEvent(&event);
 			if (event.type == SDL_QUIT)
@@ -432,10 +427,23 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 				ImPlot::EndDragDropTarget();
 			}
 
+			std::array<float, 10000> time_;
+			std::array<float, 10000> ser_;
+
+			mtx->lock();
+			memcpy(&time_[0], time.getFirstElement(), 10000 * sizeof(time_[0]));
+			uint32_t offset = time.getOffset();
+			uint32_t size = time.getSize();
+			mtx->unlock();
+
 			for (auto& ser : seriesMap)
 			{
+				mtx->lock();
+				memcpy(&ser_[0], ser.second->buffer->getFirstElement(), 10000 * sizeof(ser_[0]));
+				mtx->unlock();
+
 				ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
-				ImPlot::PlotLine(ser.second->seriesName->c_str(), time.getFirstElement(), ser.second->buffer->getFirstElement(), ser.second->buffer->getSize(), 0, ser.second->buffer->getOffset(), sizeof(float));
+				ImPlot::PlotLine(ser.second->seriesName->c_str(), &time_[0], &ser_[0], size, 0, offset, sizeof(float));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 			}
 
@@ -446,16 +454,20 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
 		{
-			static const double positions[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-
 			std::vector<const char*> glabels;
+			std::vector<double> positions;
+			float pos = 0.0f;
 			for (const auto& [key, series] : seriesMap)
+			{
 				glabels.push_back(series->seriesName->c_str());
+				positions.push_back(pos);
+				pos += 1.0f;
+			}
 			glabels.push_back(nullptr);
 
 			ImPlot::SetupAxes("Variables", "Value", 0, 0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
-			ImPlot::SetupAxisTicks(ImAxis_X1, positions, seriesMap.size(), glabels.data());
+			ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
 
 			if (ImPlot::BeginDragDropTargetPlot())
 			{

@@ -1,9 +1,9 @@
 #ifndef _GUI_HPP
 #define _GUI_HPP
 
+#include <map>
 #include <mutex>
 #include <thread>
-#include <map>
 
 #include "ConfigHandler.hpp"
 #include "ElfReader.hpp"
@@ -20,7 +20,7 @@ class Gui
 		RUN = 1,
 	};
 
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx);
 	~Gui();
 
    private:
@@ -30,7 +30,6 @@ class Gui
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
 	ConfigHandler* configHandler;
-	std::mutex mtx;
 	std::string projectConfigFile;
 	std::string projectElfFile;
 	bool showAcqusitionSettingsWindow = false;
@@ -40,6 +39,9 @@ class Gui
 	std::unique_ptr<ElfReader> elfReader;
 
 	bool& done;
+
+	std::mutex* mtx;
+
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();

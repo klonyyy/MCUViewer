@@ -1,6 +1,8 @@
 #include "PlotHandler.hpp"
 
-PlotHandler::PlotHandler(bool& done) : done(done)
+#include <array>
+
+PlotHandler::PlotHandler(bool& done, std::mutex* mtx) : done(done), mtx(mtx)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
 	vals = new VarReader();
@@ -67,7 +69,6 @@ void PlotHandler::dataHandler()
 	{
 		if (viewerState == state::RUN)
 		{
-			mtx.lock();
 			std::this_thread::sleep_for(std::chrono::microseconds(10));
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<
@@ -79,15 +80,25 @@ void PlotHandler::dataHandler()
 				std::vector<uint32_t> addresses = plot.second->getVariableAddesses();
 				std::vector<Variable::type> types = plot.second->getVariableTypes();
 				int i = 0;
+
+				std::array<float, 100> values;
+
 				for (auto& adr : addresses)
 				{
-					plot.second->addPoint(t, adr, vals->getFloat(adr, types[i++]));
+					values[i] = vals->getFloat(adr, types[i]);
+					i++;
 				}
 
+				i = 0;
+				std::lock_guard<std::mutex> lock(*mtx);
+				for (auto& adr : addresses)
+					plot.second->addPoint(adr, values[i++]);
 				plot.second->addTimePoint(t);
 			}
-			mtx.unlock();
 		}
+		else
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
 		if (stateChangeOrdered)
 		{
 			viewerState = viewerStateTemp;

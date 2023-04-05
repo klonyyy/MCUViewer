@@ -19,7 +19,7 @@ class PlotHandler
 		RUN = 1,
 	};
 
-	PlotHandler(bool& done);
+	PlotHandler(bool& done, std::mutex* mtx);
 	~PlotHandler();
 
 	uint32_t addPlot(std::string name);
@@ -36,9 +36,10 @@ class PlotHandler
 	state viewerStateTemp = state::STOP;
 	VarReader* vals;
 
+	std::mutex* mtx;
+
 	std::map<uint32_t, Plot*> plotsMap;
 
-	std::mutex mtx;
 	std::thread dataHandle;
 
 	bool stateChangeOrdered = false;

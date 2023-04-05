@@ -6,12 +6,13 @@
 #include "PlotHandler.hpp"
 
 bool done = false;
+std::mutex mtx;
 
 int main(int ac, char** av)
 {
-	PlotHandler plotHandler(done);
+	PlotHandler plotHandler(done, &mtx);
 	ConfigHandler configHandler("", &plotHandler);
-	Gui gui(&plotHandler, &configHandler, done);
+	Gui gui(&plotHandler, &configHandler, done, &mtx);
 
 	while (!done)
 	{

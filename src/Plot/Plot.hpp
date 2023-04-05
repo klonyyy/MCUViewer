@@ -39,7 +39,7 @@ class Plot
 	bool removeAllVariables();
 	std::vector<uint32_t> getVariableAddesses();
 	std::vector<Variable::type> getVariableTypes();
-	bool addPoint(float t, uint32_t address, float value);
+	bool addPoint(uint32_t address, float value);
 	bool addTimePoint(float t);
 	void erase();
 	void setVisibility(bool state);
@@ -49,7 +49,6 @@ class Plot
 	type_E getType();
 
    private:
-	std::mutex mtx;
 	std::string name;
 	std::map<uint32_t, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<float> time;

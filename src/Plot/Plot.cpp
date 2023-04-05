@@ -95,11 +95,9 @@ std::vector<Variable::type> Plot::getVariableTypes()
 	return types;
 }
 
-bool Plot::addPoint(float t, uint32_t address, float value)
+bool Plot::addPoint(uint32_t address, float value)
 {
-	mtx.lock();
 	seriesMap[address]->buffer->addPoint(value);
-	mtx.unlock();
 	return true;
 }
 
