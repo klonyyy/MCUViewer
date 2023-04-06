@@ -46,6 +46,8 @@ class PlotHandler
 
 	std::chrono::time_point<std::chrono::steady_clock> start;
 
+	static constexpr uint32_t maxVariables = 100;
+
 	void dataHandler();
 };
 

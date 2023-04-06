@@ -71,29 +71,28 @@ void PlotHandler::dataHandler()
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(10));
 			auto finish = std::chrono::steady_clock::now();
-			double t = std::chrono::duration_cast<
-						   std::chrono::duration<double> >(finish - start)
-						   .count();
+			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
-			for (auto& plot : plotsMap)
+			for (auto& [key, plot] : plotsMap)
 			{
-				std::vector<uint32_t> addresses = plot.second->getVariableAddesses();
-				std::vector<Variable::type> types = plot.second->getVariableTypes();
+				std::vector<uint32_t> addresses = plot->getVariableAddesses();
+				std::vector<Variable::type> types = plot->getVariableTypes();
 				int i = 0;
 
-				std::array<float, 100> values;
-
+				/* this part consumes most of the thread time */
+				std::array<float, maxVariables> values;
 				for (auto& adr : addresses)
 				{
 					values[i] = vals->getFloat(adr, types[i]);
 					i++;
 				}
 
-				i = 0;
+				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
+				i = 0;
 				for (auto& adr : addresses)
-					plot.second->addPoint(adr, values[i++]);
-				plot.second->addTimePoint(t);
+					plot->addPoint(adr, values[i++]);
+				plot->addTimePoint(t);
 			}
 		}
 		else

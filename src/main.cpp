@@ -16,6 +16,7 @@ int main(int ac, char** av)
 
 	while (!done)
 	{
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 	std::cout << "CLOSING" << std::endl;
 

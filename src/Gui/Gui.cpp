@@ -420,6 +420,15 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 
+			/* make thread safe copies of buffers - probably can be made better but it works */
+			mtx->lock();
+			time.copyData();
+			for (auto& [key, serPtr] : seriesMap)
+				serPtr->buffer->copyData();
+			uint32_t offset = time.getOffset();
+			uint32_t size = time.getSize();
+			mtx->unlock();
+
 			if (ImPlot::BeginDragDropTargetPlot())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
@@ -427,23 +436,10 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 				ImPlot::EndDragDropTarget();
 			}
 
-			std::array<float, 10000> time_;
-			std::array<float, 10000> ser_;
-
-			mtx->lock();
-			memcpy(&time_[0], time.getFirstElement(), 10000 * sizeof(time_[0]));
-			uint32_t offset = time.getOffset();
-			uint32_t size = time.getSize();
-			mtx->unlock();
-
-			for (auto& ser : seriesMap)
+			for (auto& [key, serPtr] : seriesMap)
 			{
-				mtx->lock();
-				memcpy(&ser_[0], ser.second->buffer->getFirstElement(), 10000 * sizeof(ser_[0]));
-				mtx->unlock();
-
-				ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
-				ImPlot::PlotLine(ser.second->seriesName->c_str(), &time_[0], &ser_[0], size, 0, offset, sizeof(float));
+				ImPlot::SetNextLineStyle(ImVec4(serPtr->color->r, serPtr->color->g, serPtr->color->b, 1.0f));
+				ImPlot::PlotLine(serPtr->seriesName->c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(float));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 			}
 
@@ -478,10 +474,10 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 
 			float xs = 0.0f;
 
-			for (auto& ser : seriesMap)
+			for (auto& [key, serPtr] : seriesMap)
 			{
-				ImPlot::SetNextLineStyle(ImVec4(ser.second->color->r, ser.second->color->g, ser.second->color->b, 1.0f));
-				ImPlot::PlotBars(ser.second->seriesName->c_str(), &xs, ser.second->buffer->getLastElement(), 1, 0.5f);
+				ImPlot::SetNextLineStyle(ImVec4(serPtr->color->r, serPtr->color->g, serPtr->color->b, 1.0f));
+				ImPlot::PlotBars(serPtr->seriesName->c_str(), &xs, serPtr->buffer->getLastElement(), 1, 0.5f);
 				xs += 1.0f;
 			}
 		}
