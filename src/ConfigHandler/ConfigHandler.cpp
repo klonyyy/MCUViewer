@@ -62,7 +62,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 		if (!plotName.empty())
 		{
-			uint32_t plotId = plotHandler->addPlot(plotName);
+			plotHandler->addPlot(plotName);
 
 			std::cout << "ADDING PLOT: " << plotName << std::endl;
 
@@ -71,7 +71,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 			while (varName != "")
 			{
-				plotHandler->getPlot(plotId)->addSeries(*vars[varName]);
+				plotHandler->getPlot(plotName)->addSeries(*vars[varName]);
 				std::cout << "ADDING SERIES: " << varName << std::endl;
 				varName = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
 			}
@@ -107,9 +107,10 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		varId++;
 	}
 
-	for (uint32_t plotId = 0; plotId < plotHandler->getPlotsCount(); plotId++)
+	// for (uint32_t plotId = 0; plotId < plotHandler->getPlotsCount(); plotId++)
+	uint32_t plotId = 0;
+	for (Plot* plt : *plotHandler)
 	{
-		Plot* plt = plotHandler->getPlot(plotId);
 		(*ini)[plotFieldFromID(plotId)]["name"] = plt->getName();
 		(*ini)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
 
@@ -119,6 +120,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		{
 			(*ini)[plotFieldFromID(plotId)][seriesFieldFromID(serId++)] = *value.get()->seriesName;
 		}
+		plotId++;
 	}
 
 	if (newSavePath != "")

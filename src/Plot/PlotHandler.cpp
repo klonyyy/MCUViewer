@@ -14,17 +14,23 @@ PlotHandler::~PlotHandler()
 	delete vals;
 }
 
-uint32_t PlotHandler::addPlot(std::string name)
+void PlotHandler::addPlot(std::string name)
 {
-	uint32_t newId = plotsMap.size();
-	plotsMap[newId] = new Plot(name);
-	return newId;
+	plotsMap[name] = new Plot(name);
 }
-bool PlotHandler::removePlot(uint32_t id)
+bool PlotHandler::removePlot(std::string name)
 {
-	delete plotsMap[id];
-	plotsMap.erase(id);
+	delete plotsMap[name];
+	plotsMap.erase(name);
 	return true;
+}
+
+bool PlotHandler::renamePlot(std::string oldName, std::string newName)
+{
+	auto plt = plotsMap.extract(oldName);
+	plt.key() = newName;
+	plotsMap.insert(std::move(plt));
+	plotsMap[newName]->setName(newName);
 }
 
 bool PlotHandler::removeAllPlots()
@@ -34,9 +40,9 @@ bool PlotHandler::removeAllPlots()
 	return true;
 }
 
-Plot* PlotHandler::getPlot(uint32_t id)
+Plot* PlotHandler::getPlot(std::string name)
 {
-	return plotsMap[id];
+	return plotsMap[name];
 }
 
 uint32_t PlotHandler::getPlotsCount()

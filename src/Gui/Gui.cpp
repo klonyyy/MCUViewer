@@ -97,11 +97,8 @@ void Gui::mainThread()
 		if (showAcqusitionSettingsWindow)
 			drawAcqusitionSettingsWindow();
 
-		for (uint32_t k = 0; k < plotHandler->getPlotsCount(); k++)
-		{
-			Plot* plt = plotHandler->getPlot(k);
+		for (Plot* plt : *plotHandler)
 			drawPlot(plt, plt->getTimeSeries(), plt->getSeriesMap());
-		}
 
 		drawMenu();
 		ImGui::End();
@@ -317,18 +314,8 @@ void Gui::drawVarTable()
 				if (ImGui::Button("Delete"))
 				{
 					ImGui::CloseCurrentPopup();
-					for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
-					{
-						if (plotHandler->getPlot(i)->removeVariable(var->getAddress()))
-						{
-							std::cout << "deleting " << var->getName() << " for plot " << (int)i << "succeded" << std::endl;
-						}
-						else
-						{
-							std::cout << "deleting " << var->getName() << " for plot " << (int)i << "FAILED" << std::endl;
-						}
-					}
-
+					for (Plot* plt : *plotHandler)
+						plt->removeVariable(var->getAddress());
 					vars.erase(keyName);
 				}
 				ImGui::EndPopup();
@@ -360,35 +347,52 @@ void Gui::drawAddPlotButton()
 
 void Gui::drawPlotsTree()
 {
-	ImGui::SetNextItemOpen(true);
+	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+	std::string newName = "";
+
 	if (ImGui::TreeNode("Plots"))
 	{
-		for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
+		uint32_t i = 0;
+		for (Plot* plt : *plotHandler)
 		{
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
 			const char* plotTypes[3] = {"curve", "bar", "table"};
-			Plot* plot = plotHandler->getPlot(i);
-			int32_t typeCombo = (int32_t)plot->getType();
+			int32_t typeCombo = (int32_t)plt->getType();
 
-			if (ImGui::TreeNode((void*)(intptr_t)i, (plot->getName()).c_str(), i))
+			newName = plt->getName();
+
+			if (ImGui::TreeNode((void*)(intptr_t)i, (plt->getName()).c_str(), i))
 			{
 				ImGui::Text("name    ");
 				ImGui::SameLine();
-				ImGui::InputText("##", &plot->getNameVar(), 0, NULL, NULL);
+				ImGui::InputText("i##", &newName, 0, NULL, NULL);
 				ImGui::Text("type    ");
 				ImGui::SameLine();
-				ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-				ImGui::PushID(i);
+				ImGui::Combo("c##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
 				ImGui::Text("visible ");
 				ImGui::SameLine();
-				ImGui::Checkbox("##", &plot->getVisibilityVar());
-				ImGui::PopID();
+				ImGui::Checkbox("ch##", &plt->getVisibilityVar());
 				ImGui::TreePop();
 			}
 
-			if (typeCombo != (int32_t)plot->getType())
-				plot->setType(static_cast<Plot::type_E>(typeCombo));
+			if (typeCombo != (int32_t)plt->getType())
+				plt->setType(static_cast<Plot::type_E>(typeCombo));
+
+			if (ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::Button("Delete"))
+				{
+					ImGui::CloseCurrentPopup();
+					plotHandler->removePlot(plt->getName());
+				}
+				ImGui::EndPopup();
+			}
+
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter) && newName != plt->getName())
+				plotHandler->renamePlot(plt->getName(), newName);
+
+			i++;
 		}
 		ImGui::TreePop();
 	}
@@ -481,7 +485,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 			}
 			glabels.push_back(nullptr);
 
-			ImPlot::SetupAxes("Variables", "Value", 0, 0);
+			ImPlot::SetupAxes(NULL, "Value", 0, 0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
 			ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
 
@@ -493,16 +497,20 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 			}
 
 			float xs = 0.0f;
+			float barSize = 0.5f;
 
 			for (auto& [key, serPtr] : seriesMap)
 			{
+				float value = *serPtr->buffer->getLastElement();
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->color->r, serPtr->color->g, serPtr->color->b, 1.0f));
-				ImPlot::PlotBars(serPtr->seriesName->c_str(), &xs, serPtr->buffer->getLastElement(), 1, 0.5f);
+				ImPlot::PlotBars(serPtr->seriesName->c_str(), &xs, &value, 1, barSize);
+				float textX = xs - barSize / 4.0f;
+				float textY = value / 2.0f;
+				ImPlot::Annotation(textX, textY, ImPlot::GetLastItemColor(), ImVec2(0.5f, 0.5f), false, "%.5f", value);
 				xs += 1.0f;
 			}
+			ImPlot::EndPlot();
 		}
-
-		ImPlot::EndPlot();
 	}
 }
 

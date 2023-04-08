@@ -13,6 +13,11 @@ Plot::~Plot()
 {
 }
 
+void Plot::setName(std::string newName)
+{
+	name = newName;
+}
+
 std::string Plot::getName() const
 {
 	return name;

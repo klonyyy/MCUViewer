@@ -19,16 +19,73 @@ class PlotHandler
 		RUN = 1,
 	};
 
+	class iterator
+	{
+	   public:
+		using iterator_category = std::forward_iterator_tag;
+		using value_type = Plot*;
+		using difference_type = std::ptrdiff_t;
+		using pointer = Plot**;
+		using reference = Plot*&;
+
+		iterator(std::map<std::string, Plot*>::iterator iter)
+			: m_iter(iter)
+		{
+		}
+
+		iterator& operator++()
+		{
+			++m_iter;
+			return *this;
+		}
+
+		iterator operator++(int)
+		{
+			iterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+
+		bool operator==(const iterator& other) const
+		{
+			return m_iter == other.m_iter;
+		}
+
+		bool operator!=(const iterator& other) const
+		{
+			return !(*this == other);
+		}
+
+		Plot* operator*()
+		{
+			return m_iter->second;
+		}
+
+	   private:
+		std::map<std::string, Plot*>::iterator m_iter;
+	};
+
 	PlotHandler(bool& done, std::mutex* mtx);
 	~PlotHandler();
 
-	uint32_t addPlot(std::string name);
-	bool removePlot(uint32_t id);
+	void addPlot(std::string name);
+	bool removePlot(std::string name);
+	bool renamePlot(std::string oldName, std::string newName);
 	bool removeAllPlots();
-	Plot* getPlot(uint32_t id);
+	Plot* getPlot(std::string name);
 	uint32_t getPlotsCount();
 	bool eraseAllPlotData();
 	void setViewerState(state state);
+
+	iterator begin()
+	{
+		return iterator(plotsMap.begin());
+	}
+
+	iterator end()
+	{
+		return iterator(plotsMap.end());
+	}
 
    private:
 	bool& done;
@@ -38,7 +95,7 @@ class PlotHandler
 
 	std::mutex* mtx;
 
-	std::map<uint32_t, Plot*> plotsMap;
+	std::map<std::string, Plot*> plotsMap;
 
 	std::thread dataHandle;
 

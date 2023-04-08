@@ -29,6 +29,7 @@ class Plot
 
 	Plot(std::string name);
 	~Plot();
+	void setName(std::string newName);
 	std::string getName() const;
 	std::string& getNameVar();
 	bool addSeries(std::string* name, uint32_t address, Variable::Color& color);
