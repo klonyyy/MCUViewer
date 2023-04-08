@@ -112,6 +112,7 @@ void Gui::mainThread()
 		drawAddVariableButton();
 		drawUpdateAddressesFromElf();
 		drawVarTable();
+		drawAddPlotButton();
 		drawPlotsTree();
 		ImGui::End();
 
@@ -351,8 +352,15 @@ void Gui::drawVarTable()
 	}
 }
 
+void Gui::drawAddPlotButton()
+{
+	if (ImGui::Button("Add plot"))
+		plotHandler->addPlot("new plot");
+}
+
 void Gui::drawPlotsTree()
 {
+	ImGui::SetNextItemOpen(true);
 	if (ImGui::TreeNode("Plots"))
 	{
 		for (uint32_t i = 0; i < plotHandler->getPlotsCount(); i++)
@@ -360,17 +368,27 @@ void Gui::drawPlotsTree()
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
 			const char* plotTypes[3] = {"curve", "bar", "table"};
+			Plot* plot = plotHandler->getPlot(i);
+			int32_t typeCombo = (int32_t)plot->getType();
 
-			int32_t typeCombo = (int32_t)plotHandler->getPlot(i)->getType();
-
-			if (ImGui::TreeNode((void*)(intptr_t)i, (plotHandler->getPlot(i)->getName()).c_str(), i))
+			if (ImGui::TreeNode((void*)(intptr_t)i, (plot->getName()).c_str(), i))
 			{
+				ImGui::Text("name    ");
+				ImGui::SameLine();
+				ImGui::InputText("##", &plot->getNameVar(), 0, NULL, NULL);
+				ImGui::Text("type    ");
+				ImGui::SameLine();
 				ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
+				ImGui::PushID(i);
+				ImGui::Text("visible ");
+				ImGui::SameLine();
+				ImGui::Checkbox("##", &plot->getVisibilityVar());
+				ImGui::PopID();
 				ImGui::TreePop();
 			}
 
-			if (typeCombo != (int32_t)plotHandler->getPlot(i)->getType())
-				plotHandler->getPlot(i)->setType(static_cast<Plot::type_E>(typeCombo));
+			if (typeCombo != (int32_t)plot->getType())
+				plot->setType(static_cast<Plot::type_E>(typeCombo));
 		}
 		ImGui::TreePop();
 	}
@@ -411,6 +429,8 @@ void Gui::drawAcqusitionSettingsWindow()
 
 void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesMap)
 {
+	if (!plot->getVisibility())
+		return;
 	if (plot->getType() == Plot::type_E::CURVE)
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))

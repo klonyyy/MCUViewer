@@ -18,6 +18,11 @@ std::string Plot::getName() const
 	return name;
 }
 
+std::string& Plot::getNameVar()
+{
+	return name;
+}
+
 bool Plot::addSeries(std::string* name, uint32_t address, Variable::Color& color)
 {
 	seriesMap[address] = std::make_shared<Series>();
@@ -120,6 +125,10 @@ void Plot::setVisibility(bool state)
 	visibility = state;
 }
 bool Plot::getVisibility()
+{
+	return visibility;
+}
+bool& Plot::getVisibilityVar()
 {
 	return visibility;
 }

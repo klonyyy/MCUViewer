@@ -30,6 +30,7 @@ class Plot
 	Plot(std::string name);
 	~Plot();
 	std::string getName() const;
+	std::string& getNameVar();
 	bool addSeries(std::string* name, uint32_t address, Variable::Color& color);
 	bool addSeries(Variable& var);
 	std::shared_ptr<Plot::Series> getSeries(uint32_t address);
@@ -44,6 +45,7 @@ class Plot
 	void erase();
 	void setVisibility(bool state);
 	bool getVisibility();
+	bool& getVisibilityVar();
 
 	void setType(type_E newType);
 	type_E getType();

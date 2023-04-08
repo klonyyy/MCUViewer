@@ -4,6 +4,9 @@ build/*
 **/[Dd]ebug/
 **/[Rr]elease/
 
+Project4.cfg
+Project5.cfg
+
 # Prerequisites
 *.d
 
