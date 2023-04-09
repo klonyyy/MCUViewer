@@ -59,10 +59,12 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	{
 		std::string sectionName("plot" + std::to_string(plotNumber++));
 		plotName = ini->get(sectionName).get("name");
+		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
 
 		if (!plotName.empty())
 		{
 			plotHandler->addPlot(plotName);
+			plotHandler->getPlot(plotName)->setVisibility(visibility);
 
 			std::cout << "ADDING PLOT: " << plotName << std::endl;
 
@@ -107,7 +109,6 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		varId++;
 	}
 
-	// for (uint32_t plotId = 0; plotId < plotHandler->getPlotsCount(); plotId++)
 	uint32_t plotId = 0;
 	for (Plot* plt : *plotHandler)
 	{
