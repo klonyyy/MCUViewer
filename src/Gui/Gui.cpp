@@ -108,7 +108,6 @@ void Gui::mainThread()
 		drawAddVariableButton();
 		drawUpdateAddressesFromElf();
 		drawVarTable();
-		drawAddPlotButton();
 		drawPlotsTree();
 		ImGui::End();
 
@@ -286,16 +285,14 @@ void Gui::drawVarTable()
 		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
 		ImGui::TableHeadersRow();
 
-		uint32_t row = 0;
 		for (auto& [keyName, var] : vars)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			ImGui::PushID(row++);
-
-			ImGui::ColorEdit4("##Color", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
+			ImGui::PushID(keyName.c_str());
+			ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
 			ImGui::SameLine();
-
+			ImGui::PopID();
 			char variable[maxVariableNameLength] = {0};
 			memcpy(variable, var->getName().data(), (var->getName().length()));
 			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
@@ -327,7 +324,6 @@ void Gui::drawVarTable()
 				ImGui::TextUnformatted(var->getName().c_str());
 				ImGui::EndDragDropSource();
 			}
-			ImGui::PopID();
 			ImGui::TableSetColumnIndex(1);
 			ImGui::Text(("0x" + std::string(intToHexString(var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
@@ -337,30 +333,34 @@ void Gui::drawVarTable()
 	}
 }
 
-void Gui::drawAddPlotButton()
-{
-	if (ImGui::Button("Add plot", ImVec2(-1, 30)))
-		plotHandler->addPlot("new plot");
-}
-
 void Gui::drawPlotsTree()
 {
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	std::string newName = "";
 
-	if (ImGui::TreeNode("Plots"))
+	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_Reorderable))
 	{
-		uint32_t i = 0;
+		if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
+			plotHandler->addPlot("new plot");
+
+		if (ImGui::BeginPopupContextWindow())
+		{
+			if (ImGui::Button("Add plot"))
+			{
+				ImGui::CloseCurrentPopup();
+				plotHandler->addPlot("new plot");
+			}
+			ImGui::EndPopup();
+		}
+
 		for (Plot* plt : *plotHandler)
 		{
-			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-
 			const char* plotTypes[3] = {"curve", "bar", "table"};
 			int32_t typeCombo = (int32_t)plt->getType();
 
 			newName = plt->getName();
 
-			if (ImGui::TreeNode((void*)(intptr_t)i, (plt->getName()).c_str(), i))
+			if (ImGui::BeginTabItem(plt->getName().c_str()))
 			{
 				if (ImGui::BeginPopupContextItem())
 				{
@@ -374,10 +374,14 @@ void Gui::drawPlotsTree()
 
 				ImGui::Text("name    ");
 				ImGui::SameLine();
-				ImGui::InputText("i##", &newName, 0, NULL, NULL);
+				ImGui::PushID("input");
+				ImGui::InputText("##", &newName, 0, NULL, NULL);
+				ImGui::PopID();
 				ImGui::Text("type    ");
 				ImGui::SameLine();
-				ImGui::Combo("c##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
+				ImGui::PushID("combo");
+				ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
+				ImGui::PopID();
 				ImGui::Text("visible ");
 				ImGui::SameLine();
 				ImGui::Checkbox("##", &plt->getVisibilityVar());
@@ -409,10 +413,8 @@ void Gui::drawPlotsTree()
 
 			if (ImGui::IsKeyPressed(ImGuiKey_Enter) && newName != plt->getName())
 				plotHandler->renamePlot(plt->getName(), newName);
-
-			i++;
 		}
-		ImGui::TreePop();
+		ImGui::EndTabBar();
 	}
 }
 

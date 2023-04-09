@@ -48,7 +48,6 @@ class Gui
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
 	void drawVarTable();
-	void drawAddPlotButton();
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
 	void drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
