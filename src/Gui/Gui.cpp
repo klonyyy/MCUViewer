@@ -105,7 +105,6 @@ void Gui::mainThread()
 
 		ImGui::Begin("VarViewer", &p_open, 0);
 		drawStartButton();
-		ImGui::SameLine();
 		drawAddVariableButton();
 		drawUpdateAddressesFromElf();
 		drawVarTable();
@@ -235,7 +234,7 @@ void Gui::drawStartButton()
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button(viewerStateMap.at(viewerState).c_str(), ImVec2(200, 50)))
+	if (ImGui::Button(viewerStateMap.at(viewerState).c_str(), ImVec2(-1, 50)))
 	{
 		if (viewerState == state::STOP)
 		{
@@ -254,7 +253,7 @@ void Gui::drawStartButton()
 }
 void Gui::drawAddVariableButton()
 {
-	if (ImGui::Button("Add variable"))
+	if (ImGui::Button("Add variable", ImVec2(-1, 30)))
 	{
 		uint32_t num = 0;
 		while (vars.find(std::string("new") + std::to_string(num)) != vars.end())
@@ -271,7 +270,7 @@ void Gui::drawAddVariableButton()
 }
 void Gui::drawUpdateAddressesFromElf()
 {
-	if (ImGui::Button("Update Variable addresses"))
+	if (ImGui::Button("Update Variable addresses", ImVec2(-1, 30)))
 		elfReader->updateVariableMap(vars);
 }
 
@@ -341,7 +340,7 @@ void Gui::drawVarTable()
 
 void Gui::drawAddPlotButton()
 {
-	if (ImGui::Button("Add plot"))
+	if (ImGui::Button("Add plot", ImVec2(-1, 30)))
 		plotHandler->addPlot("new plot");
 }
 
@@ -436,13 +435,20 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 	if (!plot->getVisibility())
 		return;
 
+	ImVec2 plotSize = ImVec2(-1, (ImGui::GetWindowSize().y - 100) / std::distance(plotHandler->begin(), plotHandler->end()));
+
 	if (plot->getType() == Plot::type_E::CURVE)
 	{
-		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
+		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
 		{
-			ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_AutoFit, 0);
-			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
+			if (plotHandler->getViewerState())
+				ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+			else
+			{
+				ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+				ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
+				ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
+			}
 
 			if (ImPlot::BeginDragDropTargetPlot())
 			{
@@ -473,17 +479,11 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 	}
 	else if (plot->getType() == Plot::type_E::BAR)
 	{
-		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
+		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
 		{
-			if (ImPlot::BeginDragDropTargetPlot())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-					plot->addSeries(*vars[*(std::string*)payload->Data]);
-				ImPlot::EndDragDropTarget();
-			}
-
 			std::vector<const char*> glabels;
 			std::vector<double> positions;
+
 			float pos = 0.0f;
 			for (const auto& [key, series] : seriesMap)
 			{
@@ -496,6 +496,13 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 			ImPlot::SetupAxes(NULL, "Value", 0, 0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
 			ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
+
+			if (ImPlot::BeginDragDropTargetPlot())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+					plot->addSeries(*vars[*(std::string*)payload->Data]);
+				ImPlot::EndDragDropTarget();
+			}
 
 			float xs = 0.0f;
 			float barSize = 0.5f;

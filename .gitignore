@@ -6,6 +6,7 @@ build/*
 
 Project4.cfg
 Project5.cfg
+MD80.cfg
 
 # Prerequisites
 *.d

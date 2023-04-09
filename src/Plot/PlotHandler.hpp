@@ -75,6 +75,7 @@ class PlotHandler
 	Plot* getPlot(std::string name);
 	bool eraseAllPlotData();
 	void setViewerState(state state);
+	bool getViewerState();
 
 	iterator begin()
 	{

@@ -65,6 +65,12 @@ void PlotHandler::setViewerState(state state)
 	stateChangeOrdered = true;
 	viewerStateTemp = state;
 }
+
+bool PlotHandler::getViewerState()
+{
+	return static_cast<bool>(viewerState);
+}
+
 void PlotHandler::dataHandler()
 {
 	while (!done)
