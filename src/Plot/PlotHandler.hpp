@@ -76,6 +76,8 @@ class PlotHandler
 	bool eraseAllPlotData();
 	void setViewerState(state state);
 	bool getViewerState();
+	uint32_t getVisiblePlotsCount();
+	uint32_t getPlotsCount();
 
 	iterator begin()
 	{

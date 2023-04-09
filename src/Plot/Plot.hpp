@@ -34,7 +34,7 @@ class Plot
 	std::shared_ptr<Plot::Series> getSeries(std::string name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
 	ScrollingBuffer<float>& getTimeSeries();
-	bool removeVariable(std::string name);
+	bool removeSeries(std::string name);
 	bool removeAllVariables();
 	std::vector<uint32_t> getVariableAddesses();
 	std::vector<Variable::type> getVariableTypes();

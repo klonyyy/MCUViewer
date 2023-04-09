@@ -278,8 +278,7 @@ void Gui::drawVarTable()
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-	ImVec2 outer_size = ImVec2(0.0f, 300);
-	if (ImGui::BeginTable("table_scrolly", 3, flags, outer_size))
+	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
@@ -314,7 +313,7 @@ void Gui::drawVarTable()
 				{
 					ImGui::CloseCurrentPopup();
 					for (Plot* plt : *plotHandler)
-						plt->removeVariable(var->getName());
+						plt->removeSeries(var->getName());
 					vars.erase(keyName);
 				}
 				ImGui::EndPopup();
@@ -363,6 +362,16 @@ void Gui::drawPlotsTree()
 
 			if (ImGui::TreeNode((void*)(intptr_t)i, (plt->getName()).c_str(), i))
 			{
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (ImGui::Button("Delete plot"))
+					{
+						ImGui::CloseCurrentPopup();
+						plotHandler->removePlot(plt->getName());
+					}
+					ImGui::EndPopup();
+				}
+
 				ImGui::Text("name    ");
 				ImGui::SameLine();
 				ImGui::InputText("i##", &newName, 0, NULL, NULL);
@@ -371,22 +380,32 @@ void Gui::drawPlotsTree()
 				ImGui::Combo("c##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
 				ImGui::Text("visible ");
 				ImGui::SameLine();
-				ImGui::Checkbox("ch##", &plt->getVisibilityVar());
+				ImGui::Checkbox("##", &plt->getVisibilityVar());
+				ImGui::PushID("list");
+				if (ImGui::BeginListBox("##", ImVec2(-1, 80)))
+				{
+					for (auto& [name, ser] : plt->getSeriesMap())
+					{
+						ImGui::Selectable(name.c_str());
+						if (ImGui::BeginPopupContextItem())
+						{
+							if (ImGui::Button("Delete var"))
+							{
+								ImGui::CloseCurrentPopup();
+								plt->removeSeries(name);
+							}
+							ImGui::EndPopup();
+						}
+					}
+					ImGui::EndListBox();
+				}
+				ImGui::PopID();
+
 				ImGui::TreePop();
 			}
 
 			if (typeCombo != (int32_t)plt->getType())
 				plt->setType(static_cast<Plot::type_E>(typeCombo));
-
-			if (ImGui::BeginPopupContextItem())
-			{
-				if (ImGui::Button("Delete"))
-				{
-					ImGui::CloseCurrentPopup();
-					plotHandler->removePlot(plt->getName());
-				}
-				ImGui::EndPopup();
-			}
 
 			if (ImGui::IsKeyPressed(ImGuiKey_Enter) && newName != plt->getName())
 				plotHandler->renamePlot(plt->getName(), newName);
@@ -435,7 +454,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 	if (!plot->getVisibility())
 		return;
 
-	ImVec2 plotSize = ImVec2(-1, (ImGui::GetWindowSize().y - 100) / std::distance(plotHandler->begin(), plotHandler->end()));
+	ImVec2 plotSize = ImVec2(-1, (ImGui::GetWindowSize().y - 50) / plotHandler->getVisiblePlotsCount());
 
 	if (plot->getType() == Plot::type_E::CURVE)
 	{

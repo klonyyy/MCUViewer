@@ -1,5 +1,6 @@
 #include "PlotHandler.hpp"
 
+#include <algorithm>
 #include <array>
 
 PlotHandler::PlotHandler(bool& done, std::mutex* mtx) : done(done), mtx(mtx)
@@ -69,6 +70,16 @@ void PlotHandler::setViewerState(state state)
 bool PlotHandler::getViewerState()
 {
 	return static_cast<bool>(viewerState);
+}
+
+uint32_t PlotHandler::getVisiblePlotsCount()
+{
+	return std::count_if(plotsMap.begin(), plotsMap.end(), [](const auto& pair)
+						 { return pair.second->getVisibility(); });
+}
+uint32_t PlotHandler::getPlotsCount()
+{
+	return plotsMap.size();
 }
 
 void PlotHandler::dataHandler()

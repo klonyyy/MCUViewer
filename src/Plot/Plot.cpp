@@ -52,7 +52,7 @@ ScrollingBuffer<float>& Plot::getTimeSeries()
 	return time;
 }
 
-bool Plot::removeVariable(std::string name)
+bool Plot::removeSeries(std::string name)
 {
 	if (seriesMap.find(name) == seriesMap.end())
 		return false;
