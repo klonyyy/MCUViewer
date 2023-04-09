@@ -28,33 +28,21 @@ std::string& Plot::getNameVar()
 	return name;
 }
 
-bool Plot::addSeries(std::string* name, uint32_t address, Variable::Color& color)
-{
-	seriesMap[address] = std::make_shared<Series>();
-	seriesMap[address]->buffer = std::make_unique<ScrollingBuffer<float>>();
-	seriesMap[address]->seriesName = name;
-	seriesMap[address]->color = &color;
-	return true;
-}
-
 bool Plot::addSeries(Variable& var)
 {
-	uint32_t address = var.getAddress();
-	seriesMap[address] = std::make_shared<Series>();
-	seriesMap[address]->buffer = std::make_unique<ScrollingBuffer<float>>();
-	seriesMap[address]->seriesName = &var.getName();
-	seriesMap[address]->type = var.getType();
-	seriesMap[address]->color = &var.getColor();
-
+	std::string name = var.getName();
+	seriesMap[name] = std::make_shared<Series>();
+	seriesMap[name]->buffer = std::make_unique<ScrollingBuffer<float>>();
+	seriesMap[name]->var = &var;
 	return true;
 }
 
-std::shared_ptr<Plot::Series> Plot::getSeries(uint32_t address)
+std::shared_ptr<Plot::Series> Plot::getSeries(std::string name)
 {
-	return seriesMap[address];
+	return seriesMap[name];
 }
 
-std::map<uint32_t, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
+std::map<std::string, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
 {
 	return seriesMap;
 }
@@ -64,22 +52,20 @@ ScrollingBuffer<float>& Plot::getTimeSeries()
 	return time;
 }
 
-bool Plot::removeVariable(uint32_t address)
+bool Plot::removeVariable(std::string name)
 {
-	if (seriesMap.find(address) == seriesMap.end())
+	if (seriesMap.find(name) == seriesMap.end())
 		return false;
 
-	seriesMap[address]->buffer.reset();
-	seriesMap[address].reset();
-	seriesMap.erase(address);
+	seriesMap.erase(name);
 	return true;
 }
 bool Plot::removeAllVariables()
 {
-	for (auto& addr : seriesMap)
+	for (auto& [name, var] : seriesMap)
 	{
-		seriesMap[addr.first]->buffer.reset();
-		seriesMap[addr.first].reset();
+		seriesMap[name]->buffer.reset();
+		seriesMap[name].reset();
 	}
 	seriesMap.clear();
 	return true;
@@ -88,9 +74,8 @@ bool Plot::removeAllVariables()
 std::vector<uint32_t> Plot::getVariableAddesses()
 {
 	std::vector<uint32_t> addresses;
-
-	for (auto& addr : seriesMap)
-		addresses.push_back(addr.first);
+	for (auto& [name, ser] : seriesMap)
+		addresses.push_back(ser->var->getAddress());
 
 	return addresses;
 }
@@ -98,16 +83,15 @@ std::vector<uint32_t> Plot::getVariableAddesses()
 std::vector<Variable::type> Plot::getVariableTypes()
 {
 	std::vector<Variable::type> types;
-
-	for (auto& entry : seriesMap)
-		types.push_back(entry.second->type);
+	for (auto& [name, ser] : seriesMap)
+		types.push_back(ser->var->getType());
 
 	return types;
 }
 
-bool Plot::addPoint(uint32_t address, float value)
+bool Plot::addPoint(std::string varName, float value)
 {
-	seriesMap[address]->buffer->addPoint(value);
+	seriesMap[varName]->buffer->addPoint(value);
 	return true;
 }
 
@@ -121,8 +105,8 @@ void Plot::erase()
 {
 	time.erase();
 
-	for (auto& ser : seriesMap)
-		ser.second->buffer->erase();
+	for (auto& [name, ser] : seriesMap)
+		ser->buffer->erase();
 }
 
 void Plot::setVisibility(bool state)

@@ -73,7 +73,6 @@ class PlotHandler
 	bool renamePlot(std::string oldName, std::string newName);
 	bool removeAllPlots();
 	Plot* getPlot(std::string name);
-	uint32_t getPlotsCount();
 	bool eraseAllPlotData();
 	void setViewerState(state state);
 

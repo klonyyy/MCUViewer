@@ -31,6 +31,7 @@ bool PlotHandler::renamePlot(std::string oldName, std::string newName)
 	plt.key() = newName;
 	plotsMap.insert(std::move(plt));
 	plotsMap[newName]->setName(newName);
+	return true;
 }
 
 bool PlotHandler::removeAllPlots()
@@ -43,11 +44,6 @@ bool PlotHandler::removeAllPlots()
 Plot* PlotHandler::getPlot(std::string name)
 {
 	return plotsMap[name];
-}
-
-uint32_t PlotHandler::getPlotsCount()
-{
-	return plotsMap.size();
 }
 
 bool PlotHandler::eraseAllPlotData()
@@ -81,23 +77,17 @@ void PlotHandler::dataHandler()
 
 			for (auto& [key, plot] : plotsMap)
 			{
-				std::vector<uint32_t> addresses = plot->getVariableAddesses();
-				std::vector<Variable::type> types = plot->getVariableTypes();
 				int i = 0;
-
 				/* this part consumes most of the thread time */
 				std::array<float, maxVariables> values;
-				for (auto& adr : addresses)
-				{
-					values[i] = vals->getFloat(adr, types[i]);
-					i++;
-				}
+				for (auto& [name, ser] : plot->getSeriesMap())
+					values[i++] = vals->getFloat(ser->var->getAddress(), ser->var->getType());
 
 				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
 				i = 0;
-				for (auto& adr : addresses)
-					plot->addPoint(adr, values[i++]);
+				for (auto& [name, ser] : plot->getSeriesMap())
+					plot->addPoint(name, values[i++]);
 				plot->addTimePoint(t);
 			}
 		}

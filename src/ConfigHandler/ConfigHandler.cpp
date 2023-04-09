@@ -116,10 +116,9 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 		uint32_t serId = 0;
 
-		for (auto& [key, value] : plt->getSeriesMap())
-		{
-			(*ini)[plotFieldFromID(plotId)][seriesFieldFromID(serId++)] = *value.get()->seriesName;
-		}
+		for (auto& [key, ser] : plt->getSeriesMap())
+			(*ini)[plotFieldFromID(plotId)][seriesFieldFromID(serId++)] = ser->var->getName();
+
 		plotId++;
 	}
 

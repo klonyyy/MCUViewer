@@ -315,7 +315,7 @@ void Gui::drawVarTable()
 				{
 					ImGui::CloseCurrentPopup();
 					for (Plot* plt : *plotHandler)
-						plt->removeVariable(var->getAddress());
+						plt->removeVariable(var->getName());
 					vars.erase(keyName);
 				}
 				ImGui::EndPopup();
@@ -324,7 +324,7 @@ void Gui::drawVarTable()
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
 				ImGui::SetDragDropPayload("MY_DND", &var->getName(), sizeof(var->getName()));
-				ImPlot::ItemIcon(0xaabbcc);
+				ImPlot::ItemIcon(var->getColorU32());
 				ImGui::SameLine();
 				ImGui::TextUnformatted(var->getName().c_str());
 				ImGui::EndDragDropSource();
@@ -431,18 +431,26 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::End();
 }
 
-void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, std::shared_ptr<Plot::Series>>& seriesMap)
+void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
 {
 	if (!plot->getVisibility())
 		return;
+
 	if (plot->getType() == Plot::type_E::CURVE)
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
 		{
-			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+			ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_AutoFit, 0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
-			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+
+			if (ImPlot::BeginDragDropTargetPlot())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+					plot->addSeries(*vars[*(std::string*)payload->Data]);
+
+				ImPlot::EndDragDropTarget();
+			}
 
 			/* make thread safe copies of buffers - probably can be made better but it works */
 			mtx->lock();
@@ -453,18 +461,11 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 			uint32_t size = time.getSize();
 			mtx->unlock();
 
-			if (ImPlot::BeginDragDropTargetPlot())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-					plot->addSeries(*vars[*(std::string*)payload->Data]);
-				ImPlot::EndDragDropTarget();
-			}
-
 			for (auto& [key, serPtr] : seriesMap)
 			{
-				ImPlot::SetNextLineStyle(ImVec4(serPtr->color->r, serPtr->color->g, serPtr->color->b, 1.0f));
-				ImPlot::PlotLine(serPtr->seriesName->c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(float));
+				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(float));
 			}
 
 			ImPlot::EndPlot();
@@ -474,12 +475,19 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, 300), ImPlotFlags_NoChild))
 		{
+			if (ImPlot::BeginDragDropTargetPlot())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+					plot->addSeries(*vars[*(std::string*)payload->Data]);
+				ImPlot::EndDragDropTarget();
+			}
+
 			std::vector<const char*> glabels;
 			std::vector<double> positions;
 			float pos = 0.0f;
 			for (const auto& [key, series] : seriesMap)
 			{
-				glabels.push_back(series->seriesName->c_str());
+				glabels.push_back(series->var->getName().c_str());
 				positions.push_back(pos);
 				pos += 1.0f;
 			}
@@ -489,21 +497,15 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<uint32_t, 
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
 			ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
 
-			if (ImPlot::BeginDragDropTargetPlot())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-					plot->addSeries(*vars[*(std::string*)payload->Data]);
-				ImPlot::EndDragDropTarget();
-			}
-
 			float xs = 0.0f;
 			float barSize = 0.5f;
 
 			for (auto& [key, serPtr] : seriesMap)
 			{
 				float value = *serPtr->buffer->getLastElement();
-				ImPlot::SetNextLineStyle(ImVec4(serPtr->color->r, serPtr->color->g, serPtr->color->b, 1.0f));
-				ImPlot::PlotBars(serPtr->seriesName->c_str(), &xs, &value, 1, barSize);
+
+				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
+				ImPlot::PlotBars(serPtr->var->getName().c_str(), &xs, &value, 1, barSize);
 				float textX = xs - barSize / 4.0f;
 				float textY = value / 2.0f;
 				ImPlot::Annotation(textX, textY, ImPlot::GetLastItemColor(), ImVec2(0.5f, 0.5f), false, "%.5f", value);

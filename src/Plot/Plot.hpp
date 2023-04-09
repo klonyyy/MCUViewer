@@ -14,9 +14,7 @@ class Plot
    public:
 	struct Series
 	{
-		Variable::type type;
-		Variable::Color* color;
-		std::string* seriesName;
+		Variable* var;
 		std::unique_ptr<ScrollingBuffer<float>> buffer;
 	};
 
@@ -32,16 +30,15 @@ class Plot
 	void setName(std::string newName);
 	std::string getName() const;
 	std::string& getNameVar();
-	bool addSeries(std::string* name, uint32_t address, Variable::Color& color);
 	bool addSeries(Variable& var);
-	std::shared_ptr<Plot::Series> getSeries(uint32_t address);
-	std::map<uint32_t, std::shared_ptr<Plot::Series>>& getSeriesMap();
+	std::shared_ptr<Plot::Series> getSeries(std::string name);
+	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
 	ScrollingBuffer<float>& getTimeSeries();
-	bool removeVariable(uint32_t address);
+	bool removeVariable(std::string name);
 	bool removeAllVariables();
 	std::vector<uint32_t> getVariableAddesses();
 	std::vector<Variable::type> getVariableTypes();
-	bool addPoint(uint32_t address, float value);
+	bool addPoint(std::string name, float value);
 	bool addTimePoint(float t);
 	void erase();
 	void setVisibility(bool state);
@@ -53,7 +50,7 @@ class Plot
 
    private:
 	std::string name;
-	std::map<uint32_t, std::shared_ptr<Series>> seriesMap;
+	std::map<std::string, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<float> time;
 	bool visibility = true;
 	type_E type = type_E::CURVE;
