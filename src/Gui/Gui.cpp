@@ -170,19 +170,6 @@ void Gui::drawMenu()
 						  << NFD_GetError() << std::endl;
 			}
 		}
-		if (ImGui::BeginMenu("Open Recent"))
-		{
-			ImGui::MenuItem("fish_hat.c");
-			ImGui::MenuItem("fish_hat.inl");
-			ImGui::MenuItem("fish_hat.h");
-			if (ImGui::BeginMenu("More.."))
-			{
-				ImGui::MenuItem("Hello");
-				ImGui::MenuItem("Sailor");
-				ImGui::EndMenu();
-			}
-			ImGui::EndMenu();
-		}
 		if (ImGui::MenuItem("Save", "Ctrl+S"))
 		{
 			configHandler->saveConfigFile(vars, projectElfFile, projectConfigFile);

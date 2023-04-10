@@ -45,6 +45,9 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
 		varId++;
 
+		if (newVar->getAddress() % 4 != 0)
+			std::cout << "--------- WARNING: unaligned variable address! ----------" << std::endl;
+
 		if (!newVar->getName().empty())
 		{
 			vars[newVar->getName()] = newVar;

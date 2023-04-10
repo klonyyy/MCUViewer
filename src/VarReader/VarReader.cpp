@@ -43,9 +43,33 @@ uint32_t VarReader::getValue(uint32_t address)
 
 float VarReader::getFloat(uint32_t address, Variable::type type)
 {
-	uint32_t value = 0;
+	volatile uint32_t value = 0;
+
+	uint8_t shouldShift = 0;
+
+	if (address % 4 != 0)
+	{
+		shouldShift = address % 4;
+		address = (address / 4) * 4;
+	}
+
 	if (sl != nullptr)
 		stlink_read_debug32(sl, address, (uint32_t*)&value);
+
+	if (shouldShift && type == Variable::type::I8)
+	{
+		if (shouldShift == 1)
+			value = (value & 0x0000ff00) >> 8;
+		else if (shouldShift == 2)
+			value = (value & 0x00ff0000) >> 16;
+		else if (shouldShift == 3)
+			value = (value & 0xff000000) >> 24;
+	}
+	else if (shouldShift && type == Variable::type::I16)
+	{
+		if (shouldShift == 2)
+			value = (value & 0xffff0000) >> 8;
+	}
 
 	if (type == Variable::type::U8)
 		return (float)*(uint8_t*)&value;
