@@ -20,6 +20,17 @@ public:
 	float getCos(float x);
 	void spin();
 
+	struct __attribute__((packed, aligned(1))) StructA
+	{
+		uint8_t a = 12;
+		uint8_t b = 155;
+		int8_t c = -85;
+		uint8_t d = 105;
+		uint8_t e = 131;
+		uint16_t f = 55234;
+		int16_t g = -5234;
+	}structA;
+
 private:
 	volatile float triangle = 0.0f;
 	volatile float a,b,c;

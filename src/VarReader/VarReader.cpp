@@ -56,7 +56,7 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 	if (sl != nullptr)
 		stlink_read_debug32(sl, address, (uint32_t*)&value);
 
-	if (shouldShift && type == Variable::type::I8)
+	if (shouldShift && (type == Variable::type::I8 || type == Variable::type::U8))
 	{
 		if (shouldShift == 1)
 			value = (value & 0x0000ff00) >> 8;
@@ -65,10 +65,12 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 		else if (shouldShift == 3)
 			value = (value & 0xff000000) >> 24;
 	}
-	else if (shouldShift && type == Variable::type::I16)
+	else if (shouldShift && (type == Variable::type::I16 || type == Variable::type::U16))
 	{
-		if (shouldShift == 2)
-			value = (value & 0xffff0000) >> 8;
+		if (shouldShift == 1)
+			value = (value & 0x00ffff00) >> 8;
+		else if (shouldShift == 2)
+			value = (value & 0xffff0000) >> 16;
 	}
 
 	if (type == Variable::type::U8)
