@@ -63,11 +63,13 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		std::string sectionName("plot" + std::to_string(plotNumber++));
 		plotName = ini->get(sectionName).get("name");
 		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
+		Plot::type_E type = static_cast<Plot::type_E>(atoi(ini->get(sectionName).get("type").c_str()));
 
 		if (!plotName.empty())
 		{
 			plotHandler->addPlot(plotName);
 			plotHandler->getPlot(plotName)->setVisibility(visibility);
+			plotHandler->getPlot(plotName)->setType(type);
 
 			std::cout << "ADDING PLOT: " << plotName << std::endl;
 
@@ -117,6 +119,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	{
 		(*ini)[plotFieldFromID(plotId)]["name"] = plt->getName();
 		(*ini)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
+		(*ini)[plotFieldFromID(plotId)]["type"] = std::to_string(static_cast<uint8_t>(plt->getType()));
 
 		uint32_t serId = 0;
 
