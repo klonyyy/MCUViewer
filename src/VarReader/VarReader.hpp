@@ -23,9 +23,10 @@ class VarReader
 
 	uint32_t getValue(uint32_t address);
 	float getFloat(uint32_t address, Variable::type type);
+	bool setValue(Variable& var, float value);
 
    private:
-	std::mutex* mtx;
+	std::mutex mtx;
 	enum class state
 	{
 		STOP = 0,

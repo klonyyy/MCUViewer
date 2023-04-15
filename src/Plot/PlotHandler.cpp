@@ -126,3 +126,8 @@ void PlotHandler::dataHandler()
 		}
 	}
 }
+bool PlotHandler::writeSeriesValue(Variable& var, float value)
+{
+	std::lock_guard<std::mutex> lock(*mtx);
+	return vals->setValue(var, value);
+}

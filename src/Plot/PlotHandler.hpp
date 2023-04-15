@@ -78,6 +78,7 @@ class PlotHandler
 	bool getViewerState();
 	uint32_t getVisiblePlotsCount();
 	uint32_t getPlotsCount();
+	bool writeSeriesValue(Variable& var, float value);
 
 	iterator begin()
 	{

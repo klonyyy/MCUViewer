@@ -45,32 +45,47 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 {
 	volatile uint32_t value = 0;
 
-	uint8_t shouldShift = 0;
+	if (sl == nullptr)
+		return 0.0f;
 
-	if (address % 4 != 0)
+	uint8_t shouldShift = address % 4;
+
+	std::lock_guard<std::mutex> lock(mtx);
+
+	stlink_read_debug32(sl, address, (uint32_t*)&value);
+
+	if (type == Variable::type::I8 || type == Variable::type::U8)
 	{
-		shouldShift = address % 4;
-		address = (address / 4) * 4;
-	}
-
-	if (sl != nullptr)
-		stlink_read_debug32(sl, address, (uint32_t*)&value);
-
-	if (shouldShift && (type == Variable::type::I8 || type == Variable::type::U8))
-	{
-		if (shouldShift == 1)
+		if (shouldShift == 0)
+			value = (value & 0x000000ff);
+		else if (shouldShift == 1)
 			value = (value & 0x0000ff00) >> 8;
 		else if (shouldShift == 2)
 			value = (value & 0x00ff0000) >> 16;
 		else if (shouldShift == 3)
 			value = (value & 0xff000000) >> 24;
 	}
-	else if (shouldShift && (type == Variable::type::I16 || type == Variable::type::U16))
+	else if (type == Variable::type::I16 || type == Variable::type::U16)
 	{
-		if (shouldShift == 1)
+		if (shouldShift == 0)
+			value = (value & 0x0000ffff);
+		else if (shouldShift == 1)
 			value = (value & 0x00ffff00) >> 8;
 		else if (shouldShift == 2)
 			value = (value & 0xffff0000) >> 16;
+		else if (shouldShift == 3)
+			value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
+	}
+	else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
+	{
+		if (shouldShift == 0)
+			value = value;
+		else if (shouldShift == 1)
+			value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
+		else if (shouldShift == 2)
+			value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
+		else if (shouldShift == 3)
+			value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
 	}
 
 	if (type == Variable::type::U8)
@@ -89,4 +104,61 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 		return *(float*)&value;
 
 	return 0.0f;
+}
+
+bool VarReader::setValue(Variable& var, float value)
+{
+	if (sl == nullptr)
+		return false;
+
+	uint32_t address = var.getAddress();
+	uint8_t shouldShift = address % 4;
+	int32_t retVal = 0;
+
+	std::lock_guard<std::mutex> lock(mtx);
+
+	switch (var.getType())
+	{
+		case Variable::type::U8:
+			sl->q_buf[0] = static_cast<uint8_t>(value);
+			retVal = stlink_write_mem8(sl, address, 1);
+			break;
+		case Variable::type::I8:
+			sl->q_buf[0] = static_cast<int8_t>(value);
+			retVal = stlink_write_mem8(sl, address, 1);
+			break;
+		case Variable::type::U16:
+			sl->q_buf[0] = static_cast<uint16_t>(value);
+			sl->q_buf[1] = static_cast<uint16_t>(value) >> 8;
+			retVal = stlink_write_mem8(sl, address, 2);
+			break;
+		case Variable::type::I16:
+			sl->q_buf[0] = static_cast<int16_t>(value);
+			sl->q_buf[1] = static_cast<int16_t>(value) >> 8;
+			retVal = stlink_write_mem8(sl, address, 2);
+			break;
+		case Variable::type::U32:
+			sl->q_buf[0] = static_cast<uint32_t>(value);
+			sl->q_buf[1] = static_cast<uint32_t>(value) >> 8;
+			sl->q_buf[2] = static_cast<uint32_t>(value) >> 16;
+			sl->q_buf[3] = static_cast<uint32_t>(value) >> 24;
+			retVal = stlink_write_mem8(sl, address, 4);
+			break;
+		case Variable::type::I32:
+			sl->q_buf[0] = static_cast<uint32_t>(value);
+			sl->q_buf[1] = static_cast<uint32_t>(value) >> 8;
+			sl->q_buf[2] = static_cast<uint32_t>(value) >> 16;
+			sl->q_buf[3] = static_cast<uint32_t>(value) >> 24;
+			retVal = stlink_write_mem8(sl, address, 4);
+			break;
+		case Variable::type::F32:
+			sl->q_buf[0] = (*(uint32_t*)&value);
+			sl->q_buf[1] = (*(uint32_t*)&value) >> 8;
+			sl->q_buf[2] = (*(uint32_t*)&value) >> 16;
+			sl->q_buf[3] = (*(uint32_t*)&value) >> 24;
+			retVal = stlink_write_mem8(sl, address, 4);
+			break;
+	}
+
+	return retVal == 0 ? true : false;
 }

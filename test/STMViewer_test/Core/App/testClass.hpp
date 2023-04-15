@@ -25,10 +25,13 @@ public:
 		uint8_t a = 12;
 		uint8_t b = 155;
 		int8_t c = -85;
-		uint8_t d = 105;
+		uint8_t d = 105;		
 		uint8_t e = 131;
-		uint16_t f = 55234;
+		uint16_t f = 55234;		
 		int16_t g = -5234;
+		int32_t h = -2141248;
+		uint8_t pad;
+		float j = 37.21f;
 	}structA;
 
 private:

@@ -534,6 +534,46 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 			ImPlot::EndPlot();
 		}
 	}
+	else if (plot->getType() == Plot::type_E::TABLE)
+	{
+		static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+
+		if (ImGui::BeginTable("table_scrolly", 4, flags, ImVec2(0.0f, 300)))
+		{
+			ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
+			ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
+			ImGui::TableSetupColumn("Read value", ImGuiTableColumnFlags_None);
+			ImGui::TableSetupColumn("Write value", ImGuiTableColumnFlags_None);
+			ImGui::TableHeadersRow();
+
+			for (auto& [key, serPtr] : seriesMap)
+			{
+				float value = *serPtr->buffer->getLastElement();
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text(key.c_str());
+				ImGui::TableSetColumnIndex(1);
+				ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(std::to_string(value).c_str());
+				ImGui::TableSetColumnIndex(3);
+				ImGui::PushID("input");
+				char newValue[maxVariableNameLength] = {0};
+				if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
+				{
+					if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+					{
+						std::cout << "VALUE:" << atof(newValue) << std::endl;
+						if (!plotHandler->writeSeriesValue(*serPtr->var, static_cast<float>(atof(newValue))))
+							std::cout << "ERROR while writing new value!" << std::endl;
+					}
+				}
+				ImGui::PopID();
+			}
+			ImGui::EndTable();
+		}
+	}
 }
 
 std::string Gui::intToHexString(uint32_t var)
