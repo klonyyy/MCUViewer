@@ -37,8 +37,7 @@ bool PlotHandler::renamePlot(std::string oldName, std::string newName)
 
 bool PlotHandler::removeAllPlots()
 {
-	for (auto& plot : plotsMap)
-		removePlot(plot.first);
+	plotsMap.clear();
 	return true;
 }
 
