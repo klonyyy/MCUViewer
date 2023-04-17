@@ -1,5 +1,5 @@
 
-#include <stdio.h>
+#include <iostream>
 
 #include "ConfigHandler.hpp"
 #include "Gui.hpp"

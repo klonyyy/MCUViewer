@@ -1,11 +1,8 @@
 #ifndef __SCROLLINGBUFFER_HPP
 #define __SCROLLINGBUFFER_HPP
 
+#include <array>
 #include <mutex>
-#include <vector>
-
-#include "imgui.h"
-#include "iostream"
 
 template <typename T>
 class ScrollingBuffer

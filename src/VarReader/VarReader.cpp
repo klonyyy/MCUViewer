@@ -112,7 +112,6 @@ bool VarReader::setValue(Variable& var, float value)
 		return false;
 
 	uint32_t address = var.getAddress();
-	uint8_t shouldShift = address % 4;
 	int32_t retVal = 0;
 
 	std::lock_guard<std::mutex> lock(mtx);
@@ -158,6 +157,8 @@ bool VarReader::setValue(Variable& var, float value)
 			sl->q_buf[3] = (*(uint32_t*)&value) >> 24;
 			retVal = stlink_write_mem8(sl, address, 4);
 			break;
+		default:
+			return false;
 	}
 
 	return retVal == 0 ? true : false;

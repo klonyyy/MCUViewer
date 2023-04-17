@@ -1,5 +1,6 @@
 #include "ConfigHandler.hpp"
 
+#include <iostream>
 #include <random>
 
 ConfigHandler::ConfigHandler(std::string configFilePath, PlotHandler* plotHandler) : configFilePath(configFilePath), plotHandler(plotHandler)

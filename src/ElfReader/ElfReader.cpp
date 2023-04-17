@@ -67,14 +67,14 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 
 	while (out.length() > 0 && (start = out.find(delimiter)) != -1)
 	{
-		int32_t end = out.find(delimiter, start + 1);
+		std::string::size_type end = out.find(delimiter, start + 1);
 		if (end == std::string::npos)
 			end = out.length();
 
 		std::string temp = out.substr(start, end - start);
 
-		int32_t addrPos = temp.find('$', 0);
-		int32_t typePos = temp.find("type = ", 0);
+		std::string::size_type addrPos = temp.find('$', 0);
+		std::string::size_type typePos = temp.find("type = ", 0);
 
 		if (addrPos < end && typePos < end && addrPos > 0 && typePos > 0)
 		{
