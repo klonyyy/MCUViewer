@@ -78,29 +78,29 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} pthread dl GL glfw3 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a ${LIBUSB_LIBRARY} nfd)
+    target_link_libraries(${EXECUTABLE} pthread dl GL glfw ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a ${LIBUSB_LIBRARY} nfd)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a ${LIBUSB_LIBRARY} nfd)
 endif()
 
 if(WIN32)
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll
-            ${CMAKE_BINARY_DIR}/glfw3.dll)
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll
+        ${CMAKE_BINARY_DIR}/glfw3.dll)
 
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libusb-1.0.dll
-            ${CMAKE_BINARY_DIR}/libusb-1.0.dll)
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libusb-1.0.dll
+        ${CMAKE_BINARY_DIR}/libusb-1.0.dll)
 
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.dll
-            ${CMAKE_BINARY_DIR}/libstlink.dll)
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.dll
+        ${CMAKE_BINARY_DIR}/libstlink.dll)
 endif()
 
 add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
-        ${CMAKE_BINARY_DIR}/imgui.ini)
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
+    ${CMAKE_BINARY_DIR}/imgui.ini)

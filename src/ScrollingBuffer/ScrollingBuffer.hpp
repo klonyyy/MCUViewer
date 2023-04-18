@@ -1,9 +1,10 @@
 #ifndef __SCROLLINGBUFFER_HPP
 #define __SCROLLINGBUFFER_HPP
 
+#include <string.h>
+
 #include <array>
 #include <mutex>
-
 template <typename T>
 class ScrollingBuffer
 {
