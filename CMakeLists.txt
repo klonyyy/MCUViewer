@@ -23,7 +23,7 @@ add_compile_options(-Wall
 find_package(libusb REQUIRED)
 
 if(UNIX)
-    find_package(SDL2 REQUIRED)
+    find_package(glfw3 REQUIRED)
 endif()
 
 set(PROJECT_SOURCES
@@ -42,7 +42,7 @@ set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_draw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_tables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_widgets.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_sdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_glfw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_opengl3.cpp)
 
 set(IMPLOT_SOURCES
@@ -71,23 +71,23 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
-    ${SDL2_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/include/SDL2/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} pthread dl GL SDL2 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a ${LIBUSB_LIBRARY} nfd)
+    target_link_libraries(${EXECUTABLE} pthread dl GL glfw3 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a ${LIBUSB_LIBRARY} nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/lib/libSDL2.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a ${LIBUSB_LIBRARY} nfd)
+    target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a ${LIBUSB_LIBRARY} nfd)
 endif()
 
 if(WIN32)
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/x86_64-w64-mingw32/bin/SDL2.dll
-            ${CMAKE_BINARY_DIR}/SDL2.dll)
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll
+            ${CMAKE_BINARY_DIR}/glfw3.dll)
 
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
