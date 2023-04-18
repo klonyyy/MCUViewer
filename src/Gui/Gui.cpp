@@ -280,7 +280,7 @@ void Gui::drawVarTable()
 			char variable[maxVariableNameLength] = {0};
 			memcpy(variable, var->getName().data(), (var->getName().length()));
 			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
-			if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 			{
 				auto varr = vars.extract(var->getName());
 				varr.key() = std::string(variable);
@@ -395,7 +395,7 @@ void Gui::drawPlotsTree()
 			if (typeCombo != (int32_t)plt->getType())
 				plt->setType(static_cast<Plot::type_E>(typeCombo));
 
-			if (ImGui::IsKeyPressed(ImGuiKey_Enter) && newName != plt->getName())
+			if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
 				plotHandler->renamePlot(plt->getName(), newName);
 		}
 		ImGui::EndTabBar();
@@ -530,7 +530,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 	{
 		static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-		if (ImGui::BeginTable("table_scrolly", 4, flags, ImVec2(0.0f, 300)))
+		if (ImGui::BeginTable(plot->getName().c_str(), 4, flags, plotSize))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
@@ -554,7 +554,7 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 				char newValue[maxVariableNameLength] = {0};
 				if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
 				{
-					if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+					if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 					{
 						std::cout << "VALUE:" << atof(newValue) << std::endl;
 						if (!plotHandler->writeSeriesValue(*serPtr->var, static_cast<float>(atof(newValue))))
@@ -564,6 +564,13 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 				ImGui::PopID();
 			}
 			ImGui::EndTable();
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+					plot->addSeries(*vars[*(std::string*)payload->Data]);
+				ImGui::EndDragDropTarget();
+			}
 		}
 	}
 }

@@ -98,6 +98,7 @@ Variable::type ElfReader::getTypeFromString(std::string strType)
 	const std::vector<std::pair<std::string, Variable::type>> typeVector = {
 		{"unsigned 8-bit", Variable::type::U8},
 		{"unsigned char", Variable::type::U8},
+		{"bool", Variable::type::U8},
 		{"signed 8-bit", Variable::type::I8},
 		{"signed char", Variable::type::I8},
 		{"unsigned 16-bit", Variable::type::U16},
@@ -107,12 +108,15 @@ Variable::type ElfReader::getTypeFromString(std::string strType)
 		{"unsigned 32-bit", Variable::type::U32},
 		{"unsigned int", Variable::type::U32},
 		{"unsigned long", Variable::type::U32},
+		{"volatile int", Variable::type::I32},
 		{"signed 32-bit", Variable::type::I32},
 		{"signed int", Variable::type::I32},
 		{"signed long", Variable::type::I32},
 		{"float", Variable::type::F32},
 		{"short", Variable::type::I16},
 		{"long", Variable::type::I32}};
+
+	std::cout << "TYPE: " << strType << std::endl;
 
 	for (auto entry : typeVector)
 	{

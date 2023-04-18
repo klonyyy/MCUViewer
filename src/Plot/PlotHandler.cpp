@@ -93,6 +93,9 @@ void PlotHandler::dataHandler()
 
 			for (auto& [key, plot] : plotsMap)
 			{
+				if (!plot->getVisibility())
+					continue;
+
 				int i = 0;
 				/* this part consumes most of the thread time */
 				std::array<float, maxVariables> values;
