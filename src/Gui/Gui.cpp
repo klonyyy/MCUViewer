@@ -88,8 +88,28 @@ void Gui::mainThread()
 		if (showAcqusitionSettingsWindow)
 			drawAcqusitionSettingsWindow();
 
-		for (Plot* plt : *plotHandler)
-			drawPlot(plt, plt->getTimeSeries(), plt->getSeriesMap());
+		uint32_t tablePlots = 0;
+
+		for (std::shared_ptr<Plot> plt : *plotHandler)
+		{
+			if (plt->getType() == Plot::type_E::TABLE)
+			{
+				drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
+				if (plt->getVisibility())
+					tablePlots++;
+			}
+		}
+
+		uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
+		uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
+
+		if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1)))
+		{
+			for (std::shared_ptr<Plot> plt : *plotHandler)
+				if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
+					drawPlotCurveBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
+			ImPlot::EndSubplots();
+		}
 
 		drawMenu();
 		ImGui::End();
@@ -269,6 +289,8 @@ void Gui::drawVarTable()
 		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
 		ImGui::TableHeadersRow();
 
+		std::string keynameToDelete = {};
+
 		for (auto& [keyName, var] : vars)
 		{
 			ImGui::TableNextRow();
@@ -288,17 +310,7 @@ void Gui::drawVarTable()
 				vars.insert(std::move(varr));
 			}
 
-			if (ImGui::BeginPopupContextItem())
-			{
-				if (ImGui::Button("Delete"))
-				{
-					ImGui::CloseCurrentPopup();
-					for (Plot* plt : *plotHandler)
-						plt->removeSeries(var->getName());
-					vars.erase(keyName);
-				}
-				ImGui::EndPopup();
-			}
+			keynameToDelete = showDeletePopup("Delete", var->getName());
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
@@ -314,6 +326,13 @@ void Gui::drawVarTable()
 			ImGui::Text(var->getTypeStr().c_str());
 		}
 		ImGui::EndTable();
+
+		if (!keynameToDelete.empty())
+		{
+			for (std::shared_ptr<Plot> plt : *plotHandler)
+				plt->removeSeries(keynameToDelete);
+			vars.erase(keynameToDelete);
+		}
 	}
 }
 
@@ -337,7 +356,9 @@ void Gui::drawPlotsTree()
 			ImGui::EndPopup();
 		}
 
-		for (Plot* plt : *plotHandler)
+		std::string plotNameToDelete = {};
+
+		for (std::shared_ptr<Plot> plt : *plotHandler)
 		{
 			const char* plotTypes[3] = {"curve", "bar", "table"};
 			int32_t typeCombo = (int32_t)plt->getType();
@@ -346,15 +367,7 @@ void Gui::drawPlotsTree()
 
 			if (ImGui::BeginTabItem(plt->getName().c_str()))
 			{
-				if (ImGui::BeginPopupContextItem())
-				{
-					if (ImGui::Button("Delete plot"))
-					{
-						ImGui::CloseCurrentPopup();
-						plotHandler->removePlot(plt->getName());
-					}
-					ImGui::EndPopup();
-				}
+				plotNameToDelete = showDeletePopup("Delete plot", plt->getName());
 
 				ImGui::Text("name    ");
 				ImGui::SameLine();
@@ -372,20 +385,15 @@ void Gui::drawPlotsTree()
 				ImGui::PushID("list");
 				if (ImGui::BeginListBox("##", ImVec2(-1, 80)))
 				{
+					std::string seriesNameToDelete = {};
 					for (auto& [name, ser] : plt->getSeriesMap())
 					{
 						ImGui::Selectable(name.c_str());
 						if (ImGui::BeginPopupContextItem())
-						{
-							if (ImGui::Button("Delete var"))
-							{
-								ImGui::CloseCurrentPopup();
-								plt->removeSeries(name);
-							}
-							ImGui::EndPopup();
-						}
+							seriesNameToDelete = showDeletePopup("Delete var", name);
 					}
 					ImGui::EndListBox();
+					plt->removeSeries(seriesNameToDelete);
 				}
 				ImGui::PopID();
 
@@ -399,6 +407,8 @@ void Gui::drawPlotsTree()
 				plotHandler->renamePlot(plt->getName(), newName);
 		}
 		ImGui::EndTabBar();
+
+		plotHandler->removePlot(plotNameToDelete);
 	}
 }
 
@@ -435,12 +445,12 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::End();
 }
 
-void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
+void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
 {
 	if (!plot->getVisibility())
 		return;
 
-	ImVec2 plotSize = ImVec2(-1, (ImGui::GetWindowSize().y - 50) / plotHandler->getVisiblePlotsCount());
+	ImVec2 plotSize = ImVec2(-1, -1);
 
 	if (plot->getType() == Plot::type_E::CURVE)
 	{
@@ -526,53 +536,78 @@ void Gui::drawPlot(Plot* plot, ScrollingBuffer<float>& time, std::map<std::strin
 			ImPlot::EndPlot();
 		}
 	}
-	else if (plot->getType() == Plot::type_E::TABLE)
+}
+
+void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
+{
+	if (!plot->getVisibility())
+		return;
+
+	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+
+	if (ImGui::BeginTable(plot->getName().c_str(), 4, flags))
 	{
-		static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+		ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Read value", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Write value", ImGuiTableColumnFlags_None);
+		ImGui::TableHeadersRow();
 
-		if (ImGui::BeginTable(plot->getName().c_str(), 4, flags, plotSize))
+		for (auto& [key, serPtr] : seriesMap)
 		{
-			ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
-			ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
-			ImGui::TableSetupColumn("Read value", ImGuiTableColumnFlags_None);
-			ImGui::TableSetupColumn("Write value", ImGuiTableColumnFlags_None);
-			ImGui::TableHeadersRow();
-
-			for (auto& [key, serPtr] : seriesMap)
+			float value = *serPtr->buffer->getLastElement();
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text(key.c_str());
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text(std::to_string(value).c_str());
+			ImGui::TableSetColumnIndex(3);
+			ImGui::PushID("input");
+			char newValue[maxVariableNameLength] = {0};
+			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
 			{
-				float value = *serPtr->buffer->getLastElement();
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(key.c_str());
-				ImGui::TableSetColumnIndex(1);
-				ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
-				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(std::to_string(value).c_str());
-				ImGui::TableSetColumnIndex(3);
-				ImGui::PushID("input");
-				char newValue[maxVariableNameLength] = {0};
-				if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
+				if (!plotHandler->getViewerState())
 				{
-					if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
-					{
-						std::cout << "VALUE:" << atof(newValue) << std::endl;
-						if (!plotHandler->writeSeriesValue(*serPtr->var, static_cast<float>(atof(newValue))))
-							std::cout << "ERROR while writing new value!" << std::endl;
-					}
+					ImGui::PopID();
+					continue;
 				}
-				ImGui::PopID();
+				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+				{
+					std::cout << "VALUE:" << atof(newValue) << std::endl;
+					if (!plotHandler->writeSeriesValue(*serPtr->var, static_cast<float>(atof(newValue))))
+						std::cout << "ERROR while writing new value!" << std::endl;
+				}
 			}
-			ImGui::EndTable();
+			ImGui::PopID();
+		}
+		ImGui::EndTable();
 
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-					plot->addSeries(*vars[*(std::string*)payload->Data]);
-				ImGui::EndDragDropTarget();
-			}
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+				plot->addSeries(*vars[*(std::string*)payload->Data]);
+			ImGui::EndDragDropTarget();
 		}
 	}
+}
+
+std::string Gui::showDeletePopup(const char* text, const std::string name)
+{
+	std::string nameToDelete = "";
+	if (ImGui::BeginPopupContextItem())
+	{
+		if (ImGui::Button(text))
+		{
+			ImGui::CloseCurrentPopup();
+			nameToDelete = name;
+		}
+		ImGui::EndPopup();
+	}
+
+	return nameToDelete;
 }
 
 std::string Gui::intToHexString(uint32_t var)

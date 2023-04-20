@@ -23,12 +23,10 @@ class PlotHandler
 	{
 	   public:
 		using iterator_category = std::forward_iterator_tag;
-		using value_type = Plot*;
+		using value_type = std::shared_ptr<Plot>;
 		using difference_type = std::ptrdiff_t;
-		using pointer = Plot**;
-		using reference = Plot*&;
 
-		iterator(std::map<std::string, Plot*>::iterator iter)
+		iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)
 			: m_iter(iter)
 		{
 		}
@@ -56,13 +54,13 @@ class PlotHandler
 			return !(*this == other);
 		}
 
-		Plot* operator*()
+		std::shared_ptr<Plot> operator*()
 		{
 			return m_iter->second;
 		}
 
 	   private:
-		std::map<std::string, Plot*>::iterator m_iter;
+		std::map<std::string, std::shared_ptr<Plot>>::iterator m_iter;
 	};
 
 	PlotHandler(bool& done, std::mutex* mtx);
@@ -72,13 +70,13 @@ class PlotHandler
 	bool removePlot(std::string name);
 	bool renamePlot(std::string oldName, std::string newName);
 	bool removeAllPlots();
-	Plot* getPlot(std::string name);
+	std::shared_ptr<Plot> getPlot(std::string name);
 	bool eraseAllPlotData();
 	void setViewerState(state state);
 	bool getViewerState();
 	uint32_t getVisiblePlotsCount();
 	uint32_t getPlotsCount();
-	bool writeSeriesValue(Variable& var, float value);
+	bool writeSeriesValue(Variable& var, const float value);
 
 	iterator begin()
 	{
@@ -94,11 +92,11 @@ class PlotHandler
 	bool& done;
 	state viewerState = state::STOP;
 	state viewerStateTemp = state::STOP;
-	VarReader* vals;
+	std::unique_ptr<VarReader> varReader;
 
 	std::mutex* mtx;
 
-	std::map<std::string, Plot*> plotsMap;
+	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
 
 	std::thread dataHandle;
 

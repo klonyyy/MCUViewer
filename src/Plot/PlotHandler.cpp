@@ -6,22 +6,20 @@
 PlotHandler::PlotHandler(bool& done, std::mutex* mtx) : done(done), mtx(mtx)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	vals = new VarReader();
+	varReader = std::make_unique<VarReader>();
 }
 PlotHandler::~PlotHandler()
 {
 	if (dataHandle.joinable())
 		dataHandle.join();
-	delete vals;
 }
 
 void PlotHandler::addPlot(std::string name)
 {
-	plotsMap[name] = new Plot(name);
+	plotsMap[name] = std::make_shared<Plot>(name);
 }
 bool PlotHandler::removePlot(std::string name)
 {
-	delete plotsMap[name];
 	plotsMap.erase(name);
 	return true;
 }
@@ -41,7 +39,7 @@ bool PlotHandler::removeAllPlots()
 	return true;
 }
 
-Plot* PlotHandler::getPlot(std::string name)
+std::shared_ptr<Plot> PlotHandler::getPlot(std::string name)
 {
 	return plotsMap[name];
 }
@@ -87,7 +85,7 @@ void PlotHandler::dataHandler()
 	{
 		if (viewerState == state::RUN)
 		{
-			std::this_thread::sleep_for(std::chrono::microseconds(10));
+			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
@@ -100,7 +98,7 @@ void PlotHandler::dataHandler()
 				/* this part consumes most of the thread time */
 				std::array<float, maxVariables> values;
 				for (auto& [name, ser] : plot->getSeriesMap())
-					values[i++] = vals->getFloat(ser->var->getAddress(), ser->var->getType());
+					values[i++] = varReader->getFloat(ser->var->getAddress(), ser->var->getType());
 
 				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
@@ -120,16 +118,16 @@ void PlotHandler::dataHandler()
 			if (viewerState == state::RUN)
 			{
 				start = std::chrono::steady_clock::now();
-				vals->start();
+				varReader->start();
 			}
 			else
-				vals->stop();
+				varReader->stop();
 			stateChangeOrdered = false;
 		}
 	}
 }
-bool PlotHandler::writeSeriesValue(Variable& var, float value)
+bool PlotHandler::writeSeriesValue(Variable& var, const float value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
-	return vals->setValue(var, value);
+	return varReader->setValue(var, value);
 }

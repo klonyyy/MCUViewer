@@ -116,7 +116,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	}
 
 	uint32_t plotId = 0;
-	for (Plot* plt : *plotHandler)
+	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
 		(*ini)[plotFieldFromID(plotId)]["name"] = plt->getName();
 		(*ini)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
