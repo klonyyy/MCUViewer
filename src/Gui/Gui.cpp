@@ -67,11 +67,9 @@ void Gui::mainThread()
 	NFD_Init();
 
 	bool show_demo_window = true;
-	bool p_open = true;
 
 	while (!done)
 	{
-		done = glfwWindowShouldClose(window);
 		glfwPollEvents();
 
 		// Start the Dear ImGui frame
@@ -84,7 +82,12 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		ImGui::Begin("Plots", &p_open, 0);
+		if (glfwWindowShouldClose(window))
+			ImGui::OpenPopup("Save?");
+
+		glfwSetWindowShouldClose(window, showSaveOnClosePrompt());
+
+		ImGui::Begin("Plots");
 		if (showAcqusitionSettingsWindow)
 			drawAcqusitionSettingsWindow();
 
@@ -103,7 +106,7 @@ void Gui::mainThread()
 		uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
 		uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
 
-		if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1)))
+		if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1), ImPlotSubplotFlags_LinkAllX))
 		{
 			for (std::shared_ptr<Plot> plt : *plotHandler)
 				if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
@@ -114,7 +117,7 @@ void Gui::mainThread()
 		drawMenu();
 		ImGui::End();
 
-		ImGui::Begin("VarViewer", &p_open, 0);
+		ImGui::Begin("VarViewer");
 		drawStartButton();
 		drawAddVariableButton();
 		drawUpdateAddressesFromElf();
@@ -610,6 +613,36 @@ std::string Gui::showDeletePopup(const char* text, const std::string name)
 	}
 
 	return nameToDelete;
+}
+
+bool Gui::showSaveOnClosePrompt()
+{
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Do you want to save the current config?\n");
+		ImGui::Separator();
+		if (ImGui::Button("Yes", ImVec2(120, 0)))
+		{
+			done = true;
+			configHandler->saveConfigFile(vars, projectElfFile, projectConfigFile);
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("No", ImVec2(120, 0)))
+		{
+			done = true;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			done = false;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+	return done;
 }
 
 std::string Gui::intToHexString(uint32_t var)

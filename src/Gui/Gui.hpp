@@ -52,6 +52,7 @@ class Gui
 	void drawAcqusitionSettingsWindow();
 	void drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
 	void drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
+	bool showSaveOnClosePrompt();
 
 	std::string showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
