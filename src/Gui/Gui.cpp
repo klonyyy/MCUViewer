@@ -88,8 +88,7 @@ void Gui::mainThread()
 		glfwSetWindowShouldClose(window, showSaveOnClosePrompt());
 
 		ImGui::Begin("Plots");
-		if (showAcqusitionSettingsWindow)
-			drawAcqusitionSettingsWindow();
+		drawAcqusitionSettingsWindow();
 
 		uint32_t tablePlots = 0;
 
@@ -303,7 +302,7 @@ void Gui::drawVarTable()
 			ImGui::SameLine();
 			ImGui::PopID();
 			char variable[maxVariableNameLength] = {0};
-			memcpy(variable, var->getName().data(), (var->getName().length()));
+			std::memcpy(variable, var->getName().data(), (var->getName().length()));
 			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
 			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 			{
@@ -388,7 +387,7 @@ void Gui::drawPlotsTree()
 				ImGui::SameLine();
 				ImGui::Checkbox("##", &plt->getVisibilityVar());
 				ImGui::PushID("list");
-				if (ImGui::BeginListBox("##", ImVec2(-1, 80)))
+				if (ImGui::BeginListBox("##", ImVec2(-1, 0)))
 				{
 					std::string seriesNameToDelete = {};
 					for (auto& [name, ser] : plt->getSeriesMap())
@@ -400,6 +399,12 @@ void Gui::drawPlotsTree()
 					}
 					plt->removeSeries(seriesNameToDelete);
 					ImGui::EndListBox();
+				}
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+						plt->addSeries(*vars[*(std::string*)payload->Data]);
+					ImGui::EndDragDropTarget();
 				}
 				ImGui::PopID();
 				ImGui::TreePop();
@@ -419,35 +424,42 @@ void Gui::drawPlotsTree()
 
 void Gui::drawAcqusitionSettingsWindow()
 {
-	ImGui::Begin("Acqusition Settings", &showAcqusitionSettingsWindow, 0);
-	ImGui::Text("Please pick *.elf file");
-	ImGui::InputText("##", &projectElfFile, 0, NULL, NULL);
-	ImGui::SameLine();
-	if (ImGui::SmallButton("..."))
-	{
-		nfdchar_t* outPath;
-		nfdfilteritem_t filterItem[1] = {{"Executable files", "elf"}};
-		nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-		if (result == NFD_OKAY)
-		{
-			std::cout << outPath << std::endl;
-			projectElfFile = std::string(outPath);
-			std::replace(projectElfFile.begin(), projectElfFile.end(), '\\', '/');
-			NFD_FreePath(outPath);
-		}
-		else if (result == NFD_ERROR)
-		{
-			std::cout << "Error: %s\n"
-					  << NFD_GetError() << std::endl;
-		}
-	}
+	if (showAcqusitionSettingsWindow)
+		ImGui::OpenPopup("Acqusition Settings");
 
-	if (ImGui::Button("Done"))
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("Acqusition Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		showAcqusitionSettingsWindow = false;
-	}
+		ImGui::Text("Please pick *.elf file");
+		ImGui::InputText("##", &projectElfFile, 0, NULL, NULL);
+		ImGui::SameLine();
+		if (ImGui::SmallButton("..."))
+		{
+			nfdchar_t* outPath;
+			nfdfilteritem_t filterItem[1] = {{"Executable files", "elf"}};
+			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+			if (result == NFD_OKAY)
+			{
+				std::cout << outPath << std::endl;
+				projectElfFile = std::string(outPath);
+				std::replace(projectElfFile.begin(), projectElfFile.end(), '\\', '/');
+				NFD_FreePath(outPath);
+			}
+			else if (result == NFD_ERROR)
+			{
+				std::cout << "Error: %s\n"
+						  << NFD_GetError() << std::endl;
+			}
+		}
 
-	ImGui::End();
+		if (ImGui::Button("Done"))
+		{
+			showAcqusitionSettingsWindow = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
 }
 
 void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)

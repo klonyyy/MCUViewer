@@ -36,11 +36,6 @@ bool VarReader::stop()
 	return true;
 }
 
-uint32_t VarReader::getValue(uint32_t address)
-{
-	return adrMap[address];
-}
-
 float VarReader::getFloat(uint32_t address, Variable::type type)
 {
 	volatile uint32_t value = 0;

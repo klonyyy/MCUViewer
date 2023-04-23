@@ -1,5 +1,7 @@
 #include "Variable.hpp"
 
+#include <limits>
+
 Variable::Variable(std::string name) : name(name)
 {
 }
@@ -7,7 +9,7 @@ template <typename T>
 Variable::Variable(std::string name, Variable::type type_, T value_) : name(name), varType(type_)
 {
 	setValue<T>(value_);
-	name.reserve(50);
+	name.reserve(100);
 }
 
 void Variable::setType(type varType_)
@@ -66,10 +68,11 @@ void Variable::setColor(float r, float g, float b, float a)
 
 void Variable::setColor(uint32_t AaBbGgRr)
 {
-	color.r = static_cast<float>((AaBbGgRr & 0x000000ff) / 255.0f);
-	color.g = static_cast<float>(((AaBbGgRr & 0x0000ff00) >> 8) / 255.0f);
-	color.b = static_cast<float>(((AaBbGgRr & 0x00ff0000) >> 16) / 255.0f);
-	color.a = static_cast<float>(((AaBbGgRr & 0xff000000) >> 24) / 255.0f);
+	using u8 = std::numeric_limits<uint8_t>;
+	color.r = static_cast<float>((AaBbGgRr & 0x000000ff) / static_cast<float>(u8::max()));
+	color.g = static_cast<float>(((AaBbGgRr & 0x0000ff00) >> 8) / static_cast<float>(u8::max()));
+	color.b = static_cast<float>(((AaBbGgRr & 0x00ff0000) >> 16) / static_cast<float>(u8::max()));
+	color.a = static_cast<float>(((AaBbGgRr & 0xff000000) >> 24) / static_cast<float>(u8::max()));
 }
 
 Variable::Color& Variable::getColor()
@@ -79,10 +82,11 @@ Variable::Color& Variable::getColor()
 
 uint32_t Variable::getColorU32()
 {
-	uint32_t a = UINT8_MAX * color.a;
-	uint32_t r = UINT8_MAX * color.r;
-	uint32_t g = UINT8_MAX * color.g;
-	uint32_t b = UINT8_MAX * color.b;
+	using u8 = std::numeric_limits<uint8_t>;
+	uint32_t a = u8::max() * color.a;
+	uint32_t r = u8::max() * color.r;
+	uint32_t g = u8::max() * color.g;
+	uint32_t b = u8::max() * color.b;
 
 	return static_cast<uint32_t>((a << 24) | (b << 16) | (g << 8) | r);
 }

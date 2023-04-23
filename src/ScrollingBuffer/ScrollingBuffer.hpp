@@ -1,9 +1,8 @@
 #ifndef __SCROLLINGBUFFER_HPP
 #define __SCROLLINGBUFFER_HPP
 
-#include <string.h>
-
 #include <array>
+#include <cstring>
 #include <mutex>
 template <typename T>
 class ScrollingBuffer
@@ -21,10 +20,10 @@ class ScrollingBuffer
 			isFull = true;
 	}
 
-	int getSize()
+	uint32_t getSize() const
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		return isFull ? data.size() : offset;
+		return isFull ? maxSize : offset;
 	}
 
 	T* getFirstElement() const
@@ -35,7 +34,7 @@ class ScrollingBuffer
 	void copyData()
 	{
 		std::lock_guard<std::mutex> lock(mtx);
-		memcpy(&dataCopy[0], &data[0], maxSize * sizeof(data[0]));
+		std::memcpy(&dataCopy[0], &data[0], maxSize * sizeof(data[0]));
 	}
 
 	T* getFirstElementCopy() const
@@ -50,7 +49,7 @@ class ScrollingBuffer
 		return &data[offset > 0 ? offset - 1 : 0];
 	}
 
-	int getOffset()
+	uint32_t getOffset() const
 	{
 		std::lock_guard<std::mutex> lock(mtx);
 		return offset;
@@ -63,13 +62,20 @@ class ScrollingBuffer
 		isFull = false;
 	}
 
+	void setMaxSize(uint32_t newMaxSize)
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		maxSize = newMaxSize;
+	}
+
    private:
 	mutable std::mutex mtx;
-	static constexpr int maxSize = 10000;
-	int offset = 0;
+	uint32_t maxSize = 10000;
+	uint32_t offset = 0;
 	bool isFull = false;
-	mutable std::array<T, maxSize> data;
-	mutable std::array<T, maxSize> dataCopy;
+	static constexpr uint32_t arraySizeMax = 20000;
+	mutable std::array<T, arraySizeMax> data;
+	mutable std::array<T, arraySizeMax> dataCopy;
 };
 
 #endif

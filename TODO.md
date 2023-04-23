@@ -1,3 +1,5 @@
 1. tests after working prototype is ready
 2. add a proper logger
 3. add a plot group option to quickly show/hide groups of plots
+4. support enums and cast them to appropriate types
+5. fix plot tabs switching when a new one is created
