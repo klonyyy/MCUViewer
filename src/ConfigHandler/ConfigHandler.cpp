@@ -3,25 +3,25 @@
 #include <iostream>
 #include <random>
 
-ConfigHandler::ConfigHandler(std::string configFilePath, PlotHandler* plotHandler) : configFilePath(configFilePath), plotHandler(plotHandler)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler) : configFilePath(configFilePath), plotHandler(plotHandler)
 {
 	ini = std::make_unique<mINI::INIStructure>();
 	file = std::make_unique<mINI::INIFile>(configFilePath);
 }
 
-bool ConfigHandler::changeConfigFile(std::string newConfigFilePath)
+bool ConfigHandler::changeConfigFile(const std::string& newConfigFilePath)
 {
 	configFilePath = newConfigFilePath;
 	file.reset();
 	file = std::make_unique<mINI::INIFile>(configFilePath);
 	return true;
 }
-std::string ConfigHandler::getElfFilePath()
+std::string ConfigHandler::getElfFilePath() const
 {
 	return std::string(ini->get("elf").get("file_path"));
 }
 
-bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath)
+bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath) const
 {
 	if (!file->read(*ini))
 		return false;
@@ -89,7 +89,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newSavePath)
 {
 	(*ini).clear();
 

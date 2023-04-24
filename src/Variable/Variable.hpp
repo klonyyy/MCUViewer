@@ -32,25 +32,25 @@ class Variable
 	Variable(std::string name, type type_, T value_);
 	~Variable() = default;
 
-	void setType(type varType_);
-	type getType();
-	std::string getTypeStr();
+	void setType(const type varType_);
+	type getType() const;
+	std::string getTypeStr() const;
 
 	template <typename T>
-	void setValue(T val);
+	void setValue(const T val);
 	template <typename T>
-	T getValue();
+	T getValue() const;
 
-	void setAddress(uint32_t addr);
-	uint32_t getAddress();
+	void setAddress(const uint32_t addr);
+	uint32_t getAddress() const;
 	std::string& getName();
-	void setName(std::string name_);
+	void setName(const std::string& name_);
 
 	void setColor(float r, float g, float b, float a);
-	void setColor(uint32_t AaBbGgRr);
+	void setColor(const uint32_t AaBbGgRr);
 
 	Color& getColor();
-	uint32_t getColorU32();
+	uint32_t getColorU32() const;
 
    private:
 	std::string name;

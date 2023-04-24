@@ -16,7 +16,7 @@ ElfReader::ElfReader(std::string& filename) : elfname(filename)
 {
 }
 
-std::vector<uint32_t> ElfReader::getVariableAddressBatch(std::vector<std::string>& varNames)
+std::vector<uint32_t> ElfReader::getVariableAddressBatch(const std::vector<std::string>& varNames)
 {
 	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
 
@@ -79,13 +79,12 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 		if (addrPos < end && typePos < end && addrPos > 0 && typePos > 0)
 		{
 			std::string varName = temp.substr(delimiter.length(), temp.find('$', 0) - delimiter.length() - 1);
-			std::shared_ptr<Variable> var = vars[varName];
 
-			vars[varName]->setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
+			vars.at(varName)->setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
 			std::string type = temp.substr(typePos + 7, temp.find('\n', typePos));
-			vars[varName]->setType(getTypeFromString(type));
-			std::cout << "NAME: " << vars[varName]->getName() << std::endl;
-			std::cout << "ADDRESS: " << vars[varName]->getAddress() << std::endl;
+			vars.at(varName)->setType(getTypeFromString(type));
+			std::cout << "NAME: " << vars.at(varName)->getName() << std::endl;
+			std::cout << "ADDRESS: " << vars.at(varName)->getAddress() << std::endl;
 			std::cout << "TYPE: " << unsigned((int)vars[varName]->getType()) << std::endl;
 		}
 		out.erase(0, temp.length());
@@ -93,7 +92,7 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 	return true;
 }
 
-Variable::type ElfReader::getTypeFromString(std::string strType)
+Variable::type ElfReader::getTypeFromString(const std::string& strType)
 {
 	const std::vector<std::pair<std::string, Variable::type>> typeVector = {
 		{"unsigned 8-bit", Variable::type::U8},
@@ -116,14 +115,10 @@ Variable::type ElfReader::getTypeFromString(std::string strType)
 		{"short", Variable::type::I16},
 		{"long", Variable::type::I32}};
 
-	std::cout << "TYPE: " << strType << std::endl;
-
 	for (auto entry : typeVector)
 	{
 		if (strType.find(entry.first) != std::string::npos)
-		{
 			return entry.second;
-		}
 	}
 	return Variable::type::UNKNOWN;
 }

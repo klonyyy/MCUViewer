@@ -1,8 +1,8 @@
 #ifndef _CONFIGHANDLER_HPP
 #define _CONFIGHANDLER_HPP
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "PlotHandler.hpp"
 #include "Variable.hpp"
@@ -11,13 +11,13 @@
 class ConfigHandler
 {
    public:
-	ConfigHandler(std::string configFilePath, PlotHandler* plotHandler);
+	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler);
 	~ConfigHandler() = default;
 
-	bool changeConfigFile(std::string newConfigFilePath);
-	std::string getElfFilePath();
-	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath);
-	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, std::string newPath);
+	bool changeConfigFile(const std::string& newConfigFilePath);
+	std::string getElfFilePath() const;
+	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath) const;
+	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newPath);
 
    private:
 	std::string configFilePath;

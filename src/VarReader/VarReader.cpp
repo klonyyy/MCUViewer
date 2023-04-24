@@ -36,7 +36,7 @@ bool VarReader::stop()
 	return true;
 }
 
-float VarReader::getFloat(uint32_t address, Variable::type type)
+float VarReader::getFloat(const uint32_t address, const Variable::type type)
 {
 	volatile uint32_t value = 0;
 
@@ -101,7 +101,7 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 	return 0.0f;
 }
 
-bool VarReader::setValue(Variable& var, float value)
+bool VarReader::setValue(const Variable& var, const float value)
 {
 	if (sl == nullptr)
 		return false;

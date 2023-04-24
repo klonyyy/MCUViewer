@@ -13,7 +13,7 @@ Plot::~Plot()
 {
 }
 
-void Plot::setName(std::string newName)
+void Plot::setName(const std::string& newName)
 {
 	name = newName;
 }
@@ -37,7 +37,7 @@ bool Plot::addSeries(Variable& var)
 	return true;
 }
 
-std::shared_ptr<Plot::Series> Plot::getSeries(std::string name)
+std::shared_ptr<Plot::Series> Plot::getSeries(const std::string& name)
 {
 	return seriesMap[name];
 }
@@ -52,7 +52,7 @@ ScrollingBuffer<float>& Plot::getTimeSeries()
 	return time;
 }
 
-bool Plot::removeSeries(std::string name)
+bool Plot::removeSeries(const std::string& name)
 {
 	if (seriesMap.find(name) == seriesMap.end())
 		return false;
@@ -71,7 +71,7 @@ bool Plot::removeAllVariables()
 	return true;
 }
 
-std::vector<uint32_t> Plot::getVariableAddesses()
+std::vector<uint32_t> Plot::getVariableAddesses() const
 {
 	std::vector<uint32_t> addresses;
 	for (auto& [name, ser] : seriesMap)
@@ -80,7 +80,7 @@ std::vector<uint32_t> Plot::getVariableAddesses()
 	return addresses;
 }
 
-std::vector<Variable::type> Plot::getVariableTypes()
+std::vector<Variable::type> Plot::getVariableTypes() const
 {
 	std::vector<Variable::type> types;
 	for (auto& [name, ser] : seriesMap)
@@ -89,13 +89,13 @@ std::vector<Variable::type> Plot::getVariableTypes()
 	return types;
 }
 
-bool Plot::addPoint(std::string varName, float value)
+bool Plot::addPoint(const std::string& varName, const float value)
 {
 	seriesMap[varName]->buffer->addPoint(value);
 	return true;
 }
 
-bool Plot::addTimePoint(float t)
+bool Plot::addTimePoint(const float t)
 {
 	time.addPoint(t);
 	return true;
@@ -113,7 +113,7 @@ void Plot::setVisibility(bool state)
 {
 	visibility = state;
 }
-bool Plot::getVisibility()
+bool Plot::getVisibility() const
 {
 	return visibility;
 }
@@ -122,11 +122,11 @@ bool& Plot::getVisibilityVar()
 	return visibility;
 }
 
-void Plot::setType(type_E newType)
+void Plot::setType(const type_E newType)
 {
 	type = newType;
 }
-Plot::type_E Plot::getType()
+Plot::type_E Plot::getType() const
 {
 	return type;
 }

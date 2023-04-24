@@ -14,17 +14,17 @@ PlotHandler::~PlotHandler()
 		dataHandle.join();
 }
 
-void PlotHandler::addPlot(std::string name)
+void PlotHandler::addPlot(const std::string& name)
 {
 	plotsMap[name] = std::make_shared<Plot>(name);
 }
-bool PlotHandler::removePlot(std::string name)
+bool PlotHandler::removePlot(const std::string& name)
 {
 	plotsMap.erase(name);
 	return true;
 }
 
-bool PlotHandler::renamePlot(std::string oldName, std::string newName)
+bool PlotHandler::renamePlot(const std::string& oldName, const std::string& newName)
 {
 	auto plt = plotsMap.extract(oldName);
 	plt.key() = newName;
@@ -56,7 +56,7 @@ bool PlotHandler::eraseAllPlotData()
 	return true;
 }
 
-void PlotHandler::setViewerState(state state)
+void PlotHandler::setViewerState(const state state)
 {
 	if (state == viewerState)
 		return;
@@ -64,17 +64,17 @@ void PlotHandler::setViewerState(state state)
 	viewerStateTemp = state;
 }
 
-bool PlotHandler::getViewerState()
+bool PlotHandler::getViewerState() const
 {
 	return static_cast<bool>(viewerState);
 }
 
-uint32_t PlotHandler::getVisiblePlotsCount()
+uint32_t PlotHandler::getVisiblePlotsCount() const
 {
 	return std::count_if(plotsMap.begin(), plotsMap.end(), [](const auto& pair)
 						 { return pair.second->getVisibility(); });
 }
-uint32_t PlotHandler::getPlotsCount()
+uint32_t PlotHandler::getPlotsCount() const
 {
 	return plotsMap.size();
 }
@@ -126,8 +126,52 @@ void PlotHandler::dataHandler()
 		}
 	}
 }
+
 bool PlotHandler::writeSeriesValue(Variable& var, const float value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
 	return varReader->setValue(var, value);
+}
+
+PlotHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)
+	: m_iter(iter)
+{
+}
+
+PlotHandler::iterator& PlotHandler::iterator::operator++()
+{
+	++m_iter;
+	return *this;
+}
+
+PlotHandler::iterator PlotHandler::iterator::operator++(int)
+{
+	iterator tmp = *this;
+	++(*this);
+	return tmp;
+}
+
+bool PlotHandler::iterator::operator==(const iterator& other) const
+{
+	return m_iter == other.m_iter;
+}
+
+bool PlotHandler::iterator::operator!=(const iterator& other) const
+{
+	return !(*this == other);
+}
+
+std::shared_ptr<Plot> PlotHandler::iterator::operator*()
+{
+	return m_iter->second;
+}
+
+PlotHandler::iterator PlotHandler::begin()
+{
+	return iterator(plotsMap.begin());
+}
+
+PlotHandler::iterator PlotHandler::end()
+{
+	return iterator(plotsMap.end());
 }

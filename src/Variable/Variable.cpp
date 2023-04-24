@@ -12,38 +12,38 @@ Variable::Variable(std::string name, Variable::type type_, T value_) : name(name
 	name.reserve(100);
 }
 
-void Variable::setType(type varType_)
+void Variable::setType(const type varType_)
 {
 	varType = varType_;
 }
 
-Variable::type Variable::getType()
+Variable::type Variable::getType() const
 {
 	return varType;
 }
 
-std::string Variable::getTypeStr()
+std::string Variable::getTypeStr() const
 {
 	return std::string(types[static_cast<uint8_t>(varType)]);
 }
 
 template <typename T>
-void Variable::setValue(T val)
+void Variable::setValue(const T val)
 {
 	value = *(uint32_t*)&val;
 }
 
 template <typename T>
-T Variable::getValue()
+T Variable::getValue() const
 {
 	return *(T*)&value;
 }
 
-void Variable::setAddress(uint32_t addr)
+void Variable::setAddress(const uint32_t addr)
 {
 	address = addr;
 }
-uint32_t Variable::getAddress()
+uint32_t Variable::getAddress() const
 {
 	return address;
 }
@@ -53,7 +53,7 @@ std::string& Variable::getName()
 	return name;
 }
 
-void Variable::setName(std::string name_)
+void Variable::setName(const std::string& name_)
 {
 	name = name_;
 }
@@ -66,7 +66,7 @@ void Variable::setColor(float r, float g, float b, float a)
 	color.a = a;
 }
 
-void Variable::setColor(uint32_t AaBbGgRr)
+void Variable::setColor(const uint32_t AaBbGgRr)
 {
 	using u8 = std::numeric_limits<uint8_t>;
 	color.r = static_cast<float>((AaBbGgRr & 0x000000ff) / static_cast<float>(u8::max()));
@@ -80,7 +80,7 @@ Variable::Color& Variable::getColor()
 	return color;
 }
 
-uint32_t Variable::getColorU32()
+uint32_t Variable::getColorU32() const
 {
 	using u8 = std::numeric_limits<uint8_t>;
 	uint32_t a = u8::max() * color.a;

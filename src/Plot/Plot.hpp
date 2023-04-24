@@ -27,26 +27,26 @@ class Plot
 
 	Plot(std::string name);
 	~Plot();
-	void setName(std::string newName);
+	void setName(const std::string& newName);
 	std::string getName() const;
 	std::string& getNameVar();
 	bool addSeries(Variable& var);
-	std::shared_ptr<Plot::Series> getSeries(std::string name);
+	std::shared_ptr<Plot::Series> getSeries(const std::string& name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
 	ScrollingBuffer<float>& getTimeSeries();
-	bool removeSeries(std::string name);
+	bool removeSeries(const std::string& name);
 	bool removeAllVariables();
-	std::vector<uint32_t> getVariableAddesses();
-	std::vector<Variable::type> getVariableTypes();
-	bool addPoint(std::string name, float value);
-	bool addTimePoint(float t);
+	std::vector<uint32_t> getVariableAddesses() const;
+	std::vector<Variable::type> getVariableTypes() const;
+	bool addPoint(const std::string& varName, const float value);
+	bool addTimePoint(const float t);
 	void erase();
 	void setVisibility(bool state);
-	bool getVisibility();
+	bool getVisibility() const;
 	bool& getVisibilityVar();
 
-	void setType(type_E newType);
-	type_E getType();
+	void setType(const type_E newType);
+	type_E getType() const;
 
    private:
 	std::string name;

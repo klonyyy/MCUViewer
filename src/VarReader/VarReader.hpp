@@ -17,9 +17,9 @@ class VarReader
 	bool start();
 	bool stop();
 
-	uint32_t getValue(uint32_t address);
-	float getFloat(uint32_t address, Variable::type type);
-	bool setValue(Variable& var, float value);
+	uint32_t getValue(uint32_t address) const;
+	float getFloat(const uint32_t address, const Variable::type type);
+	bool setValue(const Variable& var, const float value);
 
    private:
 	enum class state
