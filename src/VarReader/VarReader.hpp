@@ -11,8 +11,8 @@
 class VarReader
 {
    public:
-	VarReader();
-	~VarReader();
+	VarReader() = default;
+	~VarReader() = default;
 
 	bool start();
 	bool stop();

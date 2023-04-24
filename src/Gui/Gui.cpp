@@ -291,7 +291,7 @@ void Gui::drawVarTable()
 		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
 		ImGui::TableHeadersRow();
 
-		std::string varNameToDelete = {};
+		std::optional<std::string> varNameToDelete;
 
 		for (auto& [keyName, var] : vars)
 		{
@@ -311,9 +311,9 @@ void Gui::drawVarTable()
 				var->setName(variable);
 				vars.insert(std::move(varr));
 			}
-			/* TODO std::optional ?*/
-			if (showDeletePopup("Delete", keyName) == keyName)
-				varNameToDelete = keyName;
+
+			if (!varNameToDelete.has_value())
+				varNameToDelete = showDeletePopup("Delete", keyName);
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
@@ -328,11 +328,11 @@ void Gui::drawVarTable()
 			ImGui::TableSetColumnIndex(2);
 			ImGui::Text(var->getTypeStr().c_str());
 		}
-		if (varNameToDelete != "")
+		if (varNameToDelete.has_value())
 		{
 			for (std::shared_ptr<Plot> plt : *plotHandler)
-				plt->removeSeries(varNameToDelete);
-			vars.erase(varNameToDelete);
+				plt->removeSeries(varNameToDelete.value_or(""));
+			vars.erase(varNameToDelete.value_or(""));
 		}
 		ImGui::EndTable();
 	}
@@ -358,7 +358,7 @@ void Gui::drawPlotsTree()
 			ImGui::EndPopup();
 		}
 
-		std::string plotNameToDelete = {};
+		std::optional<std::string> plotNameToDelete = {};
 
 		for (std::shared_ptr<Plot> plt : *plotHandler)
 		{
@@ -369,9 +369,7 @@ void Gui::drawPlotsTree()
 
 			if (ImGui::BeginTabItem(plt->getName().c_str()))
 			{
-				/* TODO std::optional ?*/
-				if (showDeletePopup("Delete plot", plt->getName()) == plt->getName())
-					plotNameToDelete = plt->getName();
+				plotNameToDelete = showDeletePopup("Delete plot", plt->getName());
 
 				ImGui::Text("name    ");
 				ImGui::SameLine();
@@ -389,15 +387,14 @@ void Gui::drawPlotsTree()
 				ImGui::PushID("list");
 				if (ImGui::BeginListBox("##", ImVec2(-1, 0)))
 				{
-					std::string seriesNameToDelete = {};
+					std::optional<std::string> seriesNameToDelete = {};
 					for (auto& [name, ser] : plt->getSeriesMap())
 					{
 						ImGui::Selectable(name.c_str());
-						/* TODO std::optional ?*/
-						if (showDeletePopup("Delete var", name) == name)
-							seriesNameToDelete = name;
+						if (!seriesNameToDelete.has_value())
+							seriesNameToDelete = showDeletePopup("Delete var", name);
 					}
-					plt->removeSeries(seriesNameToDelete);
+					plt->removeSeries(seriesNameToDelete.value_or(""));
 					ImGui::EndListBox();
 				}
 				if (ImGui::BeginDragDropTarget())
@@ -418,7 +415,7 @@ void Gui::drawPlotsTree()
 		}
 		ImGui::EndTabBar();
 
-		plotHandler->removePlot(plotNameToDelete);
+		plotHandler->removePlot(plotNameToDelete.value_or(""));
 	}
 }
 
@@ -611,20 +608,19 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 	}
 }
 
-std::string Gui::showDeletePopup(const char* text, const std::string name)
+std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)
 {
-	std::string nameToDelete = "";
 	if (ImGui::BeginPopupContextItem())
 	{
 		if (ImGui::Button(text))
 		{
 			ImGui::CloseCurrentPopup();
-			nameToDelete = name;
+			ImGui::EndPopup();
+			return name;
 		}
 		ImGui::EndPopup();
 	}
-
-	return nameToDelete;
+	return std::nullopt;
 }
 
 bool Gui::showSaveOnClosePrompt()

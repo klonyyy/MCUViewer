@@ -3,6 +3,7 @@
 
 #include <map>
 #include <mutex>
+#include <optional>
 #include <thread>
 
 #include "ConfigHandler.hpp"
@@ -54,7 +55,7 @@ class Gui
 	void drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 	bool showSaveOnClosePrompt();
 
-	std::string showDeletePopup(const char* text, const std::string name);
+	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
 };
 

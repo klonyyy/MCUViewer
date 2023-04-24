@@ -12,7 +12,7 @@ set(MDTOOL_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-Wall

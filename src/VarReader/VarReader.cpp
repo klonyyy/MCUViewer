@@ -4,13 +4,6 @@
 
 #include "iostream"
 
-VarReader::VarReader()
-{
-}
-VarReader::~VarReader()
-{
-}
-
 bool VarReader::start()
 {
 	sl = stlink_open_usb((ugly_loglevel)10, (connect_type)0, NULL, 4000);
