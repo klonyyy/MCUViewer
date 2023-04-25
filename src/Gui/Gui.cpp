@@ -257,11 +257,11 @@ void Gui::drawAddVariableButton()
 	if (ImGui::Button("Add variable", ImVec2(-1, 30)))
 	{
 		uint32_t num = 0;
-		while (vars.find(std::string("new") + std::to_string(num)) != vars.end())
+		while (vars.find(std::string("_new") + std::to_string(num)) != vars.end())
 		{
 			num++;
 		}
-		std::string newName = std::string("new") + std::to_string(num);
+		std::string newName = std::string("_new") + std::to_string(num);
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		newVar->setAddress(0x20000000);
@@ -573,6 +573,10 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 			float value = *serPtr->buffer->getLastElement();
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
+			Variable::Color a = serPtr->var->getColor();
+			ImVec4 col = {a.r, a.g, a.b, a.a};
+			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10, 10));
+			ImGui::SameLine();
 			ImGui::Text(key.c_str());
 			ImGui::TableSetColumnIndex(1);
 			ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
