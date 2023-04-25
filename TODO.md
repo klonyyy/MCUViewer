@@ -6,4 +6,6 @@
 6. handle stlink errors
 7. profiling?
 8. add basic math operations on variables
-9. add varaible table sorting by name (or set it as a default)
+9. add variable table sorting by name (or set it as a default)
+10. fix poor bar graphs value display 
+11. Check if save is needed

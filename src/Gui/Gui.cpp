@@ -18,7 +18,7 @@
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx)
 {
-	elfReader = std::make_unique<ElfReader>(projectElfFile);
+	elfReader = std::make_unique<ElfReader>(projectElfPath);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
@@ -39,7 +39,7 @@ void Gui::mainThread()
 	if (!glfwInit())
 		return;
 
-	GLFWwindow* window = glfwCreateWindow(1500, 1000, "STMViewer", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("STMViewer | ") + projectConfigPath).c_str(), NULL, NULL);
 	if (window == NULL)
 		return;
 	glfwMakeContextCurrent(window);
@@ -70,6 +70,7 @@ void Gui::mainThread()
 
 	while (!done)
 	{
+		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
 
 		// Start the Dear ImGui frame
@@ -82,36 +83,13 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		if (glfwWindowShouldClose(window))
-			ImGui::OpenPopup("Save?");
-
-		glfwSetWindowShouldClose(window, showSaveOnClosePrompt());
+		askShouldSaveOnExit(glfwWindowShouldClose(window));
+		glfwSetWindowShouldClose(window, done);
 
 		ImGui::Begin("Plots");
 		drawAcqusitionSettingsWindow();
 
-		uint32_t tablePlots = 0;
-
-		for (std::shared_ptr<Plot> plt : *plotHandler)
-		{
-			if (plt->getType() == Plot::type_E::TABLE)
-			{
-				drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
-				if (plt->getVisibility())
-					tablePlots++;
-			}
-		}
-
-		uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
-		uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
-
-		if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1), ImPlotSubplotFlags_LinkAllX))
-		{
-			for (std::shared_ptr<Plot> plt : *plotHandler)
-				if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
-					drawPlotCurveBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
-			ImPlot::EndSubplots();
-		}
+		drawPlots();
 
 		drawMenu();
 		ImGui::End();
@@ -155,13 +133,15 @@ void Gui::mainThread()
 
 void Gui::drawMenu()
 {
+	bool shouldSaveOnClose = false;
+	bool shouldSaveOnNew = false;
 	ImGui::BeginMainMenuBar();
 
 	if (ImGui::BeginMenu("File"))
 	{
 		if (ImGui::MenuItem("New"))
-		{
-		}
+			shouldSaveOnNew = true;
+
 		if (ImGui::MenuItem("Open", "Ctrl+O"))
 		{
 			nfdchar_t* outPath;
@@ -169,14 +149,15 @@ void Gui::drawMenu()
 			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
 			if (result == NFD_OKAY)
 			{
-				configHandler->changeConfigFile(std::string(outPath));
+				projectConfigPath = std::string(outPath);
+				NFD_FreePath(outPath);
+				configHandler->changeConfigFile(projectConfigPath);
 				vars.clear();
 				plotHandler->removeAllPlots();
-				projectElfFile = configHandler->getElfFilePath();
-				configHandler->readConfigFile(vars, projectElfFile);
-				std::replace(projectElfFile.begin(), projectElfFile.end(), '\\', '/');
-				std::cout << outPath << std::endl;
-				NFD_FreePath(outPath);
+				projectElfPath = configHandler->getElfFilePath();
+				configHandler->readConfigFile(vars, projectElfPath);
+				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
+				std::cout << projectConfigPath << std::endl;
 			}
 			else if (result == NFD_ERROR)
 			{
@@ -184,30 +165,15 @@ void Gui::drawMenu()
 						  << NFD_GetError() << std::endl;
 			}
 		}
-		if (ImGui::MenuItem("Save", "Ctrl+S"))
-		{
-			configHandler->saveConfigFile(vars, projectElfFile, projectConfigFile);
-		}
+		if (ImGui::MenuItem("Save", "Ctrl+S", false, (!projectConfigPath.empty())))
+			configHandler->saveConfigFile(vars, projectElfPath, "");
+
 		if (ImGui::MenuItem("Save As.."))
-		{
-			nfdchar_t* outPath;
-			nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-			nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
-			if (result == NFD_OKAY)
-			{
-				configHandler->saveConfigFile(vars, projectElfFile, std::string(outPath));
-				NFD_FreePath(outPath);
-			}
-			else if (result == NFD_ERROR)
-			{
-				std::cout << "Error: %s\n"
-						  << NFD_GetError() << std::endl;
-			}
-		}
+			saveAs();
+
 		if (ImGui::MenuItem("Quit"))
-		{
-			done = true;
-		}
+			shouldSaveOnClose = true;
+
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Options"))
@@ -216,6 +182,9 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
+
+	askShouldSaveOnExit(shouldSaveOnClose);
+	askShouldSaveOnNew(shouldSaveOnNew);
 }
 
 void Gui::drawStartButton()
@@ -428,7 +397,7 @@ void Gui::drawAcqusitionSettingsWindow()
 	if (ImGui::BeginPopupModal("Acqusition Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::Text("Please pick *.elf file");
-		ImGui::InputText("##", &projectElfFile, 0, NULL, NULL);
+		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 		ImGui::SameLine();
 		if (ImGui::SmallButton("..."))
 		{
@@ -438,8 +407,8 @@ void Gui::drawAcqusitionSettingsWindow()
 			if (result == NFD_OKAY)
 			{
 				std::cout << outPath << std::endl;
-				projectElfFile = std::string(outPath);
-				std::replace(projectElfFile.begin(), projectElfFile.end(), '\\', '/');
+				projectElfPath = std::string(outPath);
+				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
 				NFD_FreePath(outPath);
 			}
 			else if (result == NFD_ERROR)
@@ -456,6 +425,32 @@ void Gui::drawAcqusitionSettingsWindow()
 		}
 
 		ImGui::EndPopup();
+	}
+}
+
+void Gui::drawPlots()
+{
+	uint32_t tablePlots = 0;
+
+	for (std::shared_ptr<Plot> plt : *plotHandler)
+	{
+		if (plt->getType() == Plot::type_E::TABLE)
+		{
+			drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
+			if (plt->getVisibility())
+				tablePlots++;
+		}
+	}
+
+	uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
+	uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
+
+	if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1), ImPlotSubplotFlags_LinkAllX))
+	{
+		for (std::shared_ptr<Plot> plt : *plotHandler)
+			if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
+				drawPlotCurveBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
+		ImPlot::EndSubplots();
 	}
 }
 
@@ -627,34 +622,98 @@ std::optional<std::string> Gui::showDeletePopup(const char* text, const std::str
 	return std::nullopt;
 }
 
-bool Gui::showSaveOnClosePrompt()
+void Gui::showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel)
 {
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal(id, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("Do you want to save the current config?\n");
+		ImGui::Text(question);
 		ImGui::Separator();
 		if (ImGui::Button("Yes", ImVec2(120, 0)))
 		{
-			done = true;
-			configHandler->saveConfigFile(vars, projectElfFile, projectConfigFile);
+			onYes();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("No", ImVec2(120, 0)))
 		{
-			done = true;
+			onNo();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
-			done = false;
+			onCancel();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
 	}
-	return done;
+}
+
+void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
+{
+	if (shouldOpenPopup)
+		ImGui::OpenPopup("Save?");
+
+	auto onYes = [&]()
+	{
+		done = true;
+		configHandler->saveConfigFile(vars, projectElfPath, "");
+	};
+
+	auto onNo = [&]()
+	{ done = true; };
+	auto onCancel = [&]()
+	{ done = false; };
+
+	showQuestionBox("Save?", "Do you want to save the current config?\n", onYes, onNo, onCancel);
+}
+
+void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
+{
+	if (shouldOpenPopup)
+		ImGui::OpenPopup("SaveOnNew?");
+
+	auto onYes = [&]()
+	{
+		if (!projectConfigPath.empty())
+			configHandler->saveConfigFile(vars, projectElfPath, "");
+		else
+			saveAs();
+
+		vars.clear();
+		plotHandler->removeAllPlots();
+		projectElfPath = "";
+		projectConfigPath = "";
+	};
+
+	auto onNo = [&]()
+	{
+		vars.clear();
+		plotHandler->removeAllPlots();
+		projectElfPath = "";
+		projectConfigPath = "";
+	};
+
+	showQuestionBox("SaveOnNew?", "Do you want to save the current config?\n", onYes, onNo, []() {});
+}
+
+void Gui::saveAs()
+{
+	nfdchar_t* outPath = nullptr;
+	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
+	nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+	if (result == NFD_OKAY)
+	{
+		projectConfigPath = std::string(outPath);
+		configHandler->saveConfigFile(vars, projectElfPath, std::string(outPath));
+		NFD_FreePath(outPath);
+	}
+	else if (result == NFD_ERROR)
+	{
+		std::cout << "Error: %s\n"
+				  << NFD_GetError() << std::endl;
+	}
 }
 
 std::string Gui::intToHexString(uint32_t var)

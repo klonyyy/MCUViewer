@@ -31,8 +31,8 @@ class Gui
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
 	ConfigHandler* configHandler;
-	std::string projectConfigFile;
-	std::string projectElfFile;
+	std::string projectConfigPath;
+	std::string projectElfPath;
 	bool showAcqusitionSettingsWindow = false;
 
 	static constexpr uint32_t maxVariableNameLength = 100;
@@ -51,9 +51,13 @@ class Gui
 	void drawVarTable();
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
+	void drawPlots();
 	void drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
 	void drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
-	bool showSaveOnClosePrompt();
+	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
+	void askShouldSaveOnExit(bool shouldOpenPopup);
+	void askShouldSaveOnNew(bool shouldOpenPopup);
+	void saveAs();
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
