@@ -2,7 +2,11 @@
 
 #include <unistd.h>
 
+#include <bitset>
 #include <iostream>
+#include <limits>
+#include <sstream>
+#include <string>
 
 #include "implot.h"
 
@@ -129,4 +133,38 @@ void Plot::setType(const type_E newType)
 Plot::type_E Plot::getType() const
 {
 	return type;
+}
+
+Plot::displayFormat Plot::getSeriesDisplayFormat(const std::string& name) const
+{
+	return seriesMap.at(name)->format;
+}
+void Plot::setSeriesDisplayFormat(const std::string& name, const displayFormat format)
+{
+	seriesMap.at(name)->format = format;
+}
+
+std::string Plot::getSeriesValueString(const std::string& name, const float value)
+{
+	if (seriesMap.at(name)->var->getType() == Variable::type::F32)
+		return std::to_string(value);
+
+	switch (seriesMap.at(name)->format)
+	{
+		case displayFormat::DEC:
+			return std::to_string(value);
+		case displayFormat::HEX:
+		{
+			std::stringstream ss;
+			ss << std::hex << static_cast<int64_t>(value);
+			return std::string("0x") + ss.str();
+		}
+		case displayFormat::BIN:
+		{
+			std::bitset<32> binaryValue(value);
+			return std::string("0b") + binaryValue.to_string();
+		}
+		default:
+			return std::string("");
+	}
 }

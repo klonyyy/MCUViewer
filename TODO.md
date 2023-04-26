@@ -9,3 +9,4 @@
 9. add variable table sorting by name (or set it as a default)
 10. fix poor bar graphs value display 
 11. Check if save is needed
+12. do not allow for writing larger values than the type can hold

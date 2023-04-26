@@ -58,6 +58,7 @@ class Gui
 	void askShouldSaveOnExit(bool shouldOpenPopup);
 	void askShouldSaveOnNew(bool shouldOpenPopup);
 	void saveAs();
+	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);

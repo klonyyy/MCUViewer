@@ -12,9 +12,16 @@
 class Plot
 {
    public:
+	enum class displayFormat
+	{
+		DEC = 0,
+		HEX = 1,
+		BIN = 2,
+	};
 	struct Series
 	{
 		Variable* var;
+		displayFormat format = displayFormat::DEC;
 		std::unique_ptr<ScrollingBuffer<float>> buffer;
 	};
 
@@ -47,6 +54,10 @@ class Plot
 
 	void setType(const type_E newType);
 	type_E getType() const;
+
+	displayFormat getSeriesDisplayFormat(const std::string& name) const;
+	void setSeriesDisplayFormat(const std::string& name, const displayFormat format);
+	std::string getSeriesValueString(const std::string& name, const float value);
 
    private:
 	std::string name;

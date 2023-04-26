@@ -565,6 +565,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 
 		for (auto& [key, serPtr] : seriesMap)
 		{
+			/* TODO optimize this whole value thing*/
 			float value = *serPtr->buffer->getLastElement();
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -576,7 +577,8 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 			ImGui::TableSetColumnIndex(1);
 			ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text(std::to_string(value).c_str());
+			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, value).data(), maxVariableNameLength);
+			showChangeFormatPopup("format", *plot, key);
 			ImGui::TableSetColumnIndex(3);
 			ImGui::PushID("input");
 			char newValue[maxVariableNameLength] = {0};
@@ -714,6 +716,27 @@ void Gui::saveAs()
 		std::cout << "Error: %s\n"
 				  << NFD_GetError() << std::endl;
 	}
+}
+
+void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
+{
+	int format = static_cast<int>(plt.getSeriesDisplayFormat(name));
+
+	if (plt.getSeries(name)->var->getType() == Variable::type::F32)
+		return;
+
+	if (ImGui::BeginPopupContextItem())
+	{
+		if (ImGui::RadioButton("dec", &format, 0))
+			ImGui::CloseCurrentPopup();
+		if (ImGui::RadioButton("hex", &format, 1))
+			ImGui::CloseCurrentPopup();
+		if (ImGui::RadioButton("bin", &format, 2))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+
+	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
 }
 
 std::string Gui::intToHexString(uint32_t var)
