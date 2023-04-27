@@ -28,11 +28,11 @@ class PlotHandler
 	bool removeAllPlots();
 	std::shared_ptr<Plot> getPlot(std::string name);
 	bool eraseAllPlotData();
-	void setViewerState(const state state);
+	void setViewerState(state state);
 	bool getViewerState() const;
 	uint32_t getVisiblePlotsCount() const;
 	uint32_t getPlotsCount() const;
-	bool writeSeriesValue(Variable& var, const float value);
+	bool writeSeriesValue(Variable& var, float value);
 
 	class iterator
 	{

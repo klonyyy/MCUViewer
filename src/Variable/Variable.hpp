@@ -2,7 +2,6 @@
 #define __VARIABLE_HPP
 
 #include <string>
-
 class Variable
 {
    public:
@@ -29,25 +28,32 @@ class Variable
 
 	Variable(std::string name);
 	template <typename T>
-	Variable(std::string name, type type_, T value_);
+	Variable(std::string name, type type, T value);
 	~Variable() = default;
 
-	void setType(const type varType_);
+	void setType(type varType);
 	type getType() const;
 	std::string getTypeStr() const;
 
 	template <typename T>
-	void setValue(const T val);
-	template <typename T>
-	T getValue() const;
+	void setValue(T val)
+	{
+		value = *(uint32_t*)&val;
+	}
 
-	void setAddress(const uint32_t addr);
+	template <typename T>
+	T getValue() const
+	{
+		return *(T*)&value;
+	}
+
+	void setAddress(uint32_t addr);
 	uint32_t getAddress() const;
 	std::string& getName();
 	void setName(const std::string& name_);
 
 	void setColor(float r, float g, float b, float a);
-	void setColor(const uint32_t AaBbGgRr);
+	void setColor(uint32_t AaBbGgRr);
 
 	Color& getColor();
 	uint32_t getColorU32() const;

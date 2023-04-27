@@ -45,19 +45,19 @@ class Plot
 	bool removeAllVariables();
 	std::vector<uint32_t> getVariableAddesses() const;
 	std::vector<Variable::type> getVariableTypes() const;
-	bool addPoint(const std::string& varName, const float value);
-	bool addTimePoint(const float t);
+	bool addPoint(const std::string& varName, float value);
+	bool addTimePoint(float t);
 	void erase();
 	void setVisibility(bool state);
 	bool getVisibility() const;
 	bool& getVisibilityVar();
 
-	void setType(const type_E newType);
+	void setType(type_E newType);
 	type_E getType() const;
 
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
-	void setSeriesDisplayFormat(const std::string& name, const displayFormat format);
-	std::string getSeriesValueString(const std::string& name, const float value);
+	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
+	std::string getSeriesValueString(const std::string& name, float value);
 
    private:
 	std::string name;

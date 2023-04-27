@@ -93,13 +93,14 @@ std::vector<Variable::type> Plot::getVariableTypes() const
 	return types;
 }
 
-bool Plot::addPoint(const std::string& varName, const float value)
+bool Plot::addPoint(const std::string& varName, float value)
 {
+	seriesMap[varName]->var->setValue(value);
 	seriesMap[varName]->buffer->addPoint(value);
 	return true;
 }
 
-bool Plot::addTimePoint(const float t)
+bool Plot::addTimePoint(float t)
 {
 	time.addPoint(t);
 	return true;
@@ -126,7 +127,7 @@ bool& Plot::getVisibilityVar()
 	return visibility;
 }
 
-void Plot::setType(const type_E newType)
+void Plot::setType(type_E newType)
 {
 	type = newType;
 }
@@ -139,14 +140,16 @@ Plot::displayFormat Plot::getSeriesDisplayFormat(const std::string& name) const
 {
 	return seriesMap.at(name)->format;
 }
-void Plot::setSeriesDisplayFormat(const std::string& name, const displayFormat format)
+void Plot::setSeriesDisplayFormat(const std::string& name, displayFormat format)
 {
 	seriesMap.at(name)->format = format;
 }
 
-std::string Plot::getSeriesValueString(const std::string& name, const float value)
+std::string Plot::getSeriesValueString(const std::string& name, float value)
 {
-	if (seriesMap.at(name)->var->getType() == Variable::type::F32)
+	Variable::type type = seriesMap.at(name)->var->getType();
+
+	if (type == Variable::type::F32)
 		return std::to_string(value);
 
 	switch (seriesMap.at(name)->format)
@@ -161,10 +164,33 @@ std::string Plot::getSeriesValueString(const std::string& name, const float valu
 		}
 		case displayFormat::BIN:
 		{
-			std::bitset<32> binaryValue(value);
-			return std::string("0b") + binaryValue.to_string();
+			switch (type)
+			{
+				case Variable::type::I8:
+				case Variable::type::U8:
+				{
+					std::bitset<8> binaryValue(value);
+					return std::string("0b") + binaryValue.to_string();
+				}
+				case Variable::type::I16:
+				case Variable::type::U16:
+				{
+					std::bitset<16> binaryValue(value);
+					return std::string("0b") + binaryValue.to_string();
+				}
+				case Variable::type::I32:
+				case Variable::type::U32:
+				{
+					std::bitset<32> binaryValue(value);
+					return std::string("0b") + binaryValue.to_string();
+				}
+				default:
+					break;
+			}
+			break;
 		}
 		default:
 			return std::string("");
 	}
+	return std::string("");
 }

@@ -394,7 +394,7 @@ void Gui::drawAcqusitionSettingsWindow()
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal("Acqusition Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal("Acqusition Settings", NULL, 0))
 	{
 		ImGui::Text("Please pick *.elf file");
 		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
@@ -565,8 +565,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 
 		for (auto& [key, serPtr] : seriesMap)
 		{
-			/* TODO optimize this whole value thing*/
-			float value = *serPtr->buffer->getLastElement();
+			float value = serPtr->var->getValue<float>();
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			Variable::Color a = serPtr->var->getColor();

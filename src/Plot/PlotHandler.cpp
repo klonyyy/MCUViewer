@@ -56,7 +56,7 @@ bool PlotHandler::eraseAllPlotData()
 	return true;
 }
 
-void PlotHandler::setViewerState(const state state)
+void PlotHandler::setViewerState(state state)
 {
 	if (state == viewerState)
 		return;
@@ -127,7 +127,7 @@ void PlotHandler::dataHandler()
 	}
 }
 
-bool PlotHandler::writeSeriesValue(Variable& var, const float value)
+bool PlotHandler::writeSeriesValue(Variable& var, float value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
 	return varReader->setValue(var, value);
