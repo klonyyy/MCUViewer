@@ -7,7 +7,7 @@ endif()
 
 project(STMViewer)
 
-set(MDTOOL_VERSION 1.0.0)
+set(STMVIEWER_VERSION 1.0.0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
@@ -24,6 +24,15 @@ find_package(libusb REQUIRED)
 
 if(UNIX)
     find_package(glfw3 REQUIRED)
+    set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
+    set(INSTALL_PATH /usr/local/bin)
+endif()
+
+if(WIN32)
+    set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
+    set(STLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
+    set(LIBUSB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libusb-1.0.dll)
+    set(INSTALL_PATH bin)
 endif()
 
 set(PROJECT_SOURCES
@@ -56,6 +65,15 @@ set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES})
 
+
+
+string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${STMVIEWER_VERSION}")
+target_compile_definitions(${EXECUTABLE}
+    PRIVATE STMVIEWER_VERSION_MAJOR=${CMAKE_MATCH_1}
+    PRIVATE STMVIEWER_VERSION_MINOR=${CMAKE_MATCH_2}
+    PRIVATE STMVIEWER_VERSION_REVISION=${CMAKE_MATCH_3}
+)
+
 target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
@@ -78,29 +96,44 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} pthread dl GL glfw ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a ${LIBUSB_LIBRARY} nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} pthread dl GL glfw nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} opengl32 ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a ${LIBUSB_LIBRARY} nfd)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} opengl32 nfd)
 endif()
 
 if(WIN32)
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll
+        ${GLFW3_WINDOWS}
         ${CMAKE_BINARY_DIR}/glfw3.dll)
 
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libusb-1.0.dll
+        ${LIBUSB_WINDOWS}
         ${CMAKE_BINARY_DIR}/libusb-1.0.dll)
-
-    add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.dll
-        ${CMAKE_BINARY_DIR}/libstlink.dll)
 endif()
 
 add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
     ${CMAKE_BINARY_DIR}/imgui.ini)
+
+install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
+
+if(WIN32)
+    set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
+    install(FILES ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})  
+endif()
+
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${STMVIEWER_VERSION})
+set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")
+set(CPACK_PACKAGE_VENDOR "klonyyy")
+set(CPACK_PACKAGE_DESCRIPTION "STM32 no-overhead realtime variable viewer.")
+set(CPACK_NSIS_CREATE_UNINSTALLER ON)
+set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+set(CPACK_ALL_INSTALL_TYPES Full Developer)
+set(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full)
+include(CPack)

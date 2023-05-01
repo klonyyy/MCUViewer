@@ -80,7 +80,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
 
         # Extract libusb package with cmake
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xv ${LIBUSB_WIN_ARCHIVE_PATH}
+            COMMAND ${CMAKE_COMMAND} -E tar x ${LIBUSB_WIN_ARCHIVE_PATH}
             WORKING_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER}
             )
 

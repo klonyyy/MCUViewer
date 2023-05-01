@@ -591,7 +591,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
 					std::cout << "VALUE:" << atof(newValue) << std::endl;
-					if (!plotHandler->writeSeriesValue(*serPtr->var, static_cast<float>(atof(newValue))))
+					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stof(newValue)))
 						std::cout << "ERROR while writing new value!" << std::endl;
 				}
 			}
