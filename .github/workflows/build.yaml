@@ -25,4 +25,4 @@ jobs:
               with:
                 name: STMViewer_installer
                 path: |
-                      STMViewer/STMViewer/build/packages/*
+                      STMViewer/STMViewer/build/packages
