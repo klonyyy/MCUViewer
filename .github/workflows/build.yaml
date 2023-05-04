@@ -24,4 +24,4 @@ jobs:
             - uses: actions/upload-artifact@v3
               with:
                 name: STMViewer_installer
-                path: /__w/STMViewer/STMViewer/buildpackages
+                path: /__w/STMViewer/STMViewer/build/packages
