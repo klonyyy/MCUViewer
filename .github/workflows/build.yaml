@@ -1,0 +1,28 @@
+# Action name
+name: build
+
+# Here, this action will be enabled on all pushes.
+# Modify this to fit your needs.
+on:
+    push
+
+# Jobs section
+jobs:
+    # The job that will use the container image you just pushed to ghcr.io
+    build:
+        runs-on: ubuntu-20.04
+        container:
+            image: klonyyy/mingw-w64-x86-64
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                submodules: recursive
+                token: ${{ secrets.PAT }}
+            - name: build_step
+              shell: bash
+              run: git config --global --add safe.directory /__w/STMViewer/ && ./launch/release.sh
+            - uses: actions/upload-artifact@v3
+              with:
+                name: STMViewer_installer
+                path: |
+                      STMViewer/STMViewer/build/packages/*
