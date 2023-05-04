@@ -138,6 +138,11 @@ if(UNIX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb")
 endif()
 
+if(UNIX)
+    set(CPACK_GENERATOR "DEB")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb")
+endif()
+
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${STMVIEWER_VERSION})
 set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
