@@ -16,40 +16,10 @@ ElfReader::ElfReader(std::string& filename) : elfname(filename)
 {
 }
 
-std::vector<uint32_t> ElfReader::getVariableAddressBatch(const std::vector<std::string>& varNames)
-{
-	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
-
-	for (auto& name : varNames)
-	{
-		cmdFull += (std::string("-ex ") + "\"p /d &" + name + "\" ");
-		cmdFull += (std::string("-ex ") + "\"ptype " + name + "\" ");
-	}
-
-	std::cout << "command :" << cmdFull.c_str() << std::endl;
-
-	std::string out = exec(cmdFull.c_str());
-	std::string delimiter = "= ";
-	int32_t pos = 0;
-	int32_t pos2 = 0;
-
-	std::vector<uint32_t> addresses;
-
-	std::cout << out << std::endl;
-
-	while (out.length() > 0 && (pos = out.find(delimiter)) != -1)
-	{
-		if ((pos2 = out.find('$', 1)) == -1)
-			pos2 = out.length();
-		addresses.push_back(atoi((out.substr(pos + delimiter.length(), pos2)).c_str()));
-		out.erase(0, pos2);
-	}
-	return addresses;
-}
-
 bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable>>& vars)
 {
-	std::cout << elfname << std::endl;
+	if (elfname.empty())
+		return false;
 
 	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
 
@@ -59,7 +29,7 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 		cmdFull += (std::string("-ex ") + "\"ptype " + name + "\" ");
 	}
 
-	std::string out = exec(cmdFull.c_str());
+	std::string out = executeCommand(cmdFull.c_str());
 	std::string delimiter = "+p /d &";
 	int32_t start = 0;
 	/* get rid of file and other start commands */
@@ -123,7 +93,7 @@ Variable::type ElfReader::getTypeFromString(const std::string& strType)
 	return Variable::type::UNKNOWN;
 }
 
-std::string ElfReader::exec(const char* cmd)
+std::string ElfReader::executeCommand(const char* cmd)
 {
 	std::array<char, 128> buffer;
 	std::string result;

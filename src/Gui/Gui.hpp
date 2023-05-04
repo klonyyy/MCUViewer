@@ -25,8 +25,9 @@ class Gui
 	~Gui();
 
    private:
-	state viewerState = state::STOP;
 	const std::map<state, std::string> viewerStateMap{{state::RUN, "RUNNING"}, {state::STOP, "STOPPED"}};
+	static constexpr uint32_t maxVariableNameLength = 100;
+	state viewerState = state::STOP;
 	std::map<std::string, std::shared_ptr<Variable>> vars;
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
@@ -34,8 +35,6 @@ class Gui
 	std::string projectConfigPath;
 	std::string projectElfPath;
 	bool showAcqusitionSettingsWindow = false;
-
-	static constexpr uint32_t maxVariableNameLength = 100;
 
 	std::unique_ptr<ElfReader> elfReader;
 
