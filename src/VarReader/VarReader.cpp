@@ -6,7 +6,7 @@
 
 bool VarReader::start()
 {
-	sl = stlink_open_usb((ugly_loglevel)10, (connect_type)0, NULL, 4000);
+	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
 
 	std::cout << "Startig! **************" << std::endl;
 
