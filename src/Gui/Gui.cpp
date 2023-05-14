@@ -445,7 +445,7 @@ void Gui::drawPlots()
 	uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
 	uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
 
-	if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1), ImPlotSubplotFlags_LinkAllX))
+	if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1), 0))
 	{
 		for (std::shared_ptr<Plot> plt : *plotHandler)
 			if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
