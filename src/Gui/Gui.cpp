@@ -55,6 +55,7 @@ void Gui::mainThread()
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
+	ImPlot::StyleColorsDark();
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	const char* glsl_version = "#version 130";
@@ -88,9 +89,7 @@ void Gui::mainThread()
 
 		ImGui::Begin("Plots");
 		drawAcqusitionSettingsWindow();
-
 		drawPlots();
-
 		drawMenu();
 		ImGui::End();
 
@@ -312,7 +311,7 @@ void Gui::drawPlotsTree()
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	std::string newName = "";
 
-	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_Reorderable))
+	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton))
 	{
 		if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
 			plotHandler->addPlot("new plot");
@@ -552,7 +551,10 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 	if (!plot->getVisibility())
 		return;
 
-	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
+
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Centered Text").x) * 0.5f);
+	ImGui::Text(plot->getName().c_str());
 
 	if (ImGui::BeginTable(plot->getName().c_str(), 4, flags))
 	{
