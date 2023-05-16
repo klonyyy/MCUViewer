@@ -12,3 +12,6 @@
 12. do not allow for writing larger values than the type can hold
 13. add cursors with delta display
 14. add table names in the viewer window
+15. update variables addresses on elf file change
+16. add release elf file support
+17. grey-out variables that were not found in the elf file

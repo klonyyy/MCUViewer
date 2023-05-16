@@ -94,17 +94,14 @@ void PlotHandler::dataHandler()
 				if (!plot->getVisibility())
 					continue;
 
-				int i = 0;
 				/* this part consumes most of the thread time */
-				std::array<float, maxVariables> values;
 				for (auto& [name, ser] : plot->getSeriesMap())
-					values[i++] = varReader->getFloat(ser->var->getAddress(), ser->var->getType());
+					ser->var->setValue(varReader->getFloat(ser->var->getAddress(), ser->var->getType()));
 
 				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
-				i = 0;
 				for (auto& [name, ser] : plot->getSeriesMap())
-					plot->addPoint(name, values[i++]);
+					plot->addPoint(name, ser->var->getValue<float>());
 				plot->addTimePoint(t);
 			}
 		}

@@ -56,8 +56,6 @@ class PlotHandler
 	void dataHandler();
 
    private:
-	static constexpr uint32_t maxVariables = 100;
-
 	bool& done;
 	state viewerState = state::STOP;
 	state viewerStateTemp = state::STOP;
