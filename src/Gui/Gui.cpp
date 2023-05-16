@@ -225,11 +225,11 @@ void Gui::drawAddVariableButton()
 	if (ImGui::Button("Add variable", ImVec2(-1, 30)))
 	{
 		uint32_t num = 0;
-		while (vars.find(std::string("_new") + std::to_string(num)) != vars.end())
+		while (vars.find(std::string(" new") + std::to_string(num)) != vars.end())
 		{
 			num++;
 		}
-		std::string newName = std::string("_new") + std::to_string(num);
+		std::string newName = std::string(" new") + std::to_string(num);
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		newVar->setAddress(0x20000000);
@@ -311,9 +311,9 @@ void Gui::drawPlotsTree()
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	std::string newName = "";
 
-	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton))
+	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_TabListPopupButton | ImGuiTabBarFlags_AutoSelectNewTabs))
 	{
-		if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
+		if (ImGui::TabItemButton("+", ImGuiTabItemFlags_SetSelected | ImGuiTabItemFlags_NoTooltip))
 			plotHandler->addPlot("new plot");
 
 		if (ImGui::BeginPopupContextWindow())
