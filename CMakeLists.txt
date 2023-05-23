@@ -15,8 +15,6 @@ elseif("${PLATFORM}" STREQUAL "WIN")
     set(CMAKE_SYSTEM_NAME Windows)
 endif()
 
-set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/icon.rc")
-
 project(STMViewer)
 
 set(STMVIEWER_VERSION 1.0.0)
@@ -39,6 +37,8 @@ if(UNIX)
 endif()
 
 if(WIN32)
+    enable_language("RC")
+    set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
     set(STLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
     set(LIBUSB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/lib/windows/libusb-1.0.dll)
