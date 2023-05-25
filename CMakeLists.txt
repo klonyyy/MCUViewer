@@ -12,6 +12,7 @@ elseif("${PLATFORM}" STREQUAL "WIN")
     message("Cross - compiling for Windows")
     set(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++-posix)
     set(CMAKE_C_COMPILER /usr/bin/x86_64-w64-mingw32-gcc-posix)
+    set(CMAKE_RC_COMPILER /usr/bin/x86_64-w64-mingw32-windres)
     set(CMAKE_SYSTEM_NAME Windows)
 endif()
 
@@ -33,7 +34,8 @@ if(UNIX)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
-    set(INSTALL_PATH /usr/local/bin)
+    set(INSTALL_PATH /usr/local/STMViewer)
+    set(DESKTOP_FILE_PATH /usr/share/applications)
 endif()
 
 if(WIN32)
@@ -136,6 +138,10 @@ if(WIN32)
 endif()
 
 if(UNIX)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon3.png DESTINATION ${INSTALL_PATH})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/STMViewer.desktop
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${DESKTOP_FILE_PATH})
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb")
 endif()
