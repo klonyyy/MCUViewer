@@ -109,7 +109,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
 if(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} pthread dl GL glfw nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} opengl32 nfd)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} -static opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
 
 if(WIN32)

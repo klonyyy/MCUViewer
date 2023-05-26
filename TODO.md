@@ -15,3 +15,5 @@
 15. update variables addresses on elf file change
 16. add release elf file support
 17. grey-out variables that were not found in the elf file
+18. plot view checkbox to quickly hide variables without delete
+19. Adding plot named new plot erases data on a plot named "new plot"

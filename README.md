@@ -1,4 +1,5 @@
-# STMViewer An open-source GUI tool for viewing and manipulating variables data using debug interface and st-link programmer on STM32 microcontrollers.
+# STMViewer 
+An open-source GUI tool for viewing and manipulating variables data using debug interface and st-link programmer on STM32 microcontrollers.
 
 ![_](./docs/STMViever.gif)
 ## Introduction
@@ -10,12 +11,13 @@ STMViewer is a great tool for debugging, but might be of little use with release
 ## Installation
 
 Linux: 
-Download the *.deb package and install it using:
+1. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
 
 Windows: 
-Download and run the installer. Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
+1. Install GDB (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
+2. Download and run the STMViewer installer.  Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
 
 ## Quick Start
 
