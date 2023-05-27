@@ -34,6 +34,7 @@ class PlotHandler
 	uint32_t getPlotsCount() const;
 	bool writeSeriesValue(Variable& var, float value);
 	bool checkIfPlotExists(const std::string&& name) const;
+	std::string getLastReaderError() const;
 
 	class iterator
 	{

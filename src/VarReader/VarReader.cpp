@@ -15,13 +15,16 @@ bool VarReader::start()
 		if (stlink_enter_swd_mode(sl) != 0 || stlink_target_connect(sl, CONNECT_HOT_PLUG) != 0)
 		{
 			stop();
+			lastErrorMsg = "STM32 target not found!";
 			return false;
 		}
 
+		lastErrorMsg = "";
 		return true;
 	}
 
 	std::cout << "STLink not detected!" << std::endl;
+	lastErrorMsg = "STLink not found!";
 	return false;
 }
 bool VarReader::stop()
@@ -154,4 +157,9 @@ bool VarReader::setValue(const Variable& var, float value)
 	}
 
 	return retVal == 0 ? true : false;
+}
+
+std::string VarReader::getLastErrorMsg() const
+{
+	return lastErrorMsg;
 }

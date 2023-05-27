@@ -198,12 +198,15 @@ void Gui::drawStartButton()
 	else if (state == PlotHandler::state::STOP)
 	{
 		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
+
+		if (plotHandler->getLastReaderError() != "")
+			color = ImColor::HSV(0.0f, 0.95f, 0.70f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button(viewerStateMap.at(state).c_str(), ImVec2(-1, 50)))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + plotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
 	{
 		if (state == PlotHandler::state::STOP)
 		{

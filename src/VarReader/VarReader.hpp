@@ -20,6 +20,7 @@ class VarReader
 	uint32_t getValue(uint32_t address) const;
 	float getFloat(uint32_t address, Variable::type type);
 	bool setValue(const Variable& var, float value);
+	std::string getLastErrorMsg() const;
 
    private:
 	enum class state
@@ -30,6 +31,7 @@ class VarReader
 	state readerState = state::STOP;
 	stlink_t* sl;
 	std::mutex mtx;
+	std::string lastErrorMsg = {};
 };
 
 #endif

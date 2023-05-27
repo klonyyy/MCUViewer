@@ -142,6 +142,11 @@ bool PlotHandler::checkIfPlotExists(const std::string&& name) const
 	return plotsMap.find(name) != plotsMap.end();
 }
 
+std::string PlotHandler::getLastReaderError() const
+{
+	return varReader->getLastErrorMsg();
+}
+
 PlotHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)
 	: m_iter(iter)
 {
