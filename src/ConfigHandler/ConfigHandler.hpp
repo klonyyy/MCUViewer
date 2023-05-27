@@ -11,13 +11,18 @@
 class ConfigHandler
 {
    public:
+	typedef struct Settings
+	{
+		uint32_t samplePeriod;
+	}Settings;
+
 	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler);
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
 	std::string getElfFilePath() const;
-	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath) const;
-	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newPath);
+	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, Settings& settings) const;
+	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const Settings& settings, const std::string newPath);
 
    private:
 	std::string configFilePath;

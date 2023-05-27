@@ -36,6 +36,9 @@ class PlotHandler
 	bool checkIfPlotExists(const std::string&& name) const;
 	std::string getLastReaderError() const;
 
+	void setSamplePeriod(uint32_t period);
+	uint32_t getSamplePeriod() const;
+
 	class iterator
 	{
 	   public:
@@ -70,6 +73,7 @@ class PlotHandler
 	bool stateChangeOrdered = false;
 
 	std::chrono::time_point<std::chrono::steady_clock> start;
+	float samplePeriodMs = 1;
 };
 
 #endif

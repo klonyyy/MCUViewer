@@ -2,7 +2,6 @@
 - add a proper logger
 - add a plot group option to quickly show/hide groups of plots
 - support enums and cast them to appropriate types
-- handle stlink errors - IMPORTANT
 - profiling?
 - add basic math operations on variables
 - add variable table sorting by name (or set it as a default)
@@ -13,3 +12,5 @@
 - update variables addresses on elf file change 
 - add release elf file support
 - grey-out variables that were not found in the elf file
+- solve the "too long cmd input" from gdb - IMPORTANT
+- last written value should not dissapear - IMPORTANT

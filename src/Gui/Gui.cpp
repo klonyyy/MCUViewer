@@ -43,7 +43,7 @@ void Gui::mainThread()
 	if (window == NULL)
 		return;
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1);  // Enable vsync
+	glfwSwapInterval(2);  // Enable vsync
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -67,7 +67,7 @@ void Gui::mainThread()
 
 	NFD_Init();
 
-	bool show_demo_window = false;
+	bool show_demo_window = true;
 
 	while (!done)
 	{
@@ -152,7 +152,7 @@ void Gui::drawMenu()
 				vars.clear();
 				plotHandler->removeAllPlots();
 				projectElfPath = configHandler->getElfFilePath();
-				configHandler->readConfigFile(vars, projectElfPath);
+				configHandler->readConfigFile(vars, projectElfPath, settings);
 				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
 				std::cout << projectConfigPath << std::endl;
 			}
@@ -163,7 +163,7 @@ void Gui::drawMenu()
 			}
 		}
 		if (ImGui::MenuItem("Save", "Ctrl+S", false, (!projectConfigPath.empty())))
-			configHandler->saveConfigFile(vars, projectElfPath, "");
+			configHandler->saveConfigFile(vars, projectElfPath, settings, "");
 
 		if (ImGui::MenuItem("Save As.."))
 			saveAs();
@@ -427,9 +427,10 @@ void Gui::drawAcqusitionSettingsWindow()
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal("Acqusition Settings", NULL, 0))
+	ImGui::SetNextWindowSize(ImVec2(500, 200));
+	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
-		ImGui::Text("Please pick *.elf file");
+		ImGui::Text("Project's *.elf file:");
 		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 		ImGui::SameLine();
 		if (ImGui::SmallButton("..."))
@@ -450,6 +451,11 @@ void Gui::drawAcqusitionSettingsWindow()
 						  << NFD_GetError() << std::endl;
 			}
 		}
+
+		ImGui::Text("Sample period [ms]:");
+		static int one = 1;
+		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
+		plotHandler->setSamplePeriod(settings.samplePeriod);
 
 		if (ImGui::Button("Done"))
 		{
@@ -708,7 +714,7 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	auto onYes = [&]()
 	{
 		done = true;
-		configHandler->saveConfigFile(vars, projectElfPath, "");
+		configHandler->saveConfigFile(vars, projectElfPath, settings, "");
 	};
 
 	auto onNo = [&]()
@@ -727,7 +733,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 	auto onYes = [&]()
 	{
 		if (!projectConfigPath.empty())
-			configHandler->saveConfigFile(vars, projectElfPath, "");
+			configHandler->saveConfigFile(vars, projectElfPath, settings, "");
 		else
 			saveAs();
 
@@ -756,7 +762,7 @@ void Gui::saveAs()
 	if (result == NFD_OKAY)
 	{
 		projectConfigPath = std::string(outPath);
-		configHandler->saveConfigFile(vars, projectElfPath, std::string(outPath));
+		configHandler->saveConfigFile(vars, projectElfPath, settings, std::string(outPath));
 		NFD_FreePath(outPath);
 	}
 	else if (result == NFD_ERROR)

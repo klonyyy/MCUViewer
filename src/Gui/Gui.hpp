@@ -35,6 +35,8 @@ class Gui
 
 	std::mutex* mtx;
 
+	ConfigHandler::Settings settings;
+
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();

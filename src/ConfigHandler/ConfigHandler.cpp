@@ -21,7 +21,7 @@ std::string ConfigHandler::getElfFilePath() const
 	return std::string(ini->get("elf").get("file_path"));
 }
 
-bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath) const
+bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, Settings& settings) const
 {
 	if (!file->read(*ini))
 		return false;
@@ -86,10 +86,15 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		}
 	}
 
+	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
+
+	if (settings.samplePeriod == 0)
+		settings.samplePeriod = 10;
+
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const Settings& settings, const std::string newSavePath)
 {
 	(*ini).clear();
 
@@ -135,6 +140,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		file.reset();
 		file = std::make_unique<mINI::INIFile>(newSavePath);
 	}
+
+	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
 
 	return file->generate(*ini, true);
 }

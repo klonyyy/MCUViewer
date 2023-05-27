@@ -20,7 +20,7 @@ project(STMViewer)
 
 set(STMVIEWER_VERSION 1.0.0)
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-Wall

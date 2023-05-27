@@ -81,6 +81,8 @@ uint32_t PlotHandler::getPlotsCount() const
 
 void PlotHandler::dataHandler()
 {
+	uint32_t timer = 0;
+
 	while (!done)
 	{
 		if (viewerState == state::RUN)
@@ -89,20 +91,24 @@ void PlotHandler::dataHandler()
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
-			for (auto& [key, plot] : plotsMap)
+			if (t > (samplePeriodMs * timer) / 1000.0f)
 			{
-				if (!plot->getVisibility())
-					continue;
+				for (auto& [key, plot] : plotsMap)
+				{
+					if (!plot->getVisibility())
+						continue;
 
-				/* this part consumes most of the thread time */
-				for (auto& [name, ser] : plot->getSeriesMap())
-					ser->var->setValue(varReader->getFloat(ser->var->getAddress(), ser->var->getType()));
+					/* this part consumes most of the thread time */
+					for (auto& [name, ser] : plot->getSeriesMap())
+						ser->var->setValue(varReader->getFloat(ser->var->getAddress(), ser->var->getType()));
 
-				/* thread-safe part */
-				std::lock_guard<std::mutex> lock(*mtx);
-				for (auto& [name, ser] : plot->getSeriesMap())
-					plot->addPoint(name, ser->var->getValue<float>());
-				plot->addTimePoint(t);
+					/* thread-safe part */
+					std::lock_guard<std::mutex> lock(*mtx);
+					for (auto& [name, ser] : plot->getSeriesMap())
+						plot->addPoint(name, ser->var->getValue<float>());
+					plot->addTimePoint(t);
+				}
+				timer++;
 			}
 		}
 		else
@@ -116,6 +122,7 @@ void PlotHandler::dataHandler()
 			{
 				if (varReader->start())
 				{
+					timer = 0;
 					start = std::chrono::steady_clock::now();
 				}
 				else
@@ -145,6 +152,16 @@ bool PlotHandler::checkIfPlotExists(const std::string&& name) const
 std::string PlotHandler::getLastReaderError() const
 {
 	return varReader->getLastErrorMsg();
+}
+
+void PlotHandler::setSamplePeriod(uint32_t period)
+{
+	samplePeriodMs = period;
+}
+
+uint32_t PlotHandler::getSamplePeriod() const
+{
+	return samplePeriodMs;
 }
 
 PlotHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)
