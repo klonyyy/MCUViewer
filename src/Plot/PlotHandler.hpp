@@ -29,7 +29,7 @@ class PlotHandler
 	std::shared_ptr<Plot> getPlot(std::string name);
 	bool eraseAllPlotData();
 	void setViewerState(state state);
-	bool getViewerState() const;
+	state getViewerState() const;
 	uint32_t getVisiblePlotsCount() const;
 	uint32_t getPlotsCount() const;
 	bool writeSeriesValue(Variable& var, float value);

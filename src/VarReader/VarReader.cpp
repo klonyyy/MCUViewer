@@ -8,13 +8,15 @@ bool VarReader::start()
 {
 	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
 
-	std::cout << "Startig! **************" << std::endl;
-
 	if (sl != NULL)
 	{
 		std::cout << "STlink detected!" << std::endl;
-		stlink_version(sl);
-		stlink_enter_swd_mode(sl);
+
+		if (stlink_enter_swd_mode(sl) != 0 || stlink_target_connect(sl, CONNECT_HOT_PLUG) != 0)
+		{
+			stop();
+			return false;
+		}
 
 		return true;
 	}

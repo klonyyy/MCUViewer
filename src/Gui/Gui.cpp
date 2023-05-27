@@ -186,14 +186,16 @@ void Gui::drawMenu()
 
 void Gui::drawStartButton()
 {
-	if (viewerState == state::RUN)
+	PlotHandler::state state = plotHandler->getViewerState();
+
+	if (state == PlotHandler::state::RUN)
 	{
 		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
-	else if (viewerState == state::STOP)
+	else if (state == PlotHandler::state::STOP)
 	{
 		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
@@ -201,19 +203,15 @@ void Gui::drawStartButton()
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button(viewerStateMap.at(viewerState).c_str(), ImVec2(-1, 50)))
+	if (ImGui::Button(viewerStateMap.at(state).c_str(), ImVec2(-1, 50)))
 	{
-		if (viewerState == state::STOP)
+		if (state == PlotHandler::state::STOP)
 		{
-			viewerState = state::RUN;
 			plotHandler->eraseAllPlotData();
-			plotHandler->setViewerState((PlotHandler::state)state::RUN);
+			plotHandler->setViewerState(PlotHandler::state::RUN);
 		}
 		else
-		{
-			plotHandler->setViewerState((PlotHandler::state)state::STOP);
-			viewerState = state::STOP;
-		}
+			plotHandler->setViewerState(PlotHandler::state::STOP);
 	}
 
 	ImGui::PopStyleColor(3);
@@ -497,7 +495,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
 		{
-			if (plotHandler->getViewerState())
+			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
 				ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
 			else
 			{
@@ -628,7 +626,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 			char newValue[maxVariableNameLength] = {0};
 			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
 			{
-				if (!plotHandler->getViewerState())
+				if (plotHandler->getViewerState() == PlotHandler::state::STOP)
 				{
 					ImGui::PopID();
 					continue;

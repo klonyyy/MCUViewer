@@ -64,9 +64,9 @@ void PlotHandler::setViewerState(state state)
 	viewerStateTemp = state;
 }
 
-bool PlotHandler::getViewerState() const
+PlotHandler::state PlotHandler::getViewerState() const
 {
-	return static_cast<bool>(viewerState);
+	return viewerState;
 }
 
 uint32_t PlotHandler::getVisiblePlotsCount() const
@@ -114,8 +114,15 @@ void PlotHandler::dataHandler()
 
 			if (viewerState == state::RUN)
 			{
-				start = std::chrono::steady_clock::now();
-				varReader->start();
+				if (varReader->start())
+				{
+					start = std::chrono::steady_clock::now();
+				}
+				else
+				{
+					viewerState = state::STOP;
+					viewerStateTemp = state::STOP;
+				}
 			}
 			else
 				varReader->stop();

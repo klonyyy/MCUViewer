@@ -15,19 +15,12 @@
 class Gui
 {
    public:
-	enum class state
-	{
-		STOP = 0,
-		RUN = 1,
-	};
-
 	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx);
 	~Gui();
 
    private:
-	const std::map<state, std::string> viewerStateMap{{state::RUN, "RUNNING"}, {state::STOP, "STOPPED"}};
+	const std::map<PlotHandler::state, std::string> viewerStateMap{{PlotHandler::state::RUN, "RUNNING"}, {PlotHandler::state::STOP, "STOPPED"}};
 	static constexpr uint32_t maxVariableNameLength = 100;
-	state viewerState = state::STOP;
 	std::map<std::string, std::shared_ptr<Variable>> vars;
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
