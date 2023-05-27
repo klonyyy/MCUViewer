@@ -41,7 +41,7 @@ bool PlotHandler::removeAllPlots()
 
 std::shared_ptr<Plot> PlotHandler::getPlot(std::string name)
 {
-	return plotsMap[name];
+	return plotsMap.at(name);
 }
 
 bool PlotHandler::eraseAllPlotData()
@@ -128,6 +128,11 @@ bool PlotHandler::writeSeriesValue(Variable& var, float value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
 	return varReader->setValue(var, value);
+}
+
+bool PlotHandler::checkIfPlotExists(const std::string&& name) const
+{
+	return plotsMap.find(name) != plotsMap.end();
 }
 
 PlotHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)

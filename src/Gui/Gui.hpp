@@ -48,6 +48,7 @@ class Gui
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
 	void drawVarTable();
+	void drawAddPlotButton();
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
 	void drawPlots();

@@ -23,6 +23,7 @@ class Plot
 		Variable* var;
 		displayFormat format = displayFormat::DEC;
 		std::unique_ptr<ScrollingBuffer<float>> buffer;
+		bool visible = true;
 	};
 
 	enum class type_E : uint8_t

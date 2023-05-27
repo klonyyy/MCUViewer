@@ -67,7 +67,7 @@ void Gui::mainThread()
 
 	NFD_Init();
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 
 	while (!done)
 	{
@@ -95,8 +95,6 @@ void Gui::mainThread()
 
 		ImGui::Begin("VarViewer");
 		drawStartButton();
-		drawAddVariableButton();
-		drawUpdateAddressesFromElf();
 		drawVarTable();
 		drawPlotsTree();
 		ImGui::End();
@@ -222,7 +220,7 @@ void Gui::drawStartButton()
 }
 void Gui::drawAddVariableButton()
 {
-	if (ImGui::Button("Add variable", ImVec2(-1, 30)))
+	if (ImGui::Button("Add variable", ImVec2(-1, 25)))
 	{
 		uint32_t num = 0;
 		while (vars.find(std::string(" new") + std::to_string(num)) != vars.end())
@@ -243,13 +241,20 @@ void Gui::drawAddVariableButton()
 }
 void Gui::drawUpdateAddressesFromElf()
 {
-	if (ImGui::Button("Update Variable addresses", ImVec2(-1, 30)))
+	if (ImGui::Button("Update Variable addresses", ImVec2(-1, 25)))
 		elfReader->updateVariableMap(vars);
 }
 
 void Gui::drawVarTable()
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Variables").x) * 0.5f);
+	ImGui::Text("Variables");
+	ImGui::Separator();
+
+	drawAddVariableButton();
+	drawUpdateAddressesFromElf();
 
 	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300)))
 	{
@@ -306,85 +311,113 @@ void Gui::drawVarTable()
 	}
 }
 
+void Gui::drawAddPlotButton()
+{
+	if (ImGui::Button("Add plot", ImVec2(-1, 25)))
+	{
+		uint32_t num = 0;
+		while (plotHandler->checkIfPlotExists(std::string("new plot") + std::to_string(num)))
+			num++;
+
+		std::string newName = std::string("new plot") + std::to_string(num);
+		plotHandler->addPlot(newName);
+	}
+}
+
 void Gui::drawPlotsTree()
 {
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	std::string newName = "";
+	const uint32_t windowHeight = 300;
+	const char* plotTypes[3] = {"curve", "bar", "table"};
+	static std::string selected = "";
+	std::optional<std::string> plotNameToDelete = {};
 
-	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_TabListPopupButton | ImGuiTabBarFlags_AutoSelectNewTabs))
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
+	ImGui::Text("Plots");
+	ImGui::Separator();
+
+	drawAddPlotButton();
+
+	if (plotHandler->getPlotsCount() == 0)
 	{
-		if (ImGui::TabItemButton("+", ImGuiTabItemFlags_SetSelected | ImGuiTabItemFlags_NoTooltip))
-			plotHandler->addPlot("new plot");
-
-		if (ImGui::BeginPopupContextWindow())
-		{
-			if (ImGui::Button("Add plot"))
-			{
-				ImGui::CloseCurrentPopup();
-				plotHandler->addPlot("new plot");
-			}
-			ImGui::EndPopup();
-		}
-
-		std::optional<std::string> plotNameToDelete = {};
-
-		for (std::shared_ptr<Plot> plt : *plotHandler)
-		{
-			const char* plotTypes[3] = {"curve", "bar", "table"};
-			int32_t typeCombo = (int32_t)plt->getType();
-
-			newName = plt->getName();
-
-			if (ImGui::BeginTabItem(plt->getName().c_str()))
-			{
-				plotNameToDelete = showDeletePopup("Delete plot", plt->getName());
-
-				ImGui::Text("name    ");
-				ImGui::SameLine();
-				ImGui::PushID("input");
-				ImGui::InputText("##", &newName, 0, NULL, NULL);
-				ImGui::PopID();
-				ImGui::Text("type    ");
-				ImGui::SameLine();
-				ImGui::PushID("combo");
-				ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-				ImGui::PopID();
-				ImGui::Text("visible ");
-				ImGui::SameLine();
-				ImGui::Checkbox("##", &plt->getVisibilityVar());
-				ImGui::PushID("list");
-				if (ImGui::BeginListBox("##", ImVec2(-1, 0)))
-				{
-					std::optional<std::string> seriesNameToDelete = {};
-					for (auto& [name, ser] : plt->getSeriesMap())
-					{
-						ImGui::Selectable(name.c_str());
-						if (!seriesNameToDelete.has_value())
-							seriesNameToDelete = showDeletePopup("Delete var", name);
-					}
-					plt->removeSeries(seriesNameToDelete.value_or(""));
-					ImGui::EndListBox();
-				}
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-						plt->addSeries(*vars[*(std::string*)payload->Data]);
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::PopID();
-				ImGui::TreePop();
-			}
-
-			if (typeCombo != (int32_t)plt->getType())
-				plt->setType(static_cast<Plot::type_E>(typeCombo));
-
-			if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
-				plotHandler->renamePlot(plt->getName(), newName);
-		}
-		ImGui::EndTabBar();
-
-		plotHandler->removePlot(plotNameToDelete.value_or(""));
+		plotHandler->addPlot("new plot0");
+		selected = std::string("new plot0");
 	}
+
+	if (!plotHandler->checkIfPlotExists(std::move(selected)))
+		selected = plotHandler->begin().operator*()->getName();
+
+	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
+	ImGui::BeginChild("left pane", ImVec2(120, -1), true);
+
+	for (std::shared_ptr<Plot> plt : *plotHandler)
+	{
+		std::string name = plt->getName();
+		if (ImGui::Selectable(name.c_str(), selected == name))
+			selected = name;
+
+		if (!plotNameToDelete.has_value())
+			plotNameToDelete = showDeletePopup("Delete plot", name);
+	}
+
+	ImGui::EndChild();
+	ImGui::SameLine();
+
+	std::shared_ptr<Plot> plt = plotHandler->getPlot(selected);
+	std::string newName = plt->getName();
+	int32_t typeCombo = (int32_t)plt->getType();
+	ImGui::BeginGroup();
+	ImGui::Text("name    ");
+	ImGui::SameLine();
+	ImGui::PushID("input");
+	ImGui::InputText("##", &newName, 0, NULL, NULL);
+	ImGui::PopID();
+	ImGui::Text("type    ");
+	ImGui::SameLine();
+	ImGui::PushID("combo");
+	ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
+	ImGui::PopID();
+	ImGui::Text("visible ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##", &plt->getVisibilityVar());
+	ImGui::PushID("list");
+	if (ImGui::BeginListBox("##", ImVec2(-1, -1)))
+	{
+		std::optional<std::string> seriesNameToDelete = {};
+		for (auto& [name, ser] : plt->getSeriesMap())
+		{
+			ImGui::PushID(name.c_str());
+			ImGui::Checkbox("", &ser->visible);
+			ImGui::PopID();
+			ImGui::SameLine();
+			ImGui::Selectable(name.c_str());
+			if (!seriesNameToDelete.has_value())
+				seriesNameToDelete = showDeletePopup("Delete var", name);
+		}
+		plt->removeSeries(seriesNameToDelete.value_or(""));
+
+		ImGui::EndListBox();
+	}
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
+			plt->addSeries(*vars[*(std::string*)payload->Data]);
+		ImGui::EndDragDropTarget();
+	}
+	ImGui::PopID();
+	ImGui::EndGroup();
+	ImGui::EndChild();
+
+	if (typeCombo != (int32_t)plt->getType())
+		plt->setType(static_cast<Plot::type_E>(typeCombo));
+
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
+	{
+		plotHandler->renamePlot(plt->getName(), newName);
+		selected = newName;
+	}
+
+	if (plotNameToDelete.has_value())
+		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
 
 void Gui::drawAcqusitionSettingsWindow()
@@ -485,13 +518,19 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 			mtx->lock();
 			time.copyData();
 			for (auto& [key, serPtr] : seriesMap)
+			{
+				if (!serPtr->visible)
+					continue;
 				serPtr->buffer->copyData();
+			}
 			uint32_t offset = time.getOffset();
 			uint32_t size = time.getSize();
 			mtx->unlock();
 
 			for (auto& [key, serPtr] : seriesMap)
 			{
+				if (!serPtr->visible)
+					continue;
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
 				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(float));
@@ -532,6 +571,8 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 
 			for (auto& [key, serPtr] : seriesMap)
 			{
+				if (!serPtr->visible)
+					continue;
 				float value = *serPtr->buffer->getLastElement();
 
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
@@ -553,7 +594,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 
 	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
-	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Centered Text").x) * 0.5f);
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(plot->getName().c_str()).x) * 0.5f);
 	ImGui::Text(plot->getName().c_str());
 
 	if (ImGui::BeginTable(plot->getName().c_str(), 4, flags))
@@ -567,6 +608,8 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 
 		for (auto& [key, serPtr] : seriesMap)
 		{
+			if (!serPtr->visible)
+				continue;
 			float value = serPtr->var->getValue<float>();
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -612,16 +655,19 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 
 std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)
 {
-	if (ImGui::BeginPopupContextItem())
+	ImGui::PushID(name.c_str());
+	if (ImGui::BeginPopupContextItem(text))
 	{
 		if (ImGui::Button(text))
 		{
 			ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
+			ImGui::PopID();
 			return name;
 		}
 		ImGui::EndPopup();
 	}
+	ImGui::PopID();
 	return std::nullopt;
 }
 

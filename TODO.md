@@ -1,19 +1,15 @@
-1. tests after working prototype is ready
-2. add a proper logger
-3. add a plot group option to quickly show/hide groups of plots
-4. support enums and cast them to appropriate types
-5. fix plot tabs switching when a new one is created
-6. handle stlink errors
-7. profiling?
-8. add basic math operations on variables
-9. add variable table sorting by name (or set it as a default)
-10. fix poor bar graphs value display 
-11. Check if save is needed
-12. do not allow for writing larger values than the type can hold
-13. add cursors with delta display
-14. add table names in the viewer window
-15. update variables addresses on elf file change
-16. add release elf file support
-17. grey-out variables that were not found in the elf file
-18. plot view checkbox to quickly hide variables without delete
-19. Adding plot named new plot erases data on a plot named "new plot"
+- tests after working prototype is ready
+- add a proper logger
+- add a plot group option to quickly show/hide groups of plots
+- support enums and cast them to appropriate types
+- handle stlink errors - IMPORTANT
+- profiling?
+- add basic math operations on variables
+- add variable table sorting by name (or set it as a default)
+- fix poor bar graphs value display - IMPORTANT
+- Check if save is needed
+- do not allow for writing larger values than the type can hold
+- add cursors with delta display
+- update variables addresses on elf file change 
+- add release elf file support
+- grey-out variables that were not found in the elf file
