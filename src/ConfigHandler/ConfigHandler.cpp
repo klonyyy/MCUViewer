@@ -34,6 +34,12 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
+	settings.samplePeriod = atoi(ini->get("settings").get("version").c_str());
+	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
+
+	if (settings.samplePeriod == 0)
+		settings.samplePeriod = 10;
+
 	while (!name.empty())
 	{
 		name = ini->get(varFieldFromID(varId)).get("name");
@@ -56,12 +62,15 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		}
 	}
 
+	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId)
+	{ return std::string("plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
+
 	std::string plotName("xxx");
 	uint32_t plotNumber = 0;
 
 	while (!plotName.empty())
 	{
-		std::string sectionName("plot" + std::to_string(plotNumber++));
+		std::string sectionName("plot" + std::to_string(plotNumber));
 		plotName = ini->get(sectionName).get("name");
 		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
 		Plot::type_E type = static_cast<Plot::type_E>(atoi(ini->get(sectionName).get("type").c_str()));
@@ -73,23 +82,25 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			plotHandler->getPlot(plotName)->setType(type);
 
 			std::cout << "ADDING PLOT: " << plotName << std::endl;
-
 			uint32_t seriesNumber = 0;
-			std::string varName = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
+			std::string varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
 
 			while (varName != "")
 			{
 				plotHandler->getPlot(plotName)->addSeries(*vars[varName]);
+				bool visible = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("visibility") == "true" ? true : false;
+				plotHandler->getPlot(plotName)->getSeries(varName)->visible = visible;
+				std::string displayFormat = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("format");
+				if (displayFormat == "")
+					displayFormat = "DEC";
+				plotHandler->getPlot(plotName)->getSeries(varName)->format = displayFormatMap.at(displayFormat);
 				std::cout << "ADDING SERIES: " << varName << std::endl;
-				varName = ini->get(sectionName).get(std::string("series" + std::to_string(seriesNumber++)));
+				seriesNumber++;
+				varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
 			}
 		}
+		plotNumber++;
 	}
-
-	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
-
-	if (settings.samplePeriod == 0)
-		settings.samplePeriod = 10;
 
 	return true;
 }
@@ -106,8 +117,11 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto plotFieldFromID = [](uint32_t id)
 	{ return std::string("plot" + std::to_string(id)); };
 
-	auto seriesFieldFromID = [](uint32_t id)
-	{ return std::string("series" + std::to_string(id)); };
+	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId)
+	{ return std::string("plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
+
+	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
+	(*ini)["settings"]["version"] = std::to_string(settings.version);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)
@@ -130,7 +144,23 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		uint32_t serId = 0;
 
 		for (auto& [key, ser] : plt->getSeriesMap())
-			(*ini)[plotFieldFromID(plotId)][seriesFieldFromID(serId++)] = ser->var->getName();
+		{
+			(*ini)[plotSeriesFieldFromID(plotId, serId)]["name"] = ser->var->getName();
+			(*ini)[plotSeriesFieldFromID(plotId, serId)]["visibility"] = ser->visible ? "true" : "false";
+
+			std::string displayFormat = "DEC";
+			for (auto [key, value] : displayFormatMap)
+			{
+				if (value == ser->format)
+				{
+					displayFormat = key;
+					break;
+				}
+			}
+
+			(*ini)[plotSeriesFieldFromID(plotId, serId)]["format"] = displayFormat;
+			serId++;
+		}
 
 		plotId++;
 	}
@@ -140,8 +170,6 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		file.reset();
 		file = std::make_unique<mINI::INIFile>(newSavePath);
 	}
-
-	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
 
 	return file->generate(*ini, true);
 }

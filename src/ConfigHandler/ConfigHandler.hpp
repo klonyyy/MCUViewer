@@ -13,8 +13,9 @@ class ConfigHandler
    public:
 	typedef struct Settings
 	{
+		uint32_t version = 0;
 		uint32_t samplePeriod;
-	}Settings;
+	} Settings;
 
 	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler);
 	~ConfigHandler() = default;
@@ -27,6 +28,8 @@ class ConfigHandler
    private:
 	std::string configFilePath;
 	PlotHandler* plotHandler;
+
+	std::map<std::string, Plot::displayFormat> displayFormatMap{{"DEC", Plot::displayFormat::DEC}, {"HEX", Plot::displayFormat::HEX}, {"BIN", Plot::displayFormat::BIN}};
 
 	std::unique_ptr<mINI::INIFile> file;
 	std::unique_ptr<mINI::INIStructure> ini;

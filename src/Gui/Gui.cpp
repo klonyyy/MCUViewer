@@ -153,6 +153,7 @@ void Gui::drawMenu()
 				plotHandler->removeAllPlots();
 				projectElfPath = configHandler->getElfFilePath();
 				configHandler->readConfigFile(vars, projectElfPath, settings);
+				plotHandler->setSamplePeriod(settings.samplePeriod);
 				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
 				std::cout << projectConfigPath << std::endl;
 			}
@@ -259,7 +260,7 @@ void Gui::drawVarTable()
 
 	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300)))
 	{
-		ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
+		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
 		ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
 		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
