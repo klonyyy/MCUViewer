@@ -17,6 +17,8 @@ class ElfReader
 	Variable::type getTypeFromString(const std::string& strType);
 
    private:
+	static constexpr uint8_t maxNameLength = 100;
+	static constexpr uint16_t maxGdbCmdLendth = 8160;
 	std::string& elfname;
 	std::string executeCommand(const char* cmd);
 };

@@ -21,16 +21,25 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 	if (elfname.empty())
 		return false;
 
-	std::string cmdFull(std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ");
+	std::string startCmd = std::string("gdb -batch -ex \"set trace-commands on\" -ex ") + "\"file " + elfname + "\" ";
+	std::string cmdFull = startCmd;
+	std::string out = "";
 
 	for (auto& [name, var] : vars)
 	{
 		var->setIsFound(false);
 		cmdFull += (std::string("-ex ") + "\"p /d &" + name + "\" ");
 		cmdFull += (std::string("-ex ") + "\"ptype " + name + "\" ");
-	}
 
-	std::string out = executeCommand(cmdFull.c_str());
+		if (cmdFull.size() > maxGdbCmdLendth - (3 * maxNameLength))
+		{
+			out += executeCommand(cmdFull.c_str());
+			cmdFull = startCmd;
+			std::cout << "Dividing command into smaller chunks." << std::endl;
+		}
+	}
+	out += executeCommand(cmdFull.c_str());
+
 	std::string delimiter = "+p /d &";
 	int32_t start = 0;
 	/* get rid of file and other start commands */
