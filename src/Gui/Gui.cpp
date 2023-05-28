@@ -371,19 +371,34 @@ void Gui::drawPlotsTree()
 	std::string newName = plt->getName();
 	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
-	ImGui::Text("name    ");
+	ImGui::Text("name      ");
 	ImGui::SameLine();
 	ImGui::PushID("input");
 	ImGui::InputText("##", &newName, 0, NULL, NULL);
 	ImGui::PopID();
-	ImGui::Text("type    ");
+	ImGui::Text("type      ");
 	ImGui::SameLine();
 	ImGui::PushID("combo");
 	ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
 	ImGui::PopID();
-	ImGui::Text("visible ");
+	ImGui::Text("visible   ");
 	ImGui::SameLine();
+	/* TODO ugly solution fix it */
 	ImGui::Checkbox("##", &plt->getVisibilityVar());
+
+	ImGui::PushID(plt->getName().c_str());
+	bool mx0 = plt->getMarkerStateX0();
+	bool mx1 = plt->getMarkerStateX1();
+	ImGui::Text("x0 marker ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##mx0", &mx0);
+	plt->setMarkerStateX0(mx0);
+	ImGui::Text("x1 marker ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##mx1", &mx1);
+	plt->setMarkerStateX1(mx1);
+	ImGui::PopID();
+
 	ImGui::PushID("list");
 	if (ImGui::BeginListBox("##", ImVec2(-1, -1)))
 	{
@@ -523,6 +538,24 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 					plot->addSeries(*vars[*(std::string*)payload->Data]);
 
 				ImPlot::EndDragDropTarget();
+			}
+
+			if (plot->getMarkerStateX0())
+			{
+				double markerPos = plot->getMarkerValueX0();
+				ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
+				plot->setMarkerValueX0(static_cast<float>(markerPos));
+				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(-10, -100), true, "x0 %.5f", markerPos);
+			}
+
+			if (plot->getMarkerStateX1())
+			{
+				double markerPos = plot->getMarkerValueX1();
+				ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
+				plot->setMarkerValueX1(static_cast<float>(markerPos));
+				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, -100), true, "x1 %.5f", markerPos);
+				float dx = markerPos - plot->getMarkerValueX0();
+				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, 100), true, "x1-x0 %.5f", dx);
 			}
 
 			/* make thread safe copies of buffers - probably can be made better but it works */

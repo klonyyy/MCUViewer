@@ -14,3 +14,5 @@
 - grey-out variables that were not found in the elf file
 - solve the "too long cmd input" from gdb - IMPORTANT
 - last written value should not dissapear - IMPORTANT
+- limit maximum number of points in acwusition window
+- limit displayed points window 

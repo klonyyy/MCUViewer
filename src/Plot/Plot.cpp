@@ -194,3 +194,42 @@ std::string Plot::getSeriesValueString(const std::string& name, float value)
 	}
 	return std::string("");
 }
+
+bool Plot::getMarkerStateX0()
+{
+	return mx0.state;
+}
+
+void Plot::setMarkerStateX0(bool state)
+{
+	mx0.state = state;
+}
+
+float Plot::getMarkerValueX0()
+{
+	return mx0.value;
+}
+
+void Plot::setMarkerValueX0(float value)
+{
+	mx0.value = value;
+}
+
+bool Plot::getMarkerStateX1()
+{
+	return mx1.state;
+}
+
+void Plot::setMarkerStateX1(bool state)
+{
+	mx1.state = state;
+}
+
+float Plot::getMarkerValueX1()
+{
+	return mx1.value;
+}
+void Plot::setMarkerValueX1(float value)
+{
+	mx1.value = value;
+}

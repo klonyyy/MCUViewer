@@ -26,6 +26,12 @@ class Plot
 		bool visible = true;
 	};
 
+	typedef struct Marker
+	{
+		bool state = false;
+		float value = 0.0f;
+	};
+
 	enum class type_E : uint8_t
 	{
 		CURVE = 0,
@@ -53,6 +59,16 @@ class Plot
 	bool getVisibility() const;
 	bool& getVisibilityVar();
 
+	bool getMarkerStateX0();
+	void setMarkerStateX0(bool state);
+	float getMarkerValueX0();
+	void setMarkerValueX0(float value);
+
+	bool getMarkerStateX1();
+	void setMarkerStateX1(bool state);
+	float getMarkerValueX1();
+	void setMarkerValueX1(float value);
+
 	void setType(type_E newType);
 	type_E getType() const;
 
@@ -66,6 +82,9 @@ class Plot
 	ScrollingBuffer<float> time;
 	bool visibility = true;
 	type_E type = type_E::CURVE;
+
+	Marker mx0;
+	Marker mx1;
 };
 
 #endif
