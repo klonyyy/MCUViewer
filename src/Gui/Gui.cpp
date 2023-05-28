@@ -585,9 +585,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::PlotBars(serPtr->var->getName().c_str(), &xs, &value, 1, barSize);
-				float textX = xs - barSize / 4.0f;
-				float textY = value / 2.0f;
-				ImPlot::Annotation(textX, textY, ImPlot::GetLastItemColor(), ImVec2(0.5f, 0.5f), false, "%.5f", value);
+				ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5), true, "%.5f", value);
 				xs += 1.0f;
 			}
 			ImPlot::EndPlot();
