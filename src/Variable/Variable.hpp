@@ -58,6 +58,9 @@ class Variable
 	Color& getColor();
 	uint32_t getColorU32() const;
 
+	bool getIsFound() const;
+	void setIsFound(bool found);
+
    private:
 	std::string name;
 	type varType;
@@ -73,6 +76,7 @@ class Variable
 							"F32"};
 
 	Color color;
+	bool isFound = false;
 };
 
 #endif

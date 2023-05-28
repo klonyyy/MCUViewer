@@ -58,6 +58,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		if (!newVar->getName().empty())
 		{
 			vars[newVar->getName()] = newVar;
+			newVar->setIsFound(true);
 			std::cout << "ADDING VARIABLE: " << newVar->getName() << std::endl;
 		}
 	}

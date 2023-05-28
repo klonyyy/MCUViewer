@@ -25,6 +25,7 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 
 	for (auto& [name, var] : vars)
 	{
+		var->setIsFound(false);
 		cmdFull += (std::string("-ex ") + "\"p /d &" + name + "\" ");
 		cmdFull += (std::string("-ex ") + "\"ptype " + name + "\" ");
 	}
@@ -49,13 +50,13 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 		if (addrPos < end && typePos < end && addrPos > 0 && typePos > 0)
 		{
 			std::string varName = temp.substr(delimiter.length(), temp.find('$', 0) - delimiter.length() - 1);
-
+			vars.at(varName)->setIsFound(true);
 			vars.at(varName)->setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
 			std::string type = temp.substr(typePos + 7, temp.find('\n', typePos));
 			vars.at(varName)->setType(getTypeFromString(type));
 			std::cout << "NAME: " << vars.at(varName)->getName() << std::endl;
 			std::cout << "ADDRESS: " << vars.at(varName)->getAddress() << std::endl;
-			std::cout << "TYPE: " << unsigned((int)vars[varName]->getType()) << std::endl;
+			std::cout << "TYPE: " << static_cast<uint32_t>(vars[varName]->getType()) << std::endl;
 		}
 		out.erase(0, temp.length());
 	}

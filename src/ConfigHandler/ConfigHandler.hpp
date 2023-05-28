@@ -14,7 +14,7 @@ class ConfigHandler
 	typedef struct Settings
 	{
 		uint32_t version = 0;
-		uint32_t samplePeriod;
+		uint32_t samplePeriod = 10;
 	} Settings;
 
 	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler);

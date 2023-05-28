@@ -78,3 +78,13 @@ uint32_t Variable::getColorU32() const
 
 	return static_cast<uint32_t>((a << 24) | (b << 16) | (g << 8) | r);
 }
+
+bool Variable::getIsFound() const
+{
+	return isFound;
+}
+
+void Variable::setIsFound(bool found)
+{
+	isFound = found;
+}

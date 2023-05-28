@@ -290,7 +290,7 @@ void Gui::drawVarTable()
 			if (!varNameToDelete.has_value())
 				varNameToDelete = showDeletePopup("Delete", keyName);
 
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			if (var->getIsFound() == true && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
 				ImGui::SetDragDropPayload("MY_DND", &var->getName(), sizeof(var->getName()));
 				ImPlot::ItemIcon(var->getColorU32());
@@ -299,7 +299,10 @@ void Gui::drawVarTable()
 				ImGui::EndDragDropSource();
 			}
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text(("0x" + std::string(intToHexString(var->getAddress()))).c_str());
+			if (var->getIsFound() == true)
+				ImGui::Text(("0x" + std::string(intToHexString(var->getAddress()))).c_str());
+			else
+				ImGui::Text("NOT FOUND!");
 			ImGui::TableSetColumnIndex(2);
 			ImGui::Text(var->getTypeStr().c_str());
 		}
