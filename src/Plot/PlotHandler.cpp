@@ -159,6 +159,16 @@ void PlotHandler::setSamplePeriod(uint32_t period)
 	samplePeriodMs = period;
 }
 
+void PlotHandler::setMaxPoints(uint32_t maxPoints)
+{
+	for (auto& [name, plt] : plotsMap)
+	{
+		for (auto& [name, ser] : plt->getSeriesMap())
+			ser->buffer->setMaxSize(maxPoints);
+		plt->getTimeSeries().setMaxSize(maxPoints);
+	}
+}
+
 uint32_t PlotHandler::getSamplePeriod() const
 {
 	return samplePeriodMs;

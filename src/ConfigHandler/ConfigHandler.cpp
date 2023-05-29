@@ -34,11 +34,15 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	settings.samplePeriod = atoi(ini->get("settings").get("version").c_str());
+	settings.version = atoi(ini->get("settings").get("version").c_str());
 	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
+	settings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
 
 	if (settings.samplePeriod == 0)
 		settings.samplePeriod = 10;
+
+	if (settings.maxPoints == 0)
+		settings.maxPoints = 1000;
 
 	while (!name.empty())
 	{
@@ -123,6 +127,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
 	(*ini)["settings"]["version"] = std::to_string(settings.version);
+	(*ini)["settings"]["max_points"] = std::to_string(settings.maxPoints);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)

@@ -154,6 +154,7 @@ void Gui::drawMenu()
 				projectElfPath = configHandler->getElfFilePath();
 				configHandler->readConfigFile(vars, projectElfPath, settings);
 				plotHandler->setSamplePeriod(settings.samplePeriod);
+				plotHandler->setMaxPoints(settings.maxPoints);
 				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
 				std::cout << projectConfigPath << std::endl;
 			}
@@ -478,6 +479,10 @@ void Gui::drawAcqusitionSettingsWindow()
 		static int one = 1;
 		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
 		plotHandler->setSamplePeriod(settings.samplePeriod);
+
+		ImGui::Text("Max points [100 - 20000]:");
+		ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+		plotHandler->setMaxPoints(settings.maxPoints);
 
 		if (ImGui::Button("Done"))
 		{

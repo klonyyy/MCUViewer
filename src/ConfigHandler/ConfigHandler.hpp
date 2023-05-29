@@ -15,6 +15,8 @@ class ConfigHandler
 	{
 		uint32_t version = 0;
 		uint32_t samplePeriod = 10;
+		uint32_t maxPoints = 10000;
+		uint32_t maxViewportPoints = 5000;
 	} Settings;
 
 	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler);

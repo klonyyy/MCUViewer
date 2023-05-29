@@ -39,6 +39,8 @@ class PlotHandler
 	void setSamplePeriod(uint32_t period);
 	uint32_t getSamplePeriod() const;
 
+	void setMaxPoints(uint32_t maxPoints);
+
 	class iterator
 	{
 	   public:
