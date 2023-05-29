@@ -37,12 +37,16 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	settings.version = atoi(ini->get("settings").get("version").c_str());
 	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
 	settings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
+	settings.maxViewportPoints = atoi(ini->get("settings").get("max_viewport_points").c_str());
 
 	if (settings.samplePeriod == 0)
 		settings.samplePeriod = 10;
 
 	if (settings.maxPoints == 0)
 		settings.maxPoints = 1000;
+
+	if (settings.maxViewportPoints == 0)
+		settings.maxViewportPoints = settings.maxPoints;
 
 	while (!name.empty())
 	{
@@ -128,6 +132,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
 	(*ini)["settings"]["version"] = std::to_string(settings.version);
 	(*ini)["settings"]["max_points"] = std::to_string(settings.maxPoints);
+	(*ini)["settings"]["max_viewport_points"] = std::to_string(settings.maxViewportPoints);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)
