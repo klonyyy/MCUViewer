@@ -26,7 +26,7 @@ class Plot
 		bool visible = true;
 	};
 
-	typedef struct Marker
+	struct Marker
 	{
 		bool state = false;
 		float value = 0.0f;

@@ -176,7 +176,7 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow);
+		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, plotHandler->getViewerState() == PlotHandler::state::STOP);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -409,6 +409,9 @@ void Gui::drawPlotsTree()
 			ImGui::Checkbox("", &ser->visible);
 			ImGui::PopID();
 			ImGui::SameLine();
+			ImGui::PushID(name.c_str());
+			ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+			ImGui::SameLine();
 			ImGui::Selectable(name.c_str());
 			if (!seriesNameToDelete.has_value())
 				seriesNameToDelete = showDeletePopup("Delete var", name);
@@ -576,7 +579,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 				if (!serPtr->visible)
 					continue;
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
-				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
 				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(float));
 			}
 
