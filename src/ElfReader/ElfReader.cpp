@@ -60,7 +60,8 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 		{
 			std::string varName = temp.substr(delimiter.length(), temp.find('$', 0) - delimiter.length() - 1);
 			vars.at(varName)->setIsFound(true);
-			vars.at(varName)->setAddress(atoi(temp.substr(addrPos + 5, temp.find('\n', addrPos)).c_str()));
+			uint8_t offset = temp.find(" = ", addrPos) + 2;
+			vars.at(varName)->setAddress(atoi(temp.substr(offset, temp.find('\n', addrPos)).c_str()));
 			std::string type = temp.substr(typePos + 7, temp.find('\n', typePos));
 			vars.at(varName)->setType(getTypeFromString(type));
 			std::cout << "NAME: " << vars.at(varName)->getName() << std::endl;

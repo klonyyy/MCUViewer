@@ -4,15 +4,12 @@
 - support enums and cast them to appropriate types
 - profiling?
 - add basic math operations on variables
-- add variable table sorting by name (or set it as a default)
-- fix poor bar graphs value display - IMPORTANT
 - Check if save is needed
 - do not allow for writing larger values than the type can hold
 - add cursors with delta display
 - update variables addresses on elf file change 
 - add release elf file support
 - grey-out variables that were not found in the elf file
-- solve the "too long cmd input" from gdb - IMPORTANT
 - last written value should not dissapear - IMPORTANT
-- limit maximum number of points in acwusition window
-- limit displayed points window 
+- show a message that variables were updated from elf file
+- interpret the "write" value as the type it is being written to
