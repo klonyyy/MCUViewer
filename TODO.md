@@ -12,4 +12,4 @@
 - grey-out variables that were not found in the elf file
 - last written value should not dissapear - IMPORTANT
 - show a message that variables were updated from elf file
-- interpret the "write" value as the type it is being written to
+- show markers in the viewport 

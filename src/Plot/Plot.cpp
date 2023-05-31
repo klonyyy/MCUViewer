@@ -155,7 +155,7 @@ std::string Plot::getSeriesValueString(const std::string& name, double value)
 	switch (seriesMap.at(name)->format)
 	{
 		case displayFormat::DEC:
-			return std::to_string(value);
+			return std::to_string(static_cast<int64_t>(value));
 		case displayFormat::HEX:
 		{
 			std::stringstream ss;
