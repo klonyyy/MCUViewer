@@ -35,16 +35,14 @@ class Variable
 	type getType() const;
 	std::string getTypeStr() const;
 
-	template <typename T>
-	void setValue(T val)
+	void setValue(double val)
 	{
-		value = *(uint32_t*)&val;
+		value = val;
 	}
 
-	template <typename T>
-	T getValue() const
+	double getValue() const
 	{
-		return *(T*)&value;
+		return value;
 	}
 
 	void setAddress(uint32_t addr);
@@ -64,7 +62,7 @@ class Variable
    private:
 	std::string name;
 	type varType;
-	uint32_t value;
+	double value;
 	uint32_t address;
 	const char* types[8] = {"UNKNOWN",
 							"U8",

@@ -523,7 +523,7 @@ void Gui::drawPlots()
 	}
 }
 
-void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
+void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
 {
 	if (!plot->getVisibility())
 		return;
@@ -546,7 +546,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 			{
 				double markerPos = plot->getMarkerValueX0();
 				ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
-				plot->setMarkerValueX0(static_cast<float>(markerPos));
+				plot->setMarkerValueX0(markerPos);
 				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(-10, -100), true, "x0 %.5f", markerPos);
 			}
 
@@ -554,9 +554,9 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 			{
 				double markerPos = plot->getMarkerValueX1();
 				ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
-				plot->setMarkerValueX1(static_cast<float>(markerPos));
+				plot->setMarkerValueX1(markerPos);
 				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, -100), true, "x1 %.5f", markerPos);
-				float dx = markerPos - plot->getMarkerValueX0();
+				double dx = markerPos - plot->getMarkerValueX0();
 				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, 100), true, "x1-x0 %.5f", dx);
 			}
 
@@ -564,9 +564,9 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 			{
 				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-				const float viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
-				const float min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
-				const float max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
+				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
+				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
+				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
 				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
 			}
 			else
@@ -595,7 +595,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 					continue;
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
-				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(float));
+				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
 			}
 
 			ImPlot::EndPlot();
@@ -628,14 +628,14 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 				ImPlot::EndDragDropTarget();
 			}
 
-			float xs = 0.0f;
-			float barSize = 0.5f;
+			double xs = 0.0f;
+			double barSize = 0.5f;
 
 			for (auto& [key, serPtr] : seriesMap)
 			{
 				if (!serPtr->visible)
 					continue;
-				float value = *serPtr->buffer->getLastElement();
+				double value = *serPtr->buffer->getLastElement();
 
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::PlotBars(serPtr->var->getName().c_str(), &xs, &value, 1, barSize);
@@ -647,7 +647,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<float>& time, std::map<st
 	}
 }
 
-void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
+void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
 {
 	if (!plot->getVisibility())
 		return;
@@ -670,7 +670,6 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 		{
 			if (!serPtr->visible)
 				continue;
-			float value = serPtr->var->getValue<float>();
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			Variable::Color a = serPtr->var->getColor();
@@ -681,7 +680,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 			ImGui::TableSetColumnIndex(1);
 			ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
-			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, value).data(), maxVariableNameLength);
+			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
 			showChangeFormatPopup("format", *plot, key);
 			ImGui::TableSetColumnIndex(3);
 			ImGui::PushID("input");
@@ -695,8 +694,8 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<float>& time, std::map<std::
 				}
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
-					std::cout << "VALUE:" << atof(newValue) << std::endl;
-					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stof(newValue)))
+					std::cout << "VALUE:" << std::stod(newValue) << std::endl;
+					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
 						std::cout << "ERROR while writing new value!" << std::endl;
 				}
 			}

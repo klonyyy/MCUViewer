@@ -22,14 +22,14 @@ class Plot
 	{
 		Variable* var;
 		displayFormat format = displayFormat::DEC;
-		std::unique_ptr<ScrollingBuffer<float>> buffer;
+		std::unique_ptr<ScrollingBuffer<double>> buffer;
 		bool visible = true;
 	};
 
 	struct Marker
 	{
 		bool state = false;
-		float value = 0.0f;
+		double value = 0.0f;
 	};
 
 	enum class type_E : uint8_t
@@ -47,13 +47,13 @@ class Plot
 	bool addSeries(Variable& var);
 	std::shared_ptr<Plot::Series> getSeries(const std::string& name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
-	ScrollingBuffer<float>& getTimeSeries();
+	ScrollingBuffer<double>& getTimeSeries();
 	bool removeSeries(const std::string& name);
 	bool removeAllVariables();
 	std::vector<uint32_t> getVariableAddesses() const;
 	std::vector<Variable::type> getVariableTypes() const;
-	bool addPoint(const std::string& varName, float value);
-	bool addTimePoint(float t);
+	bool addPoint(const std::string& varName, double value);
+	bool addTimePoint(double t);
 	void erase();
 	void setVisibility(bool state);
 	bool getVisibility() const;
@@ -61,25 +61,25 @@ class Plot
 
 	bool getMarkerStateX0();
 	void setMarkerStateX0(bool state);
-	float getMarkerValueX0();
-	void setMarkerValueX0(float value);
+	double getMarkerValueX0();
+	void setMarkerValueX0(double value);
 
 	bool getMarkerStateX1();
 	void setMarkerStateX1(bool state);
-	float getMarkerValueX1();
-	void setMarkerValueX1(float value);
+	double getMarkerValueX1();
+	void setMarkerValueX1(double value);
 
 	void setType(type_E newType);
 	type_E getType() const;
 
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
-	std::string getSeriesValueString(const std::string& name, float value);
+	std::string getSeriesValueString(const std::string& name, double value);
 
    private:
 	std::string name;
 	std::map<std::string, std::shared_ptr<Series>> seriesMap;
-	ScrollingBuffer<float> time;
+	ScrollingBuffer<double> time;
 	bool visibility = true;
 	type_E type = type_E::CURVE;
 

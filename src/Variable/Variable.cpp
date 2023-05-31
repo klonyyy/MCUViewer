@@ -8,7 +8,7 @@ Variable::Variable(std::string name) : name(name)
 template <typename T>
 Variable::Variable(std::string name, Variable::type type, T value) : name(name), varType(type)
 {
-	setValue<T>(value);
+	setValue(value);
 	name.reserve(100);
 }
 

@@ -18,8 +18,8 @@ class VarReader
 	bool stop();
 
 	uint32_t getValue(uint32_t address) const;
-	float getFloat(uint32_t address, Variable::type type);
-	bool setValue(const Variable& var, float value);
+	double getDouble(uint32_t address, Variable::type type);
+	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 
    private:

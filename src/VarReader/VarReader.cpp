@@ -34,12 +34,12 @@ bool VarReader::stop()
 	return true;
 }
 
-float VarReader::getFloat(uint32_t address, Variable::type type)
+double VarReader::getDouble(uint32_t address, Variable::type type)
 {
 	volatile uint32_t value = 0;
 
 	if (sl == nullptr)
-		return 0.0f;
+		return 0.0;
 
 	uint8_t shouldShift = address % 4;
 
@@ -82,26 +82,26 @@ float VarReader::getFloat(uint32_t address, Variable::type type)
 	}
 
 	if (type == Variable::type::U8)
-		return (float)*(uint8_t*)&value;
+		return (double)*(uint8_t*)&value;
 	else if (type == Variable::type::I8)
-		return (float)*(int8_t*)&value;
+		return (double)*(int8_t*)&value;
 	else if (type == Variable::type::U16)
-		return (float)*(uint16_t*)&value;
+		return (double)*(uint16_t*)&value;
 	else if (type == Variable::type::I16)
-		return (float)*(int16_t*)&value;
+		return (double)*(int16_t*)&value;
 	else if (type == Variable::type::U32)
-		return (float)*(uint32_t*)&value;
+		return (double)*(uint32_t*)&value;
 	else if (type == Variable::type::I32)
-		return (float)*(int32_t*)&value;
+		return (double)*(int32_t*)&value;
 	else if (type == Variable::type::F32)
-		return *(float*)&value;
+		return (double)*(float*)&value;
 	else if (type == Variable::type::UNKNOWN)
-		return (float)*(uint32_t*)&value;
+		return (double)*(uint32_t*)&value;
 
-	return 0.0f;
+	return 0.0;
 }
 
-bool VarReader::setValue(const Variable& var, float value)
+bool VarReader::setValue(const Variable& var, double value)
 {
 	if (sl == nullptr)
 		return false;

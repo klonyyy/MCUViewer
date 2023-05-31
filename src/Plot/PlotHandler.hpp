@@ -32,7 +32,7 @@ class PlotHandler
 	state getViewerState() const;
 	uint32_t getVisiblePlotsCount() const;
 	uint32_t getPlotsCount() const;
-	bool writeSeriesValue(Variable& var, float value);
+	bool writeSeriesValue(Variable& var, double value);
 	bool checkIfPlotExists(const std::string&& name) const;
 	std::string getLastReaderError() const;
 

@@ -36,7 +36,7 @@ bool Plot::addSeries(Variable& var)
 {
 	std::string name = var.getName();
 	seriesMap[name] = std::make_shared<Series>();
-	seriesMap[name]->buffer = std::make_unique<ScrollingBuffer<float>>();
+	seriesMap[name]->buffer = std::make_unique<ScrollingBuffer<double>>();
 	seriesMap[name]->var = &var;
 	return true;
 }
@@ -51,7 +51,7 @@ std::map<std::string, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
 	return seriesMap;
 }
 
-ScrollingBuffer<float>& Plot::getTimeSeries()
+ScrollingBuffer<double>& Plot::getTimeSeries()
 {
 	return time;
 }
@@ -93,14 +93,14 @@ std::vector<Variable::type> Plot::getVariableTypes() const
 	return types;
 }
 
-bool Plot::addPoint(const std::string& varName, float value)
+bool Plot::addPoint(const std::string& varName, double value)
 {
 	seriesMap[varName]->var->setValue(value);
 	seriesMap[varName]->buffer->addPoint(value);
 	return true;
 }
 
-bool Plot::addTimePoint(float t)
+bool Plot::addTimePoint(double t)
 {
 	time.addPoint(t);
 	return true;
@@ -145,7 +145,7 @@ void Plot::setSeriesDisplayFormat(const std::string& name, displayFormat format)
 	seriesMap.at(name)->format = format;
 }
 
-std::string Plot::getSeriesValueString(const std::string& name, float value)
+std::string Plot::getSeriesValueString(const std::string& name, double value)
 {
 	Variable::type type = seriesMap.at(name)->var->getType();
 
@@ -205,12 +205,12 @@ void Plot::setMarkerStateX0(bool state)
 	mx0.state = state;
 }
 
-float Plot::getMarkerValueX0()
+double Plot::getMarkerValueX0()
 {
 	return mx0.value;
 }
 
-void Plot::setMarkerValueX0(float value)
+void Plot::setMarkerValueX0(double value)
 {
 	mx0.value = value;
 }
@@ -225,11 +225,11 @@ void Plot::setMarkerStateX1(bool state)
 	mx1.state = state;
 }
 
-float Plot::getMarkerValueX1()
+double Plot::getMarkerValueX1()
 {
 	return mx1.value;
 }
-void Plot::setMarkerValueX1(float value)
+void Plot::setMarkerValueX1(double value)
 {
 	mx1.value = value;
 }

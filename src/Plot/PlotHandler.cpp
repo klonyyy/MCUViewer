@@ -100,12 +100,12 @@ void PlotHandler::dataHandler()
 
 					/* this part consumes most of the thread time */
 					for (auto& [name, ser] : plot->getSeriesMap())
-						ser->var->setValue(varReader->getFloat(ser->var->getAddress(), ser->var->getType()));
+						ser->var->setValue(varReader->getDouble(ser->var->getAddress(), ser->var->getType()));
 
 					/* thread-safe part */
 					std::lock_guard<std::mutex> lock(*mtx);
 					for (auto& [name, ser] : plot->getSeriesMap())
-						plot->addPoint(name, ser->var->getValue<float>());
+						plot->addPoint(name, ser->var->getValue());
 					plot->addTimePoint(t);
 				}
 				timer++;
@@ -138,7 +138,7 @@ void PlotHandler::dataHandler()
 	}
 }
 
-bool PlotHandler::writeSeriesValue(Variable& var, float value)
+bool PlotHandler::writeSeriesValue(Variable& var, double value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
 	return varReader->setValue(var, value);
