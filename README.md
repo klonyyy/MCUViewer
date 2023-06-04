@@ -1,4 +1,4 @@
-![example workflow](https://github.com/klonyyy/STMViewer/actions/workflows/build.yml/badge.svg)
+![example workflow](https://github.com/klonyyy/STMViewer/actions/workflows/build.yaml/badge.svg)
 
 # STMViewer 
 An open-source GUI tool for viewing and manipulating variables data using debug interface and st-link programmer on STM32 microcontrollers.
