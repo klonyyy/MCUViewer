@@ -2,14 +2,13 @@
 - add a proper logger
 - add a plot group option to quickly show/hide groups of plots
 - support enums and cast them to appropriate types
-- profiling?
+- add profiling 
 - add basic math operations on variables
 - Check if save is needed
 - do not allow for writing larger values than the type can hold
-- add cursors with delta display
 - update variables addresses on elf file change 
 - add release elf file support
-- grey-out variables that were not found in the elf file
-- last written value should not dissapear - IMPORTANT
+- last written value should not dissapear
 - show a message that variables were updated from elf file
-- show markers in the viewport 
+- add cursors with delta display - IN PROGRESS
+- show markers in the viewport

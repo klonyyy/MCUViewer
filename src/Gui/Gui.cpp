@@ -353,11 +353,13 @@ void Gui::drawPlotsTree()
 		selected = plotHandler->begin().operator*()->getName();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-	ImGui::BeginChild("left pane", ImVec2(120, -1), true);
+	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
 
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
 		std::string name = plt->getName();
+		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
+		ImGui::SameLine();
 		if (ImGui::Selectable(name.c_str(), selected == name))
 			selected = name;
 
@@ -374,20 +376,11 @@ void Gui::drawPlotsTree()
 	ImGui::BeginGroup();
 	ImGui::Text("name      ");
 	ImGui::SameLine();
-	ImGui::PushID("input");
-	ImGui::InputText("##", &newName, 0, NULL, NULL);
-	ImGui::PopID();
+	ImGui::PushID(plt->getName().c_str());
+	ImGui::InputText("##input", &newName, 0, NULL, NULL);
 	ImGui::Text("type      ");
 	ImGui::SameLine();
-	ImGui::PushID("combo");
-	ImGui::Combo("##", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-	ImGui::PopID();
-	ImGui::Text("visible   ");
-	ImGui::SameLine();
-	/* TODO ugly solution fix it */
-	ImGui::Checkbox("##", &plt->getVisibilityVar());
-
-	ImGui::PushID(plt->getName().c_str());
+	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
 	bool mx0 = plt->getMarkerStateX0();
 	bool mx1 = plt->getMarkerStateX1();
 	ImGui::Text("x0 marker ");
@@ -450,7 +443,7 @@ void Gui::drawAcqusitionSettingsWindow()
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 200));
+	ImGui::SetNextWindowSize(ImVec2(500, 300));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		ImGui::Text("Project's *.elf file:");
@@ -501,6 +494,8 @@ void Gui::drawPlots()
 {
 	uint32_t tablePlots = 0;
 
+	ImVec2 initialCursorPos = ImGui::GetCursorPos();
+
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
 		if (plt->getType() == Plot::type_E::TABLE)
@@ -514,7 +509,12 @@ void Gui::drawPlots()
 	uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
 	uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
 
-	if (ImPlot::BeginSubplots("##subplos", row, 1, ImVec2(-1, -1), 0))
+	const float remainingSpace = (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) - (ImGui::GetCursorPos().y + initialCursorPos.y);
+	ImVec2 plotSize(-1, -1);
+	if (remainingSpace < 300)
+		plotSize.y = 300;
+
+	if (ImPlot::BeginSubplots("##subplos", row, 1, plotSize, 0))
 	{
 		for (std::shared_ptr<Plot> plt : *plotHandler)
 			if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
