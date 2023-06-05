@@ -67,7 +67,7 @@ void Gui::mainThread()
 
 	NFD_Init();
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 
 	while (!done)
 	{
@@ -86,6 +86,7 @@ void Gui::mainThread()
 
 		askShouldSaveOnExit(glfwWindowShouldClose(window));
 		glfwSetWindowShouldClose(window, done);
+		checkShortcuts();
 
 		ImGui::Begin("Plots");
 		drawAcqusitionSettingsWindow();
@@ -140,35 +141,13 @@ void Gui::drawMenu()
 			shouldSaveOnNew = true;
 
 		if (ImGui::MenuItem("Open", "Ctrl+O"))
-		{
-			nfdchar_t* outPath;
-			nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-			if (result == NFD_OKAY)
-			{
-				projectConfigPath = std::string(outPath);
-				NFD_FreePath(outPath);
-				configHandler->changeConfigFile(projectConfigPath);
-				vars.clear();
-				plotHandler->removeAllPlots();
-				projectElfPath = configHandler->getElfFilePath();
-				configHandler->readConfigFile(vars, projectElfPath, settings);
-				plotHandler->setSamplePeriod(settings.samplePeriod);
-				plotHandler->setMaxPoints(settings.maxPoints);
-				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
-				std::cout << projectConfigPath << std::endl;
-			}
-			else if (result == NFD_ERROR)
-			{
-				std::cout << "Error: %s\n"
-						  << NFD_GetError() << std::endl;
-			}
-		}
+			openProject();
+
 		if (ImGui::MenuItem("Save", "Ctrl+S", false, (!projectConfigPath.empty())))
-			configHandler->saveConfigFile(vars, projectElfPath, settings, "");
+			saveProject();
 
 		if (ImGui::MenuItem("Save As.."))
-			saveAs();
+			saveProjectAs();
 
 		if (ImGui::MenuItem("Quit"))
 			shouldSaveOnClose = true;
@@ -766,7 +745,8 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	auto onYes = [&]()
 	{
 		done = true;
-		configHandler->saveConfigFile(vars, projectElfPath, settings, "");
+		if (!saveProject())
+			saveProjectAs();
 	};
 
 	auto onNo = [&]()
@@ -775,7 +755,7 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	{ done = false; };
 
 	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
-		onYes();
+		done = true;
 
 	showQuestionBox("Save?", "Do you want to save the current config?\n", onYes, onNo, onCancel);
 }
@@ -787,11 +767,8 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 
 	auto onYes = [&]()
 	{
-		if (!projectConfigPath.empty())
-			configHandler->saveConfigFile(vars, projectElfPath, settings, "");
-		else
-			saveAs();
-
+		if (!saveProject())
+			saveProjectAs();
 		vars.clear();
 		plotHandler->removeAllPlots();
 		projectElfPath = "";
@@ -812,7 +789,14 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 	showQuestionBox("SaveOnNew?", "Do you want to save the current config?\n", onYes, onNo, []() {});
 }
 
-void Gui::saveAs()
+bool Gui::saveProject()
+{
+	if (!projectConfigPath.empty())
+		return configHandler->saveConfigFile(vars, projectElfPath, settings, "");
+	return false;
+}
+
+bool Gui::saveProjectAs()
 {
 	nfdchar_t* outPath = nullptr;
 	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
@@ -820,13 +804,55 @@ void Gui::saveAs()
 	if (result == NFD_OKAY)
 	{
 		projectConfigPath = std::string(outPath);
-		configHandler->saveConfigFile(vars, projectElfPath, settings, std::string(outPath));
+		configHandler->saveConfigFile(vars, projectElfPath, settings, projectConfigPath);
 		NFD_FreePath(outPath);
+		return true;
 	}
 	else if (result == NFD_ERROR)
 	{
 		std::cout << "Error: %s\n"
 				  << NFD_GetError() << std::endl;
+	}
+	return false;
+}
+
+bool Gui::openProject()
+{
+	nfdchar_t* outPath;
+	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
+	nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+	if (result == NFD_OKAY)
+	{
+		projectConfigPath = std::string(outPath);
+		NFD_FreePath(outPath);
+		configHandler->changeConfigFile(projectConfigPath);
+		vars.clear();
+		plotHandler->removeAllPlots();
+		configHandler->readConfigFile(vars, projectElfPath, settings);
+		plotHandler->setSamplePeriod(settings.samplePeriod);
+		plotHandler->setMaxPoints(settings.maxPoints);
+		std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
+		std::cout << projectConfigPath << std::endl;
+		return true;
+	}
+	else if (result == NFD_ERROR)
+	{
+		std::cout << "Error: %s\n"
+				  << NFD_GetError() << std::endl;
+	}
+	return false;
+}
+
+void Gui::checkShortcuts()
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))
+		openProject();
+	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S))
+	{
+		if (!saveProject())
+			saveProjectAs();
 	}
 }
 

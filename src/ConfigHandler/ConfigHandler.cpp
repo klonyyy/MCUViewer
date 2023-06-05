@@ -16,10 +16,6 @@ bool ConfigHandler::changeConfigFile(const std::string& newConfigFilePath)
 	file = std::make_unique<mINI::INIFile>(configFilePath);
 	return true;
 }
-std::string ConfigHandler::getElfFilePath() const
-{
-	return std::string(ini->get("elf").get("file_path"));
-}
 
 bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, Settings& settings) const
 {

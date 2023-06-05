@@ -52,8 +52,11 @@ class Gui
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);
 	void askShouldSaveOnNew(bool shouldOpenPopup);
-	void saveAs();
+	bool saveProject();
+	bool saveProjectAs();
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
+	bool openProject();
+	void checkShortcuts();
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);

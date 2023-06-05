@@ -23,7 +23,6 @@ class ConfigHandler
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
-	std::string getElfFilePath() const;
 	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, Settings& settings) const;
 	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const Settings& settings, const std::string newPath);
 
