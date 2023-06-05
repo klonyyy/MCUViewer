@@ -774,6 +774,9 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	auto onCancel = [&]()
 	{ done = false; };
 
+	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+		onYes();
+
 	showQuestionBox("Save?", "Do you want to save the current config?\n", onYes, onNo, onCancel);
 }
 
@@ -802,6 +805,9 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 		projectElfPath = "";
 		projectConfigPath = "";
 	};
+
+	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+		onYes();
 
 	showQuestionBox("SaveOnNew?", "Do you want to save the current config?\n", onYes, onNo, []() {});
 }
