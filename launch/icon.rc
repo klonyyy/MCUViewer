@@ -1,1 +1,8 @@
-GLFW_ICON ICON DISCARDABLE "icon3.ico"
+#include "winuser.h"
+
+// Define the icon resource
+GLFW_ICON ICON DISCARDABLE "icon.ico"
+
+// Define icon sizes
+IDI_ICON_LARGE ICON "icon.ico"  // Specify the large icon size
+IDI_ICON_SMALL ICON "icon.ico"  // Specify the small icon size

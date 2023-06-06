@@ -135,6 +135,10 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
 if(WIN32)
     set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
     install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    SetOutPath \\\"$INSTDIR\\\\bin\\\"
+    CreateShortCut \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${EXECUTABLE}.exe\\\"")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\"")
 endif()
 
 if(UNIX)
