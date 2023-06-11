@@ -521,23 +521,39 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 				ImPlot::EndDragDropTarget();
 			}
 
+			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+
 			if (plot->getMarkerStateX0())
 			{
 				double markerPos = plot->getMarkerValueX0();
+				if (markerPos == 0.0)
+				{
+					markerPos = plotLimits.X.Min * 1.1f;
+					plot->setMarkerValueX0(markerPos);
+				}
 				ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
 				plot->setMarkerValueX0(markerPos);
 				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(-10, -100), true, "x0 %.5f", markerPos);
 			}
+			else
+				plot->setMarkerValueX0(0.0);
 
 			if (plot->getMarkerStateX1())
 			{
 				double markerPos = plot->getMarkerValueX1();
+				if (markerPos == 0.0)
+				{
+					markerPos = plotLimits.X.Max * 0.9f;
+					plot->setMarkerValueX1(markerPos);
+				}
 				ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
 				plot->setMarkerValueX1(markerPos);
 				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, -100), true, "x1 %.5f", markerPos);
 				double dx = markerPos - plot->getMarkerValueX0();
 				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, 100), true, "x1-x0 %.5f", dx);
 			}
+			else
+				plot->setMarkerValueX1(0.0);
 
 			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
 			{
