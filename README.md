@@ -21,6 +21,8 @@ Windows:
 1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
 2. Download and run the STMViewer installer. Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
 
+You can assing the external GPU to STMViewer for improved performance. 
+
 ## Quick Start
 
 1. Open Options->Acqusition Settings window in the top menu. 

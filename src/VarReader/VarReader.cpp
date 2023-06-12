@@ -114,44 +114,59 @@ bool VarReader::setValue(const Variable& var, double value)
 	switch (var.getType())
 	{
 		case Variable::type::U8:
+		{
 			sl->q_buf[0] = static_cast<uint8_t>(value);
 			retVal = stlink_write_mem8(sl, address, 1);
 			break;
+		}
 		case Variable::type::I8:
+		{
 			sl->q_buf[0] = static_cast<int8_t>(value);
 			retVal = stlink_write_mem8(sl, address, 1);
 			break;
+		}
 		case Variable::type::U16:
+		{
 			sl->q_buf[0] = static_cast<uint16_t>(value);
 			sl->q_buf[1] = static_cast<uint16_t>(value) >> 8;
 			retVal = stlink_write_mem8(sl, address, 2);
 			break;
+		}
 		case Variable::type::I16:
+		{
 			sl->q_buf[0] = static_cast<int16_t>(value);
 			sl->q_buf[1] = static_cast<int16_t>(value) >> 8;
 			retVal = stlink_write_mem8(sl, address, 2);
 			break;
+		}
 		case Variable::type::U32:
+		{
 			sl->q_buf[0] = static_cast<uint32_t>(value);
 			sl->q_buf[1] = static_cast<uint32_t>(value) >> 8;
 			sl->q_buf[2] = static_cast<uint32_t>(value) >> 16;
 			sl->q_buf[3] = static_cast<uint32_t>(value) >> 24;
 			retVal = stlink_write_mem8(sl, address, 4);
 			break;
+		}
 		case Variable::type::I32:
+		{
 			sl->q_buf[0] = static_cast<uint32_t>(value);
 			sl->q_buf[1] = static_cast<uint32_t>(value) >> 8;
 			sl->q_buf[2] = static_cast<uint32_t>(value) >> 16;
 			sl->q_buf[3] = static_cast<uint32_t>(value) >> 24;
 			retVal = stlink_write_mem8(sl, address, 4);
 			break;
+		}
 		case Variable::type::F32:
-			sl->q_buf[0] = (*(uint32_t*)&value);
-			sl->q_buf[1] = (*(uint32_t*)&value) >> 8;
-			sl->q_buf[2] = (*(uint32_t*)&value) >> 16;
-			sl->q_buf[3] = (*(uint32_t*)&value) >> 24;
+		{
+			float val = static_cast<float>(value);
+			sl->q_buf[0] = (*(uint32_t*)&val);
+			sl->q_buf[1] = (*(uint32_t*)&val) >> 8;
+			sl->q_buf[2] = (*(uint32_t*)&val) >> 16;
+			sl->q_buf[3] = (*(uint32_t*)&val) >> 24;
 			retVal = stlink_write_mem8(sl, address, 4);
 			break;
+		}
 		default:
 			return false;
 	}
