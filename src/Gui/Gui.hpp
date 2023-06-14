@@ -15,7 +15,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~Gui();
 
    private:
@@ -60,6 +60,8 @@ class Gui
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
+
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 #endif

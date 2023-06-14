@@ -45,6 +45,7 @@ if(WIN32)
     set(STLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
     set(LIBUSB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/lib/windows/libusb-1.0.dll)
     set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
+    set(SPDLOG_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/windows/libspdlog.dll)
     set(INSTALL_PATH bin)
 endif()
 
@@ -104,12 +105,13 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} pthread dl GL glfw nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} pthread dl GL glfw nfd spdlog)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} -static opengl32 nfd -static-libstdc++ -static-libgcc)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
 
 if(WIN32)
@@ -133,7 +135,7 @@ install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT appl
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
 
 if(WIN32)
-    set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
+    # set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
     install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
@@ -147,7 +149,7 @@ if(UNIX)
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     set(CPACK_GENERATOR "DEB")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb, libspdlog-dev")
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})

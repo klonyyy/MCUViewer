@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 
-PlotHandler::PlotHandler(bool& done, std::mutex* mtx) : done(done), mtx(mtx)
+PlotHandler::PlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : done(done), mtx(mtx), logger(logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
 	varReader = std::make_unique<VarReader>();

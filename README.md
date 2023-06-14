@@ -44,4 +44,5 @@ I'm working in the motor control industry where it is crucial to visualize some 
 3. [implot](https://github.com/epezent/implot)
 4. [mINI](https://github.com/pulzed/mINI)
 5. [nfd](https://github.com/btzy/nativefiledialog-extended)
+6. [spdlog](https://github.com/gabime/spdlog)
 

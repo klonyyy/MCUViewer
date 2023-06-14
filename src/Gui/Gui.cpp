@@ -2,7 +2,6 @@
 
 #include <unistd.h>
 
-#include <iostream>
 #include <random>
 #include <sstream>
 
@@ -16,7 +15,7 @@
 #include "implot.h"
 #include "nfd.h"
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx), logger(logger)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfPath);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -435,16 +434,13 @@ void Gui::drawAcqusitionSettingsWindow()
 			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
 			if (result == NFD_OKAY)
 			{
-				std::cout << outPath << std::endl;
+				logger->info("Project elf file path: {}", projectElfPath);
 				projectElfPath = std::string(outPath);
 				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
 				NFD_FreePath(outPath);
 			}
 			else if (result == NFD_ERROR)
-			{
-				std::cout << "Error: %s\n"
-						  << NFD_GetError() << std::endl;
-			}
+				logger->error("NFD Error: {}", NFD_GetError());
 		}
 
 		ImGui::Text("Sample period [ms]:");
@@ -689,9 +685,10 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 				}
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
-					std::cout << "VALUE:" << std::stod(newValue) << std::endl;
+					// std::cout << "VALUE:" << std::stod(newValue) << std::endl;
+					logger->info("New value to be written: {}", newValue);
 					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
-						std::cout << "ERROR while writing new value!" << std::endl;
+						logger->error("Error while writing new value!");
 				}
 			}
 			ImGui::PopID();
@@ -825,10 +822,8 @@ bool Gui::saveProjectAs()
 		return true;
 	}
 	else if (result == NFD_ERROR)
-	{
-		std::cout << "Error: %s\n"
-				  << NFD_GetError() << std::endl;
-	}
+		logger->error("NFD Error: {}", NFD_GetError());
+
 	return false;
 }
 
@@ -848,14 +843,11 @@ bool Gui::openProject()
 		plotHandler->setSamplePeriod(settings.samplePeriod);
 		plotHandler->setMaxPoints(settings.maxPoints);
 		std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
-		std::cout << projectConfigPath << std::endl;
+		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
 	else if (result == NFD_ERROR)
-	{
-		std::cout << "Error: %s\n"
-				  << NFD_GetError() << std::endl;
-	}
+		logger->error("NFD Error: {}", NFD_GetError());
 	return false;
 }
 
