@@ -8,6 +8,7 @@
 
 #include "Plot.hpp"
 #include "ScrollingBuffer.hpp"
+#include "StlinkReader.hpp"
 #include "VarReader.hpp"
 #include "spdlog/spdlog.h"
 
@@ -67,8 +68,8 @@ class PlotHandler
 	bool& done;
 	state viewerState = state::STOP;
 	state viewerStateTemp = state::STOP;
+	std::unique_ptr<StlinkReader> stlinkReader;
 	std::unique_ptr<VarReader> varReader;
-	std::shared_ptr<spdlog::logger> logger;
 
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
 
@@ -78,6 +79,8 @@ class PlotHandler
 
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	float samplePeriodMs = 1;
+
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 #endif

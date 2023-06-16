@@ -4,51 +4,28 @@
 
 #include "iostream"
 
-VarReader::VarReader(std::shared_ptr<spdlog::logger> logger) : logger(logger)
+VarReader::VarReader(IVariableReader* variableReader, std::shared_ptr<spdlog::logger> logger) : variableReader(variableReader), logger(logger)
 {
 }
 
 bool VarReader::start()
 {
-	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
-
-	if (sl != NULL)
-	{
-		logger->info("STlink detected!");
-
-		if (stlink_enter_swd_mode(sl) != 0 || stlink_target_connect(sl, CONNECT_HOT_PLUG) != 0)
-		{
-			stop();
-			lastErrorMsg = "STM32 target not found!";
-			return false;
-		}
-
-		lastErrorMsg = "";
-		return true;
-	}
-
-	logger->error("STLink not detected!");
-	lastErrorMsg = "STLink not found!";
-	return false;
+	return variableReader->startAcqusition();
 }
 bool VarReader::stop()
 {
-	stlink_close(sl);
-	return true;
+	return variableReader->stopAcqusition();
 }
 
-double VarReader::getDouble(uint32_t address, Variable::type type)
+double VarReader::getValue(uint32_t address, Variable::type type)
 {
 	volatile uint32_t value = 0;
-
-	if (sl == nullptr)
-		return 0.0;
-
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	stlink_read_debug32(sl, address, (uint32_t*)&value);
+	if (!variableReader->readMemory(address, (uint32_t*)&value))
+		return 0.0;
 
 	if (type == Variable::type::I8 || type == Variable::type::U8)
 	{
@@ -106,11 +83,12 @@ double VarReader::getDouble(uint32_t address, Variable::type type)
 
 bool VarReader::setValue(const Variable& var, double value)
 {
-	if (sl == nullptr)
-		return false;
-
 	uint32_t address = var.getAddress();
 	int32_t retVal = 0;
+	uint8_t buf[4] = {};
+
+	if (!variableReader->isValid())
+		return false;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
@@ -118,56 +96,64 @@ bool VarReader::setValue(const Variable& var, double value)
 	{
 		case Variable::type::U8:
 		{
-			sl->q_buf[0] = static_cast<uint8_t>(value);
-			retVal = stlink_write_mem8(sl, address, 1);
+			buf[0] = static_cast<uint8_t>(value);
+			retVal = variableReader->writeMemory(address, buf, 1);
 			break;
 		}
 		case Variable::type::I8:
 		{
-			sl->q_buf[0] = static_cast<int8_t>(value);
-			retVal = stlink_write_mem8(sl, address, 1);
+			buf[0] = static_cast<int8_t>(value);
+			retVal = variableReader->writeMemory(address, buf, 1);
 			break;
 		}
 		case Variable::type::U16:
 		{
-			sl->q_buf[0] = static_cast<uint16_t>(value);
-			sl->q_buf[1] = static_cast<uint16_t>(value) >> 8;
-			retVal = stlink_write_mem8(sl, address, 2);
+			uint16_t val = static_cast<uint16_t>(value);
+			buf[0] = val;
+			buf[1] = val >> 8;
+			retVal = variableReader->writeMemory(address, buf, 2);
 			break;
 		}
 		case Variable::type::I16:
 		{
-			sl->q_buf[0] = static_cast<int16_t>(value);
-			sl->q_buf[1] = static_cast<int16_t>(value) >> 8;
-			retVal = stlink_write_mem8(sl, address, 2);
+			int16_t val = static_cast<int16_t>(value);
+			buf[0] = val;
+			buf[1] = val >> 8;
+			retVal = variableReader->writeMemory(address, buf, 2);
 			break;
 		}
 		case Variable::type::U32:
 		{
-			sl->q_buf[0] = static_cast<uint32_t>(value);
-			sl->q_buf[1] = static_cast<uint32_t>(value) >> 8;
-			sl->q_buf[2] = static_cast<uint32_t>(value) >> 16;
-			sl->q_buf[3] = static_cast<uint32_t>(value) >> 24;
-			retVal = stlink_write_mem8(sl, address, 4);
+			uint32_t val = static_cast<uint32_t>(value);
+
+			buf[0] = val;
+			buf[1] = val >> 8;
+			buf[2] = val >> 16;
+			buf[3] = val >> 24;
+			retVal = variableReader->writeMemory(address, buf, 4);
 			break;
 		}
 		case Variable::type::I32:
 		{
-			sl->q_buf[0] = static_cast<uint32_t>(value);
-			sl->q_buf[1] = static_cast<uint32_t>(value) >> 8;
-			sl->q_buf[2] = static_cast<uint32_t>(value) >> 16;
-			sl->q_buf[3] = static_cast<uint32_t>(value) >> 24;
-			retVal = stlink_write_mem8(sl, address, 4);
+			int32_t val = static_cast<int32_t>(value);
+
+			buf[0] = val;
+			buf[1] = val >> 8;
+			buf[2] = val >> 16;
+			buf[3] = val >> 24;
+			retVal = variableReader->writeMemory(address, buf, 4);
 			break;
 		}
 		case Variable::type::F32:
 		{
-			float val = static_cast<float>(value);
-			sl->q_buf[0] = (*(uint32_t*)&val);
-			sl->q_buf[1] = (*(uint32_t*)&val) >> 8;
-			sl->q_buf[2] = (*(uint32_t*)&val) >> 16;
-			sl->q_buf[3] = (*(uint32_t*)&val) >> 24;
-			retVal = stlink_write_mem8(sl, address, 4);
+			float valf = static_cast<float>(value);
+			uint32_t val = *(uint32_t*)&valf;
+
+			buf[0] = val;
+			buf[1] = val >> 8;
+			buf[2] = val >> 16;
+			buf[3] = val >> 24;
+			retVal = variableReader->writeMemory(address, buf, 4);
 			break;
 		}
 		default:
@@ -179,5 +165,5 @@ bool VarReader::setValue(const Variable& var, double value)
 
 std::string VarReader::getLastErrorMsg() const
 {
-	return lastErrorMsg;
+	return variableReader->getLastErrorMsg();
 }

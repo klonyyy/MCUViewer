@@ -54,6 +54,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/VarReader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VarReader/StlinkReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
