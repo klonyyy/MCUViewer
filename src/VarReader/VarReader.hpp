@@ -6,13 +6,13 @@
 #include <thread>
 
 #include "Variable.hpp"
+#include "spdlog/spdlog.h"
 #include "stlink.h"
 
 class VarReader
 {
    public:
-	VarReader() = default;
-	~VarReader() = default;
+	VarReader(std::shared_ptr<spdlog::logger> logger);
 
 	bool start();
 	bool stop();
@@ -23,15 +23,10 @@ class VarReader
 	std::string getLastErrorMsg() const;
 
    private:
-	enum class state
-	{
-		STOP = 0,
-		RUN = 1,
-	};
-	state readerState = state::STOP;
 	stlink_t* sl;
 	std::mutex mtx;
 	std::string lastErrorMsg = {};
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 #endif

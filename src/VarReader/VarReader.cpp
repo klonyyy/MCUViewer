@@ -4,13 +4,17 @@
 
 #include "iostream"
 
+VarReader::VarReader(std::shared_ptr<spdlog::logger> logger) : logger(logger)
+{
+}
+
 bool VarReader::start()
 {
 	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
 
 	if (sl != NULL)
 	{
-		std::cout << "STlink detected!" << std::endl;
+		logger->info("STlink detected!");
 
 		if (stlink_enter_swd_mode(sl) != 0 || stlink_target_connect(sl, CONNECT_HOT_PLUG) != 0)
 		{
@@ -23,13 +27,12 @@ bool VarReader::start()
 		return true;
 	}
 
-	std::cout << "STLink not detected!" << std::endl;
+	logger->error("STLink not detected!");
 	lastErrorMsg = "STLink not found!";
 	return false;
 }
 bool VarReader::stop()
 {
-	readerState = state::STOP;
 	stlink_close(sl);
 	return true;
 }

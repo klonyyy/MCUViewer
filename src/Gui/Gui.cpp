@@ -17,7 +17,7 @@
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx), logger(logger)
 {
-	elfReader = std::make_unique<ElfReader>(projectElfPath);
+	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
@@ -685,7 +685,6 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 				}
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
-					// std::cout << "VALUE:" << std::stod(newValue) << std::endl;
 					logger->info("New value to be written: {}", newValue);
 					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
 						logger->error("Error while writing new value!");
