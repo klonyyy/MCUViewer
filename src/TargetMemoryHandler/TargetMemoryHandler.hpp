@@ -5,14 +5,14 @@
 #include <mutex>
 #include <thread>
 
-#include "IVariableReader.hpp"
+#include "ITargetMemoryHandler.hpp"
 #include "Variable.hpp"
 #include "spdlog/spdlog.h"
 
-class VarReader
+class TargetMemoryHandler
 {
    public:
-	VarReader(IVariableReader* variableReader, std::shared_ptr<spdlog::logger> logger);
+	TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, std::shared_ptr<spdlog::logger> logger);
 
 	bool start();
 	bool stop();
@@ -24,7 +24,7 @@ class VarReader
 
    private:
 	std::mutex mtx;
-	std::unique_ptr<IVariableReader> variableReader;
+	std::unique_ptr<ITargetMemoryHandler> memoryHandler;
 	std::shared_ptr<spdlog::logger> logger;
 };
 

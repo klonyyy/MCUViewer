@@ -1,30 +1,30 @@
-#include "VarReader.hpp"
+#include "TargetMemoryHandler.hpp"
 
 #include <map>
 
 #include "iostream"
 
-VarReader::VarReader(IVariableReader* variableReader, std::shared_ptr<spdlog::logger> logger) : variableReader(variableReader), logger(logger)
+TargetMemoryHandler::TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, std::shared_ptr<spdlog::logger> logger) : memoryHandler(memoryHandler), logger(logger)
 {
 }
 
-bool VarReader::start()
+bool TargetMemoryHandler::start()
 {
-	return variableReader->startAcqusition();
+	return memoryHandler->startAcqusition();
 }
-bool VarReader::stop()
+bool TargetMemoryHandler::stop()
 {
-	return variableReader->stopAcqusition();
+	return memoryHandler->stopAcqusition();
 }
 
-double VarReader::getValue(uint32_t address, Variable::type type)
+double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 {
 	volatile uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!variableReader->readMemory(address, (uint32_t*)&value))
+	if (!memoryHandler->readMemory(address, (uint32_t*)&value))
 		return 0.0;
 
 	if (type == Variable::type::I8 || type == Variable::type::U8)
@@ -81,89 +81,49 @@ double VarReader::getValue(uint32_t address, Variable::type type)
 	return 0.0;
 }
 
-bool VarReader::setValue(const Variable& var, double value)
+bool TargetMemoryHandler::setValue(const Variable& var, double value)
 {
 	uint32_t address = var.getAddress();
-	int32_t retVal = 0;
 	uint8_t buf[4] = {};
 
-	if (!variableReader->isValid())
+	if (!memoryHandler->isValid())
 		return false;
+
+	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int
+	{
+		for (size_t i = 0; i < sizeof(var); i++)
+			buf[i] = var >> 8 * i;
+		return memoryHandler->writeMemory(address, buf, sizeof(var));
+	};
 
 	std::lock_guard<std::mutex> lock(mtx);
 
 	switch (var.getType())
 	{
 		case Variable::type::U8:
-		{
-			buf[0] = static_cast<uint8_t>(value);
-			retVal = variableReader->writeMemory(address, buf, 1);
-			break;
-		}
+			return prepareBufferAndWrite(static_cast<uint8_t>(value), buf);
 		case Variable::type::I8:
-		{
-			buf[0] = static_cast<int8_t>(value);
-			retVal = variableReader->writeMemory(address, buf, 1);
-			break;
-		}
+			return prepareBufferAndWrite(static_cast<int8_t>(value), buf);
 		case Variable::type::U16:
-		{
-			uint16_t val = static_cast<uint16_t>(value);
-			buf[0] = val;
-			buf[1] = val >> 8;
-			retVal = variableReader->writeMemory(address, buf, 2);
-			break;
-		}
+			return prepareBufferAndWrite(static_cast<uint16_t>(value), buf);
 		case Variable::type::I16:
-		{
-			int16_t val = static_cast<int16_t>(value);
-			buf[0] = val;
-			buf[1] = val >> 8;
-			retVal = variableReader->writeMemory(address, buf, 2);
-			break;
-		}
+			return prepareBufferAndWrite(static_cast<int16_t>(value), buf);
 		case Variable::type::U32:
-		{
-			uint32_t val = static_cast<uint32_t>(value);
-
-			buf[0] = val;
-			buf[1] = val >> 8;
-			buf[2] = val >> 16;
-			buf[3] = val >> 24;
-			retVal = variableReader->writeMemory(address, buf, 4);
-			break;
-		}
+			return prepareBufferAndWrite(static_cast<uint32_t>(value), buf);
 		case Variable::type::I32:
-		{
-			int32_t val = static_cast<int32_t>(value);
-
-			buf[0] = val;
-			buf[1] = val >> 8;
-			buf[2] = val >> 16;
-			buf[3] = val >> 24;
-			retVal = variableReader->writeMemory(address, buf, 4);
-			break;
-		}
+			return prepareBufferAndWrite(static_cast<int32_t>(value), buf);
 		case Variable::type::F32:
 		{
 			float valf = static_cast<float>(value);
 			uint32_t val = *(uint32_t*)&valf;
-
-			buf[0] = val;
-			buf[1] = val >> 8;
-			buf[2] = val >> 16;
-			buf[3] = val >> 24;
-			retVal = variableReader->writeMemory(address, buf, 4);
-			break;
+			return prepareBufferAndWrite(val, buf);
 		}
 		default:
 			return false;
 	}
-
-	return retVal == 0 ? true : false;
 }
 
-std::string VarReader::getLastErrorMsg() const
+std::string TargetMemoryHandler::getLastErrorMsg() const
 {
-	return variableReader->getLastErrorMsg();
+	return memoryHandler->getLastErrorMsg();
 }

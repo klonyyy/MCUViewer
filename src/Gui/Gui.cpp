@@ -7,7 +7,6 @@
 
 #include "ElfReader.hpp"
 #include "ImguiPlugins.hpp"
-#include "VarReader.hpp"
 #include "glfw3.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"

@@ -3,7 +3,7 @@
 
 #include <string>
 
-class IVariableReader
+class ITargetMemoryHandler
 {
    public:
 	virtual bool startAcqusition() = 0;

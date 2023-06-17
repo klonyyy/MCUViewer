@@ -8,8 +8,8 @@
 
 #include "Plot.hpp"
 #include "ScrollingBuffer.hpp"
-#include "StlinkReader.hpp"
-#include "VarReader.hpp"
+#include "StlinkHandler.hpp"
+#include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandler
@@ -68,8 +68,8 @@ class PlotHandler
 	bool& done;
 	state viewerState = state::STOP;
 	state viewerStateTemp = state::STOP;
-	std::unique_ptr<StlinkReader> stlinkReader;
-	std::unique_ptr<VarReader> varReader;
+	std::unique_ptr<StlinkHandler> stlinkReader;
+	std::unique_ptr<TargetMemoryHandler> varReader;
 
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
 

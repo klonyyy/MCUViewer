@@ -1,10 +1,10 @@
-#ifndef _STLINKREADER_HPP
-#define _STLINKREADER_HPP
+#ifndef _STLINKHANDLER_HPP
+#define _STLINKHANDLER_HPP
 
-#include "IVariableReader.hpp"
+#include "ITargetMemoryHandler.hpp"
 #include "stlink.h"
 
-class StlinkReader : public IVariableReader
+class StlinkHandler : public ITargetMemoryHandler
 {
    public:
 	bool startAcqusition() override;

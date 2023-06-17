@@ -1,6 +1,6 @@
-#include "StlinkReader.hpp"
+#include "StlinkHandler.hpp"
 
-bool StlinkReader::startAcqusition()
+bool StlinkHandler::startAcqusition()
 {
 	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
 	isRunning = false;
@@ -21,24 +21,24 @@ bool StlinkReader::startAcqusition()
 	lastErrorMsg = "STLink not found!";
 	return false;
 }
-bool StlinkReader::stopAcqusition()
+bool StlinkHandler::stopAcqusition()
 {
 	isRunning = false;
 	stlink_close(sl);
 	return true;
 }
-bool StlinkReader::isValid() const
+bool StlinkHandler::isValid() const
 {
 	return isRunning;
 }
 
-bool StlinkReader::readMemory(uint32_t address, uint32_t* value)
+bool StlinkHandler::readMemory(uint32_t address, uint32_t* value)
 {
 	if (!isRunning)
 		return false;
 	return stlink_read_debug32(sl, address, value) == 0;
 }
-bool StlinkReader::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
+bool StlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 {
 	if (!isRunning)
 		return false;
@@ -46,7 +46,7 @@ bool StlinkReader::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 	return stlink_write_mem8(sl, address, len) == 0;
 }
 
-std::string StlinkReader::getLastErrorMsg() const
+std::string StlinkHandler::getLastErrorMsg() const
 {
 	return lastErrorMsg;
 }

@@ -6,8 +6,8 @@
 PlotHandler::PlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : done(done), mtx(mtx), logger(logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	stlinkReader = std::make_unique<StlinkReader>();
-	varReader = std::make_unique<VarReader>(stlinkReader.get(), logger);
+	stlinkReader = std::make_unique<StlinkHandler>();
+	varReader = std::make_unique<TargetMemoryHandler>(stlinkReader.get(), logger);
 }
 PlotHandler::~PlotHandler()
 {
