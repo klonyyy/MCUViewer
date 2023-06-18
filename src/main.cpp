@@ -5,6 +5,7 @@
 
 #include "ConfigHandler.hpp"
 #include "Gui.hpp"
+#include "NFDFileHandler.hpp"
 #include "PlotHandler.hpp"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/spdlog.h"
@@ -22,7 +23,8 @@ int main(int ac, char** av)
 
 	PlotHandler plotHandler(done, &mtx, logger);
 	ConfigHandler configHandler("", &plotHandler, logger);
-	Gui gui(&plotHandler, &configHandler, done, &mtx, logger);
+	NFDFileHandler fileHandler;
+	Gui gui(&plotHandler, &configHandler, &fileHandler, done, &mtx, logger);
 
 	while (!done)
 	{

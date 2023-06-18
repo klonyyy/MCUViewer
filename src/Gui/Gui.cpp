@@ -12,9 +12,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
-#include "nfd.h"
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), done(done), mtx(mtx), logger(logger)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -63,7 +62,7 @@ void Gui::mainThread()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	NFD_Init();
+	fileHandler->init();
 
 	bool show_demo_window = false;
 
@@ -124,7 +123,7 @@ void Gui::mainThread()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-	NFD_Quit();
+	fileHandler->deinit();
 }
 
 void Gui::drawMenu()
@@ -427,20 +426,7 @@ void Gui::drawAcqusitionSettingsWindow()
 		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 		ImGui::SameLine();
 		if (ImGui::SmallButton("..."))
-		{
-			nfdchar_t* outPath;
-			nfdfilteritem_t filterItem[1] = {{"Executable files", "elf"}};
-			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-			if (result == NFD_OKAY)
-			{
-				logger->info("Project elf file path: {}", projectElfPath);
-				projectElfPath = std::string(outPath);
-				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
-				NFD_FreePath(outPath);
-			}
-			else if (result == NFD_ERROR)
-				logger->error("NFD Error: {}", NFD_GetError());
-		}
+			openElfFile();
 
 		ImGui::Text("Sample period [ms]:");
 		static int one = 1;
@@ -809,43 +795,44 @@ bool Gui::saveProject()
 
 bool Gui::saveProjectAs()
 {
-	nfdchar_t* outPath = nullptr;
-	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-	nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
-	if (result == NFD_OKAY)
+	std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	if (path != "")
 	{
-		projectConfigPath = std::string(outPath);
+		projectConfigPath = path;
 		configHandler->saveConfigFile(vars, projectElfPath, settings, projectConfigPath);
-		NFD_FreePath(outPath);
+		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
-	else if (result == NFD_ERROR)
-		logger->error("NFD Error: {}", NFD_GetError());
-
 	return false;
 }
 
 bool Gui::openProject()
 {
-	nfdchar_t* outPath;
-	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-	nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-	if (result == NFD_OKAY)
+	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	if (path != "")
 	{
-		projectConfigPath = std::string(outPath);
-		NFD_FreePath(outPath);
+		projectConfigPath = path;
 		configHandler->changeConfigFile(projectConfigPath);
 		vars.clear();
 		plotHandler->removeAllPlots();
 		configHandler->readConfigFile(vars, projectElfPath, settings);
 		plotHandler->setSamplePeriod(settings.samplePeriod);
 		plotHandler->setMaxPoints(settings.maxPoints);
-		std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
-	else if (result == NFD_ERROR)
-		logger->error("NFD Error: {}", NFD_GetError());
+	return false;
+}
+
+bool Gui::openElfFile()
+{
+	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Elf files", "elf"));
+	if (path != "")
+	{
+		projectElfPath = path;
+		logger->info("Project elf file path: {}", projectElfPath);
+		return true;
+	}
 	return false;
 }
 
