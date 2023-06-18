@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+sudo apt-get install libspdlog-dev
 rm -rf build
 mkdir -p build
 cd build
