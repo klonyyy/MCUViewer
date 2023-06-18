@@ -14,8 +14,8 @@ class TargetMemoryHandler
    public:
 	TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, std::shared_ptr<spdlog::logger> logger);
 
-	bool start();
-	bool stop();
+	bool start() const;
+	bool stop() const;
 
 	uint32_t getValue(uint32_t address) const;
 	double getValue(uint32_t address, Variable::type type);

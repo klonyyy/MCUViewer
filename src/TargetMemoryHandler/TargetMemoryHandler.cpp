@@ -8,11 +8,11 @@ TargetMemoryHandler::TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, st
 {
 }
 
-bool TargetMemoryHandler::start()
+bool TargetMemoryHandler::start() const
 {
 	return memoryHandler->startAcqusition();
 }
-bool TargetMemoryHandler::stop()
+bool TargetMemoryHandler::stop() const
 {
 	return memoryHandler->stopAcqusition();
 }
