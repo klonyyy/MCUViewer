@@ -1,5 +1,7 @@
 #include "StlinkHandler.hpp"
 
+#include <cstring>
+
 bool StlinkHandler::startAcqusition()
 {
 	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
