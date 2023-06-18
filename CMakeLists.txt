@@ -34,6 +34,7 @@ if(UNIX)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
+    set(SPDLOG_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/linux/libspdlog.so.1.11.0)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 endif()
@@ -112,7 +113,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} pthread dl GL glfw nfd spdlog)
+    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${SPDLOG_LINUX} pthread dl GL glfw nfd)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
@@ -138,7 +139,9 @@ install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT appl
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
 
 if(WIN32)
-    # set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
+    if(PRODUCTION)
+        set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif()
     install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"

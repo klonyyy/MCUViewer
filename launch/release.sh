@@ -7,7 +7,7 @@ mkdir packages
 
 mkdir -p windows
 cd windows
-cmake -DPLATFORM=WIN ../..
+cmake -DPLATFORM=WIN -DPRODUCTION=TRUE ../..
 make package -j16
 cp *win64.exe ../packages
 cd - 
