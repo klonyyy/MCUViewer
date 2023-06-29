@@ -211,10 +211,11 @@ void Gui::drawAddVariableButton()
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dist(0, UINT32_MAX);
-		newVar->setColor(static_cast<uint32_t>(dist(gen)));
+		std::random_device rd{};
+		std::mt19937 gen{rd()};
+		std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
+		uint32_t randomColor = dist(gen);
+		newVar->setColor(randomColor);
 		vars.emplace(newName, newVar);
 	}
 }
