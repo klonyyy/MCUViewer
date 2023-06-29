@@ -385,6 +385,7 @@ void Gui::drawPlotsTree()
 			ImGui::Selectable(name.c_str());
 			if (!seriesNameToDelete.has_value())
 				seriesNameToDelete = showDeletePopup("Delete var", name);
+			ImGui::PopID();
 		}
 		plt->removeSeries(seriesNameToDelete.value_or(""));
 
@@ -494,6 +495,22 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
 		{
+			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
+			{
+				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
+				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
+				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
+				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
+				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
+				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
+			}
+			else
+			{
+				ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+				ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
+				ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
+			}
+
 			if (ImPlot::BeginDragDropTargetPlot())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
@@ -535,22 +552,6 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			}
 			else
 				plot->setMarkerValueX1(0.0);
-
-			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
-			{
-				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
-				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
-				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
-				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
-				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
-			}
-			else
-			{
-				ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-				ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-				ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
-			}
 
 			/* make thread safe copies of buffers - probably can be made better but it works */
 			mtx->lock();
