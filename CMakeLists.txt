@@ -145,8 +145,11 @@ if(WIN32)
     install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
+    CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${EXECUTABLE}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${EXECUTABLE}.exe\\\"
     CreateShortCut \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${EXECUTABLE}.exe\\\"")
-    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\"")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+    Delete \\\"$SMPROGRAMS\\\\$START_MENU\\\\${EXECUTABLE}.lnk\\\"
+    Delete \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\"")
 endif()
 
 if(UNIX)
