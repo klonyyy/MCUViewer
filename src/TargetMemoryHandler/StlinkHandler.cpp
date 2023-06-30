@@ -4,7 +4,7 @@
 
 StlinkHandler::StlinkHandler()
 {
-#ifdef _UNIX
+#if defined(unix) || defined(__unix__) || defined(__unix)
 	init_chipids("./chips");
 #endif
 }

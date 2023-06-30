@@ -10,28 +10,25 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/spdlog.h"
 
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define _UNIX
+#endif
+
 bool done = false;
 std::mutex mtx;
 
 int main(int ac, char** av)
 {
 #ifdef _UNIX
-	const char* logBaseDir = std::getenv("HOME");
+	std::string logDirectory = std::string(std::getenv("HOME")) + "/STMViewer/logs/logfile.txt";
 #elif _WIN32
-	const char* logBaseDir = std::getenv("APPDATA");
+	std::string logDirectory = std::string(std::getenv("APPDATA"));
 #else
 #error "Your system is not supported!"
 #endif
 
-	std::string logFolderPath = {};
-
-	if (logBaseDir)
-		logFolderPath = std::string(logBaseDir) + "\\STMViewer\\logs\\logfile.txt";
-	else
-		std::cerr << "Failed to retrieve APPDATA environment variable." << std::endl;
-
 	spdlog::sinks_init_list sinkList = {std::make_shared<spdlog::sinks::stdout_color_sink_st>(),
-										std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFolderPath, true)};
+										std::make_shared<spdlog::sinks::basic_file_sink_mt>(logDirectory, true)};
 	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("logger", sinkList.begin(), sinkList.end());
 
 	logger->info("Starting STMViewer!");
