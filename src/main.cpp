@@ -15,8 +15,23 @@ std::mutex mtx;
 
 int main(int ac, char** av)
 {
+#ifdef _UNIX
+	const char* logBaseDir = std::getenv("HOME");
+#elif _WIN32
+	const char* logBaseDir = std::getenv("APPDATA");
+#else
+#error "Your system is not supported!"
+#endif
+
+	std::string logFolderPath = {};
+
+	if (logBaseDir)
+		logFolderPath = std::string(logBaseDir) + "\\STMViewer\\logs\\logfile.txt";
+	else
+		std::cerr << "Failed to retrieve APPDATA environment variable." << std::endl;
+
 	spdlog::sinks_init_list sinkList = {std::make_shared<spdlog::sinks::stdout_color_sink_st>(),
-										std::make_shared<spdlog::sinks::basic_file_sink_mt>("logfile.txt", true)};
+										std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFolderPath, true)};
 	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("logger", sinkList.begin(), sinkList.end());
 
 	logger->info("Starting STMViewer!");
