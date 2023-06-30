@@ -2,6 +2,13 @@
 
 #include <cstring>
 
+StlinkHandler::StlinkHandler()
+{
+#ifdef _UNIX
+	init_chipids("./chips");
+#endif
+}
+
 bool StlinkHandler::startAcqusition()
 {
 	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);

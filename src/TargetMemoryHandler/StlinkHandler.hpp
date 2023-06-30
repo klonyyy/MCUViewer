@@ -7,6 +7,7 @@
 class StlinkHandler : public ITargetMemoryHandler
 {
    public:
+	StlinkHandler();
 	bool startAcqusition() override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
