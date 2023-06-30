@@ -22,7 +22,7 @@ int main(int ac, char** av)
 #ifdef _UNIX
 	std::string logDirectory = std::string(std::getenv("HOME")) + "/STMViewer/logs/logfile.txt";
 #elif _WIN32
-	std::string logDirectory = std::string(std::getenv("APPDATA"));
+	std::string logDirectory = std::string(std::getenv("APPDATA")) + "/STMViewer/logs/logfile.txt";
 #else
 #error "Your system is not supported!"
 #endif
