@@ -52,10 +52,13 @@ if(WIN32)
     set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
     set(SPDLOG_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/windows/libspdlog.dll)
     set(INSTALL_PATH bin)
-    add_custom_target(
-    addGitVersion
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat
-)
+
+    if(NOT DEFINED PLATFORM)
+        add_custom_target(
+        addGitVersion
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat
+    )
+    endif()
 endif()
 
 
