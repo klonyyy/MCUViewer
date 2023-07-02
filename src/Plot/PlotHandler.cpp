@@ -3,10 +3,11 @@
 #include <algorithm>
 #include <array>
 
-PlotHandler::PlotHandler(bool& done, std::mutex* mtx) : done(done), mtx(mtx)
+PlotHandler::PlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : done(done), mtx(mtx), logger(logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	varReader = std::make_unique<VarReader>();
+	stlinkReader = std::make_unique<StlinkHandler>();
+	varReader = std::make_unique<TargetMemoryHandler>(stlinkReader.get(), logger);
 }
 PlotHandler::~PlotHandler()
 {
@@ -100,7 +101,7 @@ void PlotHandler::dataHandler()
 
 					/* this part consumes most of the thread time */
 					for (auto& [name, ser] : plot->getSeriesMap())
-						ser->var->setValue(varReader->getDouble(ser->var->getAddress(), ser->var->getType()));
+						ser->var->setValue(varReader->getValue(ser->var->getAddress(), ser->var->getType()));
 
 					/* thread-safe part */
 					std::lock_guard<std::mutex> lock(*mtx);

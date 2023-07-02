@@ -7,6 +7,7 @@
 #include "PlotHandler.hpp"
 #include "Variable.hpp"
 #include "ini.h"
+#include "spdlog/spdlog.h"
 
 class ConfigHandler
 {
@@ -19,7 +20,7 @@ class ConfigHandler
 		uint32_t maxViewportPoints = 5000;
 	} Settings;
 
-	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler);
+	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, std::shared_ptr<spdlog::logger> logger);
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
@@ -34,6 +35,7 @@ class ConfigHandler
 
 	std::unique_ptr<mINI::INIFile> file;
 	std::unique_ptr<mINI::INIStructure> ini;
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 #endif

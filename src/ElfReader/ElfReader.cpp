@@ -12,7 +12,7 @@
 #define _UNIX
 #endif
 
-ElfReader::ElfReader(std::string& filename) : elfname(filename)
+ElfReader::ElfReader(std::string& filename, std::shared_ptr<spdlog::logger> logger) : elfname(filename), logger(logger)
 {
 }
 
@@ -35,7 +35,7 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 		{
 			out += executeCommand(cmdFull.c_str());
 			cmdFull = startCmd;
-			std::cout << "Dividing command into smaller chunks." << std::endl;
+			logger->info("Dividing command into smaller chunks...");
 		}
 	}
 	out += executeCommand(cmdFull.c_str());
@@ -64,9 +64,9 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 			vars.at(varName)->setAddress(atoi(temp.substr(offset, temp.find('\n', addrPos)).c_str()));
 			std::string type = temp.substr(typePos + 7, temp.find('\n', typePos));
 			vars.at(varName)->setType(getTypeFromString(type));
-			std::cout << "NAME: " << vars.at(varName)->getName() << std::endl;
-			std::cout << "ADDRESS: " << vars.at(varName)->getAddress() << std::endl;
-			std::cout << "TYPE: " << static_cast<uint32_t>(vars[varName]->getType()) << std::endl;
+			logger->info("NAME: {}", vars.at(varName)->getName());
+			logger->info("ADDRESS: {}", vars.at(varName)->getAddress());
+			logger->info("TYPE: {}", static_cast<uint32_t>(vars[varName]->getType()));
 		}
 		out.erase(0, temp.length());
 	}

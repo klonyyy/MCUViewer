@@ -2,23 +2,20 @@
 
 #include <unistd.h>
 
-#include <iostream>
 #include <random>
 #include <sstream>
 
 #include "ElfReader.hpp"
 #include "ImguiPlugins.hpp"
-#include "VarReader.hpp"
 #include "glfw3.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
-#include "nfd.h"
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx) : plotHandler(plotHandler), configHandler(configHandler), done(done), mtx(mtx)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), done(done), mtx(mtx), logger(logger)
 {
-	elfReader = std::make_unique<ElfReader>(projectElfPath);
+	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
@@ -65,7 +62,7 @@ void Gui::mainThread()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	NFD_Init();
+	fileHandler->init();
 
 	bool show_demo_window = false;
 
@@ -126,7 +123,7 @@ void Gui::mainThread()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-	NFD_Quit();
+	fileHandler->deinit();
 }
 
 void Gui::drawMenu()
@@ -214,10 +211,11 @@ void Gui::drawAddVariableButton()
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		newVar->setAddress(0x20000000);
 		newVar->setType(Variable::type::U8);
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dist(0, UINT32_MAX);
-		newVar->setColor(static_cast<uint32_t>(dist(gen)));
+		std::random_device rd{};
+		std::mt19937 gen{rd()};
+		std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
+		uint32_t randomColor = dist(gen);
+		newVar->setColor(randomColor);
 		vars.emplace(newName, newVar);
 	}
 }
@@ -388,6 +386,7 @@ void Gui::drawPlotsTree()
 			ImGui::Selectable(name.c_str());
 			if (!seriesNameToDelete.has_value())
 				seriesNameToDelete = showDeletePopup("Delete var", name);
+			ImGui::PopID();
 		}
 		plt->removeSeries(seriesNameToDelete.value_or(""));
 
@@ -429,23 +428,7 @@ void Gui::drawAcqusitionSettingsWindow()
 		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 		ImGui::SameLine();
 		if (ImGui::SmallButton("..."))
-		{
-			nfdchar_t* outPath;
-			nfdfilteritem_t filterItem[1] = {{"Executable files", "elf"}};
-			nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-			if (result == NFD_OKAY)
-			{
-				std::cout << outPath << std::endl;
-				projectElfPath = std::string(outPath);
-				std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
-				NFD_FreePath(outPath);
-			}
-			else if (result == NFD_ERROR)
-			{
-				std::cout << "Error: %s\n"
-						  << NFD_GetError() << std::endl;
-			}
-		}
+			openElfFile();
 
 		ImGui::Text("Sample period [ms]:");
 		static int one = 1;
@@ -513,6 +496,22 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 	{
 		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
 		{
+			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
+			{
+				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
+				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
+				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
+				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
+				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
+				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
+			}
+			else
+			{
+				ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+				ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
+				ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
+			}
+
 			if (ImPlot::BeginDragDropTargetPlot())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
@@ -554,22 +553,6 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			}
 			else
 				plot->setMarkerValueX1(0.0);
-
-			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
-			{
-				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
-				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
-				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
-				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
-				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
-			}
-			else
-			{
-				ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-				ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-				ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
-			}
 
 			/* make thread safe copies of buffers - probably can be made better but it works */
 			mtx->lock();
@@ -689,9 +672,9 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 				}
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
-					std::cout << "VALUE:" << std::stod(newValue) << std::endl;
+					logger->info("New value to be written: {}", newValue);
 					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
-						std::cout << "ERROR while writing new value!" << std::endl;
+						logger->error("Error while writing new value!");
 				}
 			}
 			ImGui::PopID();
@@ -814,47 +797,43 @@ bool Gui::saveProject()
 
 bool Gui::saveProjectAs()
 {
-	nfdchar_t* outPath = nullptr;
-	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-	nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
-	if (result == NFD_OKAY)
+	std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	if (path != "")
 	{
-		projectConfigPath = std::string(outPath);
+		projectConfigPath = path;
 		configHandler->saveConfigFile(vars, projectElfPath, settings, projectConfigPath);
-		NFD_FreePath(outPath);
+		logger->info("Project config path: {}", projectConfigPath);
 		return true;
-	}
-	else if (result == NFD_ERROR)
-	{
-		std::cout << "Error: %s\n"
-				  << NFD_GetError() << std::endl;
 	}
 	return false;
 }
 
 bool Gui::openProject()
 {
-	nfdchar_t* outPath;
-	nfdfilteritem_t filterItem[1] = {{"Project files", "cfg"}};
-	nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-	if (result == NFD_OKAY)
+	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	if (path != "")
 	{
-		projectConfigPath = std::string(outPath);
-		NFD_FreePath(outPath);
+		projectConfigPath = path;
 		configHandler->changeConfigFile(projectConfigPath);
 		vars.clear();
 		plotHandler->removeAllPlots();
 		configHandler->readConfigFile(vars, projectElfPath, settings);
 		plotHandler->setSamplePeriod(settings.samplePeriod);
 		plotHandler->setMaxPoints(settings.maxPoints);
-		std::replace(projectElfPath.begin(), projectElfPath.end(), '\\', '/');
-		std::cout << projectConfigPath << std::endl;
+		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
-	else if (result == NFD_ERROR)
+	return false;
+}
+
+bool Gui::openElfFile()
+{
+	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Elf files", "elf"));
+	if (path != "")
 	{
-		std::cout << "Error: %s\n"
-				  << NFD_GetError() << std::endl;
+		projectElfPath = path;
+		logger->info("Project elf file path: {}", projectElfPath);
+		return true;
 	}
 	return false;
 }

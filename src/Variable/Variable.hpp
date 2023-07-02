@@ -27,23 +27,14 @@ class Variable
 	};
 
 	Variable(std::string name);
-	template <typename T>
-	Variable(std::string name, type type, T value);
-	~Variable() = default;
+	Variable(std::string name, type type, double value);
 
 	void setType(type varType);
 	type getType() const;
 	std::string getTypeStr() const;
 
-	void setValue(double val)
-	{
-		value = val;
-	}
-
-	double getValue() const
-	{
-		return value;
-	}
+	void setValue(double val);
+	double getValue() const;
 
 	void setAddress(uint32_t addr);
 	uint32_t getAddress() const;

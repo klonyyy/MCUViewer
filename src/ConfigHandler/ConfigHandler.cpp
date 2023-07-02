@@ -1,9 +1,8 @@
 #include "ConfigHandler.hpp"
 
-#include <iostream>
 #include <random>
 
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler) : configFilePath(configFilePath), plotHandler(plotHandler)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, std::shared_ptr<spdlog::logger> logger) : configFilePath(configFilePath), plotHandler(plotHandler), logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
 	file = std::make_unique<mINI::INIFile>(configFilePath);
@@ -57,13 +56,14 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		varId++;
 
 		if (newVar->getAddress() % 4 != 0)
-			std::cout << "--------- WARNING: unaligned variable address! ----------" << std::endl;
+
+			logger->warn("--------- Unaligned variable address! ----------");
 
 		if (!newVar->getName().empty())
 		{
 			vars[newVar->getName()] = newVar;
 			newVar->setIsFound(true);
-			std::cout << "ADDING VARIABLE: " << newVar->getName() << std::endl;
+			logger->info("Adding variable: {}", newVar->getName());
 		}
 	}
 
@@ -85,8 +85,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			plotHandler->addPlot(plotName);
 			plotHandler->getPlot(plotName)->setVisibility(visibility);
 			plotHandler->getPlot(plotName)->setType(type);
-
-			std::cout << "ADDING PLOT: " << plotName << std::endl;
+			logger->info("Adding plot: {}", plotName);
 			uint32_t seriesNumber = 0;
 			std::string varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
 
@@ -99,7 +98,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 				if (displayFormat == "")
 					displayFormat = "DEC";
 				plotHandler->getPlot(plotName)->getSeries(varName)->format = displayFormatMap.at(displayFormat);
-				std::cout << "ADDING SERIES: " << varName << std::endl;
+				logger->info("Adding series: {}", varName);
 				seriesNumber++;
 				varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
 			}

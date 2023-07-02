@@ -8,6 +8,7 @@
 
 #include "ConfigHandler.hpp"
 #include "ElfReader.hpp"
+#include "IFileHandler.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "imgui.h"
@@ -15,7 +16,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, bool& done, std::mutex* mtx);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~Gui();
 
    private:
@@ -30,6 +31,7 @@ class Gui
 	bool showAcqusitionSettingsWindow = false;
 
 	std::unique_ptr<ElfReader> elfReader;
+	IFileHandler* fileHandler;
 
 	bool& done;
 
@@ -56,10 +58,13 @@ class Gui
 	bool saveProjectAs();
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
 	bool openProject();
+	bool openElfFile();
 	void checkShortcuts();
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
+
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 #endif

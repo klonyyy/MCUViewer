@@ -5,8 +5,8 @@
 Variable::Variable(std::string name) : name(name)
 {
 }
-template <typename T>
-Variable::Variable(std::string name, Variable::type type, T value) : name(name), varType(type)
+
+Variable::Variable(std::string name, Variable::type type, double value) : name(name), varType(type)
 {
 	setValue(value);
 	name.reserve(100);
@@ -25,6 +25,16 @@ Variable::type Variable::getType() const
 std::string Variable::getTypeStr() const
 {
 	return std::string(types[static_cast<uint8_t>(varType)]);
+}
+
+void Variable::setValue(double val)
+{
+	value = val;
+}
+
+double Variable::getValue() const
+{
+	return value;
 }
 
 void Variable::setAddress(uint32_t addr)
