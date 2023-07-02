@@ -7,6 +7,7 @@
 #include "Gui.hpp"
 #include "NFDFileHandler.hpp"
 #include "PlotHandler.hpp"
+#include "gitversion.hpp"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/spdlog.h"
 
@@ -32,6 +33,8 @@ int main(int ac, char** av)
 	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("logger", sinkList.begin(), sinkList.end());
 
 	logger->info("Starting STMViewer!");
+	logger->info("Version: {}.{}.{}", STMVIEWER_VERSION_MAJOR, STMVIEWER_VERSION_MINOR, STMVIEWER_VERSION_REVISION);
+	logger->info("Commit hash {}", GIT_HASH);
 
 	PlotHandler plotHandler(done, &mtx, logger);
 	ConfigHandler configHandler("", &plotHandler, logger);
