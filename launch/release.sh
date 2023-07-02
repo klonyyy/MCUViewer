@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-sudo apt-get install libspdlog-dev
+./launch/addGitVersion.sh
 rm -rf build
 mkdir -p build
 cd build
@@ -14,7 +14,7 @@ cd -
 
 mkdir -p linux
 cd linux
-cmake ../..
+cmake -DPRODUCTION=TRUE ../..
 make package -j16
 cp *.deb ../packages
 cd - 

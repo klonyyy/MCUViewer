@@ -37,10 +37,6 @@ if(UNIX)
     set(SPDLOG_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/linux/libspdlog.so.1.11.0)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
-    add_custom_target(
-    addGitVersion
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh
-)
 endif()
 
 if(WIN32)
@@ -52,13 +48,6 @@ if(WIN32)
     set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
     set(SPDLOG_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/windows/libspdlog.dll)
     set(INSTALL_PATH bin)
-
-    if(NOT DEFINED PLATFORM)
-        add_custom_target(
-        addGitVersion
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat
-    )
-    endif()
 endif()
 
 
@@ -94,8 +83,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
-
-add_dependencies(${EXECUTABLE} addGitVersion)
 
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${STMVIEWER_VERSION}")
 target_compile_definitions(${EXECUTABLE}
