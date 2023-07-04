@@ -500,7 +500,7 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			{
 				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
+				const double viewportWidth = (settings.samplePeriod > 0 ? settings.samplePeriod : 1) * 0.001f * settings.maxViewportPoints;
 				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
 				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
 				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
