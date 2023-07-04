@@ -40,7 +40,6 @@ class Plot
 	};
 
 	Plot(std::string name);
-	~Plot();
 	void setName(const std::string& newName);
 	std::string getName() const;
 	std::string& getNameVar();

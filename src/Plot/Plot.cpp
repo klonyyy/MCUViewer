@@ -12,9 +12,6 @@
 Plot::Plot(std::string name) : name(name)
 {
 }
-Plot::~Plot()
-{
-}
 
 void Plot::setName(const std::string& newName)
 {
