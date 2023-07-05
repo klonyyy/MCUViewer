@@ -6,3 +6,4 @@ Name=STMViewer
 Path=/usr/local/STMViewer
 Icon=/usr/local/STMViewer/icon.png
 Exec=/usr/local/STMViewer/STMViewer
+Categories=Development;

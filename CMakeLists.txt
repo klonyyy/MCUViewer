@@ -161,7 +161,7 @@ if(UNIX)
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     set(CPACK_GENERATOR "DEB")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb, libspdlog-dev")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
