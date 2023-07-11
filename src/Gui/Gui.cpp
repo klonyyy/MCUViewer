@@ -209,8 +209,6 @@ void Gui::drawAddVariableButton()
 		std::string newName = std::string(" new") + std::to_string(num);
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
-		newVar->setAddress(0x20000000);
-		newVar->setType(Variable::type::U8);
 		std::random_device rd{};
 		std::mt19937 gen{rd()};
 		std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
