@@ -68,6 +68,19 @@ class ScrollingBuffer
 		maxSize = newMaxSize;
 	}
 
+	uint32_t getIndexFromvalue(double value)
+	{
+		for (uint32_t t = 0; t < getSize(); t++)
+		{
+			double first = dataCopy[t];
+			double second = dataCopy[t + 1];
+
+			if (value >= first && value <= second)
+				return t;
+		}
+		return 0;
+	}
+
    private:
 	mutable std::mutex mtx;
 	uint32_t maxSize = 10000;

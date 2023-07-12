@@ -525,12 +525,13 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 				double markerPos = plot->getMarkerValueX0();
 				if (markerPos == 0.0)
 				{
-					markerPos = plotLimits.X.Min * 1.1f;
+					markerPos = plotLimits.X.Min + ((std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
 					plot->setMarkerValueX0(markerPos);
 				}
 				ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
 				plot->setMarkerValueX0(markerPos);
-				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(-10, -100), true, "x0 %.5f", markerPos);
+
+				ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", markerPos);
 			}
 			else
 				plot->setMarkerValueX0(0.0);
@@ -540,14 +541,14 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 				double markerPos = plot->getMarkerValueX1();
 				if (markerPos == 0.0)
 				{
-					markerPos = plotLimits.X.Max * 0.9f;
+					markerPos = plotLimits.X.Min + (2.0f * (std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
 					plot->setMarkerValueX1(markerPos);
 				}
 				ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
 				plot->setMarkerValueX1(markerPos);
-				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, -100), true, "x1 %.5f", markerPos);
+				ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", markerPos);
 				double dx = markerPos - plot->getMarkerValueX0();
-				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, 100), true, "x1-x0 %.5f", dx);
+				ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f", dx);
 			}
 			else
 				plot->setMarkerValueX1(0.0);
@@ -569,9 +570,11 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			{
 				if (!serPtr->visible)
 					continue;
+				double value = *(serPtr->buffer->getFirstElementCopy() + time.getIndexFromvalue(plot->getMarkerValueX0()));
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
-				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
+				auto name = plot->getMarkerStateX0() ? (key + " = " + std::to_string(value)) : key;
+				ImPlot::PlotLine(name.c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
 			}
 
 			ImPlot::EndPlot();
