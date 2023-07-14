@@ -56,13 +56,15 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/PlotHandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins/ImguiPlugins.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp

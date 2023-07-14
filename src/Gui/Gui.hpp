@@ -9,9 +9,11 @@
 #include "ConfigHandler.hpp"
 #include "ElfReader.hpp"
 #include "IFileHandler.hpp"
+#include "ImguiPlugins.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "imgui.h"
+#include "implot.h"
 
 class Gui
 {
@@ -49,7 +51,8 @@ class Gui
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
 	void drawPlots();
-	void drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
+	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
+	void drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
 	void drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);
