@@ -18,7 +18,7 @@ Linux:
 All dependencies should be installed and you should be ready to go. 
 
 Windows: 
-1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
+1. Make sure you've got GDB installed (v12.1 or later) and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
 2. Download and run the STMViewer installer. Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
 
 You can assing the external GPU to STMViewer for improved performance. 
@@ -35,7 +35,7 @@ You can assing the external GPU to STMViewer for improved performance.
 In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the Options -> Acqusition Settings. 
 
 ## Why
-I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since The beginning, I was working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was, a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - is simply underdeveloped, and seems to be abandoned as well so it is simply useless. 
+I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since The beginning, I was working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was, a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding varaiables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a different purpose. On top of that I think the plot manipulation is much worse compared to STMStudio or STMViewer. 
 
 ## 3rd party projects used in STMViewer
 
