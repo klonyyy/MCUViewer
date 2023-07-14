@@ -64,7 +64,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = false;
+	bool show_demo_window = true;
 
 	while (!done)
 	{
@@ -570,11 +570,20 @@ void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			{
 				if (!serPtr->visible)
 					continue;
-				double value = *(serPtr->buffer->getFirstElementCopy() + time.getIndexFromvalue(plot->getMarkerValueX0()));
+
+				const double timepoint = plot->getMarkerValueX0();
+				const double value = *(serPtr->buffer->getFirstElementCopy() + time.getIndexFromvalue(timepoint));
+				auto name = plot->getMarkerStateX0() ? key + " = " + std::to_string(value) : key;
+
 				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
-				auto name = plot->getMarkerStateX0() ? (key + " = " + std::to_string(value)) : key;
 				ImPlot::PlotLine(name.c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
+
+				if (plot->getMarkerStateX0())
+				{
+					ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3.0f, ImVec4(255, 255, 255, 255), 0.5f);
+					ImPlot::PlotScatter("###point", &timepoint, &value, 1, false);
+				}
 			}
 
 			ImPlot::EndPlot();
