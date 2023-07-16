@@ -11,7 +11,7 @@ StlinkHandler::StlinkHandler()
 
 bool StlinkHandler::startAcqusition()
 {
-	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 24000);
+	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 	isRunning = false;
 
 	if (sl != nullptr)

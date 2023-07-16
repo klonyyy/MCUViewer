@@ -17,9 +17,14 @@
 
 bool done = false;
 std::mutex mtx;
+std::shared_ptr<spdlog::logger> logger;
 
-int main(int ac, char** av)
+int main(int argc, char** argv)
 {
+	std::vector<std::string> args;
+	for (int i = 0; i < argc; i++)
+		args.push_back(argv[i]);
+
 #ifdef _UNIX
 	std::string logDirectory = std::string(std::getenv("HOME")) + "/STMViewer/logs/logfile.txt";
 #elif _WIN32
@@ -30,7 +35,12 @@ int main(int ac, char** av)
 
 	spdlog::sinks_init_list sinkList = {std::make_shared<spdlog::sinks::stdout_color_sink_st>(),
 										std::make_shared<spdlog::sinks::basic_file_sink_mt>(logDirectory, true)};
-	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("logger", sinkList.begin(), sinkList.end());
+	logger = std::make_shared<spdlog::logger>("logger", sinkList.begin(), sinkList.end());
+
+	if (args.size() >= 2 && args.at(1) == "-d")
+		logger->set_level(spdlog::level::debug);
+	else
+		logger->set_level(spdlog::level::info);
 
 	logger->info("Starting STMViewer!");
 	logger->info("Version: {}.{}.{}", STMVIEWER_VERSION_MAJOR, STMVIEWER_VERSION_MINOR, STMVIEWER_VERSION_REVISION);
