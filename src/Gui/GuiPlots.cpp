@@ -164,14 +164,13 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 		std::vector<const char*> glabels;
 		std::vector<double> positions;
 
-		std::transform(seriesMap.begin(), seriesMap.end(), glabels.begin(),
-					   [](const auto& pair)
-					   { return pair.second->var->getName().c_str(); });
-
-		std::transform(positions.begin(), positions.end(), positions.begin(),
-					   [](float pos)
-					   { return pos + 1.0f; });
-
+		float pos = 0.0f;
+		for (const auto& [key, series] : seriesMap)
+		{
+			glabels.push_back(series->var->getName().c_str());
+			positions.push_back(pos);
+			pos += 1.0f;
+		}
 		glabels.push_back(nullptr);
 
 		ImPlot::SetupAxes(NULL, "Value", 0, 0);
