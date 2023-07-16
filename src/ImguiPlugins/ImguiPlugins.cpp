@@ -4,9 +4,6 @@ namespace ImGui
 {
 bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags)
 {
-	IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
-	flags |= ImGuiInputTextFlags_CallbackResize;
-
 	return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags);
 }
 
