@@ -7,7 +7,7 @@
 #define EXTERNC
 #endif
 
-EXTERNC int spdlogLog(int level, const char* str, ...);
+EXTERNC int spdlogLog(int level, const char *str, ...);
 
 #undef EXTERNC
 

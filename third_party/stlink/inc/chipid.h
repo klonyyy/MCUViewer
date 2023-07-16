@@ -1,8 +1,11 @@
-#ifndef STLINK_CHIPID_H_
-#define STLINK_CHIPID_H_
+/*
+ * File: chipid.h
+ *
+ * Chip-ID parametres
+ */
 
-#include <stm32.h>
-#include <stlink.h>
+#ifndef CHIPID_H
+#define CHIPID_H
 
 /* Chipid parametres */
 struct stlink_chipid_params {
@@ -18,10 +21,13 @@ struct stlink_chipid_params {
     uint32_t option_base;
     uint32_t option_size;
     uint32_t flags;
-  struct stlink_chipid_params * next;
+  struct stlink_chipid_params *next;
 };
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
-  void init_chipids(char *dir_to_scan);
 
-#endif // STLINK_CHIPID_H_
+void dump_a_chip(struct stlink_chipid_params *dev);
+void process_chipfile(char *fname);
+void init_chipids(char *dir_to_scan);
+
+#endif // CHIPID_H

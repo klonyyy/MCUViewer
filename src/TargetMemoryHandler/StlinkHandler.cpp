@@ -2,11 +2,13 @@
 
 #include <cstring>
 
+#include "logging.h"
+
 StlinkHandler::StlinkHandler()
 {
-#if defined(unix) || defined(__unix__) || defined(__unix)
+	// #if defined(unix) || defined(__unix__) || defined(__unix)
 	init_chipids("./chips");
-#endif
+	// #endif
 }
 
 bool StlinkHandler::startAcqusition()
