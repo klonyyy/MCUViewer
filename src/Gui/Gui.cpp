@@ -37,6 +37,7 @@ void Gui::mainThread()
 	if (window == NULL)
 		return;
 	glfwMakeContextCurrent(window);
+	glfwMaximizeWindow(window);
 	glfwSwapInterval(2);  // Enable vsync
 
 	// Setup Dear ImGui context
