@@ -303,6 +303,43 @@ void Gui::drawAddPlotButton()
 	}
 }
 
+void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
+{
+	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25)))
+	{
+		std::ofstream csvFile(plt->getName() + ".csv");
+
+		if (!csvFile)
+		{
+			logger->info("Error opening the file: {}", plt->getName() + ".csv");
+			return;
+		}
+
+		uint32_t dataSize = plt->getTimeSeries().getSize();
+
+		csvFile << "time [s],";
+
+		for (auto& [name, ser] : plt->getSeriesMap())
+			csvFile << name << ",";
+
+		csvFile << std::endl;
+
+		for (size_t i = 0; i < dataSize; ++i)
+		{
+			uint32_t offset = plt->getTimeSeries().getOffset();
+			uint32_t index = (offset + i < dataSize) ? offset + i : i - (dataSize - offset);
+			csvFile << plt->getTimeSeries().getFirstElementCopy()[index] << ",";
+
+			for (auto& [name, ser] : plt->getSeriesMap())
+				csvFile << ser->buffer->getFirstElementCopy()[index] << ",";
+
+			csvFile << std::endl;
+		}
+
+		csvFile.close();
+	}
+}
+
 void Gui::drawPlotsTree()
 {
 	const uint32_t windowHeight = 300;
@@ -394,6 +431,7 @@ void Gui::drawPlotsTree()
 			plt->addSeries(*vars[*(std::string*)payload->Data]);
 		ImGui::EndDragDropTarget();
 	}
+	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();
 	ImGui::EndChild();
