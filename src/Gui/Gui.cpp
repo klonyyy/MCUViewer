@@ -62,7 +62,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 
 	while (!done)
 	{
@@ -307,11 +307,12 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 {
 	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25)))
 	{
-		std::ofstream csvFile(plt->getName() + ".csv");
+		std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("CSV", "csv"));
+		std::ofstream csvFile(path);
 
 		if (!csvFile)
 		{
-			logger->info("Error opening the file: {}", plt->getName() + ".csv");
+			logger->info("Error opening the file: {}", path);
 			return;
 		}
 
@@ -342,7 +343,7 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 
 void Gui::drawPlotsTree()
 {
-	const uint32_t windowHeight = 300;
+	const uint32_t windowHeight = 320;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
@@ -404,7 +405,7 @@ void Gui::drawPlotsTree()
 	ImGui::PopID();
 
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, -1)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
