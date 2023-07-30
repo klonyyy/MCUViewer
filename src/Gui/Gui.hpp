@@ -48,6 +48,7 @@ class Gui
 	void drawUpdateAddressesFromElf();
 	void drawVarTable();
 	void drawAddPlotButton();
+	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
 	void drawPlots();

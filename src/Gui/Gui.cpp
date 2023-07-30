@@ -62,7 +62,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 
 	while (!done)
 	{
@@ -303,9 +303,47 @@ void Gui::drawAddPlotButton()
 	}
 }
 
+void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
+{
+	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25)))
+	{
+		std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("CSV", "csv"));
+		std::ofstream csvFile(path);
+
+		if (!csvFile)
+		{
+			logger->info("Error opening the file: {}", path);
+			return;
+		}
+
+		uint32_t dataSize = plt->getTimeSeries().getSize();
+
+		csvFile << "time [s],";
+
+		for (auto& [name, ser] : plt->getSeriesMap())
+			csvFile << name << ",";
+
+		csvFile << std::endl;
+
+		for (size_t i = 0; i < dataSize; ++i)
+		{
+			uint32_t offset = plt->getTimeSeries().getOffset();
+			uint32_t index = (offset + i < dataSize) ? offset + i : i - (dataSize - offset);
+			csvFile << plt->getTimeSeries().getFirstElementCopy()[index] << ",";
+
+			for (auto& [name, ser] : plt->getSeriesMap())
+				csvFile << ser->buffer->getFirstElementCopy()[index] << ",";
+
+			csvFile << std::endl;
+		}
+
+		csvFile.close();
+	}
+}
+
 void Gui::drawPlotsTree()
 {
-	const uint32_t windowHeight = 300;
+	const uint32_t windowHeight = 320;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
@@ -350,7 +388,7 @@ void Gui::drawPlotsTree()
 	ImGui::Text("name      ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
-	ImGui::InputText("##input", &newName, 0);
+	ImGui::InputText("##input", &newName, 0, NULL, NULL);
 	ImGui::Text("type      ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
@@ -367,7 +405,7 @@ void Gui::drawPlotsTree()
 	ImGui::PopID();
 
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, -1)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
@@ -394,6 +432,7 @@ void Gui::drawPlotsTree()
 			plt->addSeries(*vars[*(std::string*)payload->Data]);
 		ImGui::EndDragDropTarget();
 	}
+	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();
 	ImGui::EndChild();
@@ -421,7 +460,7 @@ void Gui::drawAcqusitionSettingsWindow()
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		ImGui::Text("Project's *.elf file:");
-		ImGui::InputText("##", &projectElfPath, 0);
+		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 		ImGui::SameLine();
 		if (ImGui::SmallButton("..."))
 			openElfFile();
