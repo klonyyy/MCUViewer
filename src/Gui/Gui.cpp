@@ -388,7 +388,7 @@ void Gui::drawPlotsTree()
 	ImGui::Text("name      ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
-	ImGui::InputText("##input", &newName, 0);
+	ImGui::InputText("##input", &newName, 0, NULL, NULL);
 	ImGui::Text("type      ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
@@ -460,7 +460,7 @@ void Gui::drawAcqusitionSettingsWindow()
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		ImGui::Text("Project's *.elf file:");
-		ImGui::InputText("##", &projectElfPath, 0);
+		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 		ImGui::SameLine();
 		if (ImGui::SmallButton("..."))
 			openElfFile();
