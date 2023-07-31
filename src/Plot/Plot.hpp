@@ -71,6 +71,9 @@ class Plot
 	void setType(type_E newType);
 	type_E getType() const;
 
+	void setIsHovered(bool isHovered);
+	bool isHovered() const;
+
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
 	std::string getSeriesValueString(const std::string& name, double value);
@@ -81,6 +84,7 @@ class Plot
 	ScrollingBuffer<double> time;
 	bool visibility = true;
 	type_E type = type_E::CURVE;
+	bool isHoveredOver = false;
 
 	Marker mx0;
 	Marker mx1;

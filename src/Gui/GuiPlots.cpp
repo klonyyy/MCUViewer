@@ -58,6 +58,8 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
+		plot->setIsHovered(ImPlot::IsPlotHovered());
+
 		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
 		{
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
@@ -262,4 +264,5 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImGui::EndDragDropTarget();
 		}
 	}
+	plot->setIsHovered(ImGui::IsItemHovered());
 }

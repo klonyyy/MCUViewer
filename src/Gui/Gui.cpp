@@ -376,6 +376,9 @@ void Gui::drawPlotsTree()
 
 		if (!plotNameToDelete.has_value())
 			plotNameToDelete = showDeletePopup("Delete plot", name);
+
+		if (plt->isHovered() && ImGui::IsMouseClicked(0))
+			selected = plt->getName();
 	}
 
 	ImGui::EndChild();

@@ -229,3 +229,13 @@ void Plot::setMarkerValueX1(double value)
 {
 	mx1.value = value;
 }
+
+void Plot::setIsHovered(bool isHovered)
+{
+	this->isHoveredOver = isHovered;
+}
+
+bool Plot::isHovered() const
+{
+	return isHoveredOver;
+}
