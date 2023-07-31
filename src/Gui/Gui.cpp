@@ -469,15 +469,21 @@ void Gui::drawAcqusitionSettingsWindow()
 			openElfFile();
 
 		ImGui::Text("Sample period [ms]:");
+		ImGui::SameLine();
+		ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
 		static int one = 1;
 		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
 		plotHandler->setSamplePeriod(settings.samplePeriod);
 
 		ImGui::Text("Max points [100 - 20000]:");
+		ImGui::SameLine();
+		ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 		ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
 		plotHandler->setMaxPoints(settings.maxPoints);
 
 		ImGui::Text("Max viewport points [100 - 20000]:");
+		ImGui::SameLine();
+		ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
 		ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
 
 		if (ImGui::Button("Done"))
