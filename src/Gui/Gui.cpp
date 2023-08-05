@@ -10,7 +10,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -62,7 +62,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = false;
+	bool show_demo_window = true;
 
 	while (!done)
 	{
@@ -83,16 +83,29 @@ void Gui::mainThread()
 		glfwSetWindowShouldClose(window, done);
 		checkShortcuts();
 
-		ImGui::Begin("Plots");
-		drawAcqusitionSettingsWindow();
-		drawPlots();
 		drawMenu();
+
+		if (ImGui::Begin("SWO Viewer"))
+		{
+			drawStartButtonSwo();
+			ImGui::Begin("SWO Plots");
+			drawPlotsSwo();
+			ImGui::End();
+		}
 		ImGui::End();
 
-		ImGui::Begin("VarViewer");
-		drawStartButton();
-		drawVarTable();
-		drawPlotsTree();
+		if (ImGui::Begin("VarViewer"))
+		{
+			drawStartButton();
+			drawVarTable();
+			drawPlotsTree();
+			if (ImGui::Begin("Plots"))
+			{
+				drawAcqusitionSettingsWindow();
+				drawPlots();
+			}
+			ImGui::End();
+		}
 		ImGui::End();
 
 		// Rendering

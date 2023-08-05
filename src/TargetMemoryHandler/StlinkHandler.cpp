@@ -6,9 +6,7 @@
 
 StlinkHandler::StlinkHandler()
 {
-	// #if defined(unix) || defined(__unix__) || defined(__unix)
 	init_chipids("./chips");
-	// #endif
 }
 
 bool StlinkHandler::startAcqusition()

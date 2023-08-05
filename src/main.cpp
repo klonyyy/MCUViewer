@@ -48,9 +48,20 @@ int main(int argc, char** argv)
 	logger->info("Commit hash {}", GIT_HASH);
 
 	PlotHandler plotHandler(done, &mtx, logger);
+	TracePlotHandler tracePlotHandler(done, &mtx, logger);
 	ConfigHandler configHandler("", &plotHandler, logger);
 	NFDFileHandler fileHandler;
-	Gui gui(&plotHandler, &configHandler, &fileHandler, done, &mtx, logger);
+
+	tracePlotHandler.addPlot("CH0");
+	Variable var1("CH0");
+	var1.setColor(0xffaabbcc);
+	tracePlotHandler.getPlot("CH0")->addSeries(var1);
+	Variable var2("CH1");
+	var2.setColor(0xffaabbcc);
+	tracePlotHandler.addPlot("CH1");
+	tracePlotHandler.getPlot("CH1")->addSeries(var2);
+
+	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, logger);
 
 	while (!done)
 	{

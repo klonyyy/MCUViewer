@@ -18,10 +18,15 @@ endif()
 
 project(STMViewer)
 
-set(STMVIEWER_VERSION 0.1.2)
+set(STMVIEWER_VERSION 0.1.3)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+endif()
 
 add_compile_options(-Wall
     -Wextra
@@ -57,6 +62,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
@@ -65,7 +72,9 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/PlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins/ImguiPlugins.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/spdlogWrapper.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/spdlogWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TracePlotHandler/TracePlotHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceReader.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -103,7 +112,9 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TracePlotHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

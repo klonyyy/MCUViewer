@@ -12,21 +12,24 @@
 #include "ImguiPlugins.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
+#include "TracePlotHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
 
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~Gui();
 
    private:
 	const std::map<PlotHandler::state, std::string> viewerStateMap{{PlotHandler::state::RUN, "RUNNING"}, {PlotHandler::state::STOP, "STOPPED"}};
+	const std::map<TracePlotHandler::state, std::string> traceReaderStateMap{{TracePlotHandler::state::RUN, "RUNNING"}, {TracePlotHandler::state::STOP, "STOPPED"}};
 	static constexpr uint32_t maxVariableNameLength = 100;
 	std::map<std::string, std::shared_ptr<Variable>> vars;
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
+	TracePlotHandler* tracePlotHandler;
 	ConfigHandler* configHandler;
 	std::string projectConfigPath;
 	std::string projectElfPath;
@@ -64,6 +67,10 @@ class Gui
 	bool openProject();
 	bool openElfFile();
 	void checkShortcuts();
+
+	void drawStartButtonSwo();
+	void drawPlotsSwo();
+	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
