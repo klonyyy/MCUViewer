@@ -60,10 +60,12 @@ void TracePlotHandler::dataHandler()
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 
 			double timestamp;
-			std::array<bool, 10> traces;
+			std::array<bool, 10> traces{};
 			traceReader->readTrace(timestamp, traces);
 
 			uint32_t i = 0;
+
+			time += timestamp;
 
 			for (auto& [key, plot] : plotsMap)
 			{
@@ -75,7 +77,6 @@ void TracePlotHandler::dataHandler()
 				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
 				plot->addPoint(ser->var->getName(), (double)traces[i++]);
-				time += timestamp;
 				plot->addTimePoint(time);
 			}
 

@@ -4,7 +4,7 @@ void Gui::drawPlotsSwo()
 {
 	ImVec2 plotSize(-1, -1);
 
-	if (ImPlot::BeginSubplots("##subplos", 5, 1, plotSize, 0))
+	if (ImPlot::BeginSubplots("##subplos", 5, 1, plotSize, ImPlotSubplotFlags_LinkAllX))
 	{
 		for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 		{
@@ -24,7 +24,6 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 	{
 		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN)
 		{
-			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
 			const double viewportWidth = (settings.samplePeriod > 0 ? settings.samplePeriod : 1) * 0.001f * settings.maxViewportPoints;
 			const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
@@ -35,8 +34,9 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		{
 			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
 		}
+
+		ImPlot::SetupAxisLimits(ImAxis_Y1, -1.5, 1.5, ImPlotCond_Always);
 
 		Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 		std::string serName = ser->var->getName();
@@ -53,10 +53,7 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		const double value = *(ser->buffer->getFirstElementCopy() + time.getIndexFromvalue(timepoint));
 		auto name = plot->getMarkerStateX0() ? serName + " = " + std::to_string(value) : serName;
 
-		ImPlot::SetNextLineStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f));
-		// ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
-		// ImPlot::PlotLine(name.c_str(), time.getFirstElementCopy(), ser->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
-
+		ImPlot::SetNextLineStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f), 2.0f);
 		ImPlot::PlotStairs(name.c_str(), time.getFirstElementCopy(), ser->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
 
 		if (plot->getMarkerStateX0())
