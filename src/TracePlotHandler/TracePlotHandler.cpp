@@ -6,6 +6,18 @@ TracePlotHandler::TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<
 {
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 	traceReader = std::make_unique<StlinkTraceReader>();
+
+	for (uint32_t i = 0; i < channels; i++)
+	{
+		std::string name = std::string("CH" + std::to_string(i));
+		plotsMap[name] = std::make_shared<Plot>(name);
+
+		auto newVar = std::make_shared<Variable>(name);
+		newVar->setColor(25251254);
+		traceVars[name] = newVar;
+
+		plotsMap[name]->addSeries(*newVar);
+	}
 }
 TracePlotHandler::~TracePlotHandler()
 {
@@ -48,11 +60,22 @@ TracePlotHandler::state TracePlotHandler::getViewerState() const
 	return viewerState;
 }
 
+uint32_t TracePlotHandler::getPlotsCount() const
+{
+	return channels;
+}
+
+bool TracePlotHandler::renamePlot(const std::string& oldName, const std::string& newName)
+{
+	auto plt = plotsMap.extract(oldName);
+	plt.key() = newName;
+	plotsMap.insert(std::move(plt));
+	plotsMap[newName]->setName(newName);
+	return true;
+}
+
 void TracePlotHandler::dataHandler()
 {
-	uint32_t timer = 0;
-	std::array<bool, 10> lastTraces;
-
 	while (!done)
 	{
 		if (viewerState == state::RUN)
@@ -79,8 +102,6 @@ void TracePlotHandler::dataHandler()
 				plot->addPoint(ser->var->getName(), (double)traces[i++]);
 				plot->addTimePoint(time);
 			}
-
-			lastTraces = traces;
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -92,7 +113,7 @@ void TracePlotHandler::dataHandler()
 			if (viewerState == state::RUN)
 			{
 				if (traceReader->startAcqusition())
-					timer = 0;
+					time = 0;
 				else
 				{
 					viewerState = state::STOP;

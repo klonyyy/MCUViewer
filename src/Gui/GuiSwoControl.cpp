@@ -35,3 +35,58 @@ void Gui::drawStartButtonSwo()
 
 	ImGui::PopStyleColor(3);
 }
+
+void Gui::drawPlotsTreeSwo()
+{
+	const uint32_t windowHeight = 320;
+	static std::string selected = tracePlotHandler->begin().operator*()->getName();
+	;
+
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
+	ImGui::Text("Channels");
+	ImGui::Separator();
+
+	// if (!tracePlotHandler->checkIfPlotExists(std::move(selected)))
+	// 	selected = tracePlotHandler->begin().operator*()->getName();
+
+	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
+	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
+
+	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
+	{
+		std::string name = plt->getName();
+		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
+		ImGui::SameLine();
+		if (ImGui::Selectable(name.c_str(), selected == name))
+			selected = name;
+
+		if (plt->isHovered() && ImGui::IsMouseClicked(0))
+			selected = plt->getName();
+	}
+
+	ImGui::EndChild();
+	ImGui::SameLine();
+
+	std::shared_ptr<Plot> plt = tracePlotHandler->getPlot(selected);
+	std::string newName = plt->getName();
+	ImGui::BeginGroup();
+	ImGui::Text("name      ");
+	ImGui::SameLine();
+	ImGui::PushID(plt->getName().c_str());
+	ImGui::InputText("##input", &newName, 0, NULL, NULL);
+	bool mx0 = (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN) ? false : plt->getMarkerStateX0();
+	ImGui::Text("markers");
+	ImGui::SameLine();
+	ImGui::Checkbox("##mx0", &mx0);
+	plt->setMarkerStateX0(mx0);
+	plt->setMarkerStateX1(mx0);
+	ImGui::PopID();
+	ImGui::EndGroup();
+	ImGui::EndChild();
+
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
+	{
+		tracePlotHandler->renamePlot(plt->getName(), newName);
+		selected = newName;
+	}
+}

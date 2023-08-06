@@ -52,24 +52,6 @@ int main(int argc, char** argv)
 	ConfigHandler configHandler("", &plotHandler, logger);
 	NFDFileHandler fileHandler;
 
-	tracePlotHandler.addPlot("CH0");
-	Variable var1("CH0");
-	var1.setColor(378440825);
-	tracePlotHandler.getPlot("CH0")->addSeries(var1);
-	Variable var2("CH1");
-	var2.setColor(378440825);
-	tracePlotHandler.addPlot("CH1");
-	tracePlotHandler.getPlot("CH1")->addSeries(var2);
-
-	tracePlotHandler.addPlot("CH2");
-	Variable var3("CH2");
-	var3.setColor(378440825);
-	tracePlotHandler.getPlot("CH2")->addSeries(var3);
-	Variable var4("CH3");
-	var4.setColor(378440825);
-	tracePlotHandler.addPlot("CH3");
-	tracePlotHandler.getPlot("CH3")->addSeries(var4);
-
 	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, logger);
 
 	while (!done)

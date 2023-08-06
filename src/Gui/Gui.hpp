@@ -29,7 +29,6 @@ class Gui
 	std::map<std::string, std::shared_ptr<Variable>> vars;
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
-	TracePlotHandler* tracePlotHandler;
 	ConfigHandler* configHandler;
 	std::string projectConfigPath;
 	std::string projectElfPath;
@@ -37,6 +36,8 @@ class Gui
 
 	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
+
+	TracePlotHandler* tracePlotHandler;
 
 	bool& done;
 
@@ -71,6 +72,7 @@ class Gui
 	void drawStartButtonSwo();
 	void drawPlotsSwo();
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
+	void drawPlotsTreeSwo();
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);

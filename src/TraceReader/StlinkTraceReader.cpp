@@ -56,6 +56,7 @@ bool StlinkTraceReader::stopAcqusition()
 	if (readerHandle.joinable())
 		readerHandle.join();
 
+	stlink_trace_disable(sl);
 	stlink_close(sl);
 	return true;
 }
@@ -195,17 +196,10 @@ void StlinkTraceReader::timestampEnd()
 	currentEntry[currentChannel] = currentValue == 0xaa ? true : false;
 	traceTable.push(std::pair<std::array<bool, channels>, uint32_t>{currentEntry, timestamp});
 	previousEntry = currentEntry;
-
-	// printf("\r\n");
-
-	if (currentChannel == 1 && currentValue == 0xbb && timestamp < 918)
-		printf("%d ", timestamp);
 }
 
 StlinkTraceReader::TraceState StlinkTraceReader::updateTrace(uint8_t c)
 {
-	// printf("%x ", c);
-
 	if (state == TRACE_STATE_UNKNOWN)
 	{
 		if (TRACE_OP_IS_TARGET_SOURCE(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
@@ -276,8 +270,6 @@ void StlinkTraceReader::readerThread()
 	{
 		uint8_t buffer[STLINK_TRACE_BUF_LEN];
 		int length = stlink_trace_read(sl, buffer, sizeof(buffer));
-
-		printf("RX SIZE: %d --------------------------------\r\n", length);
 
 		if (length == 0)
 		{

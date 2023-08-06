@@ -4,7 +4,7 @@ void Gui::drawPlotsSwo()
 {
 	ImVec2 plotSize(-1, -1);
 
-	if (ImPlot::BeginSubplots("##subplos", 5, 1, plotSize, ImPlotSubplotFlags_LinkAllX))
+	if (ImPlot::BeginSubplots("##subplos", tracePlotHandler->getPlotsCount(), 1, plotSize, ImPlotSubplotFlags_LinkAllX))
 	{
 		for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 		{
@@ -20,26 +20,59 @@ void Gui::drawPlotsSwo()
 
 void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
 {
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild | ImPlotFlags_NoTitle))
 	{
 		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN)
 		{
-			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-			const double viewportWidth = (settings.samplePeriod > 0 ? settings.samplePeriod : 1) * 0.001f * settings.maxViewportPoints;
-			const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
-			const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
-			ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
+			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_AutoFit);
+			double timepoint = *time.getFirstElementCopy();
+			// ImPlot::SetupAxisLimits(ImAxis_X1, timepoint - 1, timepoint, ImPlotCond_Always);
 		}
 		else
 		{
-			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+			ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
 		}
 
-		ImPlot::SetupAxisLimits(ImAxis_Y1, -1.5, 1.5, ImPlotCond_Always);
+		ImPlot::SetupAxisLimits(ImAxis_Y1, -0.25, 1.25, ImPlotCond_Always);
 
 		Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 		std::string serName = ser->var->getName();
+
+		ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+
+		if (plot->getMarkerStateX0())
+		{
+			double markerPos = plot->getMarkerValueX0();
+			if (markerPos == 0.0)
+			{
+				markerPos = plotLimits.X.Min + ((std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
+				plot->setMarkerValueX0(markerPos);
+			}
+			ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
+			plot->setMarkerValueX0(markerPos);
+
+			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", markerPos);
+		}
+		else
+			plot->setMarkerValueX0(0.0);
+
+		if (plot->getMarkerStateX1())
+		{
+			double markerPos = plot->getMarkerValueX1();
+			if (markerPos == 0.0)
+			{
+				markerPos = plotLimits.X.Min + (2.0f * (std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
+				plot->setMarkerValueX1(markerPos);
+			}
+			ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
+			plot->setMarkerValueX1(markerPos);
+			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", markerPos);
+			double dx = markerPos - plot->getMarkerValueX0();
+			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f ms", dx * 1000.0);
+		}
+		else
+			plot->setMarkerValueX1(0.0);
 		/* make thread safe copies of buffers - probably can be made better but it works */
 		mtx->lock();
 		time.copyData();
@@ -51,10 +84,10 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 
 		const double timepoint = plot->getMarkerValueX0();
 		const double value = *(ser->buffer->getFirstElementCopy() + time.getIndexFromvalue(timepoint));
-		auto name = plot->getMarkerStateX0() ? serName + " = " + std::to_string(value) : serName;
 
-		ImPlot::SetNextLineStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f), 2.0f);
-		ImPlot::PlotStairs(name.c_str(), time.getFirstElementCopy(), ser->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
+		ImPlot::SetNextLineStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f));
+		ImPlot::SetNextFillStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f), 0.25f);
+		ImPlot::PlotStairs(serName.c_str(), time.getFirstElementCopy(), ser->buffer->getFirstElementCopy(), size, ImPlotStairsFlags_Shaded, offset, sizeof(double));
 
 		if (plot->getMarkerStateX0())
 		{

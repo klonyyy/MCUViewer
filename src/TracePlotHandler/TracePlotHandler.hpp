@@ -25,6 +25,7 @@ class TracePlotHandler
 	void setViewerState(state state);
 	state getViewerState() const;
 	uint32_t getPlotsCount() const;
+	bool renamePlot(const std::string& oldName, const std::string& newName);
 	void setMaxPoints(uint32_t maxPoints);
 
 	class iterator
@@ -55,6 +56,9 @@ class TracePlotHandler
 	std::unique_ptr<ITraceReader> traceReader;
 
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
+	std::map<std::string, std::shared_ptr<Variable>> traceVars;
+
+	static constexpr uint32_t channels = 10;
 
 	std::mutex* mtx;
 	std::thread dataHandle;
