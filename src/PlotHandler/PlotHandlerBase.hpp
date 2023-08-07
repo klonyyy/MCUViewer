@@ -1,13 +1,18 @@
-#ifndef _TRACEPLOTHANDLER_HPP
-#define _TRACEPLOTHANDLER_HPP
+#ifndef _PLOTHANDLERBASE_HPP
+#define _PLOTHANDLERBASE_HPP
 
+#include <chrono>
 #include <map>
+#include <mutex>
+#include <thread>
 
-#include "ITraceReader.hpp"
 #include "Plot.hpp"
+#include "ScrollingBuffer.hpp"
+#include "StlinkHandler.hpp"
+#include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
 
-class TracePlotHandler
+class PlotHandlerBase
 {
    public:
 	enum class state
@@ -16,16 +21,21 @@ class TracePlotHandler
 		RUN = 1,
 	};
 
-	TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
-	~TracePlotHandler();
+	PlotHandlerBase(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	virtual ~PlotHandlerBase() = default;
 
 	void addPlot(const std::string& name);
+	bool removePlot(const std::string& name);
+	bool renamePlot(const std::string& oldName, const std::string& newName);
+	bool removeAllPlots();
 	std::shared_ptr<Plot> getPlot(std::string name);
 	bool eraseAllPlotData();
 	void setViewerState(state state);
 	state getViewerState() const;
+	uint32_t getVisiblePlotsCount() const;
 	uint32_t getPlotsCount() const;
-	bool renamePlot(const std::string& oldName, const std::string& newName);
+	bool writeSeriesValue(Variable& var, double value);
+	bool checkIfPlotExists(const std::string&& name) const;
 	void setMaxPoints(uint32_t maxPoints);
 
 	class iterator
@@ -46,26 +56,14 @@ class TracePlotHandler
 	iterator begin();
 	iterator end();
 
-   private:
-	void dataHandler();
-
-   private:
+   protected:
 	bool& done;
 	state viewerState = state::STOP;
 	state viewerStateTemp = state::STOP;
-	std::unique_ptr<ITraceReader> traceReader;
-
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
-	std::map<std::string, std::shared_ptr<Variable>> traceVars;
-
-	static constexpr uint32_t channels = 10;
-
 	std::mutex* mtx;
 	std::thread dataHandle;
 	bool stateChangeOrdered = false;
-
-	double time = 0.0;
-
 	std::shared_ptr<spdlog::logger> logger;
 };
 

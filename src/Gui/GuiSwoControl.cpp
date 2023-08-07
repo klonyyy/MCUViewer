@@ -1,36 +1,37 @@
 #include "Gui.hpp"
+#include "PlotHandlerBase.hpp"
 
 void Gui::drawStartButtonSwo()
 {
-	TracePlotHandler::state state = tracePlotHandler->getViewerState();
+	PlotHandlerBase::state state = tracePlotHandler->getViewerState();
 
-	if (state == TracePlotHandler::state::RUN)
+	if (state == PlotHandlerBase::state::RUN)
 	{
 		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
-	else if (state == TracePlotHandler::state::STOP)
+	else if (state == PlotHandlerBase::state::STOP)
 	{
 		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
 
-		// if (tracePlotHandler->getLastReaderError() != "")
-		// 	color = ImColor::HSV(0.0f, 0.95f, 0.70f);
+		if (tracePlotHandler->getLastReaderError() != "")
+			color = ImColor::HSV(0.0f, 0.95f, 0.70f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button(traceReaderStateMap.at(state).c_str(), ImVec2(-1, 50)))
+	if (ImGui::Button(viewerStateMap.at(state).c_str(), ImVec2(-1, 50)))
 	{
-		if (state == TracePlotHandler::state::STOP)
+		if (state == PlotHandlerBase::state::STOP)
 		{
 			tracePlotHandler->eraseAllPlotData();
-			tracePlotHandler->setViewerState(TracePlotHandler::state::RUN);
+			tracePlotHandler->setViewerState(PlotHandlerBase::state::RUN);
 		}
 		else
-			tracePlotHandler->setViewerState(TracePlotHandler::state::STOP);
+			tracePlotHandler->setViewerState(PlotHandlerBase::state::STOP);
 	}
 
 	ImGui::PopStyleColor(3);
@@ -74,7 +75,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
 	ImGui::InputText("##input", &newName, 0, NULL, NULL);
-	bool mx0 = (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN) ? false : plt->getMarkerStateX0();
+	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->getMarkerStateX0();
 	ImGui::Text("markers");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);

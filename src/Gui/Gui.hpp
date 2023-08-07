@@ -23,8 +23,7 @@ class Gui
 	~Gui();
 
    private:
-	const std::map<PlotHandler::state, std::string> viewerStateMap{{PlotHandler::state::RUN, "RUNNING"}, {PlotHandler::state::STOP, "STOPPED"}};
-	const std::map<TracePlotHandler::state, std::string> traceReaderStateMap{{TracePlotHandler::state::RUN, "RUNNING"}, {TracePlotHandler::state::STOP, "STOPPED"}};
+	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
 	static constexpr uint32_t maxVariableNameLength = 100;
 	std::map<std::string, std::shared_ptr<Variable>> vars;
 	std::thread threadHandle;

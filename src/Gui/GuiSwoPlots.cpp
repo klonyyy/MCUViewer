@@ -25,8 +25,6 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN)
 		{
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_AutoFit);
-			double timepoint = *time.getFirstElementCopy();
-			// ImPlot::SetupAxisLimits(ImAxis_X1, timepoint - 1, timepoint, ImPlotCond_Always);
 		}
 		else
 		{

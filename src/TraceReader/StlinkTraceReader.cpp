@@ -30,13 +30,6 @@ bool StlinkTraceReader::startAcqusition()
 
 	if (sl != nullptr)
 	{
-		// if (stlink_enter_swd_mode(sl) != 0 || stlink_target_connect(sl, CONNECT_HOT_PLUG) != 0)
-		// {
-		// 	stopAcqusition();
-		// 	lastErrorMsg = "STM32 target not found!";
-		// 	return false;
-		// }
-
 		isRunning = true;
 		if (!enableTrace())
 		{

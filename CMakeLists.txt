@@ -69,11 +69,12 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/PlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins/ImguiPlugins.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/spdlogWrapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TracePlotHandler/TracePlotHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandlerBase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceReader.cpp)
 
 set(IMGUI_SOURCES
@@ -113,7 +114,7 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TracePlotHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer)
 

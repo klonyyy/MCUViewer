@@ -46,7 +46,7 @@ class StlinkTraceReader : public ITraceReader
 	uint32_t timestamp;
 	uint32_t errorCount;
 	uint32_t coreFrequency = 160000000;
-	uint32_t traceFrequency = 16000000;
+	uint32_t traceFrequency = 14000000;
 
 	stlink_t* sl = nullptr;
 	bool isRunning = false;

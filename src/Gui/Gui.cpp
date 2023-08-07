@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "ElfReader.hpp"
+#include "PlotHandlerBase.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -165,7 +166,7 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, plotHandler->getViewerState() == PlotHandler::state::STOP);
+		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, plotHandler->getViewerState() == PlotHandlerBase::state::STOP);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -176,16 +177,16 @@ void Gui::drawMenu()
 
 void Gui::drawStartButton()
 {
-	PlotHandler::state state = plotHandler->getViewerState();
+	PlotHandlerBase::state state = plotHandler->getViewerState();
 
-	if (state == PlotHandler::state::RUN)
+	if (state == PlotHandlerBase::state::RUN)
 	{
 		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
-	else if (state == PlotHandler::state::STOP)
+	else if (state == PlotHandlerBase::state::STOP)
 	{
 		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
 
@@ -198,13 +199,13 @@ void Gui::drawStartButton()
 
 	if (ImGui::Button((viewerStateMap.at(state) + " " + plotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
 	{
-		if (state == PlotHandler::state::STOP)
+		if (state == PlotHandlerBase::state::STOP)
 		{
 			plotHandler->eraseAllPlotData();
-			plotHandler->setViewerState(PlotHandler::state::RUN);
+			plotHandler->setViewerState(PlotHandlerBase::state::RUN);
 		}
 		else
-			plotHandler->setViewerState(PlotHandler::state::STOP);
+			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
 	}
 
 	ImGui::PopStyleColor(3);
