@@ -5,12 +5,13 @@
 
 #include "ITraceReader.hpp"
 #include "RingBuffer.hpp"
+#include "spdlog/spdlog.h"
 #include "stlink.h"
 
 class StlinkTraceReader : public ITraceReader
 {
    public:
-	StlinkTraceReader();
+	StlinkTraceReader(std::shared_ptr<spdlog::logger> logger);
 	bool startAcqusition() override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
@@ -18,6 +19,11 @@ class StlinkTraceReader : public ITraceReader
 	bool readTrace(double& timestamp, std::array<bool, 10>& trace) override;
 
 	std::string getLastErrorMsg() const override;
+
+	void setCoreClockFrequency(uint32_t frequencyHz);
+	uint32_t getCoreClockFrequency() const;
+	void setTraceFrequency(uint32_t frequencyHz);
+	uint32_t getTraceFrequency() const;
 
    private:
 	typedef enum
@@ -39,14 +45,15 @@ class StlinkTraceReader : public ITraceReader
 
 	static constexpr uint32_t channels = 10;
 
-	uint8_t currentValue = 0;
-	uint8_t currentChannel = 0;
+	uint8_t currentValue[5]{};
+	uint8_t awaitingTimestamp = 0;
+	uint8_t currentChannel[5]{};
 	uint8_t timestampBuf[7]{};
 	uint32_t timestampBytes;
 	uint32_t timestamp;
 	uint32_t errorCount;
 	uint32_t coreFrequency = 160000000;
-	uint32_t traceFrequency = 14000000;
+	uint32_t traceFrequency = 16000000;
 
 	stlink_t* sl = nullptr;
 	bool isRunning = false;
@@ -60,10 +67,12 @@ class StlinkTraceReader : public ITraceReader
 	TraceState updateTrace(uint8_t c);
 	void timestampEnd();
 
+	std::shared_ptr<spdlog::logger> logger;
+
 	uint32_t traceTableEntry;
 
 	std::array<bool, channels> previousEntry;
 
-	RingBuffer<std::pair<std::array<bool, channels>, uint32_t>> traceTable{20000};
+	RingBuffer<std::pair<std::array<bool, channels>, uint32_t>> traceTable{200000};
 };
 #endif

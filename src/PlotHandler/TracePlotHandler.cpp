@@ -5,7 +5,7 @@
 TracePlotHandler::TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
-	traceReader = std::make_unique<StlinkTraceReader>();
+	traceReader = std::make_unique<StlinkTraceReader>(logger);
 
 	for (uint32_t i = 0; i < channels; i++)
 	{

@@ -6,21 +6,21 @@
 #include "logging.h"
 #include "register.h"
 
-#define TRACE_OP_IS_OVERFLOW(c)		   ((c) == 0x70)
-#define TRACE_OP_IS_LOCAL_TIME(c)	   (((c)&0x0f) == 0x00 && ((c)&0x70) != 0x00)
-#define TRACE_OP_IS_EXTENSION(c)	   (((c)&0x0b) == 0x08)
-#define TRACE_OP_IS_GLOBAL_TIME(c)	   (((c)&0xdf) == 0x94)
-#define TRACE_OP_IS_SOURCE(c)		   (((c)&0x03) != 0x00)
-#define TRACE_OP_IS_SW_SOURCE(c)	   (((c)&0x03) != 0x00 && ((c)&0x04) == 0x00)
-#define TRACE_OP_IS_HW_SOURCE(c)	   (((c)&0x03) != 0x00 && ((c)&0x04) == 0x04)
-#define TRACE_OP_IS_TARGET_SOURCE(c)   ((c)&0x01)
-#define TRACE_OP_GET_CONTINUATION(c)   ((c)&0x80)
-#define TRACE_OP_GET_SOURCE_SIZE(c)	   ((c)&0x03)
-#define TRACE_OP_GET_SW_SOURCE_ADDR(c) ((c) >> 3)
+#define TRACE_OP_IS_OVERFLOW(c)		   (c == 0x70)
+#define TRACE_OP_IS_LOCAL_TIME(c)	   ((c & 0x0f) == 0x00 && (c & 0x70) != 0x00)
+#define TRACE_OP_IS_EXTENSION(c)	   ((c & 0x0b) == 0x08)
+#define TRACE_OP_IS_GLOBAL_TIME(c)	   ((c & 0xdf) == 0x94)
+#define TRACE_OP_IS_SOURCE(c)		   ((c & 0x03) != 0x00)
+#define TRACE_OP_IS_SW_SOURCE(c)	   ((c & 0x03) != 0x00 && (c & 0x04) == 0x00)
+#define TRACE_OP_IS_HW_SOURCE(c)	   ((c & 0x03) != 0x00 && (c & 0x04) == 0x04)
+#define TRACE_OP_IS_TARGET_SOURCE(c)   (c & 0x01)
+#define TRACE_OP_GET_CONTINUATION(c)   (c & 0x80)
+#define TRACE_OP_GET_SOURCE_SIZE(c)	   (c & 0x03)
+#define TRACE_OP_GET_SW_SOURCE_ADDR(c) (c >> 3)
 
-StlinkTraceReader::StlinkTraceReader()
+StlinkTraceReader::StlinkTraceReader(std::shared_ptr<spdlog::logger> logger) : logger(logger)
 {
-	init_chipids("./chips");
+	init_chipids((char*)"./chips");
 }
 
 bool StlinkTraceReader::startAcqusition()
@@ -28,23 +28,28 @@ bool StlinkTraceReader::startAcqusition()
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 	isRunning = false;
 
-	if (sl != nullptr)
+	if (sl == nullptr)
 	{
-		isRunning = true;
-		if (!enableTrace())
-		{
-			isRunning = false;
-			lastErrorMsg = "Error running trace";
-			return false;
-		}
-		lastErrorMsg = "";
-		return true;
+		lastErrorMsg = "STLink not found!";
+		return false;
 	}
-	lastErrorMsg = "STLink not found!";
-	return false;
+
+	isRunning = true;
+	if (!enableTrace())
+	{
+		isRunning = false;
+		lastErrorMsg = "Error running trace";
+		return false;
+	}
+	logger->info("Starting trace acqusition");
+
+	lastErrorMsg = "";
+	return true;
 }
 bool StlinkTraceReader::stopAcqusition()
 {
+	logger->info("Stopping trace acqusition");
+	traceTable.pop();
 	isRunning = false;
 	if (readerHandle.joinable())
 		readerHandle.join();
@@ -70,6 +75,26 @@ bool StlinkTraceReader::readTrace(double& timestamp, std::array<bool, 10>& trace
 std::string StlinkTraceReader::getLastErrorMsg() const
 {
 	return lastErrorMsg;
+}
+
+void StlinkTraceReader::setCoreClockFrequency(uint32_t frequencyHz)
+{
+	coreFrequency = frequencyHz;
+}
+
+uint32_t StlinkTraceReader::getCoreClockFrequency() const
+{
+	return coreFrequency;
+}
+
+void StlinkTraceReader::setTraceFrequency(uint32_t frequencyHz)
+{
+	traceFrequency = frequencyHz;
+}
+
+uint32_t StlinkTraceReader::getTraceFrequency() const
+{
+	return traceFrequency;
 }
 
 bool StlinkTraceReader::enableTrace()
@@ -153,6 +178,8 @@ bool StlinkTraceReader::enableTrace()
 		return false;
 	}
 
+	logger->info("Starting reader thread!");
+
 	readerHandle = std::thread(&StlinkTraceReader::readerThread, this);
 
 	return true;
@@ -162,12 +189,27 @@ StlinkTraceReader::TraceState StlinkTraceReader::updateTraceIdle(uint8_t c)
 {
 	if (TRACE_OP_IS_TARGET_SOURCE(c))
 	{
-		// printf("channel: %d   ", (c & 0xf8) >> 3);
-		currentChannel = (c & 0xf8) >> 3;
+		currentChannel[awaitingTimestamp] = (c & 0xf8) >> 3;
 		return TRACE_STATE_TARGET_SOURCE;
 	}
 	else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
-		return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_TARGET_TIMESTAMP_HEADER : TRACE_STATE_IDLE;
+	{
+		memset(timestampBuf, 0, sizeof(timestampBuf));
+		timestamp = 0;
+		timestampBytes = 0;
+
+		if ((c & 0x30) != 0x00)
+			WLOG("Possible delay in timestamp generation!\r\n");
+
+		if (TRACE_OP_GET_CONTINUATION(c))
+			return TRACE_STATE_TARGET_TIMESTAMP_HEADER;
+		else
+		{
+			timestampBuf[timestampBytes++] = c;
+			timestampEnd();
+			return TRACE_STATE_IDLE;
+		}
+	}
 	else if (TRACE_OP_IS_EXTENSION(c))
 		return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 	else if (TRACE_OP_IS_OVERFLOW(c))
@@ -181,20 +223,33 @@ StlinkTraceReader::TraceState StlinkTraceReader::updateTraceIdle(uint8_t c)
 
 void StlinkTraceReader::timestampEnd()
 {
-	for (uint32_t i = 0; i < timestampBytes; i++)
-		timestamp |= (uint32_t)(timestampBuf[i] & 0x7f) << 7 * i;
+	if (timestampBytes == 1)
+		timestamp = (uint32_t)(timestampBuf[0] & 0x7f) >> 4;
+	else
+	{
+		for (uint32_t i = 0; i < timestampBytes; i++)
+			timestamp |= (uint32_t)(timestampBuf[i] & 0x7f) << 7 * i;
+	}
 
 	std::array<bool, channels> currentEntry{previousEntry};
 
-	currentEntry[currentChannel] = currentValue == 0xaa ? true : false;
+	uint32_t i = 0;
+	while (awaitingTimestamp--)
+	{
+		currentEntry[currentChannel[i]] = currentValue[i] == 0xaa ? true : false;
+		i++;
+	}
+
 	traceTable.push(std::pair<std::array<bool, channels>, uint32_t>{currentEntry, timestamp});
 	previousEntry = currentEntry;
+	awaitingTimestamp = 0;
 }
 
 StlinkTraceReader::TraceState StlinkTraceReader::updateTrace(uint8_t c)
 {
 	if (state == TRACE_STATE_UNKNOWN)
 	{
+		WLOG("STATE UNKNOWN \r\n", c);
 		if (TRACE_OP_IS_TARGET_SOURCE(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
 			state = TRACE_STATE_IDLE;
 	}
@@ -202,19 +257,18 @@ StlinkTraceReader::TraceState StlinkTraceReader::updateTrace(uint8_t c)
 	switch (state)
 	{
 		case TRACE_STATE_IDLE:
+		{
 			return updateTraceIdle(c);
+		}
 
 		case TRACE_STATE_TARGET_SOURCE:
 		{
-			currentValue = c;
+			currentValue[awaitingTimestamp++] = c;
 			return TRACE_STATE_IDLE;
 		}
 
 		case TRACE_STATE_TARGET_TIMESTAMP_HEADER:
 		{
-			memset(timestampBuf, 0, sizeof(timestampBuf));
-			timestamp = 0;
-			timestampBytes = 0;
 			timestampBuf[timestampBytes++] = c;
 			if (TRACE_OP_GET_CONTINUATION(c))
 				return TRACE_STATE_TARGET_TIMESTAMP_CONT;
@@ -274,10 +328,14 @@ void StlinkTraceReader::readerThread()
 		if (length == sizeof(buffer))
 		{
 			ELOG("OVERFLOW");
-			// isRunning = false;
+			continue;
 		}
 
 		for (int i = 0; i < length; i++)
+		{
 			state = updateTrace(buffer[i]);
+			if (!isRunning)
+				break;
+		}
 	}
 }
