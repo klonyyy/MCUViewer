@@ -54,12 +54,14 @@ void Gui::mainThread()
 	ImPlot::StyleColorsDark();
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init(glsl_version);
+	ImGui_ImplOpenGL3_Init("#version 130");
+
+	ImGuiWindowClass window_class;
+	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 	fileHandler->init();
 
@@ -90,6 +92,7 @@ void Gui::mainThread()
 		{
 			drawStartButtonSwo();
 			drawPlotsTreeSwo();
+			ImGui::SetNextWindowClass(&window_class);
 			ImGui::Begin("SWO Plots");
 			drawPlotsSwo();
 			ImGui::End();
@@ -101,6 +104,7 @@ void Gui::mainThread()
 			drawStartButton();
 			drawVarTable();
 			drawPlotsTree();
+			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 			{
 				drawAcqusitionSettingsWindow();
