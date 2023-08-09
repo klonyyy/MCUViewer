@@ -75,7 +75,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandlerBase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceReader.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp

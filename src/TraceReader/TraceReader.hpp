@@ -1,24 +1,26 @@
-#ifndef _STLINKTRACEREADER_HPP
-#define _STLINKTRACEREADER_HPP
+#ifndef _ITRACEREADER_HPP
+#define _ITRACEREADER_HPP
 
-#include <thread>
+#include <string>
+#include <vector>
 
-#include "ITraceReader.hpp"
+#include "ITraceDevice.hpp"
 #include "RingBuffer.hpp"
+#include "ScrollingBuffer.hpp"
 #include "spdlog/spdlog.h"
-#include "stlink.h"
 
-class StlinkTraceReader : public ITraceReader
+class TraceReader
 {
    public:
-	StlinkTraceReader(std::shared_ptr<spdlog::logger> logger);
-	bool startAcqusition() override;
-	bool stopAcqusition() override;
-	bool isValid() const override;
+	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
-	bool readTrace(double& timestamp, std::array<bool, 10>& trace) override;
+	bool startAcqusition();
+	bool stopAcqusition();
+	bool isValid() const;
 
-	std::string getLastErrorMsg() const override;
+	bool readTrace(double& timestamp, std::array<bool, 10>& trace);
+
+	std::string getLastErrorMsg() const;
 
 	void setCoreClockFrequency(uint32_t frequencyHz);
 	uint32_t getCoreClockFrequency() const;
@@ -41,6 +43,14 @@ class StlinkTraceReader : public ITraceReader
 		TRACE_STATE_SKIP_1,
 	} TraceState;
 
+	typedef struct
+	{
+		uint32_t errorFrames;
+		uint32_t delayedTimestamp1;
+		uint32_t delayedTimestamp2;
+		uint32_t delayedTimestamp3;
+	} TraceQuality;
+
 	TraceState state = TRACE_STATE_IDLE;
 
 	static constexpr uint32_t channels = 10;
@@ -55,24 +65,22 @@ class StlinkTraceReader : public ITraceReader
 	uint32_t coreFrequency = 160000000;
 	uint32_t traceFrequency = 16000000;
 
-	stlink_t* sl = nullptr;
 	bool isRunning = false;
 	std::string lastErrorMsg = "";
 
-	std::thread readerHandle;
-	void readerThread();
+	std::array<bool, channels> previousEntry;
+	RingBuffer<std::pair<std::array<bool, channels>, uint32_t>> traceTable{200000};
 
-	bool enableTrace();
+	std::thread readerHandle;
+
 	TraceState updateTraceIdle(uint8_t c);
 	TraceState updateTrace(uint8_t c);
 	void timestampEnd();
 
+	void readerThread();
+
+	std::shared_ptr<ITraceDevice> traceDevice;
 	std::shared_ptr<spdlog::logger> logger;
-
-	uint32_t traceTableEntry;
-
-	std::array<bool, channels> previousEntry;
-
-	RingBuffer<std::pair<std::array<bool, channels>, uint32_t>> traceTable{200000};
 };
+
 #endif

@@ -3,10 +3,11 @@
 
 #include <map>
 
-#include "ITraceReader.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "PlotHandlerBase.hpp"
+#include "StlinkTraceDevice.hpp"
+#include "TraceReader.hpp"
 #include "spdlog/spdlog.h"
 
 class TracePlotHandler : public PlotHandlerBase
@@ -21,7 +22,8 @@ class TracePlotHandler : public PlotHandlerBase
 	void dataHandler();
 
    private:
-	std::unique_ptr<ITraceReader> traceReader;
+	std::shared_ptr<StlinkTraceDevice> traceDevice;
+	std::unique_ptr<TraceReader> traceReader;
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 	static constexpr uint32_t channels = 10;
 	double time = 0.0;

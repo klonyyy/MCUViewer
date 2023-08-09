@@ -1,11 +1,12 @@
 #include "TracePlotHandler.hpp"
 
-#include "StlinkTraceReader.hpp"
+#include "TraceReader.hpp"
 
 TracePlotHandler::TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
-	traceReader = std::make_unique<StlinkTraceReader>(logger);
+	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
+	traceReader = std::make_unique<TraceReader>(traceDevice, logger);
 
 	for (uint32_t i = 0; i < channels; i++)
 	{
