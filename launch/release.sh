@@ -8,13 +8,13 @@ mkdir packages
 mkdir -p windows
 cd windows
 cmake -DPLATFORM=WIN -DPRODUCTION=TRUE ../..
-make package -j16
+make package -j32
 cp *win64.exe ../packages
 cd - 
 
 mkdir -p linux
 cd linux
 cmake -DPRODUCTION=TRUE ../..
-make package -j16
+make package -j32
 cp *.deb ../packages
 cd - 
