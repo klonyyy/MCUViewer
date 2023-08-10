@@ -91,6 +91,8 @@ void Gui::mainThread()
 		if (ImGui::Begin("SWO Viewer"))
 		{
 			drawStartButtonSwo();
+			drawSettingsSwo();
+			drawIndicatorsSwo();
 			drawPlotsTreeSwo();
 			ImGui::SetNextWindowClass(&window_class);
 			ImGui::Begin("SWO Plots");

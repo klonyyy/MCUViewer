@@ -13,8 +13,21 @@
 class TracePlotHandler : public PlotHandlerBase
 {
    public:
+	typedef struct
+	{
+		uint32_t coreFrequency;
+		uint32_t traceFrequency;
+	} TraceSettings;
+
+	TraceSettings traceSettings{};
+
 	TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~TracePlotHandler();
+
+	TraceSettings getTraceSettings() const;
+	void setTraceSettings(const TraceSettings& settings);
+
+	std::map<const char*, uint32_t> getTraceIndicators() const;
 
 	std::string getLastReaderError() const;
 

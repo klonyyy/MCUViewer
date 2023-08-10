@@ -26,6 +26,23 @@ TracePlotHandler::~TracePlotHandler()
 		dataHandle.join();
 }
 
+TracePlotHandler::TraceSettings TracePlotHandler::getTraceSettings() const
+{
+	return {.coreFrequency = traceReader->getCoreClockFrequency(), .traceFrequency = traceReader->getTraceFrequency()};
+}
+
+void TracePlotHandler::setTraceSettings(const TraceSettings& settings)
+{
+	traceReader->setCoreClockFrequency(settings.coreFrequency);
+	traceReader->setTraceFrequency(settings.traceFrequency);
+	traceSettings = settings;
+}
+
+std::map<const char*, uint32_t> TracePlotHandler::getTraceIndicators() const
+{
+	return traceReader->getTraceIndicators();
+}
+
 std::string TracePlotHandler::getLastReaderError() const
 {
 	return traceReader->getLastErrorMsg();

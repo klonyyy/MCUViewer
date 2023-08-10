@@ -7,6 +7,7 @@
 #include "ITraceDevice.hpp"
 #include "RingBuffer.hpp"
 #include "ScrollingBuffer.hpp"
+#include "map"
 #include "spdlog/spdlog.h"
 
 class TraceReader
@@ -26,6 +27,7 @@ class TraceReader
 	uint32_t getCoreClockFrequency() const;
 	void setTraceFrequency(uint32_t frequencyHz);
 	uint32_t getTraceFrequency() const;
+	std::map<const char*, uint32_t> getTraceIndicators() const;
 
    private:
 	typedef enum
@@ -43,15 +45,12 @@ class TraceReader
 		TRACE_STATE_SKIP_1,
 	} TraceState;
 
-	typedef struct
-	{
-		uint32_t errorFrames;
-		uint32_t delayedTimestamp1;
-		uint32_t delayedTimestamp2;
-		uint32_t delayedTimestamp3;
-	} TraceQuality;
-
 	TraceState state = TRACE_STATE_IDLE;
+
+	std::map<const char*, uint32_t> traceQuality{{"error frames", 0},
+												 {"delayed timestamp 1", 0},
+												 {"delayed timestamp 2", 0},
+												 {"delayed timestamp 3", 0}};
 
 	static constexpr uint32_t channels = 10;
 
@@ -61,9 +60,9 @@ class TraceReader
 	uint8_t timestampBuf[7]{};
 	uint32_t timestampBytes;
 	uint32_t timestamp;
-	uint32_t errorCount;
-	uint32_t coreFrequency = 160000000;
-	uint32_t traceFrequency = 16000000;
+
+	uint32_t coreFrequency = 160000;
+	uint32_t traceFrequency = 16000;
 
 	bool isRunning = false;
 	std::string lastErrorMsg = "";

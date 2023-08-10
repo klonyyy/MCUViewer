@@ -15,13 +15,20 @@
 #define TRACE_OP_GET_SOURCE_SIZE(c)	   (c & 0x03)
 #define TRACE_OP_GET_SW_SOURCE_ADDR(c) (c >> 3)
 
+#define TRACE_TIMEOUT_1 0xD0
+#define TRACE_TIMEOUT_2 0xE0
+#define TRACE_TIMEOUT_3 0xF0
+
 TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger) : traceDevice(traceDevice), logger(logger)
 {
 }
 
 bool TraceReader::startAcqusition()
 {
-	if (traceDevice->startTrace(coreFrequency, traceFrequency))
+	for (auto& [key, value] : traceQuality)
+		value = 0;
+
+	if (traceDevice->startTrace(coreFrequency * 1000, traceFrequency * 1000))
 	{
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
@@ -79,6 +86,11 @@ uint32_t TraceReader::getTraceFrequency() const
 	return traceFrequency;
 }
 
+std::map<const char*, uint32_t> TraceReader::getTraceIndicators() const
+{
+	return traceQuality;
+}
+
 TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 {
 	if (TRACE_OP_IS_TARGET_SOURCE(c))
@@ -92,8 +104,12 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 		timestamp = 0;
 		timestampBytes = 0;
 
-		if ((c & 0x30) != 0x00)
-			logger->warn("Possible delay in timestamp generation! {}", c);
+		if (c == TRACE_TIMEOUT_1)
+			traceQuality.at("delayed timestamp 1")++;
+		else if (c == TRACE_TIMEOUT_2)
+			traceQuality.at("delayed timestamp 2")++;
+		else if (c == TRACE_TIMEOUT_3)
+			traceQuality.at("delayed timestamp 3")++;
 
 		if (TRACE_OP_GET_CONTINUATION(c))
 			return TRACE_STATE_TARGET_TIMESTAMP_HEADER;
@@ -109,9 +125,8 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	else if (TRACE_OP_IS_OVERFLOW(c))
 		logger->warn("OVERFLOW OPTCODE 0x%02x\n", c);
 
-	logger->warn("Unknown opcode 0x%02x\n", c);
-
-	errorCount++;
+	traceQuality["error frames"]++;
+	
 	return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 }
 

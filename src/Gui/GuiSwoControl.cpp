@@ -37,6 +37,43 @@ void Gui::drawStartButtonSwo()
 	ImGui::PopStyleColor(3);
 }
 
+void Gui::drawSettingsSwo()
+{
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
+	ImGui::Text("Settings");
+	ImGui::Separator();
+
+	TracePlotHandler::TraceSettings settings = tracePlotHandler->getTraceSettings();
+
+	ImGui::Text("Core Frequency [kHz]      ");
+	ImGui::SameLine();
+
+	drawInputText(settings.coreFrequency, [&](std::string str)
+				  {settings.coreFrequency = std::stoi(str);
+	tracePlotHandler->setTraceSettings(settings); });
+
+	ImGui::Text("Trace Frequency [kHz]     ");
+	ImGui::SameLine();
+	drawInputText(settings.traceFrequency, [&](std::string str)
+				  {settings.traceFrequency = std::stoi(str);
+	tracePlotHandler->setTraceSettings(settings); });
+}
+void Gui::drawIndicatorsSwo()
+{
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
+	ImGui::Text("Indicators");
+	ImGui::Separator();
+
+	std::map<const char*, uint32_t> traceQuality = tracePlotHandler->getTraceIndicators();
+
+	for (auto& [name, value] : traceQuality)
+	{
+		ImGui::Text(name);
+		ImGui::SameLine();
+		ImGui::Text(std::to_string(value).c_str());
+	}
+}
+
 void Gui::drawPlotsTreeSwo()
 {
 	const uint32_t windowHeight = 320;
@@ -89,5 +126,19 @@ void Gui::drawPlotsTreeSwo()
 	{
 		tracePlotHandler->renamePlot(plt->getName(), newName);
 		selected = newName;
+	}
+}
+
+void Gui::drawInputText(uint32_t variable, std::function<void(std::string)> valueChanged)
+{
+	std::string str = std::to_string(variable);
+
+	ImGui::InputText(str.c_str(), &str, 0, NULL, NULL);
+
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
+	{
+		logger->info(str);
+		if (valueChanged)
+			valueChanged(str);
 	}
 }
