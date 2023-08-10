@@ -6,7 +6,6 @@
 
 #include "ITraceDevice.hpp"
 #include "RingBuffer.hpp"
-#include "ScrollingBuffer.hpp"
 #include "map"
 #include "spdlog/spdlog.h"
 
