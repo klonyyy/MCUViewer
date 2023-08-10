@@ -4,7 +4,6 @@
 #include <map>
 
 #include "Plot.hpp"
-#include "PlotHandler.hpp"
 #include "PlotHandlerBase.hpp"
 #include "StlinkTraceDevice.hpp"
 #include "TraceReader.hpp"

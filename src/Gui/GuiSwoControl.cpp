@@ -1,5 +1,4 @@
 #include "Gui.hpp"
-#include "PlotHandlerBase.hpp"
 
 void Gui::drawStartButtonSwo()
 {

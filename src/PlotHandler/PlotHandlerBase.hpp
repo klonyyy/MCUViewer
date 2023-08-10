@@ -9,7 +9,6 @@
 #include "Plot.hpp"
 #include "ScrollingBuffer.hpp"
 #include "StlinkHandler.hpp"
-#include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandlerBase
