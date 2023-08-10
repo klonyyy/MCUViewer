@@ -174,8 +174,6 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
-
-	askShouldSaveOnExit(shouldSaveOnClose);
 	askShouldSaveOnNew(shouldSaveOnNew);
 }
 
