@@ -65,7 +65,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 
 	while (!done)
 	{
