@@ -126,7 +126,7 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 		logger->warn("OVERFLOW OPTCODE 0x%02x\n", c);
 
 	traceQuality["error frames"]++;
-	
+
 	return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 }
 
@@ -224,10 +224,6 @@ void TraceReader::readerThread()
 {
 	while (isRunning)
 	{
-		/* make sure this value is the same as in stlink library */
-		static constexpr uint32_t size = 10 * 2048;
-		uint8_t buffer[size];
-
 		uint32_t length = traceDevice->readTraceBuffer(buffer, size);
 
 		if (length == 0)
@@ -242,6 +238,8 @@ void TraceReader::readerThread()
 			logger->error("OVERFLOW");
 			continue;
 		}
+
+		logger->debug("Read {} bytes of trace data", length);
 
 		for (uint32_t i = 0; i < length; i++)
 		{

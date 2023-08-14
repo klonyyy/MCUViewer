@@ -53,6 +53,10 @@ class TraceReader
 
 	static constexpr uint32_t channels = 10;
 
+	/* make sure this value is the same as in stlink library */
+	static constexpr uint32_t size = 10 * 2048;
+	uint8_t buffer[size];
+
 	uint8_t currentValue[5]{};
 	uint8_t awaitingTimestamp = 0;
 	uint8_t currentChannel[5]{};
@@ -61,7 +65,7 @@ class TraceReader
 	uint32_t timestamp;
 
 	uint32_t coreFrequency = 160000;
-	uint32_t traceFrequency = 16000;
+	uint32_t traceFrequency = 14000;
 
 	bool isRunning = false;
 	std::string lastErrorMsg = "";
