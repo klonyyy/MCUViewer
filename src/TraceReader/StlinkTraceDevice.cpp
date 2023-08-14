@@ -26,21 +26,14 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequen
 		return false;
 
 	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
-	stlink_write_debug32(sl, STLINK_REG_DHCSR,
-						 STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
-							 STLINK_REG_DHCSR_C_HALT);
-	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
-	stlink_write_debug32(sl, STLINK_REG_CM3_FP_CTRL,
-						 STLINK_REG_CM3_FP_CTRL_KEY);
+	stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN);
+	stlink_write_debug32(sl, STLINK_REG_CM3_FP_CTRL, STLINK_REG_CM3_FP_CTRL_KEY);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION0, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION1, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION2, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION3, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_CTRL, 0);
-	stlink_write_debug32(sl, STLINK_REG_DBGMCU_CR,
-						 STLINK_REG_DBGMCU_CR_DBG_SLEEP | STLINK_REG_DBGMCU_CR_DBG_STOP |
-							 STLINK_REG_DBGMCU_CR_DBG_STANDBY | STLINK_REG_DBGMCU_CR_TRACE_IOEN |
-							 STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
+	stlink_write_debug32(sl, STLINK_REG_DBGMCU_CR, STLINK_REG_DBGMCU_CR_DBG_SLEEP | STLINK_REG_DBGMCU_CR_DBG_STOP | STLINK_REG_DBGMCU_CR_DBG_STANDBY | STLINK_REG_DBGMCU_CR_TRACE_IOEN | STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
 	if (stlink_trace_enable(sl, traceFrequency))
 	{
