@@ -13,8 +13,13 @@ StlinkTraceDevice::StlinkTraceDevice(std::shared_ptr<spdlog::logger> logger) : l
 
 bool StlinkTraceDevice::stopTrace()
 {
+	if (sl == nullptr)
+		return false;
+
+	stlink_exit_debug_mode(sl);
 	stlink_trace_disable(sl);
 	stlink_close(sl);
+
 	logger->info("Trace stopped.");
 	return true;
 }

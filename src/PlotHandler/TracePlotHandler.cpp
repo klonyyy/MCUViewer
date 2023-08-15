@@ -90,7 +90,6 @@ void TracePlotHandler::dataHandler()
 					time = 0;
 				else
 				{
-					traceReader->stopAcqusition();
 					viewerState = state::STOP;
 					viewerStateTemp = state::STOP;
 				}

@@ -61,7 +61,7 @@ class TraceReader
 	uint8_t awaitingTimestamp = 0;
 	uint8_t currentChannel[5]{};
 	uint8_t timestampBuf[7]{};
-	uint32_t timestampBytes;
+	uint32_t timestampBytes = 0;
 	uint32_t timestamp;
 
 	uint32_t coreFrequency = 160000;
