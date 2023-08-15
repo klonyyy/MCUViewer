@@ -65,7 +65,7 @@ class TraceReader
 	uint32_t timestamp;
 
 	uint32_t coreFrequency = 160000;
-	uint32_t traceFrequency = 14000;
+	uint32_t traceFrequency = 10;
 
 	bool isRunning = false;
 	std::string lastErrorMsg = "";

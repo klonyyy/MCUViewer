@@ -11,7 +11,7 @@ class StlinkTraceDevice : public ITraceDevice
 	StlinkTraceDevice(std::shared_ptr<spdlog::logger> logger);
 	bool startTrace(uint32_t coreFrequency, uint32_t traceFrequency) override;
 	bool stopTrace() override;
-	uint32_t readTraceBuffer(uint8_t* buffer, uint32_t size) override;
+	int32_t readTraceBuffer(uint8_t* buffer, uint32_t size) override;
 
    private:
 	stlink_t* sl = nullptr;

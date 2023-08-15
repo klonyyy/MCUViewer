@@ -28,12 +28,13 @@ bool TraceReader::startAcqusition()
 	for (auto& [key, value] : traceQuality)
 		value = 0;
 
-	if (traceDevice->startTrace(coreFrequency * 1000, traceFrequency * 1000))
+	if (traceDevice->startTrace(coreFrequency * 1000, traceFrequency))
 	{
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
 		return true;
 	}
+	traceDevice->stopTrace();
 	return false;
 }
 
@@ -163,6 +164,9 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 			state = TRACE_STATE_IDLE;
 	}
 
+	awaitingTimestamp = std::clamp(awaitingTimestamp, (uint8_t)0, (uint8_t)sizeof(currentValue));
+	timestampBytes = std::clamp(timestampBytes, (uint32_t)0, (uint32_t)sizeof(timestampBuf));
+
 	switch (state)
 	{
 		case TRACE_STATE_IDLE:
@@ -224,7 +228,13 @@ void TraceReader::readerThread()
 {
 	while (isRunning)
 	{
-		uint32_t length = traceDevice->readTraceBuffer(buffer, size);
+		int32_t length = traceDevice->readTraceBuffer(buffer, size);
+
+		if (length < 0)
+		{
+			logger->error("CRITICAL ERROR");
+			break;
+		}
 
 		if (length == 0)
 		{
@@ -239,9 +249,7 @@ void TraceReader::readerThread()
 			continue;
 		}
 
-		logger->debug("Read {} bytes of trace data", length);
-
-		for (uint32_t i = 0; i < length; i++)
+		for (int32_t i = 0; i < length; i++)
 		{
 			state = updateTrace(buffer[i]);
 			if (!isRunning)
