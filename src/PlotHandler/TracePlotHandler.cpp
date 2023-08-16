@@ -63,7 +63,7 @@ void TracePlotHandler::dataHandler()
 			}
 
 			double timestamp;
-			std::array<bool, 10> traces{};
+			std::array<double, 10> traces{};
 			traceReader->readTrace(timestamp, traces);
 
 			uint32_t i = 0;

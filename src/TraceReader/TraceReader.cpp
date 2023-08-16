@@ -58,7 +58,7 @@ bool TraceReader::isValid() const
 	return isRunning;
 }
 
-bool TraceReader::readTrace(double& timestamp, std::array<bool, 10>& trace)
+bool TraceReader::readTrace(double& timestamp, std::array<double, 10>& trace)
 {
 	auto entry = traceTable.pop();
 	timestamp = entry.second / static_cast<double>(coreFrequency);
@@ -145,16 +145,16 @@ void TraceReader::timestampEnd()
 			timestamp |= (uint32_t)(timestampBuf[i] & 0x7f) << 7 * i;
 	}
 
-	std::array<bool, channels> currentEntry{previousEntry};
+	std::array<double, channels> currentEntry{previousEntry};
 
 	uint32_t i = 0;
 	while (awaitingTimestamp--)
 	{
-		currentEntry[currentChannel[i]] = currentValue[i] == 0xaa ? true : false;
+		currentEntry[currentChannel[i]] = currentValue[i] == 0xaa ? 1.0 : 0.0;
 		i++;
 	}
 
-	traceTable.push(std::pair<std::array<bool, channels>, uint32_t>{currentEntry, timestamp});
+	traceTable.push(std::pair<std::array<double, channels>, uint32_t>{currentEntry, timestamp});
 	previousEntry = currentEntry;
 	awaitingTimestamp = 0;
 }

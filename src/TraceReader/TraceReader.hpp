@@ -18,7 +18,7 @@ class TraceReader
 	bool stopAcqusition();
 	bool isValid() const;
 
-	bool readTrace(double& timestamp, std::array<bool, 10>& trace);
+	bool readTrace(double& timestamp, std::array<double, 10>& trace);
 
 	std::string getLastErrorMsg() const;
 
@@ -72,8 +72,8 @@ class TraceReader
 	bool isRunning = false;
 	std::string lastErrorMsg = "";
 
-	std::array<bool, channels> previousEntry;
-	RingBuffer<std::pair<std::array<bool, channels>, uint32_t>> traceTable{200000};
+	std::array<double, channels> previousEntry;
+	RingBuffer<std::pair<std::array<double, channels>, uint32_t>> traceTable{200000};
 
 	std::thread readerHandle;
 
