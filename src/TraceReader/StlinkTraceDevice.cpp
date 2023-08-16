@@ -24,7 +24,7 @@ bool StlinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequency)
+bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequency, uint32_t activeChannelMask)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 
@@ -40,7 +40,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequen
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION2, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION3, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_CTRL, 0);
-	stlink_write_debug32(sl, STLINK_REG_DBGMCU_CR, /*STLINK_REG_DBGMCU_CR_DBG_SLEEP | STLINK_REG_DBGMCU_CR_DBG_STOP | STLINK_REG_DBGMCU_CR_DBG_STANDBY |*/ STLINK_REG_DBGMCU_CR_TRACE_IOEN | STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
+	stlink_write_debug32(sl, STLINK_REG_DBGMCU_CR, STLINK_REG_DBGMCU_CR_TRACE_IOEN | STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
 	uint32_t prescaler = traceFrequency;
 
@@ -57,14 +57,15 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequen
 	stlink_write_debug32(sl, STLINK_REG_TPI_CSPSR, STLINK_REG_TPI_CSPSR_PORT_SIZE_1);
 
 	logger->info("Trace prescaler {}", prescaler);
+	logger->info("Trace channels mask {}", activeChannelMask);
 
 	stlink_write_debug32(sl, STLINK_REG_TPI_ACPR, prescaler);  // Set TPIU_ACPR clock divisor
 	stlink_write_debug32(sl, STLINK_REG_TPI_FFCR, STLINK_REG_TPI_FFCR_TRIG_IN);
 	stlink_write_debug32(sl, STLINK_REG_TPI_SPPR, STLINK_REG_TPI_SPPR_SWO_NRZ);
 	stlink_write_debug32(sl, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);
 	stlink_write_debug32(sl, STLINK_REG_ITM_TCR, STLINK_REG_ITM_TCR_TRACE_BUS_ID_1 | STLINK_REG_ITM_TCR_TS_ENA | STLINK_REG_ITM_TCR_ITM_ENA);
-	stlink_write_debug32(sl, STLINK_REG_ITM_TER, STLINK_REG_ITM_TER_PORTS_ALL);
-	stlink_write_debug32(sl, STLINK_REG_ITM_TPR, STLINK_REG_ITM_TPR_PORTS_ALL);
+	stlink_write_debug32(sl, STLINK_REG_ITM_TER, activeChannelMask);
+	stlink_write_debug32(sl, STLINK_REG_ITM_TPR, activeChannelMask);
 
 	if (stlink_run(sl, RUN_NORMAL))
 	{

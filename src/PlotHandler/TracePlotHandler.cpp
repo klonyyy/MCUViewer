@@ -90,7 +90,13 @@ void TracePlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (traceReader->startAcqusition())
+				std::array<bool, 32> activeChannels{};
+
+				uint32_t i = 0;
+				for (auto& [key, plot] : plotsMap)
+					activeChannels[i++] = plot->getVisibility();
+
+				if (traceReader->startAcqusition(activeChannels))
 					time = 0;
 				else
 					viewerState = state::STOP;

@@ -14,7 +14,7 @@ class TraceReader
    public:
 	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
-	bool startAcqusition();
+	bool startAcqusition(std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
 	bool isValid() const;
 

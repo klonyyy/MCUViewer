@@ -23,12 +23,16 @@ TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_
 {
 }
 
-bool TraceReader::startAcqusition()
+bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 {
 	for (auto& [key, value] : traceQuality)
 		value = 0;
 
-	if (traceDevice->startTrace(coreFrequency * 1000, traceFrequency))
+	uint32_t activeChannelsMask = 0;
+	for (uint32_t i = 0; i < activeChannels.size(); i++)
+		activeChannelsMask |= (static_cast<uint32_t>(activeChannels[i]) << i);
+
+	if (traceDevice->startTrace(coreFrequency * 1000, traceFrequency, activeChannelsMask))
 	{
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
