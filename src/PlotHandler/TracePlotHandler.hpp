@@ -20,7 +20,7 @@ class TracePlotHandler : public PlotHandlerBase
 
 	TraceSettings traceSettings{};
 
-	TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~TracePlotHandler();
 
 	TraceSettings getTraceSettings() const;

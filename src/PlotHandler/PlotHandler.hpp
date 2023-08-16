@@ -16,7 +16,7 @@
 class PlotHandler : public PlotHandlerBase
 {
    public:
-	PlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	virtual ~PlotHandler();
 
 	std::string getLastReaderError() const;

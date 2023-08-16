@@ -19,7 +19,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~Gui();
 
    private:
@@ -38,7 +38,7 @@ class Gui
 
 	TracePlotHandler* tracePlotHandler;
 
-	bool& done;
+	std::atomic<bool>& done;
 
 	std::mutex* mtx;
 

@@ -2,7 +2,7 @@
 
 #include "TraceReader.hpp"
 
-TracePlotHandler::TracePlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
+TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
@@ -56,6 +56,12 @@ void TracePlotHandler::dataHandler()
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 
+			if (!traceReader->isValid())
+			{
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
+			}
+
 			double timestamp;
 			std::array<bool, 10> traces{};
 			traceReader->readTrace(timestamp, traces);
@@ -82,17 +88,12 @@ void TracePlotHandler::dataHandler()
 
 		if (stateChangeOrdered)
 		{
-			viewerState = viewerStateTemp;
-
 			if (viewerState == state::RUN)
 			{
 				if (traceReader->startAcqusition())
 					time = 0;
 				else
-				{
 					viewerState = state::STOP;
-					viewerStateTemp = state::STOP;
-				}
 			}
 			else
 				traceReader->stopAcqusition();

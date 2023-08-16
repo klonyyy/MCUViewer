@@ -20,7 +20,7 @@ class PlotHandlerBase
 		RUN = 1,
 	};
 
-	PlotHandlerBase(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	virtual ~PlotHandlerBase() = default;
 
 	void addPlot(const std::string& name);
@@ -56,9 +56,8 @@ class PlotHandlerBase
 	iterator end();
 
    protected:
-	bool& done;
-	state viewerState = state::STOP;
-	state viewerStateTemp = state::STOP;
+	std::atomic<bool>& done;
+	std::atomic<state> viewerState = state::STOP;
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
 	std::mutex* mtx;
 	std::thread dataHandle;

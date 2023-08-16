@@ -15,7 +15,7 @@
 #define _UNIX
 #endif
 
-bool done = false;
+std::atomic<bool> done = false;
 std::mutex mtx;
 std::shared_ptr<spdlog::logger> logger;
 

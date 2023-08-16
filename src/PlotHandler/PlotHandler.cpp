@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 
-PlotHandler::PlotHandler(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
+PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
 	stlinkReader = std::make_unique<StlinkHandler>();
@@ -72,8 +72,6 @@ void PlotHandler::dataHandler()
 
 		if (stateChangeOrdered)
 		{
-			viewerState = viewerStateTemp;
-
 			if (viewerState == state::RUN)
 			{
 				if (varReader->start())
@@ -82,11 +80,8 @@ void PlotHandler::dataHandler()
 					start = std::chrono::steady_clock::now();
 				}
 				else
-				{
 					viewerState = state::STOP;
-					viewerStateTemp = state::STOP;
-				}
-			}
+						}
 			else
 				varReader->stop();
 			stateChangeOrdered = false;

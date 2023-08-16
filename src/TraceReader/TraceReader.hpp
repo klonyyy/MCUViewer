@@ -64,6 +64,8 @@ class TraceReader
 	uint32_t timestampBytes = 0;
 	uint32_t timestamp;
 
+	uint32_t sleepCycles = 0;
+
 	uint32_t coreFrequency = 160000;
 	uint32_t traceFrequency = 10;
 

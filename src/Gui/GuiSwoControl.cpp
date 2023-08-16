@@ -26,11 +26,15 @@ void Gui::drawStartButtonSwo()
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
+			logger->info("Start trace clicked!");
 			tracePlotHandler->eraseAllPlotData();
 			tracePlotHandler->setViewerState(PlotHandlerBase::state::RUN);
 		}
 		else
+		{
+			logger->info("Stop trace clicked!");
 			tracePlotHandler->setViewerState(PlotHandlerBase::state::STOP);
+		}
 	}
 
 	ImGui::PopStyleColor(3);

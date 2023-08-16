@@ -233,12 +233,22 @@ void TraceReader::readerThread()
 		if (length < 0)
 		{
 			logger->error("CRITICAL ERROR");
+			isRunning = false;
+			break;
+		}
+
+		if (sleepCycles > 1000)
+		{
+			logger->error("No trace registered for 1000 cycles!");
+			isRunning = false;
 			break;
 		}
 
 		if (length == 0)
 		{
 			logger->info("SLEEP");
+			sleepCycles++;
+			logger->info("sleep cycles: {}", sleepCycles);
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			continue;
 		}
@@ -248,6 +258,10 @@ void TraceReader::readerThread()
 			logger->error("OVERFLOW");
 			continue;
 		}
+
+		sleepCycles = 0;
+
+		logger->info("Received {} bytes", length);
 
 		for (int32_t i = 0; i < length; i++)
 		{

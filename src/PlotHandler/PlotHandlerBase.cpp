@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 
-PlotHandlerBase::PlotHandlerBase(bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : done(done), mtx(mtx), logger(logger)
+PlotHandlerBase::PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : done(done), mtx(mtx), logger(logger)
 {
 }
 
@@ -54,8 +54,9 @@ void PlotHandlerBase::setViewerState(state state)
 {
 	if (state == viewerState)
 		return;
+
+	viewerState = state;
 	stateChangeOrdered = true;
-	viewerStateTemp = state;
 }
 
 PlotHandlerBase::state PlotHandlerBase::getViewerState() const
