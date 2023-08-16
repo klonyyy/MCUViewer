@@ -61,7 +61,7 @@ class PlotHandlerBase
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;
 	std::mutex* mtx;
 	std::thread dataHandle;
-	bool stateChangeOrdered = false;
+	std::atomic<bool> stateChangeOrdered = false;
 	std::shared_ptr<spdlog::logger> logger;
 };
 
