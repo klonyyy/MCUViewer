@@ -4,7 +4,7 @@ void Gui::drawPlotsSwo()
 {
 	ImVec2 plotSize(-1, -1);
 
-	if (ImPlot::BeginSubplots("##subplos", tracePlotHandler->getPlotsCount(), 1, plotSize, ImPlotSubplotFlags_LinkAllX))
+	if (ImPlot::BeginSubplots("##subplos", tracePlotHandler->getVisiblePlotsCount(), 1, plotSize, ImPlotSubplotFlags_LinkAllX))
 	{
 		for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 		{
