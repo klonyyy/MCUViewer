@@ -34,6 +34,10 @@ class TraceReader
 		TRACE_STATE_UNKNOWN,
 		TRACE_STATE_IDLE,
 		TRACE_STATE_TARGET_SOURCE,
+		TRACE_STATE_TARGET_SOURCE_3B,
+		TRACE_STATE_TARGET_SOURCE_2B,
+		TRACE_STATE_TARGET_SOURCE_1B,
+		TRACE_STATE_TARGET_SOURCE_0B,
 		TRACE_STATE_TARGET_TIMESTAMP_HEADER,
 		TRACE_STATE_TARGET_TIMESTAMP_CONT,
 		TRACE_STATE_TARGET_TIMESTAMP_END,
@@ -57,9 +61,9 @@ class TraceReader
 	static constexpr uint32_t size = 10 * 2048;
 	uint8_t buffer[size];
 
-	uint8_t currentValue[5]{};
+	uint32_t currentValue[channels]{};
 	uint8_t awaitingTimestamp = 0;
-	uint8_t currentChannel[5]{};
+	uint8_t currentChannel[channels]{};
 	uint8_t timestampBuf[7]{};
 	uint32_t timestampBytes = 0;
 	uint32_t timestamp;
@@ -69,7 +73,7 @@ class TraceReader
 	uint32_t coreFrequency = 160000;
 	uint32_t traceFrequency = 10;
 
-	bool isRunning = false;
+	std::atomic<bool> isRunning{false};
 	std::string lastErrorMsg = "";
 
 	std::array<double, channels> previousEntry;

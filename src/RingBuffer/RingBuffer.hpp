@@ -37,6 +37,12 @@ class RingBuffer
 		return item;
 	}
 
+	size_t getSize()
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		return size;
+	}
+
    private:
 	std::vector<T> buffer;
 	size_t capacity;

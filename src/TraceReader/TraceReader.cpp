@@ -3,17 +3,18 @@
 #include <cstring>
 #include <random>
 
-#define TRACE_OP_IS_OVERFLOW(c)		   (c == 0x70)
-#define TRACE_OP_IS_LOCAL_TIME(c)	   ((c & 0x0f) == 0x00 && (c & 0x70) != 0x00)
-#define TRACE_OP_IS_EXTENSION(c)	   ((c & 0x0b) == 0x08)
-#define TRACE_OP_IS_GLOBAL_TIME(c)	   ((c & 0xdf) == 0x94)
-#define TRACE_OP_IS_SOURCE(c)		   ((c & 0x03) != 0x00)
-#define TRACE_OP_IS_SW_SOURCE(c)	   ((c & 0x03) != 0x00 && (c & 0x04) == 0x00)
-#define TRACE_OP_IS_HW_SOURCE(c)	   ((c & 0x03) != 0x00 && (c & 0x04) == 0x04)
-#define TRACE_OP_IS_TARGET_SOURCE(c)   (c & 0x01)
-#define TRACE_OP_GET_CONTINUATION(c)   (c & 0x80)
-#define TRACE_OP_GET_SOURCE_SIZE(c)	   (c & 0x03)
-#define TRACE_OP_GET_SW_SOURCE_ADDR(c) (c >> 3)
+#define TRACE_OP_IS_OVERFLOW(c)			(c == 0x70)
+#define TRACE_OP_IS_LOCAL_TIME(c)		((c & 0x0f) == 0x00 && (c & 0x70) != 0x00)
+#define TRACE_OP_IS_EXTENSION(c)		((c & 0x0b) == 0x08)
+#define TRACE_OP_IS_GLOBAL_TIME(c)		((c & 0xdf) == 0x94)
+#define TRACE_OP_IS_SOURCE(c)			((c & 0x03) != 0x00)
+#define TRACE_OP_IS_SW_SOURCE(c)		((c & 0x03) != 0x00 && (c & 0x04) == 0x00)
+#define TRACE_OP_IS_HW_SOURCE(c)		((c & 0x03) != 0x00 && (c & 0x04) == 0x04)
+#define TRACE_OP_IS_TARGET_SOURCE_1B(c) ((c & 0x03) == 0x01)
+#define TRACE_OP_IS_TARGET_SOURCE_4B(c) ((c & 0x03) == 0x03)
+#define TRACE_OP_GET_CONTINUATION(c)	(c & 0x80)
+#define TRACE_OP_GET_SOURCE_SIZE(c)		(c & 0x03)
+#define TRACE_OP_GET_SW_SOURCE_ADDR(c)	(c >> 3)
 
 #define TRACE_TIMEOUT_1 0xD0
 #define TRACE_TIMEOUT_2 0xE0
@@ -45,6 +46,7 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 bool TraceReader::stopAcqusition()
 {
 	isRunning = false;
+	sleepCycles = 0;
 
 	if (readerHandle.joinable())
 		readerHandle.join();
@@ -55,11 +57,13 @@ bool TraceReader::stopAcqusition()
 
 bool TraceReader::isValid() const
 {
-	return isRunning;
+	return isRunning.load();
 }
 
 bool TraceReader::readTrace(double& timestamp, std::array<double, 10>& trace)
 {
+	if (!isRunning.load() || traceTable.getSize() == 0)
+		return false;
 	auto entry = traceTable.pop();
 	timestamp = entry.second / static_cast<double>(coreFrequency);
 	trace = entry.first;
@@ -98,12 +102,17 @@ std::map<const char*, uint32_t> TraceReader::getTraceIndicators() const
 
 TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 {
-	if (TRACE_OP_IS_TARGET_SOURCE(c))
+	if (TRACE_OP_IS_TARGET_SOURCE_1B(c))
 	{
 		currentChannel[awaitingTimestamp] = (c & 0xf8) >> 3;
 		return TRACE_STATE_TARGET_SOURCE;
 	}
-	else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
+	else if (TRACE_OP_IS_TARGET_SOURCE_4B(c))
+	{
+		currentChannel[awaitingTimestamp] = (c & 0xf8) >> 3;
+		return TRACE_STATE_TARGET_SOURCE_3B;
+	}
+	else if (TRACE_OP_IS_LOCAL_TIME(c))
 	{
 		memset(timestampBuf, 0, sizeof(timestampBuf));
 		timestamp = 0;
@@ -150,13 +159,23 @@ void TraceReader::timestampEnd()
 	uint32_t i = 0;
 	while (awaitingTimestamp--)
 	{
-		currentEntry[currentChannel[i]] = currentValue[i] == 0xaa ? 1.0 : 0.0;
+		if (currentChannel[i] > channels || i > channels)
+		{
+			logger->critical("WRONG CHANNEL");
+			break;
+		}
+
+		if (currentChannel[i] == 9)
+			currentEntry[currentChannel[i]] = *(float*)&currentValue[i];
+		else
+			currentEntry[currentChannel[i]] = currentValue[i] == 0xaa ? 1.0 : 0.0;
 		i++;
 	}
 
 	traceTable.push(std::pair<std::array<double, channels>, uint32_t>{currentEntry, timestamp});
 	previousEntry = currentEntry;
 	awaitingTimestamp = 0;
+	timestampBytes = 0;
 }
 
 TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
@@ -164,11 +183,11 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 	if (state == TRACE_STATE_UNKNOWN)
 	{
 		logger->warn("STATE UNKNOWN {}", c);
-		if (TRACE_OP_IS_TARGET_SOURCE(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
+		if (TRACE_OP_IS_TARGET_SOURCE_1B(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
 			state = TRACE_STATE_IDLE;
 	}
 
-	awaitingTimestamp = std::clamp(awaitingTimestamp, (uint8_t)0, (uint8_t)sizeof(currentValue));
+	awaitingTimestamp = std::clamp(awaitingTimestamp, (uint8_t)0, (uint8_t)(sizeof(currentValue) / sizeof(currentValue[0])));
 	timestampBytes = std::clamp(timestampBytes, (uint32_t)0, (uint32_t)sizeof(timestampBuf));
 
 	switch (state)
@@ -181,6 +200,28 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 		case TRACE_STATE_TARGET_SOURCE:
 		{
 			currentValue[awaitingTimestamp++] = c;
+			return TRACE_STATE_IDLE;
+		}
+
+		case TRACE_STATE_TARGET_SOURCE_3B:
+		{
+			currentValue[awaitingTimestamp] = c;
+			return TRACE_STATE_TARGET_SOURCE_2B;
+		}
+
+		case TRACE_STATE_TARGET_SOURCE_2B:
+		{
+			currentValue[awaitingTimestamp] |= (c << 8);
+			return TRACE_STATE_TARGET_SOURCE_1B;
+		}
+		case TRACE_STATE_TARGET_SOURCE_1B:
+		{
+			currentValue[awaitingTimestamp] |= (c << 16);
+			return TRACE_STATE_TARGET_SOURCE_0B;
+		}
+		case TRACE_STATE_TARGET_SOURCE_0B:
+		{
+			currentValue[awaitingTimestamp++] |= (c << 24);
 			return TRACE_STATE_IDLE;
 		}
 
@@ -230,21 +271,21 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 
 void TraceReader::readerThread()
 {
-	while (isRunning)
+	while (isRunning.load())
 	{
 		int32_t length = traceDevice->readTraceBuffer(buffer, size);
 
 		if (length < 0)
 		{
 			logger->error("CRITICAL ERROR");
-			isRunning = false;
+			isRunning.store(false);
 			break;
 		}
 
 		if (sleepCycles > 1000)
 		{
 			logger->error("No trace registered for 1000 cycles!");
-			isRunning = false;
+			isRunning.store(false);
 			break;
 		}
 
@@ -260,12 +301,11 @@ void TraceReader::readerThread()
 		if (length == size)
 		{
 			logger->error("OVERFLOW");
+			isRunning.store(false);
 			continue;
 		}
 
 		sleepCycles = 0;
-
-		logger->info("Received {} bytes", length);
 
 		for (int32_t i = 0; i < length; i++)
 		{
@@ -274,4 +314,5 @@ void TraceReader::readerThread()
 				break;
 		}
 	}
+	logger->error("closing tarce thread. {}", isRunning);
 }

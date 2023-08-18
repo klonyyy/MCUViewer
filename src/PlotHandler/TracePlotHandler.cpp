@@ -4,7 +4,6 @@
 
 TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {
-	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
 	traceReader = std::make_unique<TraceReader>(traceDevice, logger);
 
@@ -19,6 +18,8 @@ TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std
 
 		plotsMap[name]->addSeries(*newVar);
 	}
+
+	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 }
 TracePlotHandler::~TracePlotHandler()
 {
@@ -54,17 +55,19 @@ void TracePlotHandler::dataHandler()
 	{
 		if (viewerState == state::RUN)
 		{
-			std::this_thread::sleep_for(std::chrono::microseconds(100));
-
 			if (!traceReader->isValid())
 			{
-				viewerState = state::STOP;
-				stateChangeOrdered = true;
+				logger->warn("TRACE INVALID, STOPPING");
+				viewerState.store(state::STOP);
+				stateChangeOrdered.store(true);
 			}
+
+			std::this_thread::sleep_for(std::chrono::microseconds(100));
 
 			double timestamp;
 			std::array<double, 10> traces{};
-			traceReader->readTrace(timestamp, traces);
+			if (!traceReader->readTrace(timestamp, traces))
+				continue;
 
 			uint32_t i = 0;
 
@@ -73,7 +76,10 @@ void TracePlotHandler::dataHandler()
 			for (auto& [key, plot] : plotsMap)
 			{
 				if (!plot->getVisibility())
+				{
+					i++;
 					continue;
+				}
 
 				Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 
@@ -86,7 +92,7 @@ void TracePlotHandler::dataHandler()
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-		if (stateChangeOrdered)
+		if (stateChangeOrdered.load())
 		{
 			if (viewerState == state::RUN)
 			{
