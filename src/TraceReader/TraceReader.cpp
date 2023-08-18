@@ -60,12 +60,12 @@ bool TraceReader::isValid() const
 	return isRunning.load();
 }
 
-bool TraceReader::readTrace(double& timestamp, std::array<double, 10>& trace)
+bool TraceReader::readTrace(double& timestamp, std::array<uint32_t, 10>& trace)
 {
 	if (!isRunning.load() || traceTable.getSize() == 0)
 		return false;
 	auto entry = traceTable.pop();
-	timestamp = entry.second / static_cast<double>(coreFrequency);
+	timestamp = entry.second / static_cast<double>(coreFrequency * 1000);
 	trace = entry.first;
 	return true;
 }
@@ -154,7 +154,7 @@ void TraceReader::timestampEnd()
 			timestamp |= (uint32_t)(timestampBuf[i] & 0x7f) << 7 * i;
 	}
 
-	std::array<double, channels> currentEntry{previousEntry};
+	std::array<uint32_t, channels> currentEntry{previousEntry};
 
 	uint32_t i = 0;
 	while (awaitingTimestamp--)
@@ -164,15 +164,11 @@ void TraceReader::timestampEnd()
 			logger->critical("WRONG CHANNEL");
 			break;
 		}
-
-		if (currentChannel[i] == 9)
-			currentEntry[currentChannel[i]] = *(float*)&currentValue[i];
-		else
-			currentEntry[currentChannel[i]] = currentValue[i] == 0xaa ? 1.0 : 0.0;
+		currentEntry[currentChannel[i]] = currentValue[i];
 		i++;
 	}
 
-	traceTable.push(std::pair<std::array<double, channels>, uint32_t>{currentEntry, timestamp});
+	traceTable.push(std::pair<std::array<uint32_t, channels>, double>{currentEntry, timestamp});
 	previousEntry = currentEntry;
 	awaitingTimestamp = 0;
 	timestampBytes = 0;
@@ -314,5 +310,5 @@ void TraceReader::readerThread()
 				break;
 		}
 	}
-	logger->error("closing tarce thread. {}", isRunning);
+	logger->info("closing tarce thread. {}", isRunning);
 }

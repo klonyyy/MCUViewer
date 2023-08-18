@@ -78,7 +78,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		std::string sectionName("plot" + std::to_string(plotNumber));
 		plotName = ini->get(sectionName).get("name");
 		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
-		Plot::type_E type = static_cast<Plot::type_E>(atoi(ini->get(sectionName).get("type").c_str()));
+		Plot::Type type = static_cast<Plot::Type>(atoi(ini->get(sectionName).get("type").c_str()));
 
 		if (!plotName.empty())
 		{

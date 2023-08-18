@@ -96,9 +96,10 @@ void Gui::drawPlotsTreeSwo()
 	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 	{
 		std::string name = plt->getName();
+		std::string alias = plt->getAlias();
 		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
 		ImGui::SameLine();
-		if (ImGui::Selectable(name.c_str(), selected == name))
+		if (ImGui::Selectable((name + "(" + alias + ")").c_str(), selected == name))
 			selected = name;
 
 		if (plt->isHovered() && ImGui::IsMouseClicked(0))
@@ -109,12 +110,17 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::SameLine();
 
 	std::shared_ptr<Plot> plt = tracePlotHandler->getPlot(selected);
-	std::string newName = plt->getName();
+	const char* plotDomains[2] = {"analog", "digital"};
+	int32_t domainCombo = (int32_t)plt->getDomain();
+	std::string newAlias = plt->getAlias();
 	ImGui::BeginGroup();
-	ImGui::Text("name      ");
+	ImGui::Text("alias      ");
 	ImGui::SameLine();
-	ImGui::PushID(plt->getName().c_str());
-	ImGui::InputText("##input", &newName, 0, NULL, NULL);
+	ImGui::PushID(plt->getAlias().c_str());
+	ImGui::InputText("##input", &newAlias, 0, NULL, NULL);
+	ImGui::Text("domain     ");
+	ImGui::SameLine();
+	ImGui::Combo("##combo", &domainCombo, plotDomains, IM_ARRAYSIZE(plotDomains));
 	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->getMarkerStateX0();
 	ImGui::Text("markers");
 	ImGui::SameLine();
@@ -125,10 +131,12 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::EndGroup();
 	ImGui::EndChild();
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
+	if (domainCombo != (int32_t)plt->getDomain())
+		plt->setDomain(static_cast<Plot::Domain>(domainCombo));
+
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newAlias != plt->getAlias())
 	{
-		tracePlotHandler->renamePlot(plt->getName(), newName);
-		selected = newName;
+		plt->setAlias(newAlias);
 	}
 }
 

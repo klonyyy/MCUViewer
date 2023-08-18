@@ -17,6 +17,7 @@ TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std
 		traceVars[name] = newVar;
 
 		plotsMap[name]->addSeries(*newVar);
+		plotsMap[name]->setDomain(Plot::Domain::DIGITAL);
 	}
 
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
@@ -65,7 +66,7 @@ void TracePlotHandler::dataHandler()
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 
 			double timestamp;
-			std::array<double, 10> traces{};
+			std::array<uint32_t, 10> traces{};
 			if (!traceReader->readTrace(timestamp, traces))
 				continue;
 
@@ -82,11 +83,19 @@ void TracePlotHandler::dataHandler()
 				}
 
 				Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
+				double newPoint = 0.0;
+
+				if (plot->getDomain() == Plot::Domain::DIGITAL)
+					newPoint = traces[i] == 0xaa ? 1.0 : 0.0;
+				else if (plot->getDomain() == Plot::Domain::ANALOG)
+					newPoint = *(float*)&traces[i];
 
 				/* thread-safe part */
-				std::lock_guard<std::mutex> lock(*mtx);
-				plot->addPoint(ser->var->getName(), (double)traces[i++]);
+				std::lock_guard<std::mutex>
+					lock(*mtx);
+				plot->addPoint(ser->var->getName(), newPoint);
 				plot->addTimePoint(time);
+				i++;
 			}
 		}
 		else

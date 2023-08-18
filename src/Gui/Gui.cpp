@@ -460,7 +460,7 @@ void Gui::drawPlotsTree()
 	ImGui::EndChild();
 
 	if (typeCombo != (int32_t)plt->getType())
-		plt->setType(static_cast<Plot::type_E>(typeCombo));
+		plt->setType(static_cast<Plot::Type>(typeCombo));
 
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
 	{

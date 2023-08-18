@@ -21,7 +21,7 @@ void Gui::drawPlots()
 
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
-		if (plt->getType() == Plot::type_E::TABLE)
+		if (plt->getType() == Plot::Type::TABLE)
 		{
 			drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
 			if (plt->getVisibility())
@@ -44,9 +44,9 @@ void Gui::drawPlots()
 			if (!plt->getVisibility())
 				continue;
 
-			if (plt->getType() == Plot::type_E::CURVE)
+			if (plt->getType() == Plot::Type::CURVE)
 				drawPlotCurve(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
-			else if (plt->getType() == Plot::type_E::BAR)
+			else if (plt->getType() == Plot::Type::BAR)
 				drawPlotBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
 		}
 
