@@ -46,20 +46,20 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("Settings");
 	ImGui::Separator();
 
-	TracePlotHandler::TraceSettings settings = tracePlotHandler->getTraceSettings();
+	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
 
-	ImGui::Text("Core Frequency [kHz]      ");
+	ImGui::Text("Core frequency [kHz]      ");
 	ImGui::SameLine();
 
 	drawInputText(settings.coreFrequency, [&](std::string str)
 				  {settings.coreFrequency = std::stoi(str);
-	tracePlotHandler->setTraceSettings(settings); });
+	tracePlotHandler->setSettings(settings); });
 
-	ImGui::Text("Trace Frequency [kHz]     ");
+	ImGui::Text("Trace prescaler     ");
 	ImGui::SameLine();
-	drawInputText(settings.traceFrequency, [&](std::string str)
-				  {settings.traceFrequency = std::stoi(str);
-	tracePlotHandler->setTraceSettings(settings); });
+	drawInputText(settings.tracePrescaler, [&](std::string str)
+				  {settings.tracePrescaler = std::stoi(str);
+	tracePlotHandler->setSettings(settings); });
 }
 void Gui::drawIndicatorsSwo()
 {

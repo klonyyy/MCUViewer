@@ -487,23 +487,25 @@ void Gui::drawAcqusitionSettingsWindow()
 		if (ImGui::SmallButton("..."))
 			openElfFile();
 
+		PlotHandler::Settings settings = plotHandler->getSettings();
+
 		ImGui::Text("Sample period [ms]:");
 		ImGui::SameLine();
 		ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
 		static int one = 1;
 		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
-		plotHandler->setSamplePeriod(settings.samplePeriod);
 
 		ImGui::Text("Max points [100 - 20000]:");
 		ImGui::SameLine();
 		ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 		ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
-		plotHandler->setMaxPoints(settings.maxPoints);
 
 		ImGui::Text("Max viewport points [100 - 20000]:");
 		ImGui::SameLine();
 		ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
 		ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+
+		plotHandler->setSettings(settings);
 
 		if (ImGui::Button("Done"))
 		{
@@ -615,8 +617,11 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 
 bool Gui::saveProject()
 {
+	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
+	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
+
 	if (!projectConfigPath.empty())
-		return configHandler->saveConfigFile(vars, projectElfPath, settings, "");
+		return configHandler->saveConfigFile(vars, projectElfPath, viewerSettings, traceSettings, "");
 	return false;
 }
 
@@ -626,8 +631,13 @@ bool Gui::saveProjectAs()
 	if (path != "")
 	{
 		projectConfigPath = path;
-		configHandler->saveConfigFile(vars, projectElfPath, settings, projectConfigPath);
+		PlotHandler::Settings viewerSettings{};
+		TracePlotHandler::Settings traceSettings{};
+		configHandler->saveConfigFile(vars, projectElfPath, viewerSettings, traceSettings, projectConfigPath);
 		logger->info("Project config path: {}", projectConfigPath);
+		tracePlotHandler->setSettings(traceSettings);
+		plotHandler->setSettings(viewerSettings);
+
 		return true;
 	}
 	return false;
@@ -638,13 +648,17 @@ bool Gui::openProject()
 	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
 	if (path != "")
 	{
+		PlotHandler::Settings viewerSettings{};
+		TracePlotHandler::Settings traceSettings{};
+
 		projectConfigPath = path;
 		configHandler->changeConfigFile(projectConfigPath);
 		vars.clear();
 		plotHandler->removeAllPlots();
-		configHandler->readConfigFile(vars, projectElfPath, settings);
-		plotHandler->setSamplePeriod(settings.samplePeriod);
-		plotHandler->setMaxPoints(settings.maxPoints);
+
+		configHandler->readConfigFile(vars, projectElfPath, viewerSettings, traceSettings);
+		tracePlotHandler->setSettings(traceSettings);
+		plotHandler->setSettings(viewerSettings);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}

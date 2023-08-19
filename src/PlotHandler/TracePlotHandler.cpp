@@ -28,15 +28,15 @@ TracePlotHandler::~TracePlotHandler()
 		dataHandle.join();
 }
 
-TracePlotHandler::TraceSettings TracePlotHandler::getTraceSettings() const
+TracePlotHandler::Settings TracePlotHandler::getSettings() const
 {
-	return {.coreFrequency = traceReader->getCoreClockFrequency(), .traceFrequency = traceReader->getTraceFrequency()};
+	return {.coreFrequency = traceReader->getCoreClockFrequency(), .tracePrescaler = traceReader->getTraceFrequency()};
 }
 
-void TracePlotHandler::setTraceSettings(const TraceSettings& settings)
+void TracePlotHandler::setSettings(const Settings& settings)
 {
 	traceReader->setCoreClockFrequency(settings.coreFrequency);
-	traceReader->setTraceFrequency(settings.traceFrequency);
+	traceReader->setTraceFrequency(settings.tracePrescaler);
 	traceSettings = settings;
 }
 

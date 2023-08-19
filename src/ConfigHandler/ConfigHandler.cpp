@@ -2,7 +2,7 @@
 
 #include <random>
 
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, std::shared_ptr<spdlog::logger> logger) : configFilePath(configFilePath), plotHandler(plotHandler), logger(logger)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::shared_ptr<spdlog::logger> logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
 	file = std::make_unique<mINI::INIFile>(configFilePath);
@@ -16,7 +16,7 @@ bool ConfigHandler::changeConfigFile(const std::string& newConfigFilePath)
 	return true;
 }
 
-bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, Settings& settings) const
+bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, PlotHandler::Settings& settings, TracePlotHandler::Settings& traceSettings)
 {
 	if (!file->read(*ini))
 		return false;
@@ -29,7 +29,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	settings.version = atoi(ini->get("settings").get("version").c_str());
+	globalSettings.version = atoi(ini->get("settings").get("version").c_str());
 	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
 	settings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
 	settings.maxViewportPoints = atoi(ini->get("settings").get("max_viewport_points").c_str());
@@ -109,7 +109,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const Settings& settings, const std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const PlotHandler::Settings& settings, const TracePlotHandler::Settings& traceSettings, const std::string newSavePath)
 {
 	(*ini).clear();
 
@@ -125,7 +125,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	{ return std::string("plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
 
 	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
-	(*ini)["settings"]["version"] = std::to_string(settings.version);
+	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
 	(*ini)["settings"]["max_points"] = std::to_string(settings.maxPoints);
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(settings.maxViewportPoints);
 

@@ -24,7 +24,7 @@ bool StlinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequency, uint32_t activeChannelMask)
+bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 
@@ -42,11 +42,11 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequen
 	stlink_write_debug32(sl, STLINK_REG_DWT_CTRL, 0);
 	stlink_write_debug32(sl, STLINK_REG_DBGMCU_CR, STLINK_REG_DBGMCU_CR_TRACE_IOEN | STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
-	uint32_t prescaler = traceFrequency;
-
-	traceFrequency = coreFrequency / (prescaler + 1);
+	uint32_t traceFrequency = coreFrequency / (tracePrescaler + 1);
 
 	logger->info("Trace frequency {}", traceFrequency);
+	logger->info("Trace prescaler {}", tracePrescaler);
+	logger->info("Trace channels mask {}", activeChannelMask);
 
 	if (stlink_trace_enable(sl, traceFrequency))
 	{
@@ -56,10 +56,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t traceFrequen
 
 	stlink_write_debug32(sl, STLINK_REG_TPI_CSPSR, STLINK_REG_TPI_CSPSR_PORT_SIZE_1);
 
-	logger->info("Trace prescaler {}", prescaler);
-	logger->info("Trace channels mask {}", activeChannelMask);
-
-	stlink_write_debug32(sl, STLINK_REG_TPI_ACPR, prescaler);  // Set TPIU_ACPR clock divisor
+	stlink_write_debug32(sl, STLINK_REG_TPI_ACPR, tracePrescaler);	// Set TPIU_ACPR clock divisor
 	stlink_write_debug32(sl, STLINK_REG_TPI_FFCR, STLINK_REG_TPI_FFCR_TRIG_IN);
 	stlink_write_debug32(sl, STLINK_REG_TPI_SPPR, STLINK_REG_TPI_SPPR_SWO_NRZ);
 	stlink_write_debug32(sl, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);

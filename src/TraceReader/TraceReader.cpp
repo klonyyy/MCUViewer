@@ -33,7 +33,7 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 	for (uint32_t i = 0; i < activeChannels.size(); i++)
 		activeChannelsMask |= (static_cast<uint32_t>(activeChannels[i]) << i);
 
-	if (traceDevice->startTrace(coreFrequency * 1000, traceFrequency, activeChannelsMask))
+	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask))
 	{
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
@@ -87,12 +87,12 @@ uint32_t TraceReader::getCoreClockFrequency() const
 
 void TraceReader::setTraceFrequency(uint32_t frequencyHz)
 {
-	traceFrequency = frequencyHz;
+	tracePrescaler = frequencyHz;
 }
 
 uint32_t TraceReader::getTraceFrequency() const
 {
-	return traceFrequency;
+	return tracePrescaler;
 }
 
 std::map<const char*, uint32_t> TraceReader::getTraceIndicators() const

@@ -15,14 +15,24 @@ PlotHandler::~PlotHandler()
 		dataHandle.join();
 }
 
-void PlotHandler::setSamplePeriod(uint32_t period)
+// void PlotHandler::setSamplePeriod(uint32_t period)
+// {
+// 	samplePeriodMs = period;
+// }
+
+// uint32_t PlotHandler::getSamplePeriod() const
+// {
+// 	return samplePeriodMs;
+// }
+
+PlotHandler::Settings PlotHandler::getSettings() const
 {
-	samplePeriodMs = period;
+	return settings;
 }
 
-uint32_t PlotHandler::getSamplePeriod() const
+void PlotHandler::setSettings(Settings& newSettings)
 {
-	return samplePeriodMs;
+	settings = newSettings;
 }
 
 bool PlotHandler::writeSeriesValue(Variable& var, double value)
@@ -47,7 +57,7 @@ void PlotHandler::dataHandler()
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
-			if (t > (samplePeriodMs * timer) / 1000.0f)
+			if (t > (settings.samplePeriod * timer) / 1000.0f)
 			{
 				for (auto& [key, plot] : plotsMap)
 				{
@@ -81,7 +91,7 @@ void PlotHandler::dataHandler()
 				}
 				else
 					viewerState = state::STOP;
-						}
+			}
 			else
 				varReader->stop();
 			stateChangeOrdered = false;

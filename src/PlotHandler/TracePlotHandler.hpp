@@ -15,16 +15,16 @@ class TracePlotHandler : public PlotHandlerBase
 	typedef struct
 	{
 		uint32_t coreFrequency;
-		uint32_t traceFrequency;
-	} TraceSettings;
-
-	TraceSettings traceSettings{};
+		uint32_t tracePrescaler = 10;
+		uint32_t maxPoints = 10000;
+		uint32_t maxViewportPoints = 5000;
+	} Settings;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~TracePlotHandler();
 
-	TraceSettings getTraceSettings() const;
-	void setTraceSettings(const TraceSettings& settings);
+	Settings getSettings() const;
+	void setSettings(const Settings& settings);
 
 	std::map<const char*, uint32_t> getTraceIndicators() const;
 
@@ -34,6 +34,7 @@ class TracePlotHandler : public PlotHandlerBase
 	void dataHandler();
 
    private:
+	Settings traceSettings{};
 	std::shared_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;

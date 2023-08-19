@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
 	PlotHandler plotHandler(done, &mtx, logger);
 	TracePlotHandler tracePlotHandler(done, &mtx, logger);
-	ConfigHandler configHandler("", &plotHandler, logger);
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, logger);
 	NFDFileHandler fileHandler;
 
 	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, logger);

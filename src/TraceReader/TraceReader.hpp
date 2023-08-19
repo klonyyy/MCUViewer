@@ -71,7 +71,7 @@ class TraceReader
 	uint32_t sleepCycles = 0;
 
 	uint32_t coreFrequency = 160000;
-	uint32_t traceFrequency = 10;
+	uint32_t tracePrescaler = 10;
 
 	std::atomic<bool> isRunning{false};
 	std::string lastErrorMsg = "";
