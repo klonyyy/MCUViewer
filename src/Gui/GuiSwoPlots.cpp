@@ -35,7 +35,8 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
 		}
 
-		ImPlot::SetupAxisLimits(ImAxis_Y1, -0.25, 1.25, ImPlotCond_Always);
+		if (plot->getDomain() == Plot::Domain::DIGITAL)
+			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.25, 1.25, ImPlotCond_Always);
 
 		Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 		std::string serName = ser->var->getName();
@@ -74,6 +75,9 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		}
 		else
 			plot->setMarkerValueX1(0.0);
+
+		plot->setIsHovered(ImPlot::IsPlotHovered());
+
 		/* make thread safe copies of buffers - probably can be made better but it works */
 		mtx->lock();
 		time.copyData();
