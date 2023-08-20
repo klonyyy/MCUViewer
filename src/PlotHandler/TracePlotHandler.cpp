@@ -18,6 +18,7 @@ TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std
 
 		plotsMap[name]->addSeries(*newVar);
 		plotsMap[name]->setDomain(Plot::Domain::DIGITAL);
+		plotsMap[name]->setAlias("CH" + std::to_string(i));
 	}
 
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);

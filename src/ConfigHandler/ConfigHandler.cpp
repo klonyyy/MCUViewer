@@ -34,6 +34,11 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	settings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
 	settings.maxViewportPoints = atoi(ini->get("settings").get("max_viewport_points").c_str());
 
+	traceSettings.coreFrequency = atoi(ini->get("trace_settings").get("core_frequency").c_str());
+	traceSettings.tracePrescaler = atoi(ini->get("trace_settings").get("trace_prescaler").c_str());
+	traceSettings.maxPoints = atoi(ini->get("trace_settings").get("max_points").c_str());
+	traceSettings.maxViewportPoints = atoi(ini->get("trace_settings").get("max_viewport_points").c_str());
+
 	if (settings.samplePeriod == 0)
 		settings.samplePeriod = 10;
 
@@ -83,25 +88,57 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		if (!plotName.empty())
 		{
 			plotHandler->addPlot(plotName);
-			plotHandler->getPlot(plotName)->setVisibility(visibility);
-			plotHandler->getPlot(plotName)->setType(type);
+			auto plot = plotHandler->getPlot(plotName);
+			plot->setVisibility(visibility);
+			plot->setType(type);
 			logger->info("Adding plot: {}", plotName);
 			uint32_t seriesNumber = 0;
 			std::string varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
 
 			while (varName != "")
 			{
-				plotHandler->getPlot(plotName)->addSeries(*vars[varName]);
+				plot->addSeries(*vars[varName]);
 				bool visible = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("visibility") == "true" ? true : false;
-				plotHandler->getPlot(plotName)->getSeries(varName)->visible = visible;
+				plot->getSeries(varName)->visible = visible;
 				std::string displayFormat = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("format");
 				if (displayFormat == "")
 					displayFormat = "DEC";
-				plotHandler->getPlot(plotName)->getSeries(varName)->format = displayFormatMap.at(displayFormat);
+				plot->getSeries(varName)->format = displayFormatMap.at(displayFormat);
 				logger->info("Adding series: {}", varName);
 				seriesNumber++;
 				varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
 			}
+		}
+		plotNumber++;
+	}
+
+	plotName = "xxx";
+	plotNumber = 0;
+
+	while (!plotName.empty())
+	{
+		std::string sectionName("trace_plot" + std::to_string(plotNumber));
+		plotName = ini->get(sectionName).get("name");
+		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
+		Plot::Domain domain = static_cast<Plot::Domain>(atoi(ini->get(sectionName).get("domain").c_str()));
+		std::string alias = ini->get(sectionName).get("alias");
+
+		if (!plotName.empty())
+		{
+			tracePlotHandler->addPlot(plotName);
+			auto plot = tracePlotHandler->getPlot(plotName);
+			plot->setVisibility(visibility);
+			plot->setDomain(domain);
+			plot->setAlias(alias);
+			logger->info("Adding trace plot: {}", plotName);
+
+			if (alias.empty())
+				logger->critical("Alias for plot {} is empty!", plotName);
+
+			auto newVar = std::make_shared<Variable>(alias);
+			tracePlotHandler->traceVars[alias] = newVar;
+			plot->addSeries(*newVar);
+			plot->getSeries(alias)->visible = true;
 		}
 		plotNumber++;
 	}
@@ -118,16 +155,22 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	auto plotFieldFromID = [](uint32_t id)
-	{ return std::string("plot" + std::to_string(id)); };
+	auto plotFieldFromID = [](uint32_t id, std::string prefix = "")
+	{ return std::string(prefix + "plot" + std::to_string(id)); };
 
-	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId)
-	{ return std::string("plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
+	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, std::string prefix = "")
+	{ return std::string(prefix + "plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
+
+	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
 
 	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
-	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
 	(*ini)["settings"]["max_points"] = std::to_string(settings.maxPoints);
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(settings.maxViewportPoints);
+
+	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
+	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
+	(*ini)["trace_settings"]["max_points"] = std::to_string(traceSettings.maxPoints);
+	(*ini)["trace_settings"]["max_viewport_points"] = std::to_string(traceSettings.maxViewportPoints);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)
@@ -168,6 +211,18 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			serId++;
 		}
 
+		plotId++;
+	}
+
+	plotId = 0;
+	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
+	{
+		const std::string plotName = plotFieldFromID(plotId, "trace_");
+
+		(*ini)[plotName]["name"] = plt->getName();
+		(*ini)[plotName]["alias"] = plt->getAlias();
+		(*ini)[plotName]["visibility"] = plt->getVisibility() ? "true" : "false";
+		(*ini)[plotName]["domain"] = std::to_string(static_cast<uint8_t>(plt->getDomain()));
 		plotId++;
 	}
 

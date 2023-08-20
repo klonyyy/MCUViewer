@@ -30,6 +30,8 @@ class TracePlotHandler : public PlotHandlerBase
 
 	std::string getLastReaderError() const;
 
+	std::map<std::string, std::shared_ptr<Variable>> traceVars;
+
    private:
 	void dataHandler();
 
@@ -37,7 +39,6 @@ class TracePlotHandler : public PlotHandlerBase
 	Settings traceSettings{};
 	std::shared_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
-	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 	static constexpr uint32_t channels = 10;
 	double time = 0.0;
 };
