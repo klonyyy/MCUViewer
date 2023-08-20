@@ -16,8 +16,11 @@ bool ConfigHandler::changeConfigFile(const std::string& newConfigFilePath)
 	return true;
 }
 
-bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, PlotHandler::Settings& settings, TracePlotHandler::Settings& traceSettings)
+bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath)
 {
+	PlotHandler::Settings viewerSettings{};
+	TracePlotHandler::Settings traceSettings{};
+
 	if (!file->read(*ini))
 		return false;
 
@@ -30,23 +33,23 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	{ return std::string("var" + std::to_string(id)); };
 
 	globalSettings.version = atoi(ini->get("settings").get("version").c_str());
-	settings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
-	settings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
-	settings.maxViewportPoints = atoi(ini->get("settings").get("max_viewport_points").c_str());
+	viewerSettings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
+	viewerSettings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
+	viewerSettings.maxViewportPoints = atoi(ini->get("settings").get("max_viewport_points").c_str());
 
 	traceSettings.coreFrequency = atoi(ini->get("trace_settings").get("core_frequency").c_str());
 	traceSettings.tracePrescaler = atoi(ini->get("trace_settings").get("trace_prescaler").c_str());
 	traceSettings.maxPoints = atoi(ini->get("trace_settings").get("max_points").c_str());
 	traceSettings.maxViewportPoints = atoi(ini->get("trace_settings").get("max_viewport_points").c_str());
 
-	if (settings.samplePeriod == 0)
-		settings.samplePeriod = 10;
+	if (viewerSettings.samplePeriod == 0)
+		viewerSettings.samplePeriod = 10;
 
-	if (settings.maxPoints == 0)
-		settings.maxPoints = 1000;
+	if (viewerSettings.maxPoints == 0)
+		viewerSettings.maxPoints = 1000;
 
-	if (settings.maxViewportPoints == 0)
-		settings.maxViewportPoints = settings.maxPoints;
+	if (viewerSettings.maxViewportPoints == 0)
+		viewerSettings.maxViewportPoints = viewerSettings.maxPoints;
 
 	while (!name.empty())
 	{
@@ -143,11 +146,17 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		plotNumber++;
 	}
 
+	tracePlotHandler->setSettings(traceSettings);
+	plotHandler->setSettings(viewerSettings);
+
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const PlotHandler::Settings& settings, const TracePlotHandler::Settings& traceSettings, const std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newSavePath)
 {
+	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
+	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
+
 	(*ini).clear();
 
 	(*ini)["elf"]["file_path"] = elfPath;
@@ -163,9 +172,9 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
 
-	(*ini)["settings"]["sample_period"] = std::to_string(settings.samplePeriod);
-	(*ini)["settings"]["max_points"] = std::to_string(settings.maxPoints);
-	(*ini)["settings"]["max_viewport_points"] = std::to_string(settings.maxViewportPoints);
+	(*ini)["settings"]["sample_period"] = std::to_string(viewerSettings.samplePeriod);
+	(*ini)["settings"]["max_points"] = std::to_string(viewerSettings.maxPoints);
+	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);

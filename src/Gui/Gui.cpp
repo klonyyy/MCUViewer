@@ -617,11 +617,8 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 
 bool Gui::saveProject()
 {
-	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
-	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
-
 	if (!projectConfigPath.empty())
-		return configHandler->saveConfigFile(vars, projectElfPath, viewerSettings, traceSettings, "");
+		return configHandler->saveConfigFile(vars, projectElfPath, "");
 	return false;
 }
 
@@ -631,13 +628,8 @@ bool Gui::saveProjectAs()
 	if (path != "")
 	{
 		projectConfigPath = path;
-		PlotHandler::Settings viewerSettings{};
-		TracePlotHandler::Settings traceSettings{};
-		configHandler->saveConfigFile(vars, projectElfPath, viewerSettings, traceSettings, projectConfigPath);
+		configHandler->saveConfigFile(vars, projectElfPath, projectConfigPath);
 		logger->info("Project config path: {}", projectConfigPath);
-		tracePlotHandler->setSettings(traceSettings);
-		plotHandler->setSettings(viewerSettings);
-
 		return true;
 	}
 	return false;
@@ -648,17 +640,11 @@ bool Gui::openProject()
 	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
 	if (path != "")
 	{
-		PlotHandler::Settings viewerSettings{};
-		TracePlotHandler::Settings traceSettings{};
-
 		projectConfigPath = path;
 		configHandler->changeConfigFile(projectConfigPath);
 		vars.clear();
 		plotHandler->removeAllPlots();
-
-		configHandler->readConfigFile(vars, projectElfPath, viewerSettings, traceSettings);
-		tracePlotHandler->setSettings(traceSettings);
-		plotHandler->setSettings(viewerSettings);
+		configHandler->readConfigFile(vars, projectElfPath);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}

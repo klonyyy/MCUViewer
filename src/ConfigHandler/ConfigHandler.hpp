@@ -22,8 +22,8 @@ class ConfigHandler
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
-	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath, PlotHandler::Settings& settings, TracePlotHandler::Settings& traceSettings);
-	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const PlotHandler::Settings& settings, const TracePlotHandler::Settings& traceSettings, const std::string newPath);
+	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath);
+	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newPath);
 
    private:
 	GlobalSettings globalSettings;
