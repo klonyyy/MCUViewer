@@ -22,17 +22,14 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild | ImPlotFlags_NoTitle))
 	{
-		static int i = 0;
 		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN)
 		{
-			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_AutoFit);
-			i = 0;
-		}
-		else
-		{
-			if (i++ < 10)
-				ImPlot::SetNextAxisToFit(ImAxis_X1);
-			ImPlot::SetupAxes("time[s]", NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations);
+			const double min = *(time.getFirstElement() + time.getOffset());
+			const double max = *time.getLastElement();
+			const double viewportWidth = (max - min) / 10.0;
+			logger->info("period : {} {} {}", viewportWidth, min, max);
+			ImPlot::SetupAxisLimits(ImAxis_X1, max - viewportWidth, max, ImPlotCond_Always);
 		}
 
 		if (plot->getDomain() == Plot::Domain::DIGITAL)

@@ -87,6 +87,7 @@ void Gui::mainThread()
 		checkShortcuts();
 
 		drawMenu();
+		drawAcqusitionSettingsWindow();
 
 		if (ImGui::Begin("SWO Viewer"))
 		{
@@ -108,10 +109,7 @@ void Gui::mainThread()
 			drawPlotsTree();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
-			{
-				drawAcqusitionSettingsWindow();
 				drawPlots();
-			}
 			ImGui::End();
 		}
 		ImGui::End();
@@ -481,31 +479,21 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::SetNextWindowSize(ImVec2(500, 300));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
-		ImGui::Text("Project's *.elf file:");
-		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
-		ImGui::SameLine();
-		if (ImGui::SmallButton("..."))
-			openElfFile();
+		if (ImGui::BeginTabBar("Settings", ImGuiTabBarFlags_None))
+		{
+			if (ImGui::BeginTabItem("Viewer"))
+			{
+				acqusitionSettingsViewer();
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("Trace"))
+			{
+				acqusitionSettingsTrace();
+				ImGui::EndTabItem();
+			}
 
-		PlotHandler::Settings settings = plotHandler->getSettings();
-
-		ImGui::Text("Sample period [ms]:");
-		ImGui::SameLine();
-		ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
-		static int one = 1;
-		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
-
-		ImGui::Text("Max points [100 - 20000]:");
-		ImGui::SameLine();
-		ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
-		ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
-
-		ImGui::Text("Max viewport points [100 - 20000]:");
-		ImGui::SameLine();
-		ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
-		ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
-
-		plotHandler->setSettings(settings);
+			ImGui::EndTabBar();
+		}
 
 		if (ImGui::Button("Done"))
 		{
@@ -515,6 +503,53 @@ void Gui::drawAcqusitionSettingsWindow()
 
 		ImGui::EndPopup();
 	}
+}
+
+void Gui::acqusitionSettingsViewer()
+{
+	ImGui::Text("Project's *.elf file:");
+	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
+	ImGui::SameLine();
+	if (ImGui::SmallButton("..."))
+		openElfFile();
+
+	PlotHandler::Settings settings = plotHandler->getSettings();
+
+	ImGui::Text("Sample period [ms]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
+	static int one = 1;
+	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
+
+	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+
+	ImGui::Text("Max viewport points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+
+	plotHandler->setSettings(settings);
+}
+
+void Gui::acqusitionSettingsTrace()
+{
+	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
+
+	static int one = 1;
+	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+
+	ImGui::Text("Max viewport points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+
+	tracePlotHandler->setSettings(settings);
 }
 
 std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)

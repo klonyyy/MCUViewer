@@ -28,8 +28,6 @@ class PlotHandler : public PlotHandlerBase
 
 	std::string getLastReaderError() const;
 	bool writeSeriesValue(Variable& var, double value);
-	// void setSamplePeriod(uint32_t period);
-	// uint32_t getSamplePeriod() const;
 
 	Settings getSettings() const;
 	void setSettings(Settings& newSettings);

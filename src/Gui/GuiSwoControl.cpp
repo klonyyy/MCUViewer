@@ -48,14 +48,14 @@ void Gui::drawSettingsSwo()
 
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
 
-	ImGui::Text("Core frequency [kHz]      ");
+	ImGui::Text("Core frequency [kHz]   ");
 	ImGui::SameLine();
 
 	drawInputText(settings.coreFrequency, [&](std::string str)
 				  {settings.coreFrequency = std::stoi(str);
 	tracePlotHandler->setSettings(settings); });
 
-	ImGui::Text("Trace prescaler     ");
+	ImGui::Text("Trace prescaler        ");
 	ImGui::SameLine();
 	drawInputText(settings.tracePrescaler, [&](std::string str)
 				  {settings.tracePrescaler = std::stoi(str);
@@ -87,9 +87,6 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Text("Channels");
 	ImGui::Separator();
 
-	// if (!tracePlotHandler->checkIfPlotExists(std::move(selected)))
-	// 	selected = tracePlotHandler->begin().operator*()->getName();
-
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
 
@@ -99,7 +96,7 @@ void Gui::drawPlotsTreeSwo()
 		std::string alias = plt->getAlias();
 		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
 		ImGui::SameLine();
-		if (ImGui::Selectable((name + "(" + alias + ")").c_str(), selected == name))
+		if (ImGui::Selectable((name + " \"" + alias + "\"").c_str(), selected == name))
 			selected = name;
 
 		if (plt->isHovered() && ImGui::IsMouseClicked(0))

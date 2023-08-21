@@ -15,16 +15,6 @@ PlotHandler::~PlotHandler()
 		dataHandle.join();
 }
 
-// void PlotHandler::setSamplePeriod(uint32_t period)
-// {
-// 	samplePeriodMs = period;
-// }
-
-// uint32_t PlotHandler::getSamplePeriod() const
-// {
-// 	return samplePeriodMs;
-// }
-
 PlotHandler::Settings PlotHandler::getSettings() const
 {
 	return settings;

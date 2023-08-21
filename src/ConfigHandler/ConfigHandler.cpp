@@ -135,13 +135,10 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			plot->setAlias(alias);
 			logger->info("Adding trace plot: {}", plotName);
 
-			if (alias.empty())
-				logger->critical("Alias for plot {} is empty!", plotName);
-
-			auto newVar = std::make_shared<Variable>(alias);
-			tracePlotHandler->traceVars[alias] = newVar;
+			auto newVar = std::make_shared<Variable>(plotName);
+			tracePlotHandler->traceVars[plotName] = newVar;
 			plot->addSeries(*newVar);
-			plot->getSeries(alias)->visible = true;
+			plot->getSeries(plotName)->visible = true;
 		}
 		plotNumber++;
 	}

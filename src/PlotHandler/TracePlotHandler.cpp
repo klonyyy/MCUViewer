@@ -31,13 +31,14 @@ TracePlotHandler::~TracePlotHandler()
 
 TracePlotHandler::Settings TracePlotHandler::getSettings() const
 {
-	return {.coreFrequency = traceReader->getCoreClockFrequency(), .tracePrescaler = traceReader->getTraceFrequency()};
+	return traceSettings;
 }
 
 void TracePlotHandler::setSettings(const Settings& settings)
 {
 	traceReader->setCoreClockFrequency(settings.coreFrequency);
 	traceReader->setTraceFrequency(settings.tracePrescaler);
+	setMaxPoints(settings.maxPoints);
 	traceSettings = settings;
 }
 

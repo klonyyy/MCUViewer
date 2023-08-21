@@ -52,6 +52,8 @@ class Gui
 	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow();
+	void acqusitionSettingsViewer();
+	void acqusitionSettingsTrace();
 	void drawPlots();
 	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
 	void drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
