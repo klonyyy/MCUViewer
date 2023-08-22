@@ -81,6 +81,9 @@ bool PlotHandlerBase::checkIfPlotExists(const std::string&& name) const
 
 void PlotHandlerBase::setMaxPoints(uint32_t maxPoints)
 {
+	if (maxPoints == 0)
+		return;
+
 	for (auto& [name, plt] : plotsMap)
 	{
 		for (auto& [name, ser] : plt->getSeriesMap())

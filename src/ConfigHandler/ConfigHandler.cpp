@@ -117,6 +117,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 	plotName = "xxx";
 	plotNumber = 0;
+	const uint32_t colors[] = {4294967040, 4294960666, 4294954035, 4294947661, 4294941030, 4294934656, 4294928025, 4294921651, 4294915020, 4294908646, 4294902015};
+	const uint32_t colormapSize = sizeof(colors) / sizeof(colors[0]);
 
 	while (!plotName.empty())
 	{
@@ -136,6 +138,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			logger->info("Adding trace plot: {}", plotName);
 
 			auto newVar = std::make_shared<Variable>(plotName);
+			newVar->setColor(colors[(colormapSize - 1) - (plotNumber % colormapSize)]);
 			tracePlotHandler->traceVars[plotName] = newVar;
 			plot->addSeries(*newVar);
 			plot->getSeries(plotName)->visible = true;

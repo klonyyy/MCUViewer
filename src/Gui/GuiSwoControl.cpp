@@ -51,13 +51,13 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("Core frequency [kHz]   ");
 	ImGui::SameLine();
 
-	drawInputText(settings.coreFrequency, [&](std::string str)
+	drawInputText("frequency", settings.coreFrequency, [&](std::string str)
 				  {settings.coreFrequency = std::stoi(str);
 	tracePlotHandler->setSettings(settings); });
 
 	ImGui::Text("Trace prescaler        ");
 	ImGui::SameLine();
-	drawInputText(settings.tracePrescaler, [&](std::string str)
+	drawInputText("prescaler", settings.tracePrescaler, [&](std::string str)
 				  {settings.tracePrescaler = std::stoi(str);
 	tracePlotHandler->setSettings(settings); });
 }
@@ -81,7 +81,6 @@ void Gui::drawPlotsTreeSwo()
 {
 	const uint32_t windowHeight = 320;
 	static std::string selected = tracePlotHandler->begin().operator*()->getName();
-	;
 
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Channels");
@@ -137,11 +136,11 @@ void Gui::drawPlotsTreeSwo()
 	}
 }
 
-void Gui::drawInputText(uint32_t variable, std::function<void(std::string)> valueChanged)
+void Gui::drawInputText(const char* id, uint32_t variable, std::function<void(std::string)> valueChanged)
 {
 	std::string str = std::to_string(variable);
 
-	ImGui::InputText(str.c_str(), &str, 0, NULL, NULL);
+	ImGui::InputText(id, &str, 0, NULL, NULL);
 
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
 	{

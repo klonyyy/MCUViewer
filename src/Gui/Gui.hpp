@@ -74,7 +74,7 @@ class Gui
 	void drawPlotsSwo();
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 	void drawPlotsTreeSwo();
-	void drawInputText(uint32_t variable, std::function<void(std::string)> valueChanged);
+	void drawInputText(const char* id, uint32_t variable, std::function<void(std::string)> valueChanged);
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);

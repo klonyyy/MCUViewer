@@ -13,7 +13,6 @@ void Gui::drawPlotsSwo()
 
 			drawPlotCurveSwo(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
 		}
-
 		ImPlot::EndSubplots();
 	}
 }
@@ -28,12 +27,19 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			const double min = *(time.getFirstElement() + time.getOffset());
 			const double max = *time.getLastElement();
 			const double viewportWidth = (max - min) / 10.0;
-			logger->info("period : {} {} {}", viewportWidth, min, max);
 			ImPlot::SetupAxisLimits(ImAxis_X1, max - viewportWidth, max, ImPlotCond_Always);
+		}
+		else
+		{
+			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations);
+			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoDecorations);
 		}
 
 		if (plot->getDomain() == Plot::Domain::DIGITAL)
+		{
+			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoDecorations);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.25, 1.25, ImPlotCond_Always);
+		}
 
 		Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 		std::string serName = ser->var->getName();

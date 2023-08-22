@@ -7,13 +7,15 @@ TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std
 	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
 	traceReader = std::make_unique<TraceReader>(traceDevice, logger);
 
+	const uint32_t colors[] = {4294967040, 4294960666, 4294954035, 4294947661, 4294941030, 4294934656, 4294928025, 4294921651, 4294915020, 4294908646, 4294902015};
+
 	for (uint32_t i = 0; i < channels; i++)
 	{
 		std::string name = std::string("CH" + std::to_string(i));
 		plotsMap[name] = std::make_shared<Plot>(name);
 
 		auto newVar = std::make_shared<Variable>(name);
-		newVar->setColor(25251254);
+		newVar->setColor(colors[i]);
 		traceVars[name] = newVar;
 
 		plotsMap[name]->addSeries(*newVar);
