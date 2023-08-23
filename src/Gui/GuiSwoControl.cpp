@@ -151,17 +151,3 @@ void Gui::drawPlotsTreeSwo()
 		plt->setAlias(newAlias);
 	}
 }
-
-void Gui::drawInputText(const char* id, uint32_t variable, std::function<void(std::string)> valueChanged)
-{
-	std::string str = std::to_string(variable);
-
-	ImGui::InputText(id, &str, 0, NULL, NULL);
-
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
-	{
-		logger->info(str);
-		if (valueChanged)
-			valueChanged(str);
-	}
-}

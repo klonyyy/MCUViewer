@@ -74,7 +74,21 @@ class Gui
 	void drawPlotsSwo();
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 	void drawPlotsTreeSwo();
-	void drawInputText(const char* id, uint32_t variable, std::function<void(std::string)> valueChanged);
+
+	template <typename T>
+	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
+	{
+		std::string str = std::to_string(variable);
+
+		ImGui::InputText(id, &str, 0, NULL, NULL);
+
+		if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
+		{
+			logger->info(str);
+			if (valueChanged)
+				valueChanged(str);
+		}
+	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);

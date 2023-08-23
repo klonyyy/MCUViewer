@@ -40,6 +40,8 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoDecorations);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.25, 1.25, ImPlotCond_Always);
 		}
+		else
+			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_None);
 
 		Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 		std::string serName = ser->var->getName();
