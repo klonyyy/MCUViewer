@@ -35,6 +35,7 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 
 	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask))
 	{
+		lastErrorMsg = "";
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
 		return true;
@@ -273,21 +274,24 @@ void TraceReader::readerThread()
 
 		if (length < 0)
 		{
-			logger->error("CRITICAL ERROR");
+			lastErrorMsg = "Stlink trace critical error!";
+			logger->error(lastErrorMsg);
+
 			isRunning.store(false);
 			break;
 		}
 
 		if (sleepCycles > 1000)
 		{
-			logger->error("No trace registered for 1000 cycles!");
+			lastErrorMsg = "No trace registered for 1000 cycles!";
+			logger->error(lastErrorMsg);
 			isRunning.store(false);
 			break;
 		}
 
 		if (length == 0)
 		{
-			logger->info("SLEEP");
+			logger->info("sleep");
 			sleepCycles++;
 			logger->info("sleep cycles: {}", sleepCycles);
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
@@ -296,7 +300,8 @@ void TraceReader::readerThread()
 
 		if (length == size)
 		{
-			logger->error("OVERFLOW");
+			lastErrorMsg = "Trace overflow!";
+			logger->error(lastErrorMsg);
 			isRunning.store(false);
 			continue;
 		}

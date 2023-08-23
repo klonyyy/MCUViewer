@@ -22,7 +22,7 @@ void Gui::drawStartButtonSwo()
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button(viewerStateMap.at(state).c_str(), ImVec2(-1, 50)))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + tracePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
