@@ -54,8 +54,20 @@ std::string TracePlotHandler::getLastReaderError() const
 	return traceReader->getLastErrorMsg();
 }
 
+void TracePlotHandler::setTriggerChannel(int32_t triggerChannel)
+{
+	traceSettings.triggerChannel = triggerChannel;
+}
+
+int32_t TracePlotHandler::getTriggerChannel() const
+{
+	return traceSettings.triggerChannel;
+}
+
 void TracePlotHandler::dataHandler()
 {
+	uint32_t cnt = 0;
+
 	while (!done)
 	{
 		if (viewerState == state::RUN)
@@ -94,12 +106,26 @@ void TracePlotHandler::dataHandler()
 				else if (plot->getDomain() == Plot::Domain::ANALOG)
 					newPoint = *(float*)&traces[i];
 
+				if (traceTriggered == false && i == traceSettings.triggerChannel && newPoint > traceSettings.triggerLevel)
+				{
+					logger->warn("Trigger!");
+					traceTriggered = true;
+					timestamp = 0;
+					cnt = 0;
+				}
+
 				/* thread-safe part */
 				std::lock_guard<std::mutex>
 					lock(*mtx);
 				plot->addPoint(ser->var->getName(), newPoint);
 				plot->addTimePoint(time);
 				i++;
+			}
+			if (traceTriggered && cnt++ >= (traceSettings.maxPoints * 0.9))
+			{
+				logger->warn("After-trigger trace collcted. Stopping.");
+				viewerState.store(state::STOP);
+				stateChangeOrdered.store(true);
 			}
 		}
 		else
@@ -121,7 +147,10 @@ void TracePlotHandler::dataHandler()
 					viewerState = state::STOP;
 			}
 			else
+			{
 				traceReader->stopAcqusition();
+				traceTriggered = false;
+			}
 			stateChangeOrdered = false;
 		}
 	}

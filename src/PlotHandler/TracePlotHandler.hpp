@@ -18,6 +18,8 @@ class TracePlotHandler : public PlotHandlerBase
 		uint32_t tracePrescaler = 10;
 		uint32_t maxPoints = 10000;
 		uint32_t maxViewportPoints = 5000;
+		int32_t triggerChannel = -1;
+		double triggerLevel = 0.9;
 	} Settings;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
@@ -30,6 +32,9 @@ class TracePlotHandler : public PlotHandlerBase
 
 	std::string getLastReaderError() const;
 
+	void setTriggerChannel(int32_t triggerChannel);
+	int32_t getTriggerChannel() const;
+
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 
    private:
@@ -39,6 +44,7 @@ class TracePlotHandler : public PlotHandlerBase
 	Settings traceSettings{};
 	std::shared_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
+	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;
 	double time = 0.0;
 };

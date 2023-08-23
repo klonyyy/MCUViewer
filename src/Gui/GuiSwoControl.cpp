@@ -55,10 +55,26 @@ void Gui::drawSettingsSwo()
 				  {settings.coreFrequency = std::stoi(str);
 	tracePlotHandler->setSettings(settings); });
 
-	ImGui::Text("Trace prescaler        ");
+	ImGui::Text("trace prescaler        ");
 	ImGui::SameLine();
 	drawInputText("prescaler", settings.tracePrescaler, [&](std::string str)
 				  {settings.tracePrescaler = std::stoi(str);
+	tracePlotHandler->setSettings(settings); });
+
+	const char* triggers[] = {"OFF", "CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9"};
+	int32_t trigerCombo = settings.tracePrescaler + 1;
+	ImGui::Text("trigger channel        ");
+	ImGui::SameLine();
+	if (ImGui::Combo("##combo", &trigerCombo, triggers, IM_ARRAYSIZE(triggers)))
+	{
+		settings.triggerChannel = trigerCombo - 1;
+		tracePlotHandler->setSettings(settings);
+	}
+
+	ImGui::Text("trigger level          ");
+	ImGui::SameLine();
+	drawInputText("level", settings.triggerLevel, [&](std::string str)
+				  {settings.triggerLevel = std::stod(str);
 	tracePlotHandler->setSettings(settings); });
 }
 void Gui::drawIndicatorsSwo()
