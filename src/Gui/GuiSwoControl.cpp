@@ -62,10 +62,10 @@ void Gui::drawSettingsSwo()
 	tracePlotHandler->setSettings(settings); });
 
 	const char* triggers[] = {"OFF", "CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9"};
-	int32_t trigerCombo = settings.tracePrescaler + 1;
+	int32_t trigerCombo = settings.triggerChannel + 1;
 	ImGui::Text("trigger channel        ");
 	ImGui::SameLine();
-	if (ImGui::Combo("##combo", &trigerCombo, triggers, IM_ARRAYSIZE(triggers)))
+	if (ImGui::Combo("trigger", &trigerCombo, triggers, IM_ARRAYSIZE(triggers)))
 	{
 		settings.triggerChannel = trigerCombo - 1;
 		tracePlotHandler->setSettings(settings);
