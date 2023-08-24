@@ -544,10 +544,10 @@ void Gui::acqusitionSettingsTrace()
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
 
-	ImGui::Text("Max viewport points [100 - 20000]:");
+	ImGui::Text("Viewport width in percent [0 - 100]:");
 	ImGui::SameLine();
-	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
-	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
 
 	tracePlotHandler->setSettings(settings);
 }

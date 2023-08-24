@@ -291,9 +291,7 @@ void TraceReader::readerThread()
 
 		if (length == 0)
 		{
-			logger->info("sleep");
 			sleepCycles++;
-			logger->info("sleep cycles: {}", sleepCycles);
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			continue;
 		}

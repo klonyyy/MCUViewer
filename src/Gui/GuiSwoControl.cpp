@@ -51,13 +51,13 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("Core frequency [kHz]   ");
 	ImGui::SameLine();
 
-	drawInputText("frequency", settings.coreFrequency, [&](std::string str)
+	drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
 				  {settings.coreFrequency = std::stoi(str);
 	tracePlotHandler->setSettings(settings); });
 
 	ImGui::Text("trace prescaler        ");
 	ImGui::SameLine();
-	drawInputText("prescaler", settings.tracePrescaler, [&](std::string str)
+	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str)
 				  {settings.tracePrescaler = std::stoi(str);
 	tracePlotHandler->setSettings(settings); });
 
@@ -65,7 +65,7 @@ void Gui::drawSettingsSwo()
 	int32_t trigerCombo = settings.triggerChannel + 1;
 	ImGui::Text("trigger channel        ");
 	ImGui::SameLine();
-	if (ImGui::Combo("trigger", &trigerCombo, triggers, IM_ARRAYSIZE(triggers)))
+	if (ImGui::Combo("##trigger", &trigerCombo, triggers, IM_ARRAYSIZE(triggers)))
 	{
 		settings.triggerChannel = trigerCombo - 1;
 		tracePlotHandler->setSettings(settings);
@@ -73,7 +73,7 @@ void Gui::drawSettingsSwo()
 
 	ImGui::Text("trigger level          ");
 	ImGui::SameLine();
-	drawInputText("level", settings.triggerLevel, [&](std::string str)
+	drawInputText("##level", settings.triggerLevel, [&](std::string str)
 				  {settings.triggerLevel = std::stod(str);
 	tracePlotHandler->setSettings(settings); });
 }

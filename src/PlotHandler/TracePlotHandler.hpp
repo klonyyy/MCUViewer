@@ -17,7 +17,7 @@ class TracePlotHandler : public PlotHandlerBase
 		uint32_t coreFrequency;
 		uint32_t tracePrescaler = 10;
 		uint32_t maxPoints = 10000;
-		uint32_t maxViewportPoints = 5000;
+		uint32_t maxViewportPointsPercent = 10;
 		int32_t triggerChannel = -1;
 		double triggerLevel = 0.9;
 	} Settings;

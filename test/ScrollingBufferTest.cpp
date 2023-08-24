@@ -55,3 +55,13 @@ TEST_F(ScrollingBufferTest, testIndexLookup2)
 {
 	ASSERT_EQ(test.getIndexFromvalue(10001), 0);
 }
+
+TEST_F(ScrollingBufferTest, testOldestValue)
+{
+	ASSERT_EQ(test.getOldestValue(), 6);
+}
+
+TEST_F(ScrollingBufferTest, testNewestValue)
+{
+	ASSERT_EQ(test.getNewestValue(), 10005);
+}

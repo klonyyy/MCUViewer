@@ -40,7 +40,9 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	traceSettings.coreFrequency = atoi(ini->get("trace_settings").get("core_frequency").c_str());
 	traceSettings.tracePrescaler = atoi(ini->get("trace_settings").get("trace_prescaler").c_str());
 	traceSettings.maxPoints = atoi(ini->get("trace_settings").get("max_points").c_str());
-	traceSettings.maxViewportPoints = atoi(ini->get("trace_settings").get("max_viewport_points").c_str());
+	traceSettings.maxViewportPointsPercent = atoi(ini->get("trace_settings").get("max_viewport_points_percent").c_str());
+	traceSettings.triggerChannel = atoi(ini->get("trace_settings").get("trigger_channel").c_str());
+	traceSettings.triggerLevel = atof(ini->get("trace_settings").get("trigger_level").c_str());
 
 	if (viewerSettings.samplePeriod == 0)
 		viewerSettings.samplePeriod = 10;
@@ -179,7 +181,9 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
 	(*ini)["trace_settings"]["max_points"] = std::to_string(traceSettings.maxPoints);
-	(*ini)["trace_settings"]["max_viewport_points"] = std::to_string(traceSettings.maxViewportPoints);
+	(*ini)["trace_settings"]["max_viewport_points_percent"] = std::to_string(traceSettings.maxViewportPointsPercent);
+	(*ini)["trace_settings"]["trigger_channel"] = std::to_string(traceSettings.triggerChannel);
+	(*ini)["trace_settings"]["trigger_level"] = std::to_string(traceSettings.triggerLevel);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)
