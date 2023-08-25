@@ -14,7 +14,7 @@ class TracePlotHandler : public PlotHandlerBase
    public:
 	typedef struct
 	{
-		uint32_t coreFrequency;
+		uint32_t coreFrequency = 160000;
 		uint32_t tracePrescaler = 10;
 		uint32_t maxPoints = 10000;
 		uint32_t maxViewportPointsPercent = 10;

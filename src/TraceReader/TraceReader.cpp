@@ -162,6 +162,7 @@ void TraceReader::timestampEnd()
 	{
 		if (currentChannel[i] > channels || i > channels)
 		{
+			traceQuality["error frames"]++;
 			logger->critical("WRONG CHANNEL");
 			break;
 		}
@@ -261,7 +262,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 			return TRACE_STATE_UNKNOWN;
 
 		default:
-			logger->error("Invalid state {}.  This should never happen", state);
+			logger->critical("Invalid state {}.  This should never happen.", state);
 			return TRACE_STATE_IDLE;
 	}
 }
@@ -313,5 +314,5 @@ void TraceReader::readerThread()
 				break;
 		}
 	}
-	logger->info("closing tarce thread. {}", isRunning);
+	logger->info("Closing trace thread {}", isRunning);
 }

@@ -27,7 +27,7 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations);
 			const double min = time.getOldestValue();
 			const double max = time.getNewestValue();
-			const double viewportWidth = (max - min) * (double)(settings.maxViewportPointsPercent / 100.0);
+			const double viewportWidth = (max - min) * (settings.maxViewportPointsPercent / 100.0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, max - viewportWidth, max, ImPlotCond_Always);
 		}
 		else

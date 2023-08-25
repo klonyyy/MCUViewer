@@ -48,7 +48,7 @@ void Gui::drawSettingsSwo()
 
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
 
-	ImGui::Text("Core frequency [kHz]   ");
+	ImGui::Text("core frequency [kHz]   ");
 	ImGui::SameLine();
 
 	drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
@@ -134,7 +134,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &domainCombo, plotDomains, IM_ARRAYSIZE(plotDomains));
 	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->getMarkerStateX0();
-	ImGui::Text("markers");
+	ImGui::Text("markers    ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);
 	plt->setMarkerStateX0(mx0);
