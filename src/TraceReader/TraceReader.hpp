@@ -53,7 +53,8 @@ class TraceReader
 	std::map<const char*, uint32_t> traceQuality{{"error frames", 0},
 												 {"delayed timestamp 1", 0},
 												 {"delayed timestamp 2", 0},
-												 {"delayed timestamp 3", 0}};
+												 {"delayed timestamp 3", 0},
+												 {"sleep cycles", 0}};
 
 	static constexpr uint32_t channels = 10;
 
@@ -62,13 +63,12 @@ class TraceReader
 	uint8_t buffer[size];
 
 	uint32_t currentValue[channels]{};
-	uint8_t awaitingTimestamp = 0;
 	uint8_t currentChannel[channels]{};
-	uint8_t timestampBuf[7]{};
-	uint32_t timestampBytes = 0;
+
+	uint8_t awaitingTimestamp = 0;
 	uint32_t timestamp;
 
-	uint32_t sleepCycles = 0;
+	std::vector<uint8_t> timestampVec;
 
 	uint32_t coreFrequency = 160000;
 	uint32_t tracePrescaler = 10;

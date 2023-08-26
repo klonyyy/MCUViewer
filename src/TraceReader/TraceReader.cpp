@@ -47,7 +47,7 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 bool TraceReader::stopAcqusition()
 {
 	isRunning = false;
-	sleepCycles = 0;
+	traceQuality["sleep cycles"] = 0;
 
 	if (readerHandle.joinable())
 		readerHandle.join();
@@ -115,9 +115,8 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	}
 	else if (TRACE_OP_IS_LOCAL_TIME(c))
 	{
-		memset(timestampBuf, 0, sizeof(timestampBuf));
+		timestampVec.clear();
 		timestamp = 0;
-		timestampBytes = 0;
 
 		if (c == TRACE_TIMEOUT_1)
 			traceQuality.at("delayed timestamp 1")++;
@@ -130,7 +129,7 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 			return TRACE_STATE_TARGET_TIMESTAMP_HEADER;
 		else
 		{
-			timestampBuf[timestampBytes++] = c;
+			timestampVec.push_back(c);
 			timestampEnd();
 			return TRACE_STATE_IDLE;
 		}
@@ -147,12 +146,12 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 
 void TraceReader::timestampEnd()
 {
-	if (timestampBytes == 1)
-		timestamp = (uint32_t)(timestampBuf[0] & 0x7f) >> 4;
+	if (timestampVec.size() == 1)
+		timestamp = (uint32_t)(timestampVec[0] & 0x7f) >> 4;
 	else
 	{
-		for (uint32_t i = 0; i < timestampBytes; i++)
-			timestamp |= (uint32_t)(timestampBuf[i] & 0x7f) << 7 * i;
+		for (uint32_t i = 0; i < timestampVec.size(); i++)
+			timestamp |= (uint32_t)(timestampVec[i] & 0x7f) << 7 * i;
 	}
 
 	std::array<uint32_t, channels> currentEntry{previousEntry};
@@ -163,7 +162,7 @@ void TraceReader::timestampEnd()
 		if (currentChannel[i] > channels || i > channels)
 		{
 			traceQuality["error frames"]++;
-			logger->critical("WRONG CHANNEL");
+			logger->error("WRONG CHANNEL");
 			break;
 		}
 		currentEntry[currentChannel[i]] = currentValue[i];
@@ -173,7 +172,6 @@ void TraceReader::timestampEnd()
 	traceTable.push(std::pair<std::array<uint32_t, channels>, double>{currentEntry, timestamp});
 	previousEntry = currentEntry;
 	awaitingTimestamp = 0;
-	timestampBytes = 0;
 }
 
 TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
@@ -186,7 +184,6 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 	}
 
 	awaitingTimestamp = std::clamp(awaitingTimestamp, (uint8_t)0, (uint8_t)(sizeof(currentValue) / sizeof(currentValue[0])));
-	timestampBytes = std::clamp(timestampBytes, (uint32_t)0, (uint32_t)sizeof(timestampBuf));
 
 	switch (state)
 	{
@@ -225,7 +222,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 
 		case TRACE_STATE_TARGET_TIMESTAMP_HEADER:
 		{
-			timestampBuf[timestampBytes++] = c;
+			timestampVec.push_back(c);
 			if (TRACE_OP_GET_CONTINUATION(c))
 				return TRACE_STATE_TARGET_TIMESTAMP_CONT;
 			else
@@ -235,7 +232,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 
 		case TRACE_STATE_TARGET_TIMESTAMP_CONT:
 		{
-			timestampBuf[timestampBytes++] = c;
+			timestampVec.push_back(c);
 			if (TRACE_OP_GET_CONTINUATION(c))
 				return TRACE_STATE_TARGET_TIMESTAMP_CONT;
 			else
@@ -246,17 +243,6 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 		case TRACE_STATE_SKIP_FRAME:
 			return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME
 												: TRACE_STATE_IDLE;
-		case TRACE_STATE_SKIP_4:
-			return TRACE_STATE_SKIP_3;
-
-		case TRACE_STATE_SKIP_3:
-			return TRACE_STATE_SKIP_2;
-
-		case TRACE_STATE_SKIP_2:
-			return TRACE_STATE_SKIP_1;
-
-		case TRACE_STATE_SKIP_1:
-			return TRACE_STATE_IDLE;
 
 		case TRACE_STATE_UNKNOWN:
 			return TRACE_STATE_UNKNOWN;
@@ -282,7 +268,7 @@ void TraceReader::readerThread()
 			break;
 		}
 
-		if (sleepCycles > 1000)
+		if (traceQuality["sleep cycles"] > 1000)
 		{
 			lastErrorMsg = "No trace registered for 1000 cycles!";
 			logger->error(lastErrorMsg);
@@ -292,7 +278,7 @@ void TraceReader::readerThread()
 
 		if (length == 0)
 		{
-			sleepCycles++;
+			traceQuality["sleep cycles"]++;
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			continue;
 		}
@@ -305,7 +291,7 @@ void TraceReader::readerThread()
 			continue;
 		}
 
-		sleepCycles = 0;
+		traceQuality["sleep cycles"] = 0;
 
 		for (int32_t i = 0; i < length; i++)
 		{
