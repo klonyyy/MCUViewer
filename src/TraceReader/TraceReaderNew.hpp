@@ -9,12 +9,10 @@
 #include "map"
 #include "spdlog/spdlog.h"
 
-class TraceReader
+class TraceReaderNew
 {
    public:
-	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
-
-	~TraceReader();
+	TraceReaderNew(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
 	bool startAcqusition(std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
@@ -67,6 +65,10 @@ class TraceReader
 	uint32_t currentValue[channels]{};
 	uint8_t currentChannel[channels]{};
 
+	std::vector<uint8_t> chunk;
+	uint8_t remainingFrameType = 0;
+	uint8_t remainingBytes = 0;
+
 	uint8_t awaitingTimestamp = 0;
 	uint32_t timestamp;
 
@@ -79,14 +81,12 @@ class TraceReader
 	std::string lastErrorMsg = "";
 
 	std::array<uint32_t, channels> previousEntry;
-	RingBuffer<std::pair<std::array<uint32_t, channels>, double>>* traceTable;
+	RingBuffer<std::pair<std::array<uint32_t, channels>, double>> traceTable{200000};
 
 	std::thread readerHandle;
 
-	TraceState updateTraceIdle(uint8_t c);
-	TraceState updateTrace(uint8_t c);
-	void timestampEnd();
-
+	void processSource(std::vector<uint8_t>& chunk);
+	void processTimestamp(std::vector<uint8_t>& chunk);
 	void readerThread();
 
 	std::shared_ptr<ITraceDevice> traceDevice;

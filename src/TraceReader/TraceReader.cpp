@@ -22,6 +22,13 @@
 
 TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger) : traceDevice(traceDevice), logger(logger)
 {
+	traceTable = new RingBuffer<std::pair<std::array<uint32_t, channels>, double>>(20000);
+}
+
+TraceReader::~TraceReader()
+{
+	delete traceTable;
+	std::cout << "DESTROYYYYYYYYYYYYYYYYYY" << std::endl;
 }
 
 bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
@@ -63,9 +70,9 @@ bool TraceReader::isValid() const
 
 bool TraceReader::readTrace(double& timestamp, std::array<uint32_t, 10>& trace)
 {
-	if (!isRunning.load() || traceTable.getSize() == 0)
+	if (!isRunning.load() || traceTable->getSize() == 0)
 		return false;
-	auto entry = traceTable.pop();
+	auto entry = traceTable->pop();
 	timestamp = entry.second / static_cast<double>(coreFrequency * 1000);
 	trace = entry.first;
 	return true;
@@ -169,7 +176,7 @@ void TraceReader::timestampEnd()
 		i++;
 	}
 
-	traceTable.push(std::pair<std::array<uint32_t, channels>, double>{currentEntry, timestamp});
+	traceTable->push(std::pair<std::array<uint32_t, channels>, double>{currentEntry, timestamp});
 	previousEntry = currentEntry;
 	awaitingTimestamp = 0;
 }
