@@ -268,9 +268,9 @@ void TraceReader::readerThread()
 			break;
 		}
 
-		if (traceQuality["sleep cycles"] > 1000)
+		if (traceQuality["sleep cycles"] > 20000)
 		{
-			lastErrorMsg = "No trace registered for 1000 cycles!";
+			lastErrorMsg = "No trace registered for 2s!";
 			logger->error(lastErrorMsg);
 			isRunning.store(false);
 			break;
