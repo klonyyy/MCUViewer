@@ -22,13 +22,7 @@
 
 TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger) : traceDevice(traceDevice), logger(logger)
 {
-	traceTable = new RingBuffer<std::pair<std::array<uint32_t, channels>, double>>(20000);
-}
-
-TraceReader::~TraceReader()
-{
-	delete traceTable;
-	std::cout << "DESTROYYYYYYYYYYYYYYYYYY" << std::endl;
+	traceTable = std::make_unique<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>>(20000);
 }
 
 bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)

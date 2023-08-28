@@ -14,8 +14,6 @@ class TraceReader
    public:
 	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
-	~TraceReader();
-
 	bool startAcqusition(std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
 	bool isValid() const;
@@ -79,7 +77,7 @@ class TraceReader
 	std::string lastErrorMsg = "";
 
 	std::array<uint32_t, channels> previousEntry;
-	RingBuffer<std::pair<std::array<uint32_t, channels>, double>>* traceTable;
+	std::unique_ptr<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>> traceTable;
 
 	std::thread readerHandle;
 
