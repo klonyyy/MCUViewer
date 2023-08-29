@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "ITraceDevice.hpp"
-// #include "TraceReader/TraceReader.hpp"
-#include "TraceReader/TraceReaderNew.hpp"
+#include "TraceReader/TraceReader.hpp"
+// #include "TraceReader/TraceReaderNew.hpp"
 #include "gmock/gmock.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
@@ -34,7 +34,7 @@ class TraceReaderTest : public ::testing::Test
 	void SetUp() override
 	{
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
-		traceReader = std::make_shared<TraceReaderNew>(traceDevice, logger);
+		traceReader = std::make_shared<TraceReader>(traceDevice, logger);
 
 		ON_CALL(*traceDevice, startTrace(_, _, _)).WillByDefault(Return(true));
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
@@ -55,7 +55,7 @@ class TraceReaderTest : public ::testing::Test
 	std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> stdout_sink;
 	std::shared_ptr<spdlog::logger> logger;
 
-	std::shared_ptr<TraceReaderNew> traceReader;
+	std::shared_ptr<TraceReader> traceReader;
 	std::shared_ptr<::NiceMock<TraceDeviceMock>> traceDevice;
 };
 
@@ -98,7 +98,7 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundaryTimestamp)
 
 	std::array<uint32_t, channels> trace{};
 
-	std::array<double, 10> expectedTimestamp = {7.6875e-06, 1.25e-08, 2.25625e-06, 1.03125e-06, 7.6625e-06, 1.25e-08, 2.2625e-06, 6.25e-09};
+	std::array<double, 10> expectedTimestamp = {7.6875e-06, 2.1875e-07, 2.25625e-06, 1.03125e-06, 7.6625e-06, 2.1875e-07, 2.2625e-06, 1.4375e-07};
 	std::array<std::array<uint32_t, channels>, 8> expectedTrace{{{{0, 187, 0, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 170, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},
@@ -141,7 +141,7 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp2)
 					 17, 187, 192, 234, 2,
 					 25, 170, 192, 23};
 
-	std::array<double, 10> expectedTimestamp = {7.6875e-06, 1.25e-08, 2.25625e-06, 1.03125e-06, 7.6625e-06, 1.25e-08, 2.2625e-06, 6.25e-09};
+	std::array<double, 10> expectedTimestamp = {7.6875e-06, 2.1875e-07, 2.25625e-06, 1.03125e-06, 7.6625e-06, 2.1875e-07, 2.2625e-06, 1.4375e-07};
 	std::array<std::array<uint32_t, channels>, 8> expectedTrace{{{{0, 187, 0, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 170, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},
@@ -185,7 +185,7 @@ TEST_F(TraceReaderTest, testdoubleBuffers)
 
 	std::array<uint32_t, channels> trace{};
 
-	std::array<double, 10> expectedTimestamp = {7.6875e-06, 1.25e-08, 2.25625e-06, 1.03125e-06, 7.6625e-06, 1.25e-08, 2.2625e-06, 6.25e-09};
+	std::array<double, 10> expectedTimestamp = {7.6875e-06, 2.1875e-07, 2.25625e-06, 1.03125e-06, 7.6625e-06, 2.1875e-07, 2.2625e-06, 1.4375e-07};
 	std::array<std::array<uint32_t, channels>, 8> expectedTrace{{{{0, 187, 0, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 170, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},

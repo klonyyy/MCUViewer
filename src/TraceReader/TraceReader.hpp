@@ -83,7 +83,7 @@ class TraceReader
 
 	TraceState updateTraceIdle(uint8_t c);
 	TraceState updateTrace(uint8_t c);
-	void timestampEnd();
+	void timestampEnd(bool headerData);
 
 	void readerThread();
 

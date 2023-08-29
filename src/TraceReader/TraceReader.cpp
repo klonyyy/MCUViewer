@@ -131,7 +131,7 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 		else
 		{
 			timestampVec.push_back(c);
-			timestampEnd();
+			timestampEnd(true);
 			return TRACE_STATE_IDLE;
 		}
 	}
@@ -145,9 +145,9 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 }
 
-void TraceReader::timestampEnd()
+void TraceReader::timestampEnd(bool headerData)
 {
-	if (timestampVec.size() == 1)
+	if (headerData)
 		timestamp = (uint32_t)(timestampVec[0] & 0x7f) >> 4;
 	else
 	{
@@ -227,7 +227,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 			if (TRACE_OP_GET_CONTINUATION(c))
 				return TRACE_STATE_TARGET_TIMESTAMP_CONT;
 			else
-				timestampEnd();
+				timestampEnd(false);
 			return TRACE_STATE_IDLE;
 		}
 
@@ -237,7 +237,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 			if (TRACE_OP_GET_CONTINUATION(c))
 				return TRACE_STATE_TARGET_TIMESTAMP_CONT;
 			else
-				timestampEnd();
+				timestampEnd(false);
 			return TRACE_STATE_IDLE;
 		}
 

@@ -134,11 +134,14 @@ void TraceReaderNew::processTimestamp(std::vector<uint8_t>& chunk)
 		timestamp = (uint32_t)(chunk[0] & 0x7f) >> 4;
 	else
 	{
-		for (uint32_t i = 0; i < chunk.size(); i++)
-			timestamp |= (uint32_t)(chunk[i] & 0x7f) << 7 * i;
+		for (uint32_t i = 1; i < chunk.size(); i++)
+			timestamp |= (uint32_t)(chunk[i] & 0x7f) << 7 * (i - 1);
 	}
 
-	std::array<uint32_t, channels> currentEntry{previousEntry};
+	std::cout << "timestamp double: " << (double)timestamp / 160000000.0 << std::endl;
+
+	std::array<uint32_t, channels>
+		currentEntry{previousEntry};
 
 	uint32_t i = 0;
 	while (awaitingTimestamp--)
@@ -203,39 +206,41 @@ void TraceReaderNew::readerThread()
 
 		uint32_t idx = 0;
 
-		// if (remainingFrameType == 2)
-		// {
-		// 	while (TRACE_OP_GET_CONTINUATION(buffer[idx]))
-		// 	{
-		// 		chunk.push_back(buffer[idx]);
+		if (remainingFrameType == 2)
+		{
+			while (TRACE_OP_GET_CONTINUATION(buffer[idx]))
+			{
+				chunk.push_back(buffer[idx]);
+				if (idx < length - 1)
+					idx++;
+				else
+				{
+					std::cout << "    remaining timestamp REST   " << std::endl;
+					remainingFrameType = 2;
+					remainingBytes = 1;
+				}
+			}
+			if (remainingFrameType == 0)
+				processTimestamp(chunk);
+		}
+		else if (remainingFrameType == 1 && remainingBytes)
+		{
+			while (remainingBytes--)
+			{
+				chunk.push_back(buffer[idx]);
+				if (idx < length - 1)
+					idx++;
+				else
+					remainingFrameType = 1;
+			}
+			length -= idx;
+			if (remainingFrameType == 0)
+				processSource(chunk);
+		}
 
-		// 		if (idx < length - 1)
-		// 			idx++;
-		// 		else
-		// 		{
-		// 			remainingBytes = 1;
-		// 			remainingFrameType = 2;
-		// 			break;
-		// 		}
-		// 	}
-		// 	length -= chunk.size();
-		// 	processTimestamp(chunk);
-		// }
-		// else if (remainingFrameType == 1 && remainingBytes)
-		// {
-		// 	while (remainingBytes--)
-		// 	{
-		// 		chunk.push_back(buffer[idx]);
-		// 		if (idx < length - 1)
-		// 			idx++;
-		// 		else
-		// 			remainingFrameType = 1;
-		// 	}
-		// 	if (remainingFrameType == 0)
-		// 		processSource(chunk);
-		// }
+		remainingFrameType = 0;
 
-		while (idx < length - 1)
+		while (idx < length)
 		{
 			uint8_t c = buffer[idx];
 
@@ -255,6 +260,7 @@ void TraceReaderNew::readerThread()
 					{
 						remainingFrameType = 1;
 						remainingBytes = size - i;
+						std::cout << "remaining: " << (int)remainingBytes << std::endl;
 					}
 
 					chunk.push_back(buffer[idx]);
@@ -266,12 +272,15 @@ void TraceReaderNew::readerThread()
 			{
 				timestamp = 0;
 
-				while (TRACE_OP_GET_CONTINUATION(buffer[idx]))
+				chunk.push_back(buffer[idx]);
+
+				while (TRACE_OP_GET_CONTINUATION(buffer[idx]) && !remainingBytes)
 				{
 					if (idx < length - 1)
 						idx++;
 					else
 					{
+						std::cout << "    remaining timestamp    " << std::endl;
 						remainingFrameType = 2;
 						remainingBytes = 1;
 					}
@@ -286,6 +295,8 @@ void TraceReaderNew::readerThread()
 			if (!isRunning)
 				break;
 		}
+
+		std::cout << "    NEXT BUFFER    " << std::endl;
 	}
 	logger->info("Closing trace thread {}", isRunning);
 }
