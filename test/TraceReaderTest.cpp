@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "ITraceDevice.hpp"
-#include "TraceReader/TraceReader.hpp"
-// #include "TraceReader/TraceReaderNew.hpp"
+// #include "TraceReader/TraceReader.hpp"
+#include "TraceReader/TraceReaderNew.hpp"
 #include "gmock/gmock.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
@@ -34,7 +34,7 @@ class TraceReaderTest : public ::testing::Test
 	void SetUp() override
 	{
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
-		traceReader = std::make_shared<TraceReader>(traceDevice, logger);
+		traceReader = std::make_shared<TraceReaderNew>(traceDevice, logger);
 
 		ON_CALL(*traceDevice, startTrace(_, _, _)).WillByDefault(Return(true));
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
@@ -55,7 +55,7 @@ class TraceReaderTest : public ::testing::Test
 	std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> stdout_sink;
 	std::shared_ptr<spdlog::logger> logger;
 
-	std::shared_ptr<TraceReader> traceReader;
+	std::shared_ptr<TraceReaderNew> traceReader;
 	std::shared_ptr<::NiceMock<TraceDeviceMock>> traceDevice;
 };
 
@@ -163,7 +163,6 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp2)
 	int i = 0;
 	for (auto& e : expectedTrace)
 	{
-		std::cout << "________________ --------------------" << std::endl;
 		std::array<uint32_t, channels> trace{};
 		double timestamp = 0.0;
 		ASSERT_EQ(traceReader->readTrace(timestamp, trace), true);
@@ -211,7 +210,6 @@ TEST_F(TraceReaderTest, testdoubleBuffers)
 	int i = 0;
 	for (auto& e : expectedTrace)
 	{
-		std::cout << "________________ --------------------" << std::endl;
 		double timestamp = 0.0;
 		ASSERT_EQ(traceReader->readTrace(timestamp, trace), true);
 		ASSERT_NEAR(expectedTimestamp[i++], timestamp, 10e-9);

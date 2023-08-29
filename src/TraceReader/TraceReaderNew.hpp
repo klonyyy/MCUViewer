@@ -81,7 +81,7 @@ class TraceReaderNew
 	std::string lastErrorMsg = "";
 
 	std::array<uint32_t, channels> previousEntry;
-	RingBuffer<std::pair<std::array<uint32_t, channels>, double>> traceTable{200000};
+	std::unique_ptr<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>> traceTable;
 
 	std::thread readerHandle;
 
