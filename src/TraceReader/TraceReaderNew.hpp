@@ -80,7 +80,7 @@ class TraceReaderNew
 	std::atomic<bool> isRunning{false};
 	std::string lastErrorMsg = "";
 
-	std::array<uint32_t, channels> previousEntry;
+	std::array<uint32_t, channels> previousEntry{};
 	std::unique_ptr<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>> traceTable;
 
 	std::thread readerHandle;
