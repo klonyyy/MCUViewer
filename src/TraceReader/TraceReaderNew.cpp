@@ -164,6 +164,29 @@ void TraceReaderNew::processTimestamp(std::vector<uint8_t>& chunk)
 	chunk.clear();
 }
 
+void TraceReaderNew::handleTimestamp(uint32_t& idx, int32_t& length)
+{
+	timestamp = 0;
+	chunk.push_back(buffer[idx]);
+	remainingFrameType = 0;
+	while (TRACE_OP_GET_CONTINUATION(buffer[idx]) && !remainingFrameType)
+	{
+		if (idx < length - 1)
+		{
+			idx++;
+			chunk.push_back(buffer[idx]);
+		}
+		else
+		{
+			std::cout << "    remaining timestamp    " << std::endl;
+			remainingFrameType = 2;
+			remainingBytes = 1;
+		}
+	}
+	if (remainingFrameType == 0)
+		processTimestamp(chunk);
+}
+
 void TraceReaderNew::readerThread()
 {
 	while (isRunning.load())
@@ -208,40 +231,25 @@ void TraceReaderNew::readerThread()
 
 		if (remainingFrameType == 2)
 		{
-			remainingFrameType = 0;
-			chunk.push_back(buffer[idx]);
-			while (TRACE_OP_GET_CONTINUATION(buffer[idx]))
-			{
-				if (idx < length - 1)
-					idx++;
-				else
-				{
-					std::cout << "    remaining timestamp REST   " << std::endl;
-					remainingFrameType = 2;
-				}
-				chunk.push_back(buffer[idx]);
-			}
-			if (remainingFrameType == 0)
-			{
-				std::cout << "procesing timestampo" << std::endl;
-				processTimestamp(chunk);
-				idx++;
-			}
+			handleTimestamp(idx, length);
+			idx++;
 		}
-		else if (remainingFrameType == 1 && remainingBytes)
+		else if (remainingFrameType == 1)
 		{
 			remainingFrameType = 0;
+			chunk.push_back(buffer[idx]);
+			remainingBytes--;
 			while (remainingBytes--)
 			{
-				chunk.push_back(buffer[idx]);
 				if (idx < length - 1)
 					idx++;
 				else
 					remainingFrameType = 1;
+				chunk.push_back(buffer[idx]);
 			}
-			length -= idx;
 			if (remainingFrameType == 0)
 			{
+				std::cout << "procesing sourco" << std::endl;
 				processSource(chunk);
 				idx++;
 			}
@@ -264,42 +272,22 @@ void TraceReaderNew::readerThread()
 				for (uint32_t i = 0; i < size; i++)
 				{
 					if (idx < length - 1)
-						idx++;
-					else
-					{
-						remainingFrameType = 1;
-						remainingBytes = size - i;
-						std::cout << "remaining: " << (int)remainingBytes << std::endl;
-					}
-
-					chunk.push_back(buffer[idx]);
-				}
-				if (remainingFrameType == 0)
-					processSource(chunk);
-			}
-			else if (TRACE_OP_IS_LOCAL_TIME(c))
-			{
-				timestamp = 0;
-
-				chunk.push_back(buffer[idx]);
-
-				while (TRACE_OP_GET_CONTINUATION(buffer[idx]) && !remainingFrameType)
-				{
-					if (idx < length - 1)
 					{
 						idx++;
 						chunk.push_back(buffer[idx]);
 					}
 					else
 					{
-						std::cout << "    remaining timestamp    " << std::endl;
-						remainingFrameType = 2;
-						remainingBytes = 1;
+						remainingFrameType = 1;
+						remainingBytes = size - i;
+						std::cout << "remaining: " << (int)remainingBytes << std::endl;
 					}
 				}
 				if (remainingFrameType == 0)
-					processTimestamp(chunk);
+					processSource(chunk);
 			}
+			else if (TRACE_OP_IS_LOCAL_TIME(c))
+				handleTimestamp(idx, length);
 
 			idx++;
 

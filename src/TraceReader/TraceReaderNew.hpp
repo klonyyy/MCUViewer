@@ -87,6 +87,7 @@ class TraceReaderNew
 
 	void processSource(std::vector<uint8_t>& chunk);
 	void processTimestamp(std::vector<uint8_t>& chunk);
+	void handleTimestamp(uint32_t& idx, int32_t& length);
 	void readerThread();
 
 	std::shared_ptr<ITraceDevice> traceDevice;

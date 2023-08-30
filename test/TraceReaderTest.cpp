@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "ITraceDevice.hpp"
-// #include "TraceReader/TraceReader.hpp"
-#include "TraceReader/TraceReaderNew.hpp"
+#include "TraceReader/TraceReader.hpp"
+// #include "TraceReader/TraceReaderNew.hpp"
 #include "gmock/gmock.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
@@ -34,7 +34,7 @@ class TraceReaderTest : public ::testing::Test
 	void SetUp() override
 	{
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
-		traceReader = std::make_shared<TraceReaderNew>(traceDevice, logger);
+		traceReader = std::make_shared<TraceReader>(traceDevice, logger);
 
 		ON_CALL(*traceDevice, startTrace(_, _, _)).WillByDefault(Return(true));
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
@@ -55,7 +55,7 @@ class TraceReaderTest : public ::testing::Test
 	std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> stdout_sink;
 	std::shared_ptr<spdlog::logger> logger;
 
-	std::shared_ptr<TraceReaderNew> traceReader;
+	std::shared_ptr<TraceReader> traceReader;
 	std::shared_ptr<::NiceMock<TraceDeviceMock>> traceDevice;
 };
 
