@@ -77,7 +77,8 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			plot->setMarkerValueX1(markerPos);
 			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", markerPos);
 			double dx = markerPos - plot->getMarkerValueX0();
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f ms", dx * 1000.0);
+			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 15), true, "x1-x0 %.5f ms", dx * 1000.0);
+			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 30), true, "1/dt %.1f Hz", 1.0 / dx);
 		}
 		else
 			plot->setMarkerValueX1(0.0);
