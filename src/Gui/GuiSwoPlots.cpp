@@ -6,39 +6,42 @@ void Gui::drawPlotsSwo()
 
 	if (ImPlot::BeginSubplots("##subplos", tracePlotHandler->getVisiblePlotsCount(), 1, plotSize, ImPlotSubplotFlags_LinkAllX))
 	{
+		bool first = true;
 		for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 		{
 			if (!plt->getVisibility())
 				continue;
 
-			drawPlotCurveSwo(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
+			drawPlotCurveSwo(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), first);
+			first = false;
 		}
 		ImPlot::EndSubplots();
 	}
 }
 
-void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
+void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first)
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild | ImPlotFlags_NoTitle))
 	{
+		if (first)
+			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_Opposite | ImPlotAxisFlags_NoLabel);
+		else
+			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel);
+
 		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN)
 		{
 			auto settings = tracePlotHandler->getSettings();
-			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations);
 			const double min = time.getOldestValue();
 			const double max = time.getNewestValue();
 			const double viewportWidth = (max - min) * (settings.maxViewportPointsPercent / 100.0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, max - viewportWidth, max, ImPlotCond_Always);
 		}
 		else
-		{
-			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoDecorations);
-			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoDecorations);
-		}
+			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel);
 
 		if (plot->getDomain() == Plot::Domain::DIGITAL)
 		{
-			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoDecorations);
+			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.25, 1.25, ImPlotCond_Always);
 		}
 		else

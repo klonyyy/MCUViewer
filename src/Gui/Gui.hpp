@@ -72,7 +72,7 @@ class Gui
 	void drawSettingsSwo();
 	void drawIndicatorsSwo();
 	void drawPlotsSwo();
-	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
+	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
 
 	template <typename T>
