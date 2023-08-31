@@ -82,7 +82,8 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		askShouldSaveOnExit(glfwWindowShouldClose(window));
+		if (glfwWindowShouldClose(window))
+			askShouldSaveOnExit(glfwWindowShouldClose(window));
 		glfwSetWindowShouldClose(window, done);
 		checkShortcuts();
 
@@ -174,6 +175,7 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
+	askShouldSaveOnExit(shouldSaveOnClose);
 	askShouldSaveOnNew(shouldSaveOnNew);
 }
 
