@@ -4,7 +4,9 @@ void Gui::drawPlotsSwo()
 {
 	ImVec2 plotSize(-1, -1);
 
-	if (ImPlot::BeginSubplots("##subplos", tracePlotHandler->getVisiblePlotsCount(), 1, plotSize, ImPlotSubplotFlags_LinkAllX))
+	float rowRatios[] = {1.2f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
+	if (ImPlot::BeginSubplots("##subplos", tracePlotHandler->getVisiblePlotsCount(), 1, plotSize, ImPlotSubplotFlags_LinkAllX, rowRatios))
 	{
 		bool first = true;
 		for (std::shared_ptr<Plot> plt : *tracePlotHandler)
@@ -21,7 +23,7 @@ void Gui::drawPlotsSwo()
 
 void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first)
 {
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild | ImPlotFlags_NoTitle))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(), ImPlotFlags_NoChild | ImPlotFlags_NoTitle))
 	{
 		if (first)
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_Opposite | ImPlotAxisFlags_NoLabel);
@@ -88,7 +90,7 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 
-		/* make thread safe copies of buffers - probably can be made better but it works */
+		/* make thread safe copies of buffers - TODO refactor */
 		mtx->lock();
 		time.copyData();
 		if (ser->visible)

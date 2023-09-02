@@ -124,7 +124,7 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		else
 			plot->setMarkerValueX1(0.0);
 
-		/* make thread safe copies of buffers - probably can be made better but it works */
+		/* make thread safe copies of buffers - TODO refactor */
 		mtx->lock();
 		time.copyData();
 		for (auto& [key, serPtr] : seriesMap)
