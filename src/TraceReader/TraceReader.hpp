@@ -33,19 +33,14 @@ class TraceReader
 	{
 		TRACE_STATE_UNKNOWN,
 		TRACE_STATE_IDLE,
-		TRACE_STATE_TARGET_SOURCE,
-		TRACE_STATE_TARGET_SOURCE_3B,
-		TRACE_STATE_TARGET_SOURCE_2B,
 		TRACE_STATE_TARGET_SOURCE_1B,
-		TRACE_STATE_TARGET_SOURCE_0B,
+		TRACE_STATE_TARGET_SOURCE_2B,
+		TRACE_STATE_TARGET_SOURCE_3B,
+		TRACE_STATE_TARGET_SOURCE_4B,
 		TRACE_STATE_TARGET_TIMESTAMP_HEADER,
 		TRACE_STATE_TARGET_TIMESTAMP_CONT,
 		TRACE_STATE_TARGET_TIMESTAMP_END,
 		TRACE_STATE_SKIP_FRAME,
-		TRACE_STATE_SKIP_4,
-		TRACE_STATE_SKIP_3,
-		TRACE_STATE_SKIP_2,
-		TRACE_STATE_SKIP_1,
 	} TraceState;
 
 	TraceState state = TRACE_STATE_IDLE;
@@ -66,7 +61,8 @@ class TraceReader
 	uint8_t currentChannel[channels]{};
 
 	uint8_t awaitingTimestamp = 0;
-	uint32_t timestamp;
+	uint32_t timestamp = 0;
+	uint8_t sourceFrameSize = 0;
 
 	std::vector<uint8_t> timestampVec;
 
@@ -84,7 +80,6 @@ class TraceReader
 	TraceState updateTraceIdle(uint8_t c);
 	TraceState updateTrace(uint8_t c);
 	void timestampEnd(bool headerData);
-
 	void readerThread();
 
 	std::shared_ptr<ITraceDevice> traceDevice;

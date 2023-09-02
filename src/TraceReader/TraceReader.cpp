@@ -3,22 +3,16 @@
 #include <cstring>
 #include <random>
 
-#define TRACE_OP_IS_OVERFLOW(c)			(c == 0x70)
-#define TRACE_OP_IS_LOCAL_TIME(c)		((c & 0x0f) == 0x00 && (c & 0x70) != 0x00)
-#define TRACE_OP_IS_EXTENSION(c)		((c & 0x0b) == 0x08)
-#define TRACE_OP_IS_GLOBAL_TIME(c)		((c & 0xdf) == 0x94)
-#define TRACE_OP_IS_SOURCE(c)			((c & 0x03) != 0x00)
-#define TRACE_OP_IS_SW_SOURCE(c)		((c & 0x03) != 0x00 && (c & 0x04) == 0x00)
-#define TRACE_OP_IS_HW_SOURCE(c)		((c & 0x03) != 0x00 && (c & 0x04) == 0x04)
-#define TRACE_OP_IS_TARGET_SOURCE_1B(c) ((c & 0x03) == 0x01)
-#define TRACE_OP_IS_TARGET_SOURCE_4B(c) ((c & 0x03) == 0x03)
-#define TRACE_OP_GET_CONTINUATION(c)	(c & 0x80)
-#define TRACE_OP_GET_SOURCE_SIZE(c)		(c & 0x03)
-#define TRACE_OP_GET_SW_SOURCE_ADDR(c)	(c >> 3)
-
-#define TRACE_TIMEOUT_1 0xD0
-#define TRACE_TIMEOUT_2 0xE0
-#define TRACE_TIMEOUT_3 0xF0
+#define TRACE_OP_IS_OVERFLOW(c)		   (c == 0x70)
+#define TRACE_OP_IS_LOCAL_TIME(c)	   ((c & 0x0f) == 0x00 && (c & 0x70) != 0x00)
+#define TRACE_OP_IS_SW_SOURCE(c)	   ((c & 0x03) != 0x00 && (c & 0x04) == 0x00)
+#define TRACE_OP_GET_CONTINUATION(c)   (c & 0x80)
+#define TRACE_OP_GET_SOURCE_SIZE(c)	   (c & 0x03)
+#define TRACE_OP_GET_SW_SOURCE_ADDR(c) (c >> 3)
+#define TRACE_TIMEOUT_1				   0xD0
+#define TRACE_TIMEOUT_2				   0xE0
+#define TRACE_TIMEOUT_3				   0xF0
+#define TRACE_OP_IS_EXTENSION(c)	   ((c & 0x0b) == 0x08)
 
 TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger) : traceDevice(traceDevice), logger(logger)
 {
@@ -104,15 +98,13 @@ std::map<const char*, uint32_t> TraceReader::getTraceIndicators() const
 
 TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 {
-	if (TRACE_OP_IS_TARGET_SOURCE_1B(c))
+	if (TRACE_OP_IS_SW_SOURCE(c))
 	{
+		sourceFrameSize = (c & 0x03);
 		currentChannel[awaitingTimestamp] = (c & 0xf8) >> 3;
-		return TRACE_STATE_TARGET_SOURCE;
-	}
-	else if (TRACE_OP_IS_TARGET_SOURCE_4B(c))
-	{
-		currentChannel[awaitingTimestamp] = (c & 0xf8) >> 3;
-		return TRACE_STATE_TARGET_SOURCE_3B;
+		if (currentChannel[awaitingTimestamp] > 10)
+			logger->critical("char {}", c);
+		return TRACE_STATE_TARGET_SOURCE_1B;
 	}
 	else if (TRACE_OP_IS_LOCAL_TIME(c))
 	{
@@ -138,11 +130,11 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	else if (TRACE_OP_IS_EXTENSION(c))
 		return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 	else if (TRACE_OP_IS_OVERFLOW(c))
-		logger->warn("OVERFLOW OPTCODE 0x%02x\n", c);
+		logger->error("OVERFLOW OPTCODE {}", c);
 
 	traceQuality["error frames"]++;
 
-	return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
+	return TRACE_STATE_IDLE;
 }
 
 void TraceReader::timestampEnd(bool headerData)
@@ -163,7 +155,7 @@ void TraceReader::timestampEnd(bool headerData)
 		if (currentChannel[i] > channels || i > channels)
 		{
 			traceQuality["error frames"]++;
-			logger->error("WRONG CHANNEL");
+			logger->error("WRONG CHANNEL {}, {}", i, currentChannel[i]);
 			break;
 		}
 		currentEntry[currentChannel[i]] = currentValue[i];
@@ -177,45 +169,39 @@ void TraceReader::timestampEnd(bool headerData)
 
 TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 {
-	if (state == TRACE_STATE_UNKNOWN)
-	{
-		logger->warn("STATE UNKNOWN {}", c);
-		if (TRACE_OP_IS_TARGET_SOURCE_1B(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
-			state = TRACE_STATE_IDLE;
-	}
-
 	awaitingTimestamp = std::clamp(awaitingTimestamp, (uint8_t)0, (uint8_t)(sizeof(currentValue) / sizeof(currentValue[0])));
 
 	switch (state)
 	{
 		case TRACE_STATE_IDLE:
-		{
 			return updateTraceIdle(c);
-		}
 
-		case TRACE_STATE_TARGET_SOURCE:
-		{
-			currentValue[awaitingTimestamp++] = c;
-			return TRACE_STATE_IDLE;
-		}
-
-		case TRACE_STATE_TARGET_SOURCE_3B:
+		case TRACE_STATE_TARGET_SOURCE_1B:
 		{
 			currentValue[awaitingTimestamp] = c;
+			if (sourceFrameSize == 0x01)
+			{
+				awaitingTimestamp++;
+				return TRACE_STATE_IDLE;
+			}
 			return TRACE_STATE_TARGET_SOURCE_2B;
 		}
-
 		case TRACE_STATE_TARGET_SOURCE_2B:
 		{
 			currentValue[awaitingTimestamp] |= (c << 8);
-			return TRACE_STATE_TARGET_SOURCE_1B;
+			if (sourceFrameSize == 0x02)
+			{
+				awaitingTimestamp++;
+				return TRACE_STATE_IDLE;
+			}
+			return TRACE_STATE_TARGET_SOURCE_3B;
 		}
-		case TRACE_STATE_TARGET_SOURCE_1B:
+		case TRACE_STATE_TARGET_SOURCE_3B:
 		{
 			currentValue[awaitingTimestamp] |= (c << 16);
-			return TRACE_STATE_TARGET_SOURCE_0B;
+			return TRACE_STATE_TARGET_SOURCE_4B;
 		}
-		case TRACE_STATE_TARGET_SOURCE_0B:
+		case TRACE_STATE_TARGET_SOURCE_4B:
 		{
 			currentValue[awaitingTimestamp++] |= (c << 24);
 			return TRACE_STATE_IDLE;
@@ -245,11 +231,8 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 			return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME
 												: TRACE_STATE_IDLE;
 
-		case TRACE_STATE_UNKNOWN:
-			return TRACE_STATE_UNKNOWN;
-
 		default:
-			logger->critical("Invalid state {}.  This should never happen.", state);
+			logger->critical("Invalid state! {}", state);
 			return TRACE_STATE_IDLE;
 	}
 }
