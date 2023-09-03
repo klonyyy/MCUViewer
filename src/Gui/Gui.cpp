@@ -56,7 +56,6 @@ void Gui::mainThread()
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
 
@@ -88,10 +87,10 @@ void Gui::mainThread()
 		checkShortcuts();
 
 		drawMenu();
-		drawAcqusitionSettingsWindow();
 
 		if (ImGui::Begin("SWO Viewer"))
 		{
+			drawAcqusitionSettingsWindow(AcqusitionWindowType::TRACE);
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("SWO Plots"))
 				drawPlotsSwo();
@@ -105,6 +104,7 @@ void Gui::mainThread()
 
 		if (ImGui::Begin("VarViewer"))
 		{
+			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
 			drawStartButton();
 			drawVarTable();
 			drawPlotsTree();
@@ -472,7 +472,7 @@ void Gui::drawPlotsTree()
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
 
-void Gui::drawAcqusitionSettingsWindow()
+void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 {
 	if (showAcqusitionSettingsWindow)
 		ImGui::OpenPopup("Acqusition Settings");
@@ -481,23 +481,21 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::SetNextWindowSize(ImVec2(500, 300));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
-		if (ImGui::BeginTabBar("Settings", ImGuiTabBarFlags_None))
+		if (type == AcqusitionWindowType::VARIABLE)
 		{
-			if (ImGui::BeginTabItem("Viewer"))
-			{
-				acqusitionSettingsViewer();
-				ImGui::EndTabItem();
-			}
-			if (ImGui::BeginTabItem("Trace"))
-			{
-				acqusitionSettingsTrace();
-				ImGui::EndTabItem();
-			}
-
-			ImGui::EndTabBar();
+			acqusitionSettingsViewer();
+			ImGui::EndTabItem();
+		}
+		if (type == AcqusitionWindowType::TRACE)
+		{
+			acqusitionSettingsTrace();
+			ImGui::EndTabItem();
 		}
 
-		if (ImGui::Button("Done"))
+		const float buttonHeight = 25.0f;
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
 			showAcqusitionSettingsWindow = false;
 			ImGui::CloseCurrentPopup();

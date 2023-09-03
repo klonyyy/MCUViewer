@@ -40,6 +40,12 @@ class Gui
 
 	std::atomic<bool>& done;
 
+	enum class AcqusitionWindowType : uint8_t
+	{
+		VARIABLE = 0,
+		TRACE = 1,
+	};
+
 	std::mutex* mtx;
 
 	void mainThread();
@@ -51,7 +57,7 @@ class Gui
 	void drawAddPlotButton();
 	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
 	void drawPlotsTree();
-	void drawAcqusitionSettingsWindow();
+	void drawAcqusitionSettingsWindow(AcqusitionWindowType type);
 	void acqusitionSettingsViewer();
 	void acqusitionSettingsTrace();
 	void drawPlots();
