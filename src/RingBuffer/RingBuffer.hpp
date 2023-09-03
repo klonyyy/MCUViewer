@@ -15,7 +15,7 @@ class RingBuffer
 	bool push(const T& item)
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		if (!cond_full.wait_for(lock, 2000ms, [this]()
+		if (!cond_full.wait_for(lock, 100ms, [this]()
 								{ return size < capacity; }))
 			return false;
 

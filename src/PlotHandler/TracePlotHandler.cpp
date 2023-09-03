@@ -81,8 +81,6 @@ void TracePlotHandler::dataHandler()
 				stateChangeOrdered.store(true);
 			}
 
-			std::this_thread::sleep_for(std::chrono::microseconds(100));
-
 			double timestamp;
 			std::array<uint32_t, 10> traces{};
 			if (!traceReader->readTrace(timestamp, traces))
