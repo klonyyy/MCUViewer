@@ -29,7 +29,10 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 
 	if (sl == nullptr)
+	{
+		logger->error("Stlink not found!");
 		return false;
+	}
 
 	/* turn on DWT and ITM */
 	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);

@@ -89,7 +89,12 @@ void Gui::drawIndicatorsSwo()
 	{
 		ImGui::Text(name);
 		ImGui::SameLine();
-		ImGui::Text(std::to_string(value).c_str());
+		std::string separator = "";
+
+		for (uint8_t i = 0; i < 24 - strlen(name); i++)
+			separator.append(" ");
+
+		ImGui::Text((separator + std::to_string(value)).c_str());
 	}
 }
 
