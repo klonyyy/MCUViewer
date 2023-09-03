@@ -4,7 +4,6 @@
 
 #include "ITraceDevice.hpp"
 #include "TraceReader/TraceReader.hpp"
-// #include "TraceReader/TraceReaderNew.hpp"
 #include "gmock/gmock.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
