@@ -35,7 +35,7 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 		readerHandle = std::thread(&TraceReader::readerThread, this);
 		return true;
 	}
-	traceDevice->stopTrace();
+	stopAcqusition();
 	return false;
 }
 
