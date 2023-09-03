@@ -44,9 +44,11 @@ void TracePlotHandler::setSettings(const Settings& settings)
 	traceSettings = settings;
 }
 
-std::map<const char*, uint32_t> TracePlotHandler::getTraceIndicators() const
+std::map<std::string, uint32_t> TracePlotHandler::getTraceIndicators() const
 {
-	return traceReader->getTraceIndicators();
+	auto indicators = traceReader->getTraceIndicators();
+	indicators.at("error frames in view") = errorFrameTimestamps.size();
+	return indicators;
 }
 
 std::string TracePlotHandler::getLastReaderError() const
@@ -74,7 +76,7 @@ void TracePlotHandler::dataHandler()
 		{
 			if (!traceReader->isValid())
 			{
-				logger->warn("TRACE INVALID, STOPPING");
+				logger->error("Trace invalid, stopping!");
 				viewerState.store(state::STOP);
 				stateChangeOrdered.store(true);
 			}
@@ -89,6 +91,16 @@ void TracePlotHandler::dataHandler()
 			uint32_t i = 0;
 
 			time += timestamp;
+
+			double oldestTimestamp = plotsMap.begin()->second->getTimeSeries().getOldestValue();
+
+			if (errorFrameSinceLastPoint != traceReader->getTraceIndicators().at("error frames total"))
+				errorFrameTimestamps.push_back(time);
+
+			while (errorFrameTimestamps.size() && errorFrameTimestamps.front() < oldestTimestamp)
+				errorFrameTimestamps.pop_front();
+
+			errorFrameSinceLastPoint = traceReader->getTraceIndicators().at("error frames total");
 
 			for (auto& [key, plot] : plotsMap)
 			{
@@ -108,22 +120,21 @@ void TracePlotHandler::dataHandler()
 
 				if (traceTriggered == false && i == traceSettings.triggerChannel && newPoint > traceSettings.triggerLevel)
 				{
-					logger->warn("Trigger!");
+					logger->info("Trigger!");
 					traceTriggered = true;
 					timestamp = 0;
 					cnt = 0;
 				}
 
 				/* thread-safe part */
-				std::lock_guard<std::mutex>
-					lock(*mtx);
+				std::lock_guard<std::mutex> lock(*mtx);
 				plot->addPoint(ser->var->getName(), newPoint);
 				plot->addTimePoint(time);
 				i++;
 			}
 			if (traceTriggered && cnt++ >= (traceSettings.maxPoints * 0.9))
 			{
-				logger->warn("After-trigger trace collcted. Stopping.");
+				logger->info("After-trigger trace collcted. Stopping.");
 				viewerState.store(state::STOP);
 				stateChangeOrdered.store(true);
 			}
@@ -154,4 +165,5 @@ void TracePlotHandler::dataHandler()
 			stateChangeOrdered = false;
 		}
 	}
+	logger->info("Exiting trace plot handler thread");
 }

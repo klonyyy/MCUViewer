@@ -47,7 +47,6 @@ bool TraceReader::stopAcqusition()
 	if (readerHandle.joinable())
 		readerHandle.join();
 
-	traceDevice->stopTrace();
 	return true;
 }
 
@@ -91,19 +90,19 @@ uint32_t TraceReader::getTraceFrequency() const
 	return tracePrescaler;
 }
 
-std::map<const char*, uint32_t> TraceReader::getTraceIndicators() const
+std::map<std::string, uint32_t> TraceReader::getTraceIndicators() const
 {
 	return traceQuality;
 }
 
 TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 {
+	traceQuality.at("frames total")++;
+
 	if (TRACE_OP_IS_SW_SOURCE(c))
 	{
 		sourceFrameSize = (c & 0x03);
 		currentChannel[awaitingTimestamp] = (c & 0xf8) >> 3;
-		if (currentChannel[awaitingTimestamp] > 10)
-			logger->critical("char {}", c);
 		return TRACE_STATE_TARGET_SOURCE_1B;
 	}
 	else if (TRACE_OP_IS_LOCAL_TIME(c))
@@ -132,7 +131,7 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	else if (TRACE_OP_IS_OVERFLOW(c))
 		logger->error("OVERFLOW OPTCODE {}", c);
 
-	traceQuality["error frames"]++;
+	traceQuality["error frames total"]++;
 
 	return TRACE_STATE_IDLE;
 }
@@ -154,7 +153,7 @@ void TraceReader::timestampEnd(bool headerData)
 	{
 		if (currentChannel[i] > channels || i > channels)
 		{
-			traceQuality["error frames"]++;
+			traceQuality["error frames total"]++;
 			logger->error("WRONG CHANNEL {}, {}", i, currentChannel[i]);
 			break;
 		}
@@ -284,5 +283,6 @@ void TraceReader::readerThread()
 				break;
 		}
 	}
+	traceDevice->stopTrace();
 	logger->info("Closing trace thread {}", isRunning);
 }

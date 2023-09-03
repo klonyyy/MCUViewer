@@ -26,7 +26,7 @@ class TraceReader
 	uint32_t getCoreClockFrequency() const;
 	void setTraceFrequency(uint32_t frequencyHz);
 	uint32_t getTraceFrequency() const;
-	std::map<const char*, uint32_t> getTraceIndicators() const;
+	std::map<std::string, uint32_t> getTraceIndicators() const;
 
    private:
 	typedef enum
@@ -45,7 +45,9 @@ class TraceReader
 
 	TraceState state = TRACE_STATE_IDLE;
 
-	std::map<const char*, uint32_t> traceQuality{{"error frames", 0},
+	std::map<std::string, uint32_t> traceQuality{{"frames total", 0},
+												 {"error frames total", 0},
+												 {"error frames in view", 0},
 												 {"delayed timestamp 1", 0},
 												 {"delayed timestamp 2", 0},
 												 {"delayed timestamp 3", 0},

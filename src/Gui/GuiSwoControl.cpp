@@ -83,15 +83,19 @@ void Gui::drawIndicatorsSwo()
 	ImGui::Text("Indicators");
 	ImGui::Separator();
 
-	std::map<const char*, uint32_t> traceQuality = tracePlotHandler->getTraceIndicators();
-
-	for (auto& [name, value] : traceQuality)
+	for (auto& [name, value] : tracePlotHandler->getTraceIndicators())
 	{
-		ImGui::Text(name);
+		if (name == std::string("error frames in view") && value > 0)
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), name.c_str());
+		else if (name == std::string("delayed timestamp 3") && value > 0)
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), name.c_str());
+		else
+			ImGui::Text(name.c_str());
+
 		ImGui::SameLine();
 		std::string separator = "";
 
-		for (uint8_t i = 0; i < 24 - strlen(name); i++)
+		for (uint8_t i = 0; i < 24 - name.size(); i++)
 			separator.append(" ");
 
 		ImGui::Text((separator + std::to_string(value)).c_str());

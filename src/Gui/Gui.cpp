@@ -135,6 +135,8 @@ void Gui::mainThread()
 		glfwSwapBuffers(window);
 	}
 
+	logger->info("Exiting GUI main thread");
+
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();

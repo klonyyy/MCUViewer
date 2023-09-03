@@ -1,7 +1,10 @@
+#include <chrono>
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
 #include <vector>
+
+using namespace std::chrono_literals;
 
 template <typename T>
 class RingBuffer
@@ -9,17 +12,19 @@ class RingBuffer
    public:
 	RingBuffer(size_t capacity) : buffer(capacity), capacity(capacity), read_idx(0), write_idx(0), size(0) {}
 
-	void push(const T& item)
+	bool push(const T& item)
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		cond_full.wait(lock, [this]()
-					   { return size < capacity; });
+		if (!cond_full.wait_for(lock, 2000ms, [this]()
+								{ return size < capacity; }))
+			return false;
 
 		buffer[write_idx] = item;
 		write_idx = (write_idx + 1) % capacity;
 		size++;
 
 		cond_empty.notify_one();
+		return true;
 	}
 
 	T pop()

@@ -1,6 +1,7 @@
 #ifndef _TRACEPLOTHANDLER_HPP
 #define _TRACEPLOTHANDLER_HPP
 
+#include <deque>
 #include <map>
 
 #include "Plot.hpp"
@@ -28,7 +29,7 @@ class TracePlotHandler : public PlotHandlerBase
 	Settings getSettings() const;
 	void setSettings(const Settings& settings);
 
-	std::map<const char*, uint32_t> getTraceIndicators() const;
+	std::map<std::string, uint32_t> getTraceIndicators() const;
 
 	std::string getLastReaderError() const;
 
@@ -44,6 +45,10 @@ class TracePlotHandler : public PlotHandlerBase
 	Settings traceSettings{};
 	std::shared_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
+
+	std::deque<double> errorFrameTimestamps{};
+	uint32_t errorFrameSinceLastPoint = 0;
+
 	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;
 	double time = 0.0;
