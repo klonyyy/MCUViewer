@@ -173,7 +173,8 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, plotHandler->getViewerState() == PlotHandlerBase::state::STOP);
+		bool active = !(plotHandler->getViewerState() == PlotHandlerBase::state::RUN || tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN);
+		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, active);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
