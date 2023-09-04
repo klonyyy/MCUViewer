@@ -150,6 +150,9 @@ void TracePlotHandler::dataHandler()
 				for (auto& [key, plot] : plotsMap)
 					activeChannels[i++] = plot->getVisibility();
 
+				errorFrameTimestamps.clear();
+				errorFrameSinceLastPoint = 0;
+
 				if (traceReader->startAcqusition(activeChannels))
 					time = 0;
 				else
