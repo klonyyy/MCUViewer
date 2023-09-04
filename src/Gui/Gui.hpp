@@ -90,7 +90,6 @@ class Gui
 
 		if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
 		{
-			logger->info(str);
 			if (valueChanged)
 				valueChanged(str);
 		}

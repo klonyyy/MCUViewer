@@ -46,36 +46,39 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("Settings");
 	ImGui::Separator();
 
-	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
+	auto settings = tracePlotHandler->getSettings();
+	auto state = tracePlotHandler->getViewerState();
+
+	if (state == PlotHandlerBase::state::RUN)
+		ImGui::BeginDisabled();
 
 	ImGui::Text("core frequency [kHz]   ");
 	ImGui::SameLine();
 
 	drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
-				  {settings.coreFrequency = std::stoi(str);
-	tracePlotHandler->setSettings(settings); });
+				  { settings.coreFrequency = std::stoi(str); });
 
 	ImGui::Text("trace prescaler        ");
 	ImGui::SameLine();
 	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str)
-				  {settings.tracePrescaler = std::stoi(str);
-	tracePlotHandler->setSettings(settings); });
+				  { settings.tracePrescaler = std::stoi(str); });
 
 	const char* triggers[] = {"OFF", "CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9"};
 	int32_t trigerCombo = settings.triggerChannel + 1;
 	ImGui::Text("trigger channel        ");
 	ImGui::SameLine();
 	if (ImGui::Combo("##trigger", &trigerCombo, triggers, IM_ARRAYSIZE(triggers)))
-	{
 		settings.triggerChannel = trigerCombo - 1;
-		tracePlotHandler->setSettings(settings);
-	}
 
 	ImGui::Text("trigger level          ");
 	ImGui::SameLine();
 	drawInputText("##level", settings.triggerLevel, [&](std::string str)
-				  {settings.triggerLevel = std::stod(str);
-	tracePlotHandler->setSettings(settings); });
+				  { settings.triggerLevel = std::stod(str); });
+
+	if (state != PlotHandlerBase::state::STOP)
+		ImGui::EndDisabled();
+	else
+		tracePlotHandler->setSettings(settings);
 }
 void Gui::drawIndicatorsSwo()
 {
@@ -114,11 +117,19 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
 
+	auto state = tracePlotHandler->getViewerState();
+
 	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 	{
 		std::string name = plt->getName();
 		std::string alias = plt->getAlias();
+
+		if (state == PlotHandlerBase::state::RUN)
+			ImGui::BeginDisabled();
 		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
+		if (state == PlotHandlerBase::state::RUN)
+			ImGui::EndDisabled();
+
 		ImGui::SameLine();
 		if (ImGui::Selectable((name + " \"" + alias + "\"").c_str(), selected == name))
 			selected = name;

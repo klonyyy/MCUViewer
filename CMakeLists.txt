@@ -30,6 +30,7 @@ endif()
 
 add_compile_options(-Wall
     -Wextra
+    -Wpedantic
     -Wno-unused-parameter
     -Wno-missing-field-initializers)
 

@@ -61,6 +61,10 @@ void PlotHandlerBase::setViewerState(state state)
 
 PlotHandlerBase::state PlotHandlerBase::getViewerState() const
 {
+	/* TODO possible deadlock */
+	while (stateChangeOrdered)
+	{
+	}
 	return viewerState;
 }
 
