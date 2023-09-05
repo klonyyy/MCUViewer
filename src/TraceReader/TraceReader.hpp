@@ -54,8 +54,6 @@ class TraceReader
 												 {"sleep cycles", 0}};
 
 	static constexpr uint32_t channels = 10;
-
-	/* make sure this value is the same as in stlink library */
 	static constexpr uint32_t size = 10 * 2048;
 	uint8_t buffer[size];
 
@@ -73,19 +71,16 @@ class TraceReader
 
 	std::atomic<bool> isRunning{false};
 	std::string lastErrorMsg = "";
-
 	std::array<uint32_t, channels> previousEntry{};
 	std::unique_ptr<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>> traceTable;
-
 	std::thread readerHandle;
+	std::shared_ptr<ITraceDevice> traceDevice;
+	std::shared_ptr<spdlog::logger> logger;
 
 	TraceState updateTraceIdle(uint8_t c);
 	TraceState updateTrace(uint8_t c);
 	void timestampEnd(bool headerData);
 	void readerThread();
-
-	std::shared_ptr<ITraceDevice> traceDevice;
-	std::shared_ptr<spdlog::logger> logger;
 };
 
 #endif
