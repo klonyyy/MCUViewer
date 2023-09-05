@@ -152,6 +152,16 @@ Plot::Domain Plot::getDomain() const
 	return domain;
 }
 
+void Plot::setTraceVarType(TraceVarType newTraceVarType)
+{
+	traceVarType = newTraceVarType;
+}
+
+Plot::TraceVarType Plot::getTraceVarType() const
+{
+	return traceVarType;
+}
+
 Plot::displayFormat Plot::getSeriesDisplayFormat(const std::string& name) const
 {
 	return seriesMap.at(name)->format;

@@ -155,7 +155,7 @@ void TraceReader::timestampEnd(bool headerData)
 		if (currentChannel[i] > channels || i > channels)
 		{
 			traceQuality["error frames total"]++;
-			logger->error("WRONG CHANNEL {}, {}", i, currentChannel[i]);
+			logger->error("Wrong channel id {}, {}", i, currentChannel[i]);
 			break;
 		}
 		currentEntry[currentChannel[i]] = currentValue[i];

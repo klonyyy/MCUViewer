@@ -36,6 +36,8 @@ class TracePlotHandler : public PlotHandlerBase
 	void setTriggerChannel(int32_t triggerChannel);
 	int32_t getTriggerChannel() const;
 
+	double getDoubleValue(const Plot& plot, uint32_t value);
+
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 
    private:

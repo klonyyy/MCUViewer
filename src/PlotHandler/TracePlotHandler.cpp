@@ -66,6 +66,35 @@ int32_t TracePlotHandler::getTriggerChannel() const
 	return traceSettings.triggerChannel;
 }
 
+double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
+{
+	if (plot.getDomain() == Plot::Domain::DIGITAL)
+		return value == 0xaa ? 1.0 : 0.0;
+	else if (plot.getDomain() == Plot::Domain::ANALOG)
+	{
+		auto type = plot.getTraceVarType();
+
+		if (type == Plot::TraceVarType::U8)
+			return (double)*(uint8_t*)&value;
+		else if (type == Plot::TraceVarType::I8)
+			return (double)*(int8_t*)&value;
+		else if (type == Plot::TraceVarType::U16)
+			return (double)*(uint16_t*)&value;
+		else if (type == Plot::TraceVarType::I16)
+			return (double)*(int16_t*)&value;
+		else if (type == Plot::TraceVarType::U32)
+			return (double)*(uint32_t*)&value;
+		else if (type == Plot::TraceVarType::I32)
+			return (double)*(int32_t*)&value;
+		else if (type == Plot::TraceVarType::F32)
+			return (double)*(float*)&value;
+		else
+			return (double)*(uint32_t*)&value;
+	}
+
+	return 0.0;
+}
+
 void TracePlotHandler::dataHandler()
 {
 	uint32_t cnt = 0;
@@ -109,12 +138,7 @@ void TracePlotHandler::dataHandler()
 				}
 
 				Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
-				double newPoint = 0.0;
-
-				if (plot->getDomain() == Plot::Domain::DIGITAL)
-					newPoint = traces[i] == 0xaa ? 1.0 : 0.0;
-				else if (plot->getDomain() == Plot::Domain::ANALOG)
-					newPoint = *(float*)&traces[i];
+				double newPoint = getDoubleValue(*plot, traces[i]);
 
 				if (traceTriggered == false && i == traceSettings.triggerChannel && newPoint > traceSettings.triggerLevel)
 				{

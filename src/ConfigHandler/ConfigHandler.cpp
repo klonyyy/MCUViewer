@@ -128,6 +128,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		plotName = ini->get(sectionName).get("name");
 		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
 		Plot::Domain domain = static_cast<Plot::Domain>(atoi(ini->get(sectionName).get("domain").c_str()));
+		Plot::TraceVarType traceVarType = static_cast<Plot::TraceVarType>(atoi(ini->get(sectionName).get("type").c_str()));
 		std::string alias = ini->get(sectionName).get("alias");
 
 		if (!plotName.empty())
@@ -136,6 +137,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			auto plot = tracePlotHandler->getPlot(plotName);
 			plot->setVisibility(visibility);
 			plot->setDomain(domain);
+			if (domain == Plot::Domain::ANALOG)
+				plot->setTraceVarType(traceVarType);
 			plot->setAlias(alias);
 			logger->info("Adding trace plot: {}", plotName);
 
@@ -236,6 +239,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		(*ini)[plotName]["alias"] = plt->getAlias();
 		(*ini)[plotName]["visibility"] = plt->getVisibility() ? "true" : "false";
 		(*ini)[plotName]["domain"] = std::to_string(static_cast<uint8_t>(plt->getDomain()));
+		if (plt->getDomain() == Plot::Domain::ANALOG)
+			(*ini)[plotName]["type"] = std::to_string(static_cast<uint8_t>(plt->getTraceVarType()));
 		plotId++;
 	}
 

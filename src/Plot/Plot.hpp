@@ -45,6 +45,17 @@ class Plot
 		DIGITAL = 1,
 	};
 
+	enum class TraceVarType : uint8_t
+	{
+		U8 = 0,
+		I8 = 1,
+		U16 = 2,
+		I16 = 3,
+		U32 = 4,
+		I32 = 5,
+		F32 = 6
+	};
+
 	Plot(std::string name);
 	void setName(const std::string& newName);
 	std::string getName() const;
@@ -79,8 +90,12 @@ class Plot
 	void setType(Type newType);
 	Type getType() const;
 
+	/* TODO: Domain and TraceVarType should be in a derived class only */
 	void setDomain(Domain newDomain);
 	Domain getDomain() const;
+
+	void setTraceVarType(TraceVarType newTraceVarType);
+	TraceVarType getTraceVarType() const;
 
 	void setIsHovered(bool isHovered);
 	bool isHovered() const;
@@ -97,6 +112,7 @@ class Plot
 	bool visibility = true;
 	Type type = Type::CURVE;
 	Domain domain = Domain::ANALOG;
+	TraceVarType traceVarType = TraceVarType::F32;
 	bool isHoveredOver = false;
 
 	Marker mx0;

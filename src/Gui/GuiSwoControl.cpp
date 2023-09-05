@@ -42,6 +42,7 @@ void Gui::drawStartButtonSwo()
 
 void Gui::drawSettingsSwo()
 {
+	ImGui::Dummy(ImVec2(-1, 5));
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Settings");
 	ImGui::Separator();
@@ -82,8 +83,11 @@ void Gui::drawSettingsSwo()
 }
 void Gui::drawIndicatorsSwo()
 {
+	ImGui::Dummy(ImVec2(-1, 5));
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Indicators");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the ative trace channels.");
 	ImGui::Separator();
 
 	for (auto& [name, value] : tracePlotHandler->getTraceIndicators())
@@ -110,6 +114,7 @@ void Gui::drawPlotsTreeSwo()
 	const uint32_t windowHeight = 320;
 	static std::string selected = tracePlotHandler->begin().operator*()->getName();
 
+	ImGui::Dummy(ImVec2(-1, 5));
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Channels");
 	ImGui::Separator();
@@ -142,8 +147,10 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::SameLine();
 
 	std::shared_ptr<Plot> plt = tracePlotHandler->getPlot(selected);
-	const char* plotDomains[2] = {"analog", "digital"};
+	const char* plotDomains[] = {"analog", "digital"};
+	const char* traceVarTypes[] = {"uint8_t", "int8_t", "uint16_t", "int16_t", "uint32_t", "int32_t", "float"};
 	int32_t domainCombo = (int32_t)plt->getDomain();
+	int32_t traceVarTypeCombo = (int32_t)plt->getTraceVarType();
 	std::string newAlias = plt->getAlias();
 	ImGui::BeginGroup();
 	ImGui::Text("alias      ");
@@ -153,6 +160,12 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Text("domain     ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &domainCombo, plotDomains, IM_ARRAYSIZE(plotDomains));
+	if (domainCombo == static_cast<int32_t>(Plot::Domain::ANALOG))
+	{
+		ImGui::Text("type       ");
+		ImGui::SameLine();
+		ImGui::Combo("##combo2", &traceVarTypeCombo, traceVarTypes, IM_ARRAYSIZE(traceVarTypes));
+	}
 	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->getMarkerStateX0();
 	ImGui::Text("markers    ");
 	ImGui::SameLine();
@@ -165,6 +178,9 @@ void Gui::drawPlotsTreeSwo()
 
 	if (domainCombo != (int32_t)plt->getDomain())
 		plt->setDomain(static_cast<Plot::Domain>(domainCombo));
+
+	if ((traceVarTypeCombo) != (int32_t)plt->getTraceVarType())
+		plt->setTraceVarType(static_cast<Plot::TraceVarType>(traceVarTypeCombo));
 
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newAlias != plt->getAlias())
 	{
