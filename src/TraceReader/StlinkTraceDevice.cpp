@@ -53,7 +53,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 
 	if (stlink_trace_enable(sl, traceFrequency))
 	{
-		ELOG("Unable to turn on tracing in stlink\n");
+		logger->error("Unable to turn on tracing in stlink");
 		return false;
 	}
 
@@ -69,7 +69,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 
 	if (stlink_run(sl, RUN_NORMAL))
 	{
-		ELOG("Unable to run device\n");
+		logger->error("Unable to run target device");
 		return false;
 	}
 
