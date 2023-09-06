@@ -6,7 +6,7 @@
 
 StlinkHandler::StlinkHandler()
 {
-	init_chipids("./chips");
+	init_chipids((char*)"./chips");
 }
 
 bool StlinkHandler::startAcqusition()

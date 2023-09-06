@@ -140,7 +140,7 @@ void TracePlotHandler::dataHandler()
 				Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 				double newPoint = getDoubleValue(*plot, traces[i]);
 
-				if (traceTriggered == false && i == traceSettings.triggerChannel && newPoint > traceSettings.triggerLevel)
+				if (traceTriggered == false && i == static_cast<uint32_t>(traceSettings.triggerChannel) && newPoint > traceSettings.triggerLevel)
 				{
 					logger->info("Trigger!");
 					traceTriggered = true;
