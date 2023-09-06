@@ -23,7 +23,7 @@ set(STMVIEWER_VERSION 0.1.3)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 endif()
@@ -92,6 +92,12 @@ set(IMPLOT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_items.cpp)
+
+set_source_files_properties(
+  ${IMPLOT_SOURCES}
+  PROPERTIES
+  COMPILE_FLAGS "-w"
+)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 
