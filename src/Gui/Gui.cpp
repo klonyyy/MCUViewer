@@ -5,6 +5,7 @@
 #include <random>
 #include <sstream>
 
+#include "../gitversion.hpp"
 #include "ElfReader.hpp"
 #include "PlotHandlerBase.hpp"
 #include "glfw3.h"
@@ -87,6 +88,7 @@ void Gui::mainThread()
 		checkShortcuts();
 
 		drawMenu();
+		drawAboutWindow();
 
 		if (ImGui::Begin("SWO Viewer"))
 		{
@@ -152,6 +154,8 @@ void Gui::drawMenu()
 	bool shouldSaveOnNew = false;
 	ImGui::BeginMainMenuBar();
 
+	bool active = !(plotHandler->getViewerState() == PlotHandlerBase::state::RUN || tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN);
+
 	if (ImGui::BeginMenu("File"))
 	{
 		if (ImGui::MenuItem("New"))
@@ -173,8 +177,12 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		bool active = !(plotHandler->getViewerState() == PlotHandlerBase::state::RUN || tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, active);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Help"))
+	{
+		ImGui::MenuItem("About", NULL, &showAboutWindow, active);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -537,6 +545,35 @@ void Gui::acqusitionSettingsViewer()
 	plotHandler->setSettings(settings);
 }
 
+void Gui::drawAboutWindow()
+{
+	if (showAboutWindow)
+		ImGui::OpenPopup("About");
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowSize(ImVec2(500, 200));
+	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
+	{
+		drawCenteredText("STMViewer");
+		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
+		drawCenteredText(std::move(line2));
+		drawCenteredText(std::move(std::string(GIT_HASH)));
+		ImGui::Dummy(ImVec2(-1, 20));
+		drawCenteredText("by Piotr Wasilewski (klonyyy)");
+
+		const float buttonHeight = 25.0f;
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
+		{
+			showAboutWindow = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
 void Gui::acqusitionSettingsTrace()
 {
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
@@ -740,4 +777,10 @@ std::string Gui::intToHexString(uint32_t var)
 	std::stringstream ss;
 	ss << std::hex << var;
 	return ss.str();
+}
+
+void Gui::drawCenteredText(std::string&& text)
+{
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
+	ImGui::Text(text.c_str());
 }

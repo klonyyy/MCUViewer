@@ -32,6 +32,7 @@ class Gui
 	std::string projectConfigPath;
 	std::string projectElfPath;
 	bool showAcqusitionSettingsWindow = false;
+	bool showAboutWindow = false;
 
 	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
@@ -59,6 +60,7 @@ class Gui
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow(AcqusitionWindowType type);
 	void acqusitionSettingsViewer();
+	void drawAboutWindow();
 	void acqusitionSettingsTrace();
 	void drawPlots();
 	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
@@ -97,6 +99,7 @@ class Gui
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
+	void drawCenteredText(std::string&& text);
 
 	std::shared_ptr<spdlog::logger> logger;
 };
