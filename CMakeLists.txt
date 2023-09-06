@@ -35,6 +35,7 @@ add_compile_options(-Wall
     -Wno-missing-field-initializers)
 
 if(UNIX)
+    add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
@@ -46,6 +47,13 @@ if(UNIX)
 endif()
 
 if(WIN32)
+    # use bat script only if not cross-compiling
+    if(NOT DEFINED PLATFORM)
+        add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat)
+    else()
+        add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
+    endif()
+
     enable_language("RC")
     set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
@@ -55,8 +63,6 @@ if(WIN32)
     set(SPDLOG_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/windows/libspdlog.dll)
     set(INSTALL_PATH bin)
 endif()
-
-
 
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
@@ -104,6 +110,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+
+add_dependencies(${EXECUTABLE} addGitVersion)
 
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${STMVIEWER_VERSION}")
 target_compile_definitions(${EXECUTABLE}

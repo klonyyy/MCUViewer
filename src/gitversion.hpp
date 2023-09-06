@@ -1,2 +1,1 @@
-#define GIT_INFO_PRESENT
-static const char* GIT_HASH = "cb58313834791d0c5bec30cc7beaf8a45d595257";
+static const char* GIT_HASH = "5a97052e7abc9c5ec17671d0c26319ea08a28b1d";
