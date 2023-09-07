@@ -659,29 +659,26 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 
 void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 {
-	if (shouldOpenPopup)
+	auto onNo = [&]()
+	{
+		vars.clear();
+		plotHandler->removeAllPlots();
+		tracePlotHandler->initPlots();
+		projectElfPath = "";
+		projectConfigPath = "";
+	};
+
+	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+		onNo();
+	else if (shouldOpenPopup)
 		ImGui::OpenPopup("SaveOnNew?");
 
 	auto onYes = [&]()
 	{
 		if (!saveProject())
 			saveProjectAs();
-		vars.clear();
-		plotHandler->removeAllPlots();
-		projectElfPath = "";
-		projectConfigPath = "";
+		onNo();
 	};
-
-	auto onNo = [&]()
-	{
-		vars.clear();
-		plotHandler->removeAllPlots();
-		projectElfPath = "";
-		projectConfigPath = "";
-	};
-
-	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
-		onYes();
 
 	showQuestionBox("SaveOnNew?", "Do you want to save the current config?\n", onYes, onNo, []() {});
 }

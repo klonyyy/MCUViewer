@@ -6,7 +6,17 @@ TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std
 {
 	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
 	traceReader = std::make_unique<TraceReader>(traceDevice, logger);
+	initPlots();
+	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
+}
+TracePlotHandler::~TracePlotHandler()
+{
+	if (dataHandle.joinable())
+		dataHandle.join();
+}
 
+void TracePlotHandler::initPlots()
+{
 	const uint32_t colors[] = {4294967040, 4294960666, 4294954035, 4294947661, 4294941030, 4294934656, 4294928025, 4294921651, 4294915020, 4294908646, 4294902015};
 
 	for (uint32_t i = 0; i < channels; i++)
@@ -22,13 +32,6 @@ TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std
 		plotsMap[name]->setDomain(Plot::Domain::DIGITAL);
 		plotsMap[name]->setAlias("CH" + std::to_string(i));
 	}
-
-	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
-}
-TracePlotHandler::~TracePlotHandler()
-{
-	if (dataHandle.joinable())
-		dataHandle.join();
 }
 
 TracePlotHandler::Settings TracePlotHandler::getSettings() const
