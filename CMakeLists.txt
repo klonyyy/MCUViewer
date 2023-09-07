@@ -48,7 +48,7 @@ endif()
 
 if(WIN32)
     # use bat script only if not cross-compiling
-    if(NOT DEFINED PLATFORM)
+    if("${PLATFORM}" STREQUAL "native")
         add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat)
     else()
         add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
