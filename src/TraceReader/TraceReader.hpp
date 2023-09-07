@@ -55,7 +55,7 @@ class TraceReader
 	} TraceState;
 
 	TraceState state = TRACE_STATE_IDLE;
-	TraceIndicators traceIndicators;
+	TraceIndicators traceIndicators{};
 
 	static constexpr uint32_t channels = 10;
 	static constexpr uint32_t size = 10 * 2048;
