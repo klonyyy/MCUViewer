@@ -36,7 +36,6 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 
 	/* turn on DWT and ITM */
 	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
-	/* turn on DWT and ITM */
 	stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN | STLINK_REG_DHCSR_C_HALT);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION0, 0);
 	stlink_write_debug32(sl, STLINK_REG_DWT_FUNCTION1, 0);
@@ -59,7 +58,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 
 	stlink_write_debug32(sl, STLINK_REG_TPI_CSPSR, STLINK_REG_TPI_CSPSR_PORT_SIZE_1);
 
-	stlink_write_debug32(sl, STLINK_REG_TPI_ACPR, tracePrescaler);	// Set TPIU_ACPR clock divisor
+	stlink_write_debug32(sl, STLINK_REG_TPI_ACPR, tracePrescaler);
 	stlink_write_debug32(sl, STLINK_REG_TPI_FFCR, STLINK_REG_TPI_FFCR_TRIG_IN);
 	stlink_write_debug32(sl, STLINK_REG_TPI_SPPR, STLINK_REG_TPI_SPPR_SWO_NRZ);
 	stlink_write_debug32(sl, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);

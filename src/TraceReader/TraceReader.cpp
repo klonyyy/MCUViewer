@@ -131,6 +131,7 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	else if (TRACE_OP_IS_OVERFLOW(c))
 		logger->error("OVERFLOW OPTCODE {}", c);
 
+	logger->debug("Unknown optcode {}", c);
 	traceIndicators.errorFramesTotal++;
 
 	return TRACE_STATE_IDLE;
