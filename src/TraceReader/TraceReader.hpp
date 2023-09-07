@@ -12,6 +12,17 @@
 class TraceReader
 {
    public:
+	struct TraceIndicators
+	{
+		uint32_t framesTotal;
+		uint32_t errorFramesTotal;
+		uint32_t errorFramesInView;
+		uint32_t delayedTimestamp1;
+		uint32_t delayedTimestamp2;
+		uint32_t delayedTimestamp3;
+		uint32_t sleepCycles;
+	};
+
 	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
 	bool startAcqusition(std::array<bool, 32>& activeChannels);
@@ -26,7 +37,7 @@ class TraceReader
 	uint32_t getCoreClockFrequency() const;
 	void setTraceFrequency(uint32_t frequencyHz);
 	uint32_t getTraceFrequency() const;
-	std::map<std::string, uint32_t> getTraceIndicators() const;
+	TraceIndicators getTraceIndicators() const;
 
    private:
 	typedef enum
@@ -44,14 +55,7 @@ class TraceReader
 	} TraceState;
 
 	TraceState state = TRACE_STATE_IDLE;
-
-	std::map<std::string, uint32_t> traceQuality{{"frames total", 0},
-												 {"error frames total", 0},
-												 {"error frames in view", 0},
-												 {"delayed timestamp 1", 0},
-												 {"delayed timestamp 2", 0},
-												 {"delayed timestamp 3", 0},
-												 {"sleep cycles", 0}};
+	TraceIndicators traceIndicators;
 
 	static constexpr uint32_t channels = 10;
 	static constexpr uint32_t size = 10 * 2048;

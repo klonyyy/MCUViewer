@@ -23,13 +23,15 @@ class TracePlotHandler : public PlotHandlerBase
 		double triggerLevel = 0.9;
 	} Settings;
 
+	// TraceIndicators traceIndicators;
+
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~TracePlotHandler();
 
 	Settings getSettings() const;
 	void setSettings(const Settings& settings);
 
-	std::map<std::string, uint32_t> getTraceIndicators() const;
+	TraceReader::TraceIndicators getTraceIndicators() const;
 
 	std::string getLastReaderError() const;
 

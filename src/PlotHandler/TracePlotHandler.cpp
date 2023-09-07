@@ -44,10 +44,10 @@ void TracePlotHandler::setSettings(const Settings& settings)
 	traceSettings = settings;
 }
 
-std::map<std::string, uint32_t> TracePlotHandler::getTraceIndicators() const
+TraceReader::TraceIndicators TracePlotHandler::getTraceIndicators() const
 {
 	auto indicators = traceReader->getTraceIndicators();
-	indicators.at("error frames in view") = errorFrameTimestamps.size();
+	indicators.errorFramesInView = errorFrameTimestamps.size();
 	return indicators;
 }
 
@@ -121,13 +121,13 @@ void TracePlotHandler::dataHandler()
 
 			double oldestTimestamp = plotsMap.begin()->second->getTimeSeries().getOldestValue();
 
-			if (errorFrameSinceLastPoint != traceReader->getTraceIndicators().at("error frames total"))
+			if (errorFrameSinceLastPoint != traceReader->getTraceIndicators().errorFramesTotal)
 				errorFrameTimestamps.push_back(time);
 
 			while (errorFrameTimestamps.size() && errorFrameTimestamps.front() < oldestTimestamp)
 				errorFrameTimestamps.pop_front();
 
-			errorFrameSinceLastPoint = traceReader->getTraceIndicators().at("error frames total");
+			errorFrameSinceLastPoint = traceReader->getTraceIndicators().errorFramesTotal;
 
 			for (auto& [key, plot] : plotsMap)
 			{

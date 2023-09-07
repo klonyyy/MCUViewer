@@ -21,8 +21,7 @@ TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_
 
 bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 {
-	for (auto& [key, value] : traceQuality)
-		value = 0;
+	traceIndicators = {};
 
 	uint32_t activeChannelsMask = 0;
 	for (uint32_t i = 0; i < activeChannels.size(); i++)
@@ -43,7 +42,7 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 bool TraceReader::stopAcqusition()
 {
 	isRunning = false;
-	traceQuality["sleep cycles"] = 0;
+	traceIndicators.sleepCycles = 0;
 
 	if (readerHandle.joinable())
 		readerHandle.join();
@@ -91,14 +90,14 @@ uint32_t TraceReader::getTraceFrequency() const
 	return tracePrescaler;
 }
 
-std::map<std::string, uint32_t> TraceReader::getTraceIndicators() const
+TraceReader::TraceIndicators TraceReader::getTraceIndicators() const
 {
-	return traceQuality;
+	return traceIndicators;
 }
 
 TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 {
-	traceQuality.at("frames total")++;
+	traceIndicators.framesTotal++;
 
 	if (TRACE_OP_IS_SW_SOURCE(c))
 	{
@@ -112,11 +111,11 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 		timestamp = 0;
 
 		if (c == TRACE_TIMEOUT_1)
-			traceQuality.at("delayed timestamp 1")++;
+			traceIndicators.delayedTimestamp1++;
 		else if (c == TRACE_TIMEOUT_2)
-			traceQuality.at("delayed timestamp 2")++;
+			traceIndicators.delayedTimestamp2++;
 		else if (c == TRACE_TIMEOUT_3)
-			traceQuality.at("delayed timestamp 3")++;
+			traceIndicators.delayedTimestamp3++;
 
 		if (TRACE_OP_GET_CONTINUATION(c))
 			return TRACE_STATE_TARGET_TIMESTAMP_HEADER;
@@ -132,7 +131,7 @@ TraceReader::TraceState TraceReader::updateTraceIdle(uint8_t c)
 	else if (TRACE_OP_IS_OVERFLOW(c))
 		logger->error("OVERFLOW OPTCODE {}", c);
 
-	traceQuality["error frames total"]++;
+	traceIndicators.errorFramesTotal++;
 
 	return TRACE_STATE_IDLE;
 }
@@ -154,8 +153,8 @@ void TraceReader::timestampEnd(bool headerData)
 	{
 		if (currentChannel[i] > channels || i > channels)
 		{
-			traceQuality["error frames total"]++;
-			logger->error("Wrong channel id {}, {}", i, currentChannel[i]);
+			traceIndicators.errorFramesTotal++;
+			logger->debug("Wrong channel id {}, {}", i, currentChannel[i]);
 			break;
 		}
 		currentEntry[currentChannel[i]] = currentValue[i];
@@ -252,7 +251,7 @@ void TraceReader::readerThread()
 			break;
 		}
 
-		if (traceQuality["sleep cycles"] > 20000)
+		if (traceIndicators.sleepCycles > 20000)
 		{
 			lastErrorMsg = "No trace registered for 2s!";
 			logger->error(lastErrorMsg);
@@ -262,7 +261,7 @@ void TraceReader::readerThread()
 
 		if (length == 0)
 		{
-			traceQuality["sleep cycles"]++;
+			traceIndicators.sleepCycles++;
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			continue;
 		}
@@ -275,7 +274,7 @@ void TraceReader::readerThread()
 			continue;
 		}
 
-		traceQuality["sleep cycles"] = 0;
+		traceIndicators.sleepCycles = 0;
 
 		for (int32_t i = 0; i < length; i++)
 		{

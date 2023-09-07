@@ -90,23 +90,42 @@ void Gui::drawIndicatorsSwo()
 	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the ative trace channels.");
 	ImGui::Separator();
 
-	for (auto& [name, value] : tracePlotHandler->getTraceIndicators())
-	{
-		if (name == std::string("error frames in view") && value > 0)
-			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), name.c_str());
-		else if (name == std::string("delayed timestamp 3") && value > 0)
-			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), name.c_str());
-		else
-			ImGui::Text(name.c_str());
+	auto indicators = tracePlotHandler->getTraceIndicators();
 
-		ImGui::SameLine();
-		std::string separator = "";
+	ImGui::Text("frames total:           ");
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.framesTotal)).c_str());
 
-		for (uint8_t i = 0; i < 24 - name.size(); i++)
-			separator.append(" ");
+	ImGui::Text("sleep cycles:           ");
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.sleepCycles)).c_str());
 
-		ImGui::Text((separator + std::to_string(value)).c_str());
-	}
+	ImGui::Text("error frames total:     ");
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.errorFramesTotal)).c_str());
+
+	const char* inView = "error frames in view:   ";
+	if (indicators.errorFramesInView > 0)
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), inView);
+	else
+		ImGui::Text(inView);
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.errorFramesInView)).c_str());
+
+	ImGui::Text("delayed timestamp 1:    ");
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.delayedTimestamp1)).c_str());
+	ImGui::Text("delayed timestamp 2:    ");
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.delayedTimestamp2)).c_str());
+
+	const char* timestampDelayed3 = "delayed timestamp 3:    ";
+	if (indicators.delayedTimestamp3 > 0)
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), timestampDelayed3);
+	else
+		ImGui::Text(timestampDelayed3);
+	ImGui::SameLine();
+	ImGui::Text((std::to_string(indicators.delayedTimestamp3)).c_str());
 }
 
 void Gui::drawPlotsTreeSwo()
