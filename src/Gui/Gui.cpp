@@ -40,9 +40,8 @@ void Gui::mainThread()
 		return;
 	glfwMakeContextCurrent(window);
 	glfwMaximizeWindow(window);
-	glfwSwapInterval(2);  // Enable vsync
+	glfwSwapInterval(2);
 
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
@@ -50,7 +49,6 @@ void Gui::mainThread()
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
 
@@ -71,8 +69,6 @@ void Gui::mainThread()
 	{
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
-
-		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
@@ -741,14 +737,17 @@ bool Gui::openElfFile()
 void Gui::checkShortcuts()
 {
 	ImGuiIO& io = ImGui::GetIO();
+	bool wasSaved = false;
 
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))
 		openProject();
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S))
 	{
-		if (!saveProject())
+		wasSaved = saveProject();
+		if (!wasSaved)
 			saveProjectAs();
 	}
+	showSavedPopup(wasSaved);
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
@@ -770,6 +769,35 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	}
 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
+}
+
+void Gui::showSavedPopup(bool show)
+{
+	static float popupTimer = 0.0f;
+	static bool wasShow = false;
+
+	if (show)
+	{
+		wasShow = true;
+		ImGui::OpenPopup("Saved");
+		popupTimer = 0.0f;
+	}
+
+	if (wasShow)
+		popupTimer += ImGui::GetIO().DeltaTime;
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("Saved", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Saving succesful!");
+
+		if (popupTimer >= 0.65f)
+		{
+			wasShow = false;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
 }
 
 std::string Gui::intToHexString(uint32_t var)
