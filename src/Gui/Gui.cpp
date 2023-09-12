@@ -833,9 +833,13 @@ void Gui::drawCenteredText(std::string&& text)
 
 bool Gui::openWebsite(const char* url)
 {
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define _UNIX
+#endif
+
 #ifdef _WIN32
 	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif _UNIX
+#elif defined _UNIX
 	const char* browser = getenv("BROWSER");
 	if (browser == NULL)
 		browser = "xdg-open";
