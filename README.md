@@ -9,13 +9,13 @@ The only piece of hardware required is an ST-Link programmer.
 ## Introduction
 
 ### Variable Viewer
-![_](./docs/STMViewer.gif)
+![_](./docs/VarViewer.gif)
 Variable Viewer can be used to visualize your embedded application data in real-time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using the ST-link programmer debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
 
 the Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast changing signals.
 
 ### Trace Viewer 
-![_](./docs/trace.gif)
+![_](./docs/TraceViewer.gif)
 Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming timer's interrupt frequency or displaying very fast signals (the clock resolution is limited by your System Core Clock). All this is possibe thanks to an hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequsites and usage please see Quick Start section. 
 
 
