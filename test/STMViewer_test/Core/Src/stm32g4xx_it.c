@@ -46,7 +46,24 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+float factorial(int n) {
+    float fact = 1.0;
+    for (int i = 2; i <= n; ++i)
+    {
+        fact *= i;
+    }
+    return fact;
+}
 
+float approximateSin(float x, int terms)
+{
+    float result = 0.0;
+    for (int n = 0; n < terms; ++n) {
+        float term = (powf(-1, n) * powf(x, 2 * n + 1)) / factorial(2 * n + 1);
+        result += term;
+    }
+    return result;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -183,11 +200,11 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+  ITM->PORT[1].u8 = 0xaa;
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+  ITM->PORT[1].u8 = 0xbb;
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -197,6 +214,31 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32g4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles TIM1 trigger and commutation interrupts and TIM17 global interrupt.
+  */
+void TIM1_TRG_COM_TIM17_IRQHandler(void)
+{
+
+  /* USER CODE BEGIN TIM1_TRG_COM_TIM17_IRQn 0 */
+	static float t = 0.0f;
+	static float dir = -0.1f;
+
+	ITM->PORT[0].u8 = 0xaa;
+	LL_TIM_ClearFlag_UPDATE(TIM17);
+
+	t += dir ;
+	if(fabsf(t) >= 1.0f)
+		dir *= -1.0f;
+
+	ITM->PORT[3].u32 = *(uint32_t*)&t;
+	ITM->PORT[0].u8 = 0xbb;
+  /* USER CODE END TIM1_TRG_COM_TIM17_IRQn 0 */
+
+  /* USER CODE BEGIN TIM1_TRG_COM_TIM17_IRQn 1 */
+  /* USER CODE END TIM1_TRG_COM_TIM17_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

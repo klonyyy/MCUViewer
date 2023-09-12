@@ -15,6 +15,10 @@ volatile float cosTest = 0.0f;
 
 void maincpp()
 {
+	LL_TIM_ClearFlag_UPDATE(TIM17);
+	LL_TIM_EnableIT_UPDATE(TIM17);
+	LL_TIM_EnableCounter(TIM17);
+
 	float x = 0;
 
 	while (1)
@@ -33,11 +37,9 @@ void maincpp()
 
 		test.spin();
 
-		ITM->PORT[0].u8 = 0xaa;
 		for(volatile uint32_t l=0;l<0xfff;l++)
 		{
 			__asm__ __volatile__("nop");
 		}
-		ITM->PORT[0].u8 = 0xbb;
 	}
 }
