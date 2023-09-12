@@ -136,6 +136,8 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Dummy(ImVec2(-1, 5));
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Channels");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Uncheck a channel to disable it and free some of the SWO pin bandwidth.");
 	ImGui::Separator();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));

@@ -15,7 +15,7 @@ Variable Viewer can be used to visualize your embedded application data in real-
 the Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast changing signals.
 
 ### Trace Viewer 
-![_](./docs/STMViewer.gif)
+![_](./docs/trace.gif)
 Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming timer's interrupt frequency or displaying very fast signals (the clock resolution is limited by your System Core Clock). All this is possibe thanks to an hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequsites and usage please see Quick Start section. 
 
 
@@ -45,17 +45,25 @@ You can assing the external GPU to STMViewer for improved performance.
 In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the Options -> Acqusition Settings. 
 
 ### Trace Viewer 
+1. Turn on the SWO pin functionality - in CubeMX System Core -> SYS Mode and Configuration -> choose Trace Asynchronous Sw
 1. Place enter and exit markers in the code you'd like to profile. Example for digital data: 
 ```
-ITM->PORT[x].u8 = 0xaa; //enter tag - plot state high
+ITM->PORT[x].u8 = 0xaa; //enter tag 0xaa - plot state high
 foo();
-ITM->PORT[x].u8 = 0xbb; //exit tag - plot state low
+ITM->PORT[x].u8 = 0xbb; //exit tag 0xbb - plot state low
 ```
 And for tracing "analog" signals you can use: 
 ```
 float a = sin(10.0f * i);          // some super fast signal to trace
 ITM->PORT[x].u32 = *(uint32_t*)&a; // type-punn to desired size in this case sizeof(float) = sizeof(uint32_t)
 ```
+or
+
+```
+uint16_t a = getAdcSample();       // some super fast signal to trace
+ITM->PORT[x].u16 = a;              // type-punn to desired size
+```
+
 The ITM registers are defined in CMSIS headers so no additional includes should be necesarry.
 
 2. Compile and download the program to your STM32 target.
@@ -73,11 +81,11 @@ Answer: try lowering the trace prescaller and check the SWO pin connection - the
 Answer: try logging less channels simultaneously. It could be that you've saturated the SWO pin bandwidth.
 
 3. Problem: My trace looks like its supposed to but I get "delayed timestamp 1" indicator
-Answer: This is not a critical error, however you should be cautious as some of the trace frames may be delayed. To fix try logging less channels simultaneously.s
+Answer: This is not a critical error, however you should be cautious as some of the trace frames may be delayed. To fix try logging less channels simultaneously.
 
 
 ## Why
-I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since The beginning, I was working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was, a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a different purpose. On top of that I think the plot manipulation is much worse compared to STMStudio or STMViewer. 
+I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since The beginning, I was working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was, a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that I think the plot manipulation is much worse compared to STMStudio or STMViewer. 
 
 Since Trace Viewer module was added STMViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. 
 
