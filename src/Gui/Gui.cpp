@@ -11,6 +11,9 @@
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
 {
@@ -547,19 +550,37 @@ void Gui::drawAboutWindow()
 		ImGui::OpenPopup("About");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 200));
+	ImGui::SetNextWindowSize(ImVec2(500, 250));
 	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
 	{
 		drawCenteredText("STMViewer");
 		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
 		drawCenteredText(std::move(line2));
 		drawCenteredText(std::move(std::string(GIT_HASH)));
+		ImGui::SameLine();
+		const bool copy = ImGui::SmallButton("copy");
+		if (copy)
+		{
+			ImGui::LogToClipboard();
+			ImGui::LogText(GIT_HASH);
+			ImGui::LogFinish();
+		}
+
 		ImGui::Dummy(ImVec2(-1, 20));
 		drawCenteredText("by Piotr Wasilewski (klonyyy)");
+		ImGui::Dummy(ImVec2(-1, 20));
 
 		const float buttonHeight = 25.0f;
-		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210) / 2.0f);
+
+		if (ImGui::Button("Releases", ImVec2(100, buttonHeight)))
+			openWebsite("https://github.com/klonyyy/STMViewer/releases");
+		ImGui::SameLine();
+		if (ImGui::Button("Support <3", ImVec2(100, buttonHeight)))
+			openWebsite("https://github.com/sponsors/klonyyy");
+
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
 			showAboutWindow = false;
@@ -808,4 +829,21 @@ void Gui::drawCenteredText(std::string&& text)
 {
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
 	ImGui::Text(text.c_str());
+}
+
+bool Gui::openWebsite(const char* url)
+{
+#ifdef _WIN32
+	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+#elif _UNIX
+	const char* browser = getenv("BROWSER");
+	if (browser == NULL)
+		browser = "xdg-open";
+	char command[256];
+	snprintf(command, sizeof(command), "%s %s", browser, url);
+	system(command);
+#else
+#error "Your system is not supported!"
+#endif
+	return true;
 }

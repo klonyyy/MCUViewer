@@ -102,6 +102,8 @@ class Gui
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
 
+	bool openWebsite(const char* url);
+
 	std::shared_ptr<spdlog::logger> logger;
 };
 
