@@ -176,7 +176,7 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, active);
+		ImGui::MenuItem("Acquisition settings...", NULL, &showAcqusitionSettingsWindow, active);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help"))
