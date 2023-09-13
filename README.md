@@ -37,7 +37,7 @@ Windows:
 
 You can assign the external GPU to STMViewer for improved performance. 
 
-## Quick Start
+## Quick Start 
 
 ### Variable Viewer
 1. Open Options->Acqusition Settings window in the top menu. 
@@ -48,6 +48,8 @@ You can assign the external GPU to STMViewer for improved performance.
 6. Make sure the ST-Link is connected. Download your executable to the microcontroller and press the "STOPPED" button. 
 
 In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the Options -> Acquisition Settings. 
+
+Example project with STMViewer config file is located in test/STMViewer_test directory.
 
 ### Trace Viewer 
 1. Turn on the SWO pin functionality - in CubeMX System Core -> SYS Mode and Configuration -> choose Trace Asynchronous Sw
@@ -60,7 +62,7 @@ ITM->PORT[x].u8 = 0xbb; //exit tag 0xbb - plot state low
 And for tracing "analog" signals you can use: 
 ```
 float a = sin(10.0f * i);          // some super fast signal to trace
-ITM->PORT[x].u32 = *(uint32_t*)&a; // type-punn to desired size in this case sizeof(float) = sizeof(uint32_t)
+ITM->PORT[x].u32 = *(uint32_t*)&a; // type-punn to desired size: sizeof(float) = sizeof(uint32_t)
 ```
 or
 
@@ -78,6 +80,8 @@ The ITM registers are defined in CMSIS headers so no additional includes should 
 - We're using ST-link V2 so the prescaler should be at least 160 Mhz / 2 Mhz = 80
 6. Configure "analog" channels types according to the type used in your code. 
 7. Press the "STOPPED" button to start recording.
+
+Example project with STMViewer config file is located in test/STMViewer_test directory.
 
 FAQ and common issues: 
 1. Problem: My trace doesn't look like it's supposed to and I get a lot of error frames
