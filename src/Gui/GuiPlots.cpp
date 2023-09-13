@@ -21,7 +21,7 @@ void Gui::drawPlots()
 
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
-		if (plt->getType() == Plot::type_E::TABLE)
+		if (plt->getType() == Plot::Type::TABLE)
 		{
 			drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
 			if (plt->getVisibility())
@@ -44,9 +44,9 @@ void Gui::drawPlots()
 			if (!plt->getVisibility())
 				continue;
 
-			if (plt->getType() == Plot::type_E::CURVE)
+			if (plt->getType() == Plot::Type::CURVE)
 				drawPlotCurve(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
-			else if (plt->getType() == Plot::type_E::BAR)
+			else if (plt->getType() == Plot::Type::BAR)
 				drawPlotBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
 		}
 
@@ -58,10 +58,9 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
-		plot->setIsHovered(ImPlot::IsPlotHovered());
-
 		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
 		{
+			PlotHandler::Settings settings = plotHandler->getSettings();
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
 			const double viewportWidth = (settings.samplePeriod > 0 ? settings.samplePeriod : 1) * 0.001f * settings.maxViewportPoints;
@@ -75,6 +74,8 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
 		}
+
+		plot->setIsHovered(ImPlot::IsPlotHovered());
 
 		if (ImPlot::BeginDragDropTargetPlot())
 		{
@@ -123,7 +124,7 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		else
 			plot->setMarkerValueX1(0.0);
 
-		/* make thread safe copies of buffers - probably can be made better but it works */
+		/* make thread safe copies of buffers - TODO refactor */
 		mtx->lock();
 		time.copyData();
 		for (auto& [key, serPtr] : seriesMap)

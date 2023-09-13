@@ -32,17 +32,36 @@ class Plot
 		double value = 0.0f;
 	};
 
-	enum class type_E : uint8_t
+	enum class Type : uint8_t
 	{
 		CURVE = 0,
 		BAR = 1,
 		TABLE = 2,
 	};
 
+	enum class Domain : uint8_t
+	{
+		ANALOG = 0,
+		DIGITAL = 1,
+	};
+
+	enum class TraceVarType : uint8_t
+	{
+		U8 = 0,
+		I8 = 1,
+		U16 = 2,
+		I16 = 3,
+		U32 = 4,
+		I32 = 5,
+		F32 = 6
+	};
+
 	Plot(std::string name);
 	void setName(const std::string& newName);
 	std::string getName() const;
 	std::string& getNameVar();
+	void setAlias(const std::string& newAlias);
+	std::string getAlias() const;
 	bool addSeries(Variable& var);
 	std::shared_ptr<Plot::Series> getSeries(const std::string& name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
@@ -68,8 +87,15 @@ class Plot
 	double getMarkerValueX1();
 	void setMarkerValueX1(double value);
 
-	void setType(type_E newType);
-	type_E getType() const;
+	void setType(Type newType);
+	Type getType() const;
+
+	/* TODO: Domain and TraceVarType should be in a derived class only */
+	void setDomain(Domain newDomain);
+	Domain getDomain() const;
+
+	void setTraceVarType(TraceVarType newTraceVarType);
+	TraceVarType getTraceVarType() const;
 
 	void setIsHovered(bool isHovered);
 	bool isHovered() const;
@@ -80,10 +106,13 @@ class Plot
 
    private:
 	std::string name;
+	std::string alias;
 	std::map<std::string, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<double> time;
 	bool visibility = true;
-	type_E type = type_E::CURVE;
+	Type type = Type::CURVE;
+	Domain domain = Domain::ANALOG;
+	TraceVarType traceVarType = TraceVarType::F32;
 	bool isHoveredOver = false;
 
 	Marker mx0;

@@ -49,6 +49,21 @@ class ScrollingBuffer
 		return &data[offset > 0 ? offset - 1 : 0];
 	}
 
+	T getNewestValue()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		return data[offset > 0 ? offset - 1 : 0];
+	}
+
+	T getOldestValue()
+	{
+		std::lock_guard<std::mutex> lock(mtx);
+		if (isFull)
+			return data[offset < maxSize ? offset : 0];
+		else
+			return data[0];
+	}
+
 	uint32_t getOffset() const
 	{
 		std::lock_guard<std::mutex> lock(mtx);

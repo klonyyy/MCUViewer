@@ -15,7 +15,7 @@
 #define _UNIX
 #endif
 
-bool done = false;
+std::atomic<bool> done = false;
 std::mutex mtx;
 std::shared_ptr<spdlog::logger> logger;
 
@@ -48,9 +48,11 @@ int main(int argc, char** argv)
 	logger->info("Commit hash {}", GIT_HASH);
 
 	PlotHandler plotHandler(done, &mtx, logger);
-	ConfigHandler configHandler("", &plotHandler, logger);
+	TracePlotHandler tracePlotHandler(done, &mtx, logger);
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, logger);
 	NFDFileHandler fileHandler;
-	Gui gui(&plotHandler, &configHandler, &fileHandler, done, &mtx, logger);
+
+	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, logger);
 
 	while (!done)
 	{

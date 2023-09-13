@@ -36,8 +36,9 @@ public:
 
 private:
 	volatile float triangle = 0.0f;
+	volatile float triangleFrequency = 1.0f;
 	volatile float a,b,c;
-	volatile float x;
+	volatile float x, dir = 1.0f;
 	volatile int8_t tri = 0;
 	volatile uint8_t ua = 250;
 	volatile uint16_t ub = 65000;
@@ -46,6 +47,7 @@ private:
 	volatile int16_t ib =  -32000;
 	volatile int32_t ic = -2000000000;
 	volatile float square = 21.37f;
+	volatile float amplitude = 1.0f;
 };
 
 #endif /* APP_TESTCLASS_HPP_ */

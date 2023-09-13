@@ -28,6 +28,16 @@ std::string& Plot::getNameVar()
 	return name;
 }
 
+void Plot::setAlias(const std::string& newAlias)
+{
+	alias = newAlias;
+}
+
+std::string Plot::getAlias() const
+{
+	return alias;
+}
+
 bool Plot::addSeries(Variable& var)
 {
 	std::string name = var.getName();
@@ -123,13 +133,33 @@ bool& Plot::getVisibilityVar()
 	return visibility;
 }
 
-void Plot::setType(type_E newType)
+void Plot::setType(Type newType)
 {
 	type = newType;
 }
-Plot::type_E Plot::getType() const
+Plot::Type Plot::getType() const
 {
 	return type;
+}
+
+void Plot::setDomain(Domain newDomain)
+{
+	domain = newDomain;
+}
+
+Plot::Domain Plot::getDomain() const
+{
+	return domain;
+}
+
+void Plot::setTraceVarType(TraceVarType newTraceVarType)
+{
+	traceVarType = newTraceVarType;
+}
+
+Plot::TraceVarType Plot::getTraceVarType() const
+{
+	return traceVarType;
 }
 
 Plot::displayFormat Plot::getSeriesDisplayFormat(const std::string& name) const

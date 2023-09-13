@@ -5,12 +5,17 @@
 #include <random>
 #include <sstream>
 
+#include "../gitversion.hpp"
 #include "ElfReader.hpp"
+#include "PlotHandlerBase.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -38,9 +43,8 @@ void Gui::mainThread()
 		return;
 	glfwMakeContextCurrent(window);
 	glfwMaximizeWindow(window);
-	glfwSwapInterval(2);  // Enable vsync
+	glfwSwapInterval(2);
 
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
@@ -48,17 +52,17 @@ void Gui::mainThread()
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init(glsl_version);
+	ImGui_ImplOpenGL3_Init("#version 130");
+
+	ImGuiWindowClass window_class;
+	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 	fileHandler->init();
 
@@ -68,8 +72,6 @@ void Gui::mainThread()
 	{
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
-
-		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
@@ -79,20 +81,39 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		askShouldSaveOnExit(glfwWindowShouldClose(window));
+		if (glfwWindowShouldClose(window))
+			askShouldSaveOnExit(glfwWindowShouldClose(window));
 		glfwSetWindowShouldClose(window, done);
 		checkShortcuts();
 
-		ImGui::Begin("Plots");
-		drawAcqusitionSettingsWindow();
-		drawPlots();
 		drawMenu();
+		drawAboutWindow();
+
+		if (ImGui::Begin("Trace Viewer"))
+		{
+			drawAcqusitionSettingsWindow(AcqusitionWindowType::TRACE);
+			ImGui::SetNextWindowClass(&window_class);
+			if (ImGui::Begin("Trace Plots"))
+				drawPlotsSwo();
+			ImGui::End();
+			drawStartButtonSwo();
+			drawSettingsSwo();
+			drawIndicatorsSwo();
+			drawPlotsTreeSwo();
+		}
 		ImGui::End();
 
-		ImGui::Begin("VarViewer");
-		drawStartButton();
-		drawVarTable();
-		drawPlotsTree();
+		if (ImGui::Begin("Var Viewer"))
+		{
+			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
+			drawStartButton();
+			drawVarTable();
+			drawPlotsTree();
+			ImGui::SetNextWindowClass(&window_class);
+			if (ImGui::Begin("Plots"))
+				drawPlots();
+			ImGui::End();
+		}
 		ImGui::End();
 
 		// Rendering
@@ -115,6 +136,8 @@ void Gui::mainThread()
 		glfwSwapBuffers(window);
 	}
 
+	logger->info("Exiting GUI main thread");
+
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
@@ -129,6 +152,8 @@ void Gui::drawMenu()
 	bool shouldSaveOnClose = false;
 	bool shouldSaveOnNew = false;
 	ImGui::BeginMainMenuBar();
+
+	bool active = !(plotHandler->getViewerState() == PlotHandlerBase::state::RUN || tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 
 	if (ImGui::BeginMenu("File"))
 	{
@@ -151,27 +176,31 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, plotHandler->getViewerState() == PlotHandler::state::STOP);
+		ImGui::MenuItem("Acquisition settings...", NULL, &showAcqusitionSettingsWindow, active);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Help"))
+	{
+		ImGui::MenuItem("About", NULL, &showAboutWindow, active);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
-
 	askShouldSaveOnExit(shouldSaveOnClose);
 	askShouldSaveOnNew(shouldSaveOnNew);
 }
 
 void Gui::drawStartButton()
 {
-	PlotHandler::state state = plotHandler->getViewerState();
+	PlotHandlerBase::state state = plotHandler->getViewerState();
 
-	if (state == PlotHandler::state::RUN)
+	if (state == PlotHandlerBase::state::RUN)
 	{
 		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
-	else if (state == PlotHandler::state::STOP)
+	else if (state == PlotHandlerBase::state::STOP)
 	{
 		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
 
@@ -184,13 +213,13 @@ void Gui::drawStartButton()
 
 	if (ImGui::Button((viewerStateMap.at(state) + " " + plotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
 	{
-		if (state == PlotHandler::state::STOP)
+		if (state == PlotHandlerBase::state::STOP)
 		{
 			plotHandler->eraseAllPlotData();
-			plotHandler->setViewerState(PlotHandler::state::RUN);
+			plotHandler->setViewerState(PlotHandlerBase::state::RUN);
 		}
 		else
-			plotHandler->setViewerState(PlotHandler::state::STOP);
+			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
 	}
 
 	ImGui::PopStyleColor(3);
@@ -441,7 +470,7 @@ void Gui::drawPlotsTree()
 	ImGui::EndChild();
 
 	if (typeCombo != (int32_t)plt->getType())
-		plt->setType(static_cast<Plot::type_E>(typeCombo));
+		plt->setType(static_cast<Plot::Type>(typeCombo));
 
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
 	{
@@ -453,7 +482,7 @@ void Gui::drawPlotsTree()
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
 
-void Gui::drawAcqusitionSettingsWindow()
+void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 {
 	if (showAcqusitionSettingsWindow)
 		ImGui::OpenPopup("Acqusition Settings");
@@ -462,31 +491,21 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::SetNextWindowSize(ImVec2(500, 300));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
-		ImGui::Text("Project's *.elf file:");
-		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
-		ImGui::SameLine();
-		if (ImGui::SmallButton("..."))
-			openElfFile();
+		if (type == AcqusitionWindowType::VARIABLE)
+		{
+			acqusitionSettingsViewer();
+			ImGui::EndTabItem();
+		}
+		if (type == AcqusitionWindowType::TRACE)
+		{
+			acqusitionSettingsTrace();
+			ImGui::EndTabItem();
+		}
 
-		ImGui::Text("Sample period [ms]:");
-		ImGui::SameLine();
-		ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
-		static int one = 1;
-		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
-		plotHandler->setSamplePeriod(settings.samplePeriod);
+		const float buttonHeight = 25.0f;
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
-		ImGui::Text("Max points [100 - 20000]:");
-		ImGui::SameLine();
-		ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
-		ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
-		plotHandler->setMaxPoints(settings.maxPoints);
-
-		ImGui::Text("Max viewport points [100 - 20000]:");
-		ImGui::SameLine();
-		ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
-		ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
-
-		if (ImGui::Button("Done"))
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
 			showAcqusitionSettingsWindow = false;
 			ImGui::CloseCurrentPopup();
@@ -494,6 +513,100 @@ void Gui::drawAcqusitionSettingsWindow()
 
 		ImGui::EndPopup();
 	}
+}
+
+void Gui::acqusitionSettingsViewer()
+{
+	ImGui::Text("Project's *.elf file:");
+	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
+	ImGui::SameLine();
+	if (ImGui::SmallButton("..."))
+		openElfFile();
+
+	PlotHandler::Settings settings = plotHandler->getSettings();
+
+	ImGui::Text("Sample period [ms]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
+	static int one = 1;
+	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
+
+	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+
+	ImGui::Text("Max viewport points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+
+	plotHandler->setSettings(settings);
+}
+
+void Gui::drawAboutWindow()
+{
+	if (showAboutWindow)
+		ImGui::OpenPopup("About");
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowSize(ImVec2(500, 250));
+	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
+	{
+		drawCenteredText("STMViewer");
+		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
+		drawCenteredText(std::move(line2));
+		drawCenteredText(std::move(std::string(GIT_HASH)));
+		ImGui::SameLine();
+		const bool copy = ImGui::SmallButton("copy");
+		if (copy)
+		{
+			ImGui::LogToClipboard();
+			ImGui::LogText(GIT_HASH);
+			ImGui::LogFinish();
+		}
+
+		ImGui::Dummy(ImVec2(-1, 20));
+		drawCenteredText("by Piotr Wasilewski (klonyyy)");
+		ImGui::Dummy(ImVec2(-1, 20));
+
+		const float buttonHeight = 25.0f;
+
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210) / 2.0f);
+
+		if (ImGui::Button("Releases", ImVec2(100, buttonHeight)))
+			openWebsite("https://github.com/klonyyy/STMViewer/releases");
+		ImGui::SameLine();
+		if (ImGui::Button("Support <3", ImVec2(100, buttonHeight)))
+			openWebsite("https://github.com/sponsors/klonyyy");
+
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
+		{
+			showAboutWindow = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void Gui::acqusitionSettingsTrace()
+{
+	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
+
+	static int one = 1;
+	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+
+	ImGui::Text("Viewport width in percent [0 - 100]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
+
+	tracePlotHandler->setSettings(settings);
 }
 
 std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)
@@ -567,29 +680,26 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 
 void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 {
-	if (shouldOpenPopup)
+	auto onNo = [&]()
+	{
+		vars.clear();
+		plotHandler->removeAllPlots();
+		tracePlotHandler->initPlots();
+		projectElfPath = "";
+		projectConfigPath = "";
+	};
+
+	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+		onNo();
+	else if (shouldOpenPopup)
 		ImGui::OpenPopup("SaveOnNew?");
 
 	auto onYes = [&]()
 	{
 		if (!saveProject())
 			saveProjectAs();
-		vars.clear();
-		plotHandler->removeAllPlots();
-		projectElfPath = "";
-		projectConfigPath = "";
+		onNo();
 	};
-
-	auto onNo = [&]()
-	{
-		vars.clear();
-		plotHandler->removeAllPlots();
-		projectElfPath = "";
-		projectConfigPath = "";
-	};
-
-	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
-		onYes();
 
 	showQuestionBox("SaveOnNew?", "Do you want to save the current config?\n", onYes, onNo, []() {});
 }
@@ -597,7 +707,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 bool Gui::saveProject()
 {
 	if (!projectConfigPath.empty())
-		return configHandler->saveConfigFile(vars, projectElfPath, settings, "");
+		return configHandler->saveConfigFile(vars, projectElfPath, "");
 	return false;
 }
 
@@ -607,7 +717,7 @@ bool Gui::saveProjectAs()
 	if (path != "")
 	{
 		projectConfigPath = path;
-		configHandler->saveConfigFile(vars, projectElfPath, settings, projectConfigPath);
+		configHandler->saveConfigFile(vars, projectElfPath, projectConfigPath);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
@@ -623,9 +733,7 @@ bool Gui::openProject()
 		configHandler->changeConfigFile(projectConfigPath);
 		vars.clear();
 		plotHandler->removeAllPlots();
-		configHandler->readConfigFile(vars, projectElfPath, settings);
-		plotHandler->setSamplePeriod(settings.samplePeriod);
-		plotHandler->setMaxPoints(settings.maxPoints);
+		configHandler->readConfigFile(vars, projectElfPath);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
@@ -647,14 +755,17 @@ bool Gui::openElfFile()
 void Gui::checkShortcuts()
 {
 	ImGuiIO& io = ImGui::GetIO();
+	bool wasSaved = false;
 
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))
 		openProject();
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S))
 	{
-		if (!saveProject())
+		wasSaved = saveProject();
+		if (!wasSaved)
 			saveProjectAs();
 	}
+	showSavedPopup(wasSaved);
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
@@ -678,9 +789,65 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
 }
 
+void Gui::showSavedPopup(bool show)
+{
+	static float popupTimer = 0.0f;
+	static bool wasShow = false;
+
+	if (show)
+	{
+		wasShow = true;
+		ImGui::OpenPopup("Saved");
+		popupTimer = 0.0f;
+	}
+
+	if (wasShow)
+		popupTimer += ImGui::GetIO().DeltaTime;
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("Saved", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Saving succesful!");
+
+		if (popupTimer >= 0.65f)
+		{
+			wasShow = false;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+}
+
 std::string Gui::intToHexString(uint32_t var)
 {
 	std::stringstream ss;
 	ss << std::hex << var;
 	return ss.str();
+}
+
+void Gui::drawCenteredText(std::string&& text)
+{
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
+	ImGui::Text(text.c_str());
+}
+
+bool Gui::openWebsite(const char* url)
+{
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define _UNIX
+#endif
+
+#ifdef _WIN32
+	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+#elif defined _UNIX
+	const char* browser = getenv("BROWSER");
+	if (browser == NULL)
+		browser = "xdg-open";
+	char command[256];
+	snprintf(command, sizeof(command), "%s %s", browser, url);
+	system(command);
+#else
+#error "Your system is not supported!"
+#endif
+	return true;
 }
