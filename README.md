@@ -11,15 +11,17 @@ The only piece of hardware required is an ST-Link programmer.
 
 ### Variable Viewer
 ![_](./docs/VarViewer.gif)
+
 Variable Viewer can be used to visualize your embedded application data in real time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using the ST-link programmer debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
 
 Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast-changing signals.
 
 ### Trace Viewer 
 ![_](./docs/TraceViewer.gif)
-Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming the timer's interrupt frequency, or displaying very fast signals (the clock resolution is limited by your System Core Clock). All this is possible thanks to hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequisites and usage please see the Quick Start section. 
 
-TraceViewer is not influenced by optimizations, which means it is a great tool to use for profiling on release builds.
+Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming the timer's interrupt frequency, or displaying very fast signals. All this is possible thanks to hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequisites and usage please see the Quick Start section. 
+
+TraceViewer is not influenced by optimizations, which means it is a great tool to use for profiling on release builds. Moreover it has a very low influence on the program execution as each datapoint is a single register write. 
 
 ## Installation
 
@@ -27,6 +29,7 @@ Linux:
 1. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
+Optional: make sure you have the rights to access usb port. When installing ST's software such as Cube Programmer it will most probably also install needed udev rules.
 
 Windows: 
 1. Make sure you've got GDB installed (v12.1 or later) and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
@@ -73,7 +76,8 @@ The ITM registers are defined in CMSIS headers so no additional includes should 
 5. Try different trace prescallers that result in a trace speed lower than the max trace speed of your programmer (for example STLINK V2 can read trace up to 2Mhz, whereas ST-Link V3 is theoretically able to do 24Mhz). Example:
 - System Core Clock is 160 000 kHz (160 Mhz)
 - We're using ST-link V2 so the prescaler should be at least 160 Mhz / 2 Mhz = 80
-6. Press the "STOPPED" button to start recording.
+6. Configure "analog" channels types according to the type used in your code. 
+7. Press the "STOPPED" button to start recording.
 
 FAQ and common issues: 
 1. Problem: My trace doesn't look like it's supposed to and I get a lot of error frames
