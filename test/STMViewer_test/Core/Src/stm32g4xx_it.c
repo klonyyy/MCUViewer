@@ -22,6 +22,7 @@
 #include "stm32g4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -220,24 +221,58 @@ void SysTick_Handler(void)
   */
 void TIM1_TRG_COM_TIM17_IRQHandler(void)
 {
-
   /* USER CODE BEGIN TIM1_TRG_COM_TIM17_IRQn 0 */
 	static float t = 0.0f;
 	static float dir = -0.1f;
 
-	ITM->PORT[0].u8 = 0xaa;
 	LL_TIM_ClearFlag_UPDATE(TIM17);
 
 	t += dir ;
 	if(fabsf(t) >= 1.0f)
 		dir *= -1.0f;
 
-	ITM->PORT[3].u32 = *(uint32_t*)&t;
-	ITM->PORT[0].u8 = 0xbb;
+	ITM->PORT[2].u32 = *(uint32_t*)&t;
   /* USER CODE END TIM1_TRG_COM_TIM17_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_TRG_COM_TIM17_IRQn 1 */
   /* USER CODE END TIM1_TRG_COM_TIM17_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM6 global interrupt, DAC1 and DAC3 channel underrun error interrupts.
+  */
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+	ITM->PORT[3].u8 = 0xaa;
+	LL_TIM_ClearFlag_UPDATE(TIM6);
+	for(volatile uint32_t l=0;l<0xff;l++)
+		__asm__ __volatile__("nop");
+	ITM->PORT[3].u8 = 0xbb;
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM7 global interrupt, DAC2 and DAC4 channel underrun error interrupts.
+  */
+void TIM7_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
+	ITM->PORT[0].u8 = 0xaa;
+	LL_TIM_ClearFlag_UPDATE(TIM7);
+	volatile uint8_t source[2000];
+	volatile uint8_t dest[2000];
+	memcpy(dest, source, sizeof(source));
+	ITM->PORT[0].u8 = 0xbb;
+  /* USER CODE END TIM7_DAC_IRQn 0 */
+
+  /* USER CODE BEGIN TIM7_DAC_IRQn 1 */
+
+  /* USER CODE END TIM7_DAC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

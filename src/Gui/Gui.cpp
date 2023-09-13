@@ -89,11 +89,11 @@ void Gui::mainThread()
 		drawMenu();
 		drawAboutWindow();
 
-		if (ImGui::Begin("SWO Viewer"))
+		if (ImGui::Begin("Trace Viewer"))
 		{
 			drawAcqusitionSettingsWindow(AcqusitionWindowType::TRACE);
 			ImGui::SetNextWindowClass(&window_class);
-			if (ImGui::Begin("SWO Plots"))
+			if (ImGui::Begin("Trace Plots"))
 				drawPlotsSwo();
 			ImGui::End();
 			drawStartButtonSwo();
@@ -103,7 +103,7 @@ void Gui::mainThread()
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("VarViewer"))
+		if (ImGui::Begin("Var Viewer"))
 		{
 			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
 			drawStartButton();
@@ -839,7 +839,7 @@ bool Gui::openWebsite(const char* url)
 
 #ifdef _WIN32
 	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif defined _UNIX
+#elif _UNIX
 	const char* browser = getenv("BROWSER");
 	if (browser == NULL)
 		browser = "xdg-open";

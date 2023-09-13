@@ -4,6 +4,7 @@
 STMViewer is an open-source GUI debug tool for STM32 microcontrollers that consists two modules:
 1. Variable Viewer - used for viewing, logging and manipulating variables data in realtime using debug interface (SWDIO / SWCLK / GND)
 2. Trace Viewer - used for graphically representing realtime SWO trace output (SWDIO / SWCLK / SWO / GND)
+
 The only piece of hardware required is an ST-Link programmer. 
 
 ## Introduction
@@ -12,12 +13,13 @@ The only piece of hardware required is an ST-Link programmer.
 ![_](./docs/VarViewer.gif)
 Variable Viewer can be used to visualize your embedded application data in real-time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using the ST-link programmer debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
 
-the Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast changing signals.
+Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast changing signals.
 
 ### Trace Viewer 
 ![_](./docs/TraceViewer.gif)
 Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming timer's interrupt frequency or displaying very fast signals (the clock resolution is limited by your System Core Clock). All this is possibe thanks to an hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequsites and usage please see Quick Start section. 
 
+TraceViewer is not influenced by optimizations, which means it is a great tool to use for profiling on release builds.
 
 ## Installation
 
@@ -46,7 +48,7 @@ In case of any problems, please try the test/STMViewer_test CubeIDE project and 
 
 ### Trace Viewer 
 1. Turn on the SWO pin functionality - in CubeMX System Core -> SYS Mode and Configuration -> choose Trace Asynchronous Sw
-1. Place enter and exit markers in the code you'd like to profile. Example for digital data: 
+2. Place enter and exit markers in the code you'd like to profile. Example for digital data: 
 ```
 ITM->PORT[x].u8 = 0xaa; //enter tag 0xaa - plot state high
 foo();
@@ -66,12 +68,12 @@ ITM->PORT[x].u16 = a;              // type-punn to desired size
 
 The ITM registers are defined in CMSIS headers so no additional includes should be necesarry.
 
-2. Compile and download the program to your STM32 target.
-3. In the `Settings` window type in correct System Core Clock value in kHz (very important as it affects the timebase)
-4. Try different trace prescallers that result in trace speed lower than max trace speed of your programmer (for example STLINK V2 is able to read trace up to 2Mhz, whereas ST-Link V3 is theoretically able to do 24Mhz). Example:
+3. Compile and download the program to your STM32 target.
+4. In the `Settings` window type in correct System Core Clock value in kHz (very important as it affects the timebase)
+5. Try different trace prescallers that result in trace speed lower than max trace speed of your programmer (for example STLINK V2 is able to read trace up to 2Mhz, whereas ST-Link V3 is theoretically able to do 24Mhz). Example:
 - System Core Clock is 160 000 kHz (160 Mhz)
 - we're using ST-link V2 so the prescaler should be at least 160 Mhz / 2 Mhz = 80
-5. Press the "STOPPED" button to start recording.
+6. Press the "STOPPED" button to start recording.
 
 FAQ and common issues: 
 1. Problem: My trace doesn't look like it's supposed to and I get a lot of error frames
@@ -92,9 +94,10 @@ Since Trace Viewer module was added STMViewer has a unique property of displayin
 ## 3rd party projects used in STMViewer
 
 1. [stlink](https://github.com/stlink-org/stlink)
-2. [imgui](https://github.com/ocornut/imgui)
-3. [implot](https://github.com/epezent/implot)
-4. [mINI](https://github.com/pulzed/mINI)
-5. [nfd](https://github.com/btzy/nativefiledialog-extended)
-6. [spdlog](https://github.com/gabime/spdlog)
+2. [libusb](https://github.com/libusb/libusb)
+3. [imgui](https://github.com/ocornut/imgui)
+4. [implot](https://github.com/epezent/implot)
+5. [mINI](https://github.com/pulzed/mINI)
+6. [nfd](https://github.com/btzy/nativefiledialog-extended)
+7. [spdlog](https://github.com/gabime/spdlog)
 
