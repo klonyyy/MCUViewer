@@ -27,6 +27,17 @@ bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
 	for (uint32_t i = 0; i < activeChannels.size(); i++)
 		activeChannelsMask |= (static_cast<uint32_t>(activeChannels[i]) << i);
 
+	if (tracePrescaler == 0)
+	{
+		lastErrorMsg = "Trace prescaler cannot be zero!";
+		return false;
+	}
+	else if (coreFrequency == 0)
+	{
+		lastErrorMsg = "Core frequency cannot be zero!";
+		return false;
+	}
+
 	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask))
 	{
 		lastErrorMsg = "";
