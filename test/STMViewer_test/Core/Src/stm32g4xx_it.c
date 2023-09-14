@@ -47,24 +47,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-float factorial(int n) {
-    float fact = 1.0;
-    for (int i = 2; i <= n; ++i)
-    {
-        fact *= i;
-    }
-    return fact;
-}
 
-float approximateSin(float x, int terms)
-{
-    float result = 0.0;
-    for (int n = 0; n < terms; ++n) {
-        float term = (powf(-1, n) * powf(x, 2 * n + 1)) / factorial(2 * n + 1);
-        result += term;
-    }
-    return result;
-}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
