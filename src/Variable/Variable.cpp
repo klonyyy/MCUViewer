@@ -4,6 +4,9 @@
 
 Variable::Variable(std::string name) : name(name)
 {
+	value = 0.0;
+	address = 0x20000000;
+	varType = type::UNKNOWN;
 }
 
 Variable::Variable(std::string name, Variable::type type, double value) : name(name), varType(type)

@@ -18,17 +18,24 @@ endif()
 
 project(STMViewer)
 
-set(STMVIEWER_VERSION 0.1.2)
+set(STMVIEWER_VERSION 0.2.0)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 
+if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+endif()
+
 add_compile_options(-Wall
     -Wextra
+    -Wpedantic
     -Wno-unused-parameter
     -Wno-missing-field-initializers)
 
 if(UNIX)
+    add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
@@ -40,6 +47,13 @@ if(UNIX)
 endif()
 
 if(WIN32)
+    # use bat script only if not cross-compiling
+    if("${PLATFORM}" STREQUAL "native")
+        add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat)
+    else()
+        add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
+    endif()
+
     enable_language("RC")
     set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
@@ -50,19 +64,26 @@ if(WIN32)
     set(INSTALL_PATH bin)
 endif()
 
-
-
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/PlotHandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins/ImguiPlugins.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/spdlogWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandlerBase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -78,11 +99,19 @@ set(IMPLOT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_items.cpp)
 
+set_source_files_properties(
+  ${IMPLOT_SOURCES}
+  PROPERTIES
+  COMPILE_FLAGS "-w"
+)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+
+add_dependencies(${EXECUTABLE} addGitVersion)
 
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${STMVIEWER_VERSION}")
 target_compile_definitions(${EXECUTABLE}
@@ -100,10 +129,13 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
     ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
@@ -117,7 +149,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
 if(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${SPDLOG_LINUX} pthread dl GL glfw nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static opengl32 nfd -static-libstdc++ -static-libgcc)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
 
 if(WIN32)
@@ -139,6 +171,7 @@ add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
 
 install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
 
 if(WIN32)
     if(PRODUCTION)
@@ -155,13 +188,12 @@ if(WIN32)
 endif()
 
 if(UNIX)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.png DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/STMViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     set(CPACK_GENERATOR "DEB")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libusb-1.0-0-dev, libglfw3-dev, libgtk-3-dev, gdb, libspdlog-dev")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})

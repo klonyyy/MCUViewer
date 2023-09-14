@@ -2,16 +2,16 @@
 
 #include <cstring>
 
+#include "logging.h"
+
 StlinkHandler::StlinkHandler()
 {
-#if defined(unix) || defined(__unix__) || defined(__unix)
-	init_chipids("./chips");
-#endif
+	init_chipids((char*)"./chips");
 }
 
 bool StlinkHandler::startAcqusition()
 {
-	sl = stlink_open_usb(UERROR, CONNECT_HOT_PLUG, NULL, 4000);
+	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 	isRunning = false;
 
 	if (sl != nullptr)

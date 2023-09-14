@@ -5,15 +5,17 @@
 #include <random>
 #include <sstream>
 
+#include "../gitversion.hpp"
 #include "ElfReader.hpp"
-#include "ImguiPlugins.hpp"
+#include "PlotHandlerBase.hpp"
 #include "glfw3.h"
-#include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "implot.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, bool& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -40,9 +42,9 @@ void Gui::mainThread()
 	if (window == NULL)
 		return;
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(2);  // Enable vsync
+	glfwMaximizeWindow(window);
+	glfwSwapInterval(2);
 
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
@@ -50,17 +52,17 @@ void Gui::mainThread()
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init(glsl_version);
+	ImGui_ImplOpenGL3_Init("#version 130");
+
+	ImGuiWindowClass window_class;
+	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 	fileHandler->init();
 
@@ -70,8 +72,6 @@ void Gui::mainThread()
 	{
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
-
-		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
@@ -81,20 +81,39 @@ void Gui::mainThread()
 		if (show_demo_window)
 			ImPlot::ShowDemoWindow();
 
-		askShouldSaveOnExit(glfwWindowShouldClose(window));
+		if (glfwWindowShouldClose(window))
+			askShouldSaveOnExit(glfwWindowShouldClose(window));
 		glfwSetWindowShouldClose(window, done);
 		checkShortcuts();
 
-		ImGui::Begin("Plots");
-		drawAcqusitionSettingsWindow();
-		drawPlots();
 		drawMenu();
+		drawAboutWindow();
+
+		if (ImGui::Begin("Trace Viewer"))
+		{
+			drawAcqusitionSettingsWindow(AcqusitionWindowType::TRACE);
+			ImGui::SetNextWindowClass(&window_class);
+			if (ImGui::Begin("Trace Plots"))
+				drawPlotsSwo();
+			ImGui::End();
+			drawStartButtonSwo();
+			drawSettingsSwo();
+			drawIndicatorsSwo();
+			drawPlotsTreeSwo();
+		}
 		ImGui::End();
 
-		ImGui::Begin("VarViewer");
-		drawStartButton();
-		drawVarTable();
-		drawPlotsTree();
+		if (ImGui::Begin("Var Viewer"))
+		{
+			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
+			drawStartButton();
+			drawVarTable();
+			drawPlotsTree();
+			ImGui::SetNextWindowClass(&window_class);
+			if (ImGui::Begin("Plots"))
+				drawPlots();
+			ImGui::End();
+		}
 		ImGui::End();
 
 		// Rendering
@@ -117,6 +136,8 @@ void Gui::mainThread()
 		glfwSwapBuffers(window);
 	}
 
+	logger->info("Exiting GUI main thread");
+
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
@@ -131,6 +152,8 @@ void Gui::drawMenu()
 	bool shouldSaveOnClose = false;
 	bool shouldSaveOnNew = false;
 	ImGui::BeginMainMenuBar();
+
+	bool active = !(plotHandler->getViewerState() == PlotHandlerBase::state::RUN || tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 
 	if (ImGui::BeginMenu("File"))
 	{
@@ -153,27 +176,31 @@ void Gui::drawMenu()
 	}
 	if (ImGui::BeginMenu("Options"))
 	{
-		ImGui::MenuItem("Acqusition settings...", NULL, &showAcqusitionSettingsWindow, plotHandler->getViewerState() == PlotHandler::state::STOP);
+		ImGui::MenuItem("Acquisition settings...", NULL, &showAcqusitionSettingsWindow, active);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Help"))
+	{
+		ImGui::MenuItem("About", NULL, &showAboutWindow, active);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
-
 	askShouldSaveOnExit(shouldSaveOnClose);
 	askShouldSaveOnNew(shouldSaveOnNew);
 }
 
 void Gui::drawStartButton()
 {
-	PlotHandler::state state = plotHandler->getViewerState();
+	PlotHandlerBase::state state = plotHandler->getViewerState();
 
-	if (state == PlotHandler::state::RUN)
+	if (state == PlotHandlerBase::state::RUN)
 	{
 		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
-	else if (state == PlotHandler::state::STOP)
+	else if (state == PlotHandlerBase::state::STOP)
 	{
 		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
 
@@ -186,13 +213,13 @@ void Gui::drawStartButton()
 
 	if (ImGui::Button((viewerStateMap.at(state) + " " + plotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
 	{
-		if (state == PlotHandler::state::STOP)
+		if (state == PlotHandlerBase::state::STOP)
 		{
 			plotHandler->eraseAllPlotData();
-			plotHandler->setViewerState(PlotHandler::state::RUN);
+			plotHandler->setViewerState(PlotHandlerBase::state::RUN);
 		}
 		else
-			plotHandler->setViewerState(PlotHandler::state::STOP);
+			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
 	}
 
 	ImGui::PopStyleColor(3);
@@ -209,8 +236,6 @@ void Gui::drawAddVariableButton()
 		std::string newName = std::string(" new") + std::to_string(num);
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
-		newVar->setAddress(0x20000000);
-		newVar->setType(Variable::type::U8);
 		std::random_device rd{};
 		std::mt19937 gen{rd()};
 		std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
@@ -227,7 +252,7 @@ void Gui::drawUpdateAddressesFromElf()
 
 void Gui::drawVarTable()
 {
-	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Variables").x) * 0.5f);
 	ImGui::Text("Variables");
@@ -239,9 +264,9 @@ void Gui::drawVarTable()
 	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
-		ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
-		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Name", 0);
+		ImGui::TableSetupColumn("Address", 0);
+		ImGui::TableSetupColumn("Type", 0);
 		ImGui::TableHeadersRow();
 
 		std::optional<std::string> varNameToDelete;
@@ -307,9 +332,47 @@ void Gui::drawAddPlotButton()
 	}
 }
 
+void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
+{
+	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25)))
+	{
+		std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("CSV", "csv"));
+		std::ofstream csvFile(path);
+
+		if (!csvFile)
+		{
+			logger->info("Error opening the file: {}", path);
+			return;
+		}
+
+		uint32_t dataSize = plt->getTimeSeries().getSize();
+
+		csvFile << "time [s],";
+
+		for (auto& [name, ser] : plt->getSeriesMap())
+			csvFile << name << ",";
+
+		csvFile << std::endl;
+
+		for (size_t i = 0; i < dataSize; ++i)
+		{
+			uint32_t offset = plt->getTimeSeries().getOffset();
+			uint32_t index = (offset + i < dataSize) ? offset + i : i - (dataSize - offset);
+			csvFile << plt->getTimeSeries().getFirstElementCopy()[index] << ",";
+
+			for (auto& [name, ser] : plt->getSeriesMap())
+				csvFile << ser->buffer->getFirstElementCopy()[index] << ",";
+
+			csvFile << std::endl;
+		}
+
+		csvFile.close();
+	}
+}
+
 void Gui::drawPlotsTree()
 {
-	const uint32_t windowHeight = 300;
+	const uint32_t windowHeight = 320;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
@@ -342,6 +405,9 @@ void Gui::drawPlotsTree()
 
 		if (!plotNameToDelete.has_value())
 			plotNameToDelete = showDeletePopup("Delete plot", name);
+
+		if (plt->isHovered() && ImGui::IsMouseClicked(0))
+			selected = plt->getName();
 	}
 
 	ImGui::EndChild();
@@ -371,7 +437,7 @@ void Gui::drawPlotsTree()
 	ImGui::PopID();
 
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, -1)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
@@ -398,12 +464,13 @@ void Gui::drawPlotsTree()
 			plt->addSeries(*vars[*(std::string*)payload->Data]);
 		ImGui::EndDragDropTarget();
 	}
+	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();
 	ImGui::EndChild();
 
 	if (typeCombo != (int32_t)plt->getType())
-		plt->setType(static_cast<Plot::type_E>(typeCombo));
+		plt->setType(static_cast<Plot::Type>(typeCombo));
 
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
 	{
@@ -415,7 +482,7 @@ void Gui::drawPlotsTree()
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
 
-void Gui::drawAcqusitionSettingsWindow()
+void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 {
 	if (showAcqusitionSettingsWindow)
 		ImGui::OpenPopup("Acqusition Settings");
@@ -424,25 +491,21 @@ void Gui::drawAcqusitionSettingsWindow()
 	ImGui::SetNextWindowSize(ImVec2(500, 300));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
-		ImGui::Text("Project's *.elf file:");
-		ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
-		ImGui::SameLine();
-		if (ImGui::SmallButton("..."))
-			openElfFile();
+		if (type == AcqusitionWindowType::VARIABLE)
+		{
+			acqusitionSettingsViewer();
+			ImGui::EndTabItem();
+		}
+		if (type == AcqusitionWindowType::TRACE)
+		{
+			acqusitionSettingsTrace();
+			ImGui::EndTabItem();
+		}
 
-		ImGui::Text("Sample period [ms]:");
-		static int one = 1;
-		ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
-		plotHandler->setSamplePeriod(settings.samplePeriod);
+		const float buttonHeight = 25.0f;
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
-		ImGui::Text("Max points [100 - 20000]:");
-		ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
-		plotHandler->setMaxPoints(settings.maxPoints);
-
-		ImGui::Text("Max viewport points [100 - 20000]:");
-		ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
-
-		if (ImGui::Button("Done"))
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
 			showAcqusitionSettingsWindow = false;
 			ImGui::CloseCurrentPopup();
@@ -452,242 +515,98 @@ void Gui::drawAcqusitionSettingsWindow()
 	}
 }
 
-void Gui::drawPlots()
+void Gui::acqusitionSettingsViewer()
 {
-	uint32_t tablePlots = 0;
+	ImGui::Text("Project's *.elf file:");
+	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
+	ImGui::SameLine();
+	if (ImGui::SmallButton("..."))
+		openElfFile();
 
-	ImVec2 initialCursorPos = ImGui::GetCursorPos();
+	PlotHandler::Settings settings = plotHandler->getSettings();
 
-	for (std::shared_ptr<Plot> plt : *plotHandler)
+	ImGui::Text("Sample period [ms]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
+	static int one = 1;
+	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
+
+	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+
+	ImGui::Text("Max viewport points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+
+	plotHandler->setSettings(settings);
+}
+
+void Gui::drawAboutWindow()
+{
+	if (showAboutWindow)
+		ImGui::OpenPopup("About");
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowSize(ImVec2(500, 250));
+	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
 	{
-		if (plt->getType() == Plot::type_E::TABLE)
+		drawCenteredText("STMViewer");
+		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
+		drawCenteredText(std::move(line2));
+		drawCenteredText(std::move(std::string(GIT_HASH)));
+		ImGui::SameLine();
+		const bool copy = ImGui::SmallButton("copy");
+		if (copy)
 		{
-			drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
-			if (plt->getVisibility())
-				tablePlots++;
+			ImGui::LogToClipboard();
+			ImGui::LogText(GIT_HASH);
+			ImGui::LogFinish();
 		}
-	}
 
-	uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
-	uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
+		ImGui::Dummy(ImVec2(-1, 20));
+		drawCenteredText("by Piotr Wasilewski (klonyyy)");
+		ImGui::Dummy(ImVec2(-1, 20));
 
-	const float remainingSpace = (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) - (ImGui::GetCursorPos().y + initialCursorPos.y);
-	ImVec2 plotSize(-1, -1);
-	if (remainingSpace < 300)
-		plotSize.y = 300;
+		const float buttonHeight = 25.0f;
 
-	if (ImPlot::BeginSubplots("##subplos", row, 1, plotSize, 0))
-	{
-		for (std::shared_ptr<Plot> plt : *plotHandler)
-			if (plt->getType() == Plot::type_E::CURVE || plt->getType() == Plot::type_E::BAR)
-				drawPlotCurveBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
-		ImPlot::EndSubplots();
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210) / 2.0f);
+
+		if (ImGui::Button("Releases", ImVec2(100, buttonHeight)))
+			openWebsite("https://github.com/klonyyy/STMViewer/releases");
+		ImGui::SameLine();
+		if (ImGui::Button("Support <3", ImVec2(100, buttonHeight)))
+			openWebsite("https://github.com/sponsors/klonyyy");
+
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
+		{
+			showAboutWindow = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
 	}
 }
 
-void Gui::drawPlotCurveBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
+void Gui::acqusitionSettingsTrace()
 {
-	if (!plot->getVisibility())
-		return;
+	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
 
-	ImVec2 plotSize = ImVec2(-1, -1);
+	static int one = 1;
+	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
 
-	if (plot->getType() == Plot::type_E::CURVE)
-	{
-		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
-		{
-			if (plotHandler->getViewerState() == PlotHandler::state::RUN)
-			{
-				ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
-				ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-				const double viewportWidth = settings.samplePeriod * 0.001f * settings.maxViewportPoints;
-				const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
-				const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
-				ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
-			}
-			else
-			{
-				ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-				ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-				ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
-			}
+	ImGui::Text("Viewport width in percent [0 - 100]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
 
-			if (ImPlot::BeginDragDropTargetPlot())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-					plot->addSeries(*vars[*(std::string*)payload->Data]);
-
-				ImPlot::EndDragDropTarget();
-			}
-
-			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
-
-			if (plot->getMarkerStateX0())
-			{
-				double markerPos = plot->getMarkerValueX0();
-				if (markerPos == 0.0)
-				{
-					markerPos = plotLimits.X.Min * 1.1f;
-					plot->setMarkerValueX0(markerPos);
-				}
-				ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
-				plot->setMarkerValueX0(markerPos);
-				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(-10, -100), true, "x0 %.5f", markerPos);
-			}
-			else
-				plot->setMarkerValueX0(0.0);
-
-			if (plot->getMarkerStateX1())
-			{
-				double markerPos = plot->getMarkerValueX1();
-				if (markerPos == 0.0)
-				{
-					markerPos = plotLimits.X.Max * 0.9f;
-					plot->setMarkerValueX1(markerPos);
-				}
-				ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
-				plot->setMarkerValueX1(markerPos);
-				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, -100), true, "x1 %.5f", markerPos);
-				double dx = markerPos - plot->getMarkerValueX0();
-				ImPlot::Annotation(markerPos, 0, ImVec4(0, 0, 0, 0), ImVec2(10, 100), true, "x1-x0 %.5f", dx);
-			}
-			else
-				plot->setMarkerValueX1(0.0);
-
-			/* make thread safe copies of buffers - probably can be made better but it works */
-			mtx->lock();
-			time.copyData();
-			for (auto& [key, serPtr] : seriesMap)
-			{
-				if (!serPtr->visible)
-					continue;
-				serPtr->buffer->copyData();
-			}
-			uint32_t offset = time.getOffset();
-			uint32_t size = time.getSize();
-			mtx->unlock();
-
-			for (auto& [key, serPtr] : seriesMap)
-			{
-				if (!serPtr->visible)
-					continue;
-				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
-				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
-				ImPlot::PlotLine(serPtr->var->getName().c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
-			}
-
-			ImPlot::EndPlot();
-		}
-	}
-	else if (plot->getType() == Plot::type_E::BAR)
-	{
-		if (ImPlot::BeginPlot(plot->getName().c_str(), plotSize, ImPlotFlags_NoChild))
-		{
-			std::vector<const char*> glabels;
-			std::vector<double> positions;
-
-			float pos = 0.0f;
-			for (const auto& [key, series] : seriesMap)
-			{
-				glabels.push_back(series->var->getName().c_str());
-				positions.push_back(pos);
-				pos += 1.0f;
-			}
-			glabels.push_back(nullptr);
-
-			ImPlot::SetupAxes(NULL, "Value", 0, 0);
-			ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
-			ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
-
-			if (ImPlot::BeginDragDropTargetPlot())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-					plot->addSeries(*vars[*(std::string*)payload->Data]);
-				ImPlot::EndDragDropTarget();
-			}
-
-			double xs = 0.0f;
-			double barSize = 0.5f;
-
-			for (auto& [key, serPtr] : seriesMap)
-			{
-				if (!serPtr->visible)
-					continue;
-				double value = *serPtr->buffer->getLastElement();
-
-				ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
-				ImPlot::PlotBars(serPtr->var->getName().c_str(), &xs, &value, 1, barSize);
-				ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5), true, "%.5f", value);
-				xs += 1.0f;
-			}
-			ImPlot::EndPlot();
-		}
-	}
-}
-
-void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
-{
-	if (!plot->getVisibility())
-		return;
-
-	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
-
-	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(plot->getName().c_str()).x) * 0.5f);
-	ImGui::Text(plot->getName().c_str());
-
-	if (ImGui::BeginTable(plot->getName().c_str(), 4, flags))
-	{
-		ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
-		ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
-		ImGui::TableSetupColumn("Read value", ImGuiTableColumnFlags_None);
-		ImGui::TableSetupColumn("Write value", ImGuiTableColumnFlags_None);
-		ImGui::TableHeadersRow();
-
-		for (auto& [key, serPtr] : seriesMap)
-		{
-			if (!serPtr->visible)
-				continue;
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			Variable::Color a = serPtr->var->getColor();
-			ImVec4 col = {a.r, a.g, a.b, a.a};
-			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10, 10));
-			ImGui::SameLine();
-			ImGui::Text(key.c_str());
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
-			ImGui::TableSetColumnIndex(2);
-			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
-			showChangeFormatPopup("format", *plot, key);
-			ImGui::TableSetColumnIndex(3);
-			ImGui::PushID("input");
-			char newValue[maxVariableNameLength] = {0};
-			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
-			{
-				if (plotHandler->getViewerState() == PlotHandler::state::STOP)
-				{
-					ImGui::PopID();
-					continue;
-				}
-				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
-				{
-					logger->info("New value to be written: {}", newValue);
-					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
-						logger->error("Error while writing new value!");
-				}
-			}
-			ImGui::PopID();
-		}
-		ImGui::EndTable();
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(*vars[*(std::string*)payload->Data]);
-			ImGui::EndDragDropTarget();
-		}
-	}
+	tracePlotHandler->setSettings(settings);
 }
 
 std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)
@@ -761,29 +680,26 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 
 void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 {
-	if (shouldOpenPopup)
+	auto onNo = [&]()
+	{
+		vars.clear();
+		plotHandler->removeAllPlots();
+		tracePlotHandler->initPlots();
+		projectElfPath = "";
+		projectConfigPath = "";
+	};
+
+	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+		onNo();
+	else if (shouldOpenPopup)
 		ImGui::OpenPopup("SaveOnNew?");
 
 	auto onYes = [&]()
 	{
 		if (!saveProject())
 			saveProjectAs();
-		vars.clear();
-		plotHandler->removeAllPlots();
-		projectElfPath = "";
-		projectConfigPath = "";
+		onNo();
 	};
-
-	auto onNo = [&]()
-	{
-		vars.clear();
-		plotHandler->removeAllPlots();
-		projectElfPath = "";
-		projectConfigPath = "";
-	};
-
-	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
-		onYes();
 
 	showQuestionBox("SaveOnNew?", "Do you want to save the current config?\n", onYes, onNo, []() {});
 }
@@ -791,7 +707,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 bool Gui::saveProject()
 {
 	if (!projectConfigPath.empty())
-		return configHandler->saveConfigFile(vars, projectElfPath, settings, "");
+		return configHandler->saveConfigFile(vars, projectElfPath, "");
 	return false;
 }
 
@@ -801,7 +717,7 @@ bool Gui::saveProjectAs()
 	if (path != "")
 	{
 		projectConfigPath = path;
-		configHandler->saveConfigFile(vars, projectElfPath, settings, projectConfigPath);
+		configHandler->saveConfigFile(vars, projectElfPath, projectConfigPath);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
@@ -817,9 +733,7 @@ bool Gui::openProject()
 		configHandler->changeConfigFile(projectConfigPath);
 		vars.clear();
 		plotHandler->removeAllPlots();
-		configHandler->readConfigFile(vars, projectElfPath, settings);
-		plotHandler->setSamplePeriod(settings.samplePeriod);
-		plotHandler->setMaxPoints(settings.maxPoints);
+		configHandler->readConfigFile(vars, projectElfPath);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
@@ -841,14 +755,17 @@ bool Gui::openElfFile()
 void Gui::checkShortcuts()
 {
 	ImGuiIO& io = ImGui::GetIO();
+	bool wasSaved = false;
 
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))
 		openProject();
 	else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S))
 	{
-		if (!saveProject())
+		wasSaved = saveProject();
+		if (!wasSaved)
 			saveProjectAs();
 	}
+	showSavedPopup(wasSaved);
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
@@ -872,9 +789,65 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
 }
 
+void Gui::showSavedPopup(bool show)
+{
+	static float popupTimer = 0.0f;
+	static bool wasShow = false;
+
+	if (show)
+	{
+		wasShow = true;
+		ImGui::OpenPopup("Saved");
+		popupTimer = 0.0f;
+	}
+
+	if (wasShow)
+		popupTimer += ImGui::GetIO().DeltaTime;
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("Saved", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Saving succesful!");
+
+		if (popupTimer >= 0.65f)
+		{
+			wasShow = false;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+}
+
 std::string Gui::intToHexString(uint32_t var)
 {
 	std::stringstream ss;
 	ss << std::hex << var;
 	return ss.str();
+}
+
+void Gui::drawCenteredText(std::string&& text)
+{
+	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
+	ImGui::Text(text.c_str());
+}
+
+bool Gui::openWebsite(const char* url)
+{
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define _UNIX
+#endif
+
+#ifdef _WIN32
+	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+#elif defined _UNIX
+	const char* browser = getenv("BROWSER");
+	if (browser == NULL)
+		browser = "xdg-open";
+	char command[256];
+	snprintf(command, sizeof(command), "%s %s", browser, url);
+	system(command);
+#else
+#error "Your system is not supported!"
+#endif
+	return true;
 }

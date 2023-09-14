@@ -33,8 +33,12 @@ void TestClass::spin()
 			tri = 1;
 	}
 
-	triangle = (x/(2.0f*M_PI));
-	a = sinf(x);
-	b = sinf(x + (1.0f/3.0f)*2.0f*M_PI);
-	c = sinf(x + (2.0f/3.0f)*2.0f*M_PI);
+	triangle += dir * triangleFrequency;
+
+	if(std::abs(triangle) >= 1.0f)
+		dir *= -1.0f;
+
+	a = amplitude * sinf(x);
+	b = amplitude * sinf(x + (1.0f/3.0f)*2.0f*M_PI);
+	c = amplitude * sinf(x + (2.0f/3.0f)*2.0f*M_PI);
 }

@@ -1,9 +1,7 @@
-
 /*
  * File: stlink.h
  *
- * This should contain all the common top level stlink interfaces,
- * regardless of how the backend does the work....
+ * All common top level stlink interfaces, regardless of how the backend does the work....
  */
 
 #ifndef STLINK_H
@@ -13,8 +11,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "stm32.h"
-#include "stm32flash.h"
+#include <stm32.h>
+#include <stm32flash.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,7 +66,8 @@ enum target_state {
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
-#define STLINK_TRACE_BUF_LEN               2048
+#define STLINK_V2_TRACE_BUF_LEN            2048
+#define STLINK_V3_TRACE_BUF_LEN            8192
 #define STLINK_V2_MAX_TRACE_FREQUENCY   2000000
 #define STLINK_V3_MAX_TRACE_FREQUENCY  24000000
 #define STLINK_DEFAULT_TRACE_FREQUENCY  2000000
@@ -196,38 +195,38 @@ struct _stlink {
     unsigned char c_buf[C_BUF_LEN];
     // data transferred from or to device
     unsigned char q_buf[Q_BUF_LEN];
-    int q_len;
+    int32_t q_len;
 
     // transport layer verboseness: 0 for no debug info, 10 for lots
-    int verbose;
-    int opt;
+    int32_t verbose;
+    int32_t opt;
     uint32_t core_id;            // set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
     uint32_t chip_id;            // set by stlink_load_device_params(), used to identify flash and sram
     enum target_state core_stat; // set by stlink_status()
 
     char serial[STLINK_SERIAL_BUFFER_SIZE];
-    int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
+    int32_t freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
     enum stm32_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STM32_FLASH_TYPE_xx
 
     stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
-    size_t flash_size;           // calculated by stlink_load_device_params()
-    size_t flash_pgsz;           // stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
+    uint32_t flash_size;           // calculated by stlink_load_device_params()
+    uint32_t flash_pgsz;           // stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
 
     /* sram settings */
     stm32_addr_t sram_base;      // STM32_SRAM_BASE, set by stlink_load_device_params()
-    size_t sram_size;            // stlink_chipid_params.sram_size, set by stlink_load_device_params()
+    uint32_t sram_size;            // stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
     /* option settings */
     stm32_addr_t option_base;
-    size_t option_size;
+    uint32_t option_size;
 
     // bootloader
     // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code
     // (see tests/sg.c)
     stm32_addr_t sys_base;       // stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
-    size_t sys_size;             // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
+    uint32_t sys_size;             // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
     struct stlink_version_ version;
 
@@ -236,88 +235,60 @@ struct _stlink {
     uint32_t max_trace_freq;     // set by stlink_open_usb()
 };
 
-int stlink_enter_swd_mode(stlink_t *sl);
-int stlink_enter_jtag_mode(stlink_t *sl);
-int stlink_exit_debug_mode(stlink_t *sl);
-int stlink_exit_dfu_mode(stlink_t *sl);
+/* Functions defined in common.c */
+
+int32_t stlink_enter_swd_mode(stlink_t *sl);
+int32_t stlink_enter_jtag_mode(stlink_t *sl);
+int32_t stlink_exit_debug_mode(stlink_t *sl);
+int32_t stlink_exit_dfu_mode(stlink_t *sl);
 void stlink_close(stlink_t *sl);
-int stlink_core_id(stlink_t *sl);
-int stlink_reset(stlink_t *sl, enum reset_type type);
-int stlink_run(stlink_t *sl, enum run_type type);
-int stlink_status(stlink_t *sl);
-int stlink_version(stlink_t *sl);
-int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
-int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
-int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
-int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
-int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
-int stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
-int stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp);
-int stlink_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp);
-int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp);
-int stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, struct stlink_reg *regp);
-int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
-int stlink_step(stlink_t *sl);
-int stlink_current_mode(stlink_t *sl);
-int stlink_force_debug(stlink_t *sl);
-int stlink_target_voltage(stlink_t *sl);
-int stlink_set_swdclk(stlink_t *sl, int freq_khz);
-int stlink_trace_enable(stlink_t* sl, uint32_t frequency);
-int stlink_trace_disable(stlink_t* sl);
-int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
-int stlink_erase_flash_mass(stlink_t* sl);
-int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size);
-int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
-int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
+int32_t stlink_core_id(stlink_t *sl);
+int32_t stlink_reset(stlink_t *sl, enum reset_type type);
+int32_t stlink_run(stlink_t *sl, enum run_type type);
+int32_t stlink_status(stlink_t *sl);
+int32_t stlink_version(stlink_t *sl);
+int32_t stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
+int32_t stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+int32_t stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
+int32_t stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+int32_t stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
+int32_t stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
+int32_t stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp);
+int32_t stlink_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp);
+int32_t stlink_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp);
+int32_t stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int32_t r_idx, struct stlink_reg *regp);
+int32_t stlink_write_reg(stlink_t *sl, uint32_t reg, int32_t idx);
+int32_t stlink_step(stlink_t *sl);
+int32_t stlink_current_mode(stlink_t *sl);
+int32_t stlink_force_debug(stlink_t *sl);
+int32_t stlink_target_voltage(stlink_t *sl);
+int32_t stlink_set_swdclk(stlink_t *sl, int32_t freq_khz);
+int32_t stlink_trace_enable(stlink_t* sl, uint32_t frequency);
+int32_t stlink_trace_disable(stlink_t* sl);
+int32_t stlink_trace_read(stlink_t* sl, uint8_t* buf, uint32_t size);
+int32_t stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, uint32_t * size, uint32_t * begin);
 uint8_t stlink_get_erased_pattern(stlink_t *sl);
-int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
-int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
-int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
-int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
-int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
-
-//int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
-int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
-
-int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
+int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
+int32_t stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
+//int32_t stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
+int32_t stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
-int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size);
-int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
-uint16_t read_uint16(const unsigned char *c, const int pt);
+uint16_t read_uint16(const unsigned char *c, const int32_t pt);
 //void stlink_core_stat(stlink_t *sl);
 void stlink_print_data(stlink_t *sl);
-unsigned int is_bigendian(void);
-uint32_t read_uint32(const unsigned char *c, const int pt);
+uint32_t is_bigendian(void);
+uint32_t read_uint32(const unsigned char *c, const int32_t pt);
 void write_uint32(unsigned char* buf, uint32_t ui);
 void write_uint16(unsigned char* buf, uint16_t ui);
 bool stlink_is_core_halted(stlink_t *sl);
-int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size);
-int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
-int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
-int stlink_load_device_params(stlink_t *sl);
-
-int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
-int stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t* option_byte);
-int stlink_read_option_control_register32(stlink_t *sl, uint32_t* option_byte);
-int stlink_read_option_control_register1_32(stlink_t *sl, uint32_t* option_byte);
-
-int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
-int stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes_boot_add);
-int stlink_write_option_control_register32(stlink_t *sl, uint32_t option_control_register);
-int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_control_register1);
-
-int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
-int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
-
-int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
-int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t* base, uint32_t len);
-int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl);
-
-int stlink_target_connect(stlink_t *sl, enum connect_type connect);
+int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, uint32_t size);
+int32_t write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
+int32_t stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, uint32_t size);
+int32_t stlink_load_device_params(stlink_t *sl);
+int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
 #include <sg.h>
 #include <usb.h>
-#include <reg.h>
 #include <commands.h>
 #include <chipid.h>
 #include <flash_loader.h>

@@ -1,5 +1,11 @@
-#ifndef STLINK_COMMANDS_H_
-#define STLINK_COMMANDS_H_
+/*
+ * File: commands.h
+ *
+ * stlink commands
+ */
+
+#ifndef COMMANDS_H
+#define COMMANDS_H
 
 enum stlink_commands {
     STLINK_GET_VERSION                   = 0xF1,
@@ -54,4 +60,4 @@ enum stlink_dfu_commands {
     STLINK_DFU_EXIT                      = 0x07
 };
 
-#endif // STLINK_COMMANDS_H_
+#endif // COMMANDS_H
