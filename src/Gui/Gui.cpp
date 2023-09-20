@@ -88,6 +88,7 @@ void Gui::mainThread()
 
 		drawMenu();
 		drawAboutWindow();
+		drawPreferencesWindow();
 
 		if (ImGui::Begin("Trace Viewer"))
 		{
@@ -177,6 +178,11 @@ void Gui::drawMenu()
 	if (ImGui::BeginMenu("Options"))
 	{
 		ImGui::MenuItem("Acquisition settings...", NULL, &showAcqusitionSettingsWindow, active);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Window"))
+	{
+		ImGui::MenuItem("Preferences", NULL, &showPreferencesWindow, active);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Help"))
@@ -550,7 +556,7 @@ void Gui::drawAboutWindow()
 		ImGui::OpenPopup("About");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 250));
+	ImGui::SetNextWindowSize(ImVec2(500, 300));
 	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
 	{
 		drawCenteredText("STMViewer");
@@ -587,6 +593,30 @@ void Gui::drawAboutWindow()
 			ImGui::CloseCurrentPopup();
 		}
 
+		ImGui::EndPopup();
+	}
+}
+
+void Gui::drawPreferencesWindow()
+{
+	if (showPreferencesWindow)
+		ImGui::OpenPopup("Preferences");
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowSize(ImVec2(500, 250));
+	if (ImGui::BeginPopupModal("Preferences", &showPreferencesWindow, 0))
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		ImGui::DragFloat("font size", &io.FontGlobalScale, 0.005f, 0.8f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);  // Scale everything
+
+		const float buttonHeight = 25.0f;
+		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
+		{
+			showPreferencesWindow = false;
+			ImGui::CloseCurrentPopup();
+		}
 		ImGui::EndPopup();
 	}
 }

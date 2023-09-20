@@ -33,6 +33,7 @@ class Gui
 	std::string projectElfPath;
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
+	bool showPreferencesWindow = false;
 
 	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
@@ -61,6 +62,7 @@ class Gui
 	void drawAcqusitionSettingsWindow(AcqusitionWindowType type);
 	void acqusitionSettingsViewer();
 	void drawAboutWindow();
+	void drawPreferencesWindow();
 	void acqusitionSettingsTrace();
 	void drawPlots();
 	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
