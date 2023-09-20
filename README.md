@@ -68,7 +68,7 @@ or
 
 ```
 uint16_t a = getAdcSample();       // some super fast signal to trace
-ITM->PORT[x].u16 = a;              // type-punn to desired size
+ITM->PORT[x].u16 = a;              
 ```
 
 The ITM registers are defined in CMSIS headers so no additional includes should be necessary.
