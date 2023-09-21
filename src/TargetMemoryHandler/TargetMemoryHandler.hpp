@@ -2,7 +2,9 @@
 #define _VARREADER_HPP
 
 #include <map>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "ITargetMemoryHandler.hpp"

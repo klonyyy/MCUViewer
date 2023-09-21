@@ -1,6 +1,7 @@
 #include "TargetMemoryHandler.hpp"
 
 #include <map>
+#include <memory>
 
 #include "iostream"
 
@@ -19,12 +20,12 @@ bool TargetMemoryHandler::stop() const
 
 double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 {
-	volatile uint32_t value = 0;
+	uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!memoryHandler->readMemory(address, (uint32_t*)&value))
+	if (!memoryHandler->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
 		return 0.0;
 
 	if (type == Variable::type::I8 || type == Variable::type::U8)

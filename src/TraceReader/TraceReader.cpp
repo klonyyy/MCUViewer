@@ -1,7 +1,9 @@
 #include "TraceReader.hpp"
 
 #include <cstring>
+#include <memory>
 #include <random>
+#include <utility>
 
 #define TRACE_OP_IS_OVERFLOW(c)		   (c == 0x70)
 #define TRACE_OP_IS_LOCAL_TIME(c)	   ((c & 0x0f) == 0x00 && (c & 0x70) != 0x00)
@@ -19,7 +21,7 @@ TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_
 	traceTable = std::make_unique<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>>(20000);
 }
 
-bool TraceReader::startAcqusition(std::array<bool, 32>& activeChannels)
+bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
 {
 	traceIndicators = {};
 

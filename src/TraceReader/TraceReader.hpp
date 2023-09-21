@@ -1,12 +1,14 @@
 #ifndef _ITRACEREADER_HPP
 #define _ITRACEREADER_HPP
 
+#include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ITraceDevice.hpp"
 #include "RingBuffer.hpp"
-#include "map"
 #include "spdlog/spdlog.h"
 
 class TraceReader
@@ -25,7 +27,7 @@ class TraceReader
 
 	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
-	bool startAcqusition(std::array<bool, 32>& activeChannels);
+	bool startAcqusition(const std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
 	bool isValid() const;
 

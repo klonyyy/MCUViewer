@@ -1,5 +1,6 @@
 #include "ConfigHandler.hpp"
 
+#include <memory>
 #include <random>
 
 ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::shared_ptr<spdlog::logger> logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)

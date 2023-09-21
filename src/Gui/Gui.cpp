@@ -608,7 +608,7 @@ void Gui::drawPreferencesWindow()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
-		ImGui::DragFloat("font size", &io.FontGlobalScale, 0.005f, 0.8f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);  // Scale everything
+		ImGui::DragFloat("font size", &io.FontGlobalScale, 0.005f, 0.8f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
 		const float buttonHeight = 25.0f;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));

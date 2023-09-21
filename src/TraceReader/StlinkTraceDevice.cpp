@@ -8,7 +8,7 @@
 
 StlinkTraceDevice::StlinkTraceDevice(std::shared_ptr<spdlog::logger> logger) : logger(logger)
 {
-	init_chipids((char*)"./chips");
+	init_chipids(static_cast<char*>("./chips"));
 }
 
 bool StlinkTraceDevice::stopTrace()
