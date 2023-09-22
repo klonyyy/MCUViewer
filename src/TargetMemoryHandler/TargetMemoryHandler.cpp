@@ -90,8 +90,7 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 	if (!memoryHandler->isValid())
 		return false;
 
-	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int
-	{
+	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int {
 		for (size_t i = 0; i < sizeof(var); i++)
 			buf[i] = var >> 8 * i;
 		return memoryHandler->writeMemory(address, buf, sizeof(var));

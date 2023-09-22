@@ -70,10 +70,8 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp)
 	std::array<uint32_t, 10> expected{0, 187, 0, 0, 0, 0, 0, 0, 0, 0};
 	double timestamp = 0.0;
 
-	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _)).WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-																			  {memcpy(buffer,buf,sizeof(buf));
-                                                                                return sizeof(buf); }))
-		.WillRepeatedly(Return(0));
+	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _)).WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf,sizeof(buf));
+                                                                                return sizeof(buf); })).WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -108,11 +106,9 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundaryTimestamp)
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
 	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf,sizeof(buf));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf2,sizeof(buf2));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf2,sizeof(buf2));
                                    return sizeof(buf2); }))
 		.WillRepeatedly(Return(0));
 
@@ -151,8 +147,7 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp2)
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
 	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf,sizeof(buf));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
 		.WillRepeatedly(Return(0));
 
@@ -195,11 +190,9 @@ TEST_F(TraceReaderTest, testdoubleBuffers)
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
 	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf,sizeof(buf));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf2,sizeof(buf2));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf2,sizeof(buf2));
                                    return sizeof(buf2); }))
 		.WillRepeatedly(Return(0));
 
@@ -241,11 +234,9 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundarySource)
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
 	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf,sizeof(buf));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
-		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
-								  {memcpy(buffer,buf2,sizeof(buf2));
+		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size) {memcpy(buffer,buf2,sizeof(buf2));
                                    return sizeof(buf2); }))
 		.WillRepeatedly(Return(0));
 

@@ -4,6 +4,8 @@
 
 #include <random>
 #include <sstream>
+#include <string>
+#include <utility>
 
 #include "../gitversion.hpp"
 #include "ElfReader.hpp"
@@ -11,6 +13,7 @@
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -309,11 +312,11 @@ void Gui::drawVarTable()
 			}
 			ImGui::TableSetColumnIndex(1);
 			if (var->getIsFound() == true)
-				ImGui::Text(("0x" + std::string(intToHexString(var->getAddress()))).c_str());
+				ImGui::Text("%s", ("0x" + std::string(intToHexString(var->getAddress()))).c_str());
 			else
 				ImGui::Text("NOT FOUND!");
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text(var->getTypeStr().c_str());
+			ImGui::Text("%s", var->getTypeStr().c_str());
 		}
 		if (varNameToDelete.has_value())
 		{
@@ -562,13 +565,13 @@ void Gui::drawAboutWindow()
 		drawCenteredText("STMViewer");
 		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
 		drawCenteredText(std::move(line2));
-		drawCenteredText(std::move(std::string(GIT_HASH)));
+		drawCenteredText(std::string(GIT_HASH));
 		ImGui::SameLine();
 		const bool copy = ImGui::SmallButton("copy");
 		if (copy)
 		{
 			ImGui::LogToClipboard();
-			ImGui::LogText(GIT_HASH);
+			ImGui::LogText("%s", GIT_HASH);
 			ImGui::LogFinish();
 		}
 
@@ -662,7 +665,7 @@ void Gui::showQuestionBox(const char* id, const char* question, std::function<vo
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(id, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text(question);
+		ImGui::Text("%s", question);
 		ImGui::Separator();
 		if (ImGui::Button("Yes", ImVec2(120, 0)))
 		{
@@ -690,17 +693,14 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	if (shouldOpenPopup)
 		ImGui::OpenPopup("Save?");
 
-	auto onYes = [&]()
-	{
+	auto onYes = [&]() {
 		done = true;
 		if (!saveProject())
 			saveProjectAs();
 	};
 
-	auto onNo = [&]()
-	{ done = true; };
-	auto onCancel = [&]()
-	{ done = false; };
+	auto onNo = [&]() { done = true; };
+	auto onCancel = [&]() { done = false; };
 
 	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
 		done = true;
@@ -710,8 +710,7 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 
 void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 {
-	auto onNo = [&]()
-	{
+	auto onNo = [&]() {
 		vars.clear();
 		plotHandler->removeAllPlots();
 		tracePlotHandler->initPlots();
@@ -724,8 +723,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 	else if (shouldOpenPopup)
 		ImGui::OpenPopup("SaveOnNew?");
 
-	auto onYes = [&]()
-	{
+	auto onYes = [&]() {
 		if (!saveProject())
 			saveProjectAs();
 		onNo();
@@ -858,7 +856,7 @@ std::string Gui::intToHexString(uint32_t var)
 void Gui::drawCenteredText(std::string&& text)
 {
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
-	ImGui::Text(text.c_str());
+	ImGui::Text("%s", text.c_str());
 }
 
 bool Gui::openWebsite(const char* url)

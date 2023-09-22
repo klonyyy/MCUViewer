@@ -1,7 +1,10 @@
 #include <NFDFileHandler.hpp>
 #include <algorithm>
+#include <string>
+#include <utility>
 
 #include "nfd.h"
+
 
 bool NFDFileHandler::init()
 {

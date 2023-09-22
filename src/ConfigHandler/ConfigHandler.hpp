@@ -2,6 +2,7 @@
 #define _CONFIGHANDLER_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include "PlotHandler.hpp"

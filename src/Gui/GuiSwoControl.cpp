@@ -56,13 +56,11 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("core frequency [kHz]   ");
 	ImGui::SameLine();
 
-	drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
-				  { settings.coreFrequency = std::stoi(str); });
+	drawInputText("##frequency", settings.coreFrequency, [&](std::string str) { settings.coreFrequency = std::stoi(str); });
 
 	ImGui::Text("trace prescaler        ");
 	ImGui::SameLine();
-	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str)
-				  { settings.tracePrescaler = std::stoi(str); });
+	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str) { settings.tracePrescaler = std::stoi(str); });
 
 	const char* triggers[] = {"OFF", "CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9"};
 	int32_t trigerCombo = settings.triggerChannel + 1;
@@ -73,8 +71,7 @@ void Gui::drawSettingsSwo()
 
 	ImGui::Text("trigger level          ");
 	ImGui::SameLine();
-	drawInputText("##level", settings.triggerLevel, [&](std::string str)
-				  { settings.triggerLevel = std::stod(str); });
+	drawInputText("##level", settings.triggerLevel, [&](std::string str) { settings.triggerLevel = std::stod(str); });
 
 	if (state != PlotHandlerBase::state::STOP)
 		ImGui::EndDisabled();
@@ -94,38 +91,38 @@ void Gui::drawIndicatorsSwo()
 
 	ImGui::Text("frames total:           ");
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.framesTotal)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.framesTotal)).c_str());
 
 	ImGui::Text("sleep cycles:           ");
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.sleepCycles)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.sleepCycles)).c_str());
 
 	ImGui::Text("error frames total:     ");
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.errorFramesTotal)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.errorFramesTotal)).c_str());
 
 	const char* inView = "error frames in view:   ";
 	if (indicators.errorFramesInView > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), inView);
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", inView);
 	else
-		ImGui::Text(inView);
+		ImGui::Text("%s", inView);
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.errorFramesInView)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.errorFramesInView)).c_str());
 
 	ImGui::Text("delayed timestamp 1:    ");
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.delayedTimestamp1)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp1)).c_str());
 	ImGui::Text("delayed timestamp 2:    ");
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.delayedTimestamp2)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp2)).c_str());
 
 	const char* timestampDelayed3 = "delayed timestamp 3:    ";
 	if (indicators.delayedTimestamp3 > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), timestampDelayed3);
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", timestampDelayed3);
 	else
-		ImGui::Text(timestampDelayed3);
+		ImGui::Text("%s", timestampDelayed3);
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.delayedTimestamp3)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp3)).c_str());
 }
 
 void Gui::drawPlotsTreeSwo()

@@ -7,6 +7,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #if defined(unix) || defined(__unix__) || defined(__unix)
 #define _UNIX

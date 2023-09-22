@@ -6,9 +6,11 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include "ScrollingBuffer.hpp"
 #include "Variable.hpp"
+
 class Plot
 {
    public:
@@ -56,7 +58,7 @@ class Plot
 		F32 = 6
 	};
 
-	Plot(std::string name);
+	explicit Plot(std::string name);
 	void setName(const std::string& newName);
 	std::string getName() const;
 	std::string& getNameVar();

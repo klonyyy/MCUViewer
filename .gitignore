@@ -1,6 +1,7 @@
 build/*
 build_test/*
 .vscode/*
+.cache/*
 
 **/[Dd]ebug/
 **/[Rr]elease/

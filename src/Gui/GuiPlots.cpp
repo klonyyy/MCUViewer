@@ -210,7 +210,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(plot->getName().c_str()).x) * 0.5f);
-	ImGui::Text(plot->getName().c_str());
+	ImGui::Text("%s", plot->getName().c_str());
 
 	if (ImGui::BeginTable(plot->getName().c_str(), 4, flags))
 	{
@@ -231,9 +231,9 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImVec4 col = {a.r, a.g, a.b, a.a};
 			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10, 10));
 			ImGui::SameLine();
-			ImGui::Text(key.c_str());
+			ImGui::Text("%s", key.c_str());
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text(("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
+			ImGui::Text("%s", ("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
 			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
 			showChangeFormatPopup("format", *plot, key);
