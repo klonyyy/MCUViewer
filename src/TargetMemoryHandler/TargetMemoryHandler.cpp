@@ -52,9 +52,7 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 	}
 	else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
 	{
-		if (shouldShift == 0)
-			value = value;
-		else if (shouldShift == 1)
+		if (shouldShift == 1)
 			value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
 		else if (shouldShift == 2)
 			value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
@@ -63,21 +61,21 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 	}
 
 	if (type == Variable::type::U8)
-		return (double)*(uint8_t*)&value;
+		return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
 	else if (type == Variable::type::I8)
-		return (double)*(int8_t*)&value;
+		return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
 	else if (type == Variable::type::U16)
-		return (double)*(uint16_t*)&value;
+		return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
 	else if (type == Variable::type::I16)
-		return (double)*(int16_t*)&value;
+		return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
 	else if (type == Variable::type::U32)
-		return (double)*(uint32_t*)&value;
+		return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
 	else if (type == Variable::type::I32)
-		return (double)*(int32_t*)&value;
+		return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
 	else if (type == Variable::type::F32)
-		return (double)*(float*)&value;
+		return static_cast<double>(*reinterpret_cast<float*>(&value));
 	else if (type == Variable::type::UNKNOWN)
-		return (double)*(uint32_t*)&value;
+		return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
 
 	return 0.0;
 }
@@ -115,7 +113,7 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 		case Variable::type::F32:
 		{
 			float valf = static_cast<float>(value);
-			uint32_t val = *(uint32_t*)&valf;
+			uint32_t val = *reinterpret_cast<uint32_t*>(&valf);
 			return prepareBufferAndWrite(val, buf);
 		}
 		default:

@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -13,7 +14,6 @@
 #include "StlinkHandler.hpp"
 #include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
-
 
 class PlotHandler : public PlotHandlerBase
 {

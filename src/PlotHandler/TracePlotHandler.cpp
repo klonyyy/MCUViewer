@@ -91,21 +91,21 @@ double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 		auto type = plot.getTraceVarType();
 
 		if (type == Plot::TraceVarType::U8)
-			return (double)*(uint8_t*)&value;
+			return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
 		else if (type == Plot::TraceVarType::I8)
-			return (double)*(int8_t*)&value;
+			return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
 		else if (type == Plot::TraceVarType::U16)
-			return (double)*(uint16_t*)&value;
+			return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
 		else if (type == Plot::TraceVarType::I16)
-			return (double)*(int16_t*)&value;
+			return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
 		else if (type == Plot::TraceVarType::U32)
-			return (double)*(uint32_t*)&value;
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
 		else if (type == Plot::TraceVarType::I32)
-			return (double)*(int32_t*)&value;
+			return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
 		else if (type == Plot::TraceVarType::F32)
-			return (double)*(float*)&value;
+			return static_cast<double>(*reinterpret_cast<float*>(&value));
 		else
-			return (double)*(uint32_t*)&value;
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
 	}
 
 	return 0.0;
