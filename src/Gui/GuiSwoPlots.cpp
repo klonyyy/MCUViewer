@@ -1,3 +1,5 @@
+#include <implot.h>
+
 #include "Gui.hpp"
 
 void Gui::drawPlotsSwo()
@@ -108,8 +110,24 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 
 		if (plot->getMarkerStateX0())
 		{
-			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3.0f, ImVec4(255, 255, 255, 255), 0.5f);
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3.0f, ImVec4(1, 1, 1, 1), 0.5f);
 			ImPlot::PlotScatter("###point", &timepoint, &value, 1, false);
+		}
+
+		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
+		{
+			auto errorTimestamps = tracePlotHandler->getErrorTimestamps();
+			std::vector<double> t;
+			std::vector<double> values;
+
+			for (size_t i = 0; i < errorTimestamps.size(); i++)
+			{
+				values.push_back(0);
+				t.push_back(*(time.getFirstElementCopy() + time.getIndexFromvalue(errorTimestamps.at(i))));
+			}
+
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Cross, 8, ImVec4(1, 0, 0, 1), 3, ImVec4(1, 0, 0, 1));
+			ImPlot::PlotScatter("###point2", t.data(), values.data(), errorTimestamps.size(), false);
 		}
 
 		ImPlot::EndPlot();

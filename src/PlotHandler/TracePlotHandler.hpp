@@ -3,6 +3,9 @@
 
 #include <deque>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
@@ -32,6 +35,7 @@ class TracePlotHandler : public PlotHandlerBase
 	void setSettings(const Settings& settings);
 
 	TraceReader::TraceIndicators getTraceIndicators() const;
+	std::vector<double> getErrorTimestamps();
 	std::string getLastReaderError() const;
 
 	void setTriggerChannel(int32_t triggerChannel);
@@ -49,9 +53,11 @@ class TracePlotHandler : public PlotHandlerBase
 
 	std::deque<double> errorFrameTimestamps{};
 	uint32_t errorFrameSinceLastPoint = 0;
+	std::string lastErrorMsg{};
 
 	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;
+	static constexpr size_t maxAllowedViewportErrors = 100;
 	double time = 0.0;
 };
 

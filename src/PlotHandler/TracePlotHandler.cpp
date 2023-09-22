@@ -1,5 +1,9 @@
 #include "TracePlotHandler.hpp"
 
+#include <algorithm>
+#include <memory>
+#include <string>
+
 #include "TraceReader.hpp"
 
 TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
@@ -54,9 +58,18 @@ TraceReader::TraceIndicators TracePlotHandler::getTraceIndicators() const
 	return indicators;
 }
 
+std::vector<double> TracePlotHandler::getErrorTimestamps()
+{
+	std::vector<double> errorTimestamps;
+	for (auto& elem : errorFrameTimestamps)
+		errorTimestamps.push_back(elem);
+	return errorTimestamps;
+}
+
 std::string TracePlotHandler::getLastReaderError() const
 {
-	return traceReader->getLastErrorMsg();
+	auto traceReaderMsg = traceReader->getLastErrorMsg();
+	return traceReaderMsg.empty() ? lastErrorMsg : traceReaderMsg;
 }
 
 void TracePlotHandler::setTriggerChannel(int32_t triggerChannel)
@@ -163,6 +176,14 @@ void TracePlotHandler::dataHandler()
 				viewerState.store(state::STOP);
 				stateChangeOrdered.store(true);
 			}
+
+			if (errorFrameTimestamps.size() > maxAllowedViewportErrors)
+			{
+				lastErrorMsg = "Too many error frames!";
+				logger->error("Too many error frames. Please modify your clock and prescaler settings. Stopping.");
+				viewerState.store(state::STOP);
+				stateChangeOrdered.store(true);
+			}
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -179,6 +200,7 @@ void TracePlotHandler::dataHandler()
 
 				errorFrameTimestamps.clear();
 				errorFrameSinceLastPoint = 0;
+				lastErrorMsg = "";
 
 				if (traceReader->startAcqusition(activeChannels))
 					time = 0;
