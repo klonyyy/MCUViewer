@@ -2,6 +2,8 @@
 #define __VARIABLE_HPP
 
 #include <string>
+#include <cstdint>
+
 class Variable
 {
    public:
