@@ -1,7 +1,9 @@
 #ifndef _IVARIABLEREADER_HPP
 #define _IVARIABLEREADER_HPP
 
+#include <cstdint>
 #include <string>
+
 
 class ITargetMemoryHandler
 {
