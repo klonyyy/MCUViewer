@@ -64,7 +64,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 	stlink_write_debug32(sl, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);
 	stlink_write_debug32(sl, STLINK_REG_ITM_TCR, STLINK_REG_ITM_TCR_TRACE_BUS_ID_1 | STLINK_REG_ITM_TCR_TS_ENA | STLINK_REG_ITM_TCR_ITM_ENA);
 	stlink_write_debug32(sl, STLINK_REG_ITM_TER, activeChannelMask);
-	stlink_write_debug32(sl, STLINK_REG_ITM_TPR, activeChannelMask);
+	stlink_write_debug32(sl, STLINK_REG_ITM_TPR, 0x000F);
 
 	if (stlink_run(sl, RUN_NORMAL))
 	{
