@@ -184,12 +184,12 @@ void Gui::drawPlotsTreeSwo()
 		ImGui::SameLine();
 		ImGui::Combo("##combo2", &traceVarTypeCombo, traceVarTypes, IM_ARRAYSIZE(traceVarTypes));
 	}
-	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->getMarkerStateX0();
+	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->markerX0.getState();
 	ImGui::Text("markers    ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);
-	plt->setMarkerStateX0(mx0);
-	plt->setMarkerStateX1(mx0);
+	plt->markerX0.setState(mx0);
+	plt->markerX1.setState(mx0);
 	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();

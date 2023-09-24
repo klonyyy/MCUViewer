@@ -433,16 +433,16 @@ void Gui::drawPlotsTree()
 	ImGui::Text("type      ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-	bool mx0 = plt->getMarkerStateX0();
-	bool mx1 = plt->getMarkerStateX1();
+	bool mx0 = plt->markerX0.getState();
+	bool mx1 = plt->markerX1.getState();
 	ImGui::Text("x0 marker ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);
-	plt->setMarkerStateX0(mx0);
+	plt->markerX0.setState(mx0);
 	ImGui::Text("x1 marker ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx1", &mx1);
-	plt->setMarkerStateX1(mx1);
+	plt->markerX1.setState(mx1);
 	ImGui::PopID();
 
 	ImGui::PushID("list");

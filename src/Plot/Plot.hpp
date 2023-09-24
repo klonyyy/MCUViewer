@@ -29,12 +29,6 @@ class Plot
 		bool visible = true;
 	};
 
-	struct Marker
-	{
-		bool state = false;
-		double value = 0.0f;
-	};
-
 	enum class Type : uint8_t
 	{
 		CURVE = 0,
@@ -59,6 +53,26 @@ class Plot
 		F32 = 6
 	};
 
+	class Marker
+	{
+	   public:
+		Marker() : state(false), value(0.0) {}
+
+		bool getState() const { return state; }
+		void setState(bool newState) { state = newState; }
+
+		double getValue() const { return value; }
+		void setValue(double newValue) { value = newValue; }
+
+	   private:
+		bool state;
+		double value;
+	};
+
+	Marker markerX0{};
+	Marker markerX1{};
+	Marker trigger{};
+
 	explicit Plot(std::string name);
 	void setName(const std::string& newName);
 	std::string getName() const;
@@ -79,16 +93,6 @@ class Plot
 	void setVisibility(bool state);
 	bool getVisibility() const;
 	bool& getVisibilityVar();
-
-	bool getMarkerStateX0();
-	void setMarkerStateX0(bool state);
-	double getMarkerValueX0();
-	void setMarkerValueX0(double value);
-
-	bool getMarkerStateX1();
-	void setMarkerStateX1(bool state);
-	double getMarkerValueX1();
-	void setMarkerValueX1(double value);
 
 	void setType(Type newType);
 	Type getType() const;

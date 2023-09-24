@@ -90,39 +90,12 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			plot->addSeries(*vars[newSeries]);
 
 		ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+		handleMarkers(0, plot->markerX0, plotLimits, [&]() { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
 
-		if (plot->getMarkerStateX0())
-		{
-			double markerPos = plot->getMarkerValueX0();
-			if (markerPos == 0.0)
-			{
-				markerPos = plotLimits.X.Min + ((std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
-				plot->setMarkerValueX0(markerPos);
-			}
-			ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
-			plot->setMarkerValueX0(markerPos);
-
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", markerPos);
-		}
-		else
-			plot->setMarkerValueX0(0.0);
-
-		if (plot->getMarkerStateX1())
-		{
-			double markerPos = plot->getMarkerValueX1();
-			if (markerPos == 0.0)
-			{
-				markerPos = plotLimits.X.Min + (2.0f * (std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
-				plot->setMarkerValueX1(markerPos);
-			}
-			ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
-			plot->setMarkerValueX1(markerPos);
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", markerPos);
-			double dx = markerPos - plot->getMarkerValueX0();
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f", dx);
-		}
-		else
-			plot->setMarkerValueX1(0.0);
+		handleMarkers(1, plot->markerX1, plotLimits, [&]() {
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", plot->markerX1.getValue());
+			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f", dx); });
 
 		/* make thread safe copies of buffers - TODO refactor */
 		mtx->lock();
@@ -142,15 +115,15 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			if (!serPtr->visible)
 				continue;
 
-			const double timepoint = plot->getMarkerValueX0();
+			const double timepoint = plot->markerX0.getValue();
 			const double value = *(serPtr->buffer->getFirstElementCopy() + time.getIndexFromvalue(timepoint));
-			auto name = plot->getMarkerStateX0() ? key + " = " + std::to_string(value) : key;
+			auto name = plot->markerX0.getState() ? key + " = " + std::to_string(value) : key;
 
 			ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
 			ImPlot::PlotLine(name.c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
 
-			if (plot->getMarkerStateX0())
+			if (plot->markerX0.getState())
 			{
 				ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3.0f, ImVec4(255, 255, 255, 255), 0.5f);
 				ImPlot::PlotScatter("###point", &timepoint, &value, 1, false);
@@ -266,4 +239,23 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		}
 	}
 	plot->setIsHovered(ImGui::IsItemHovered());
+}
+
+void Gui::handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback)
+{
+	if (marker.getState())
+	{
+		double markerPos = marker.getValue();
+		if (markerPos == 0.0)
+		{
+			float offset = (std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f;
+			markerPos = plotLimits.X.Min + (id == 0 ? offset : 2.0f * offset);
+			marker.setValue(markerPos);
+		}
+		ImPlot::DragLineX(id, &markerPos, id == 0 ? ImVec4(1, 0, 0, 1) : ImVec4(0, 1, 1, 1));
+		marker.setValue(markerPos);
+		activeCallback();
+	}
+	else
+		marker.setValue(0.0);
 }

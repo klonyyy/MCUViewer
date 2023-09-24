@@ -222,45 +222,6 @@ std::string Plot::getSeriesValueString(const std::string& name, double value)
 	return std::string("");
 }
 
-bool Plot::getMarkerStateX0()
-{
-	return mx0.state;
-}
-
-void Plot::setMarkerStateX0(bool state)
-{
-	mx0.state = state;
-}
-
-double Plot::getMarkerValueX0()
-{
-	return mx0.value;
-}
-
-void Plot::setMarkerValueX0(double value)
-{
-	mx0.value = value;
-}
-
-bool Plot::getMarkerStateX1()
-{
-	return mx1.state;
-}
-
-void Plot::setMarkerStateX1(bool state)
-{
-	mx1.state = state;
-}
-
-double Plot::getMarkerValueX1()
-{
-	return mx1.value;
-}
-void Plot::setMarkerValueX1(double value)
-{
-	mx1.value = value;
-}
-
 void Plot::setIsHovered(bool isHovered)
 {
 	this->isHoveredOver = isHovered;
