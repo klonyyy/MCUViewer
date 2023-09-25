@@ -71,6 +71,11 @@ void Gui::drawSettingsSwo()
 
 	ImGui::Text("trigger level          ");
 	ImGui::SameLine();
+
+	for (auto plt : *tracePlotHandler)
+		if (plt->trigger.getState())
+			settings.triggerLevel = plt->trigger.getValue();
+
 	drawInputText("##level", settings.triggerLevel, [&](std::string str) { settings.triggerLevel = std::stod(str); });
 
 	if (state != PlotHandlerBase::state::STOP)
@@ -141,11 +146,14 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
 
 	auto state = tracePlotHandler->getViewerState();
+	int32_t iter = 0;
 
 	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 	{
 		std::string name = plt->getName();
 		std::string alias = plt->getAlias();
+
+		plt->trigger.setState(tracePlotHandler->getSettings().triggerChannel == iter++);
 
 		if (state == PlotHandlerBase::state::RUN)
 			ImGui::BeginDisabled();
