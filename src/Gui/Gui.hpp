@@ -94,14 +94,9 @@ class Gui
 	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
 	{
 		std::string str = std::to_string(variable);
-
-		ImGui::InputText(id, &str, 0, NULL, NULL);
-
-		if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
-		{
+		if (ImGui::InputText(id, &str, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
 			if (valueChanged)
 				valueChanged(str);
-		}
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
