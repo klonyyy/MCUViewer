@@ -803,7 +803,7 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	if (plt.getSeries(name)->var->getType() == Variable::type::F32)
 		return;
 
-	if (ImGui::BeginPopupContextItem())
+	if (ImGui::BeginPopupContextItem(name.c_str()))
 	{
 		if (ImGui::RadioButton("dec", &format, 0))
 			ImGui::CloseCurrentPopup();
