@@ -254,8 +254,9 @@ void Gui::drawAddVariableButton()
 }
 void Gui::drawUpdateAddressesFromElf()
 {
-	if (ImGui::Button("Update Variable addresses", ImVec2(-1, 25)))
-		elfReader->updateVariableMap(vars);
+	bool success = false;
+	if (ImGui::Button("Update variable addresses", ImVec2(-1, 25)))
+		success = elfReader->updateVariableMap(vars);
 }
 
 void Gui::drawVarTable()
@@ -797,7 +798,7 @@ void Gui::checkShortcuts()
 		if (!wasSaved)
 			saveProjectAs();
 	}
-	showSavedPopup(wasSaved);
+	showPopup("Saved", "Saving successful!", 0.65f, wasSaved);
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
@@ -821,7 +822,7 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
 }
 
-void Gui::showSavedPopup(bool show)
+void Gui::showPopup(const char* title, const char* msg, float showTime, bool show)
 {
 	static float popupTimer = 0.0f;
 	static bool wasShow = false;
@@ -829,7 +830,7 @@ void Gui::showSavedPopup(bool show)
 	if (show)
 	{
 		wasShow = true;
-		ImGui::OpenPopup("Saved");
+		ImGui::OpenPopup(title);
 		popupTimer = 0.0f;
 	}
 
@@ -837,11 +838,11 @@ void Gui::showSavedPopup(bool show)
 		popupTimer += ImGui::GetIO().DeltaTime;
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal("Saved", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("Saving succesful!");
+		ImGui::Text(msg);
 
-		if (popupTimer >= 0.65f)
+		if (popupTimer >= showTime)
 		{
 			wasShow = false;
 			ImGui::CloseCurrentPopup();

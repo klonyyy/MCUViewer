@@ -100,7 +100,7 @@ class Gui
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
-	void showSavedPopup(bool show);
+	void showPopup(const char* title, const char* msg, float showTime, bool show);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
 
