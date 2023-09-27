@@ -238,11 +238,10 @@ void Gui::drawAddVariableButton()
 	if (ImGui::Button("Add variable", ImVec2(-1, 25)))
 	{
 		uint32_t num = 0;
-		while (vars.find(std::string(" new") + std::to_string(num)) != vars.end())
-		{
+		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
 			num++;
-		}
-		std::string newName = std::string(" new") + std::to_string(num);
+
+		std::string newName = std::string("-new") + std::to_string(num);
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		std::random_device rd{};
@@ -693,14 +692,17 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	if (shouldOpenPopup)
 		ImGui::OpenPopup("Save?");
 
-	auto onYes = [&]() {
+	auto onYes = [&]()
+	{
 		done = true;
 		if (!saveProject())
 			saveProjectAs();
 	};
 
-	auto onNo = [&]() { done = true; };
-	auto onCancel = [&]() { done = false; };
+	auto onNo = [&]()
+	{ done = true; };
+	auto onCancel = [&]()
+	{ done = false; };
 
 	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
 		done = true;
@@ -710,7 +712,8 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 
 void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 {
-	auto onNo = [&]() {
+	auto onNo = [&]()
+	{
 		vars.clear();
 		plotHandler->removeAllPlots();
 		tracePlotHandler->initPlots();
@@ -723,7 +726,8 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 	else if (shouldOpenPopup)
 		ImGui::OpenPopup("SaveOnNew?");
 
-	auto onYes = [&]() {
+	auto onYes = [&]()
+	{
 		if (!saveProject())
 			saveProjectAs();
 		onNo();
