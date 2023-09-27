@@ -182,7 +182,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Text("alias      ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getAlias().c_str());
-	ImGui::InputText("##input", &newAlias, 0, NULL, NULL);
+	ImGui::InputText("##input", &newAlias, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL);
 	ImGui::Text("domain     ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &domainCombo, plotDomains, IM_ARRAYSIZE(plotDomains));
@@ -210,7 +210,7 @@ void Gui::drawPlotsTreeSwo()
 	if ((traceVarTypeCombo) != (int32_t)plt->getTraceVarType())
 		plt->setTraceVarType(static_cast<Plot::TraceVarType>(traceVarTypeCombo));
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newAlias != plt->getAlias())
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newAlias != plt->getAlias())
 	{
 		plt->setAlias(newAlias);
 	}

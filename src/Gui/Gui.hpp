@@ -94,7 +94,7 @@ class Gui
 	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
 	{
 		std::string str = std::to_string(variable);
-		if (ImGui::InputText(id, &str, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
+		if (ImGui::InputText(id, &str, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL) || ImGui::IsMouseClicked(0))
 			if (valueChanged)
 				valueChanged(str);
 	}

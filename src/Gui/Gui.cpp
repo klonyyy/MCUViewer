@@ -290,7 +290,7 @@ void Gui::drawVarTable()
 			char variable[maxVariableNameLength] = {0};
 			std::memcpy(variable, var->getName().data(), (var->getName().length()));
 			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
-			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0))
 			{
 				auto varr = vars.extract(var->getName());
 				varr.key() = std::string(variable);
@@ -480,7 +480,7 @@ void Gui::drawPlotsTree()
 	if (typeCombo != (int32_t)plt->getType())
 		plt->setType(static_cast<Plot::Type>(typeCombo));
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newName != plt->getName())
 	{
 		plotHandler->renamePlot(plt->getName(), newName);
 		selected = newName;
