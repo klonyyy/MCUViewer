@@ -539,16 +539,21 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
 	static int one = 1;
 	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
+	settings.samplePeriod = std::clamp(settings.samplePeriod, static_cast<uint32_t>(0), static_cast<uint32_t>(1000));
 
+	const uint32_t minPoints = 100;
+	const uint32_t maxPoints = 20000;
 	ImGui::Text("Max points [100 - 20000]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
 
 	ImGui::Text("Max viewport points [100 - 20000]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+	settings.maxViewportPoints = std::clamp(settings.maxViewportPoints, minPoints, settings.maxPoints);
 
 	plotHandler->setSettings(settings);
 }
@@ -633,11 +638,13 @@ void Gui::acqusitionSettingsTrace()
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+	settings.maxPoints = std::clamp(settings.maxPoints, static_cast<uint32_t>(100), static_cast<uint32_t>(20000));
 
 	ImGui::Text("Viewport width in percent [0 - 100]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
+	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
 	tracePlotHandler->setSettings(settings);
 }
