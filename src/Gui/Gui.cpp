@@ -120,6 +120,8 @@ void Gui::mainThread()
 		}
 		ImGui::End();
 
+		popup.handle();
+
 		// Rendering
 		ImGui::Render();
 		int display_w, display_h;
@@ -257,6 +259,9 @@ void Gui::drawUpdateAddressesFromElf()
 	bool success = false;
 	if (ImGui::Button("Update variable addresses", ImVec2(-1, 25)))
 		success = elfReader->updateVariableMap(vars);
+
+	if (success)
+		popup.show("Info", "Updating successful!", 0.65f);
 }
 
 void Gui::drawVarTable()
@@ -481,8 +486,6 @@ void Gui::drawPlotsTree()
 	if (typeCombo != (int32_t)plt->getType())
 		plt->setType(static_cast<Plot::Type>(typeCombo));
 
-	bool plotAlreadyExists = false;
-
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newName != plt->getName())
 	{
 		if (!plotHandler->checkIfPlotExists(std::move(newName)))
@@ -491,11 +494,8 @@ void Gui::drawPlotsTree()
 			selected = newName;
 		}
 		else
-			plotAlreadyExists = true;
+			popup.show("Error", "Plot already exists!", 1.5f);
 	}
-
-	showPopup("Error", "Plot already exists!", 1.5f, plotAlreadyExists);
-
 	if (plotNameToDelete.has_value())
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
@@ -813,8 +813,9 @@ void Gui::checkShortcuts()
 		wasSaved = saveProject();
 		if (!wasSaved)
 			saveProjectAs();
+
+		popup.show("Info", "Saving successful!", 0.65f);
 	}
-	showPopup("Saved", "Saving successful!", 0.65f, wasSaved);
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
@@ -836,35 +837,6 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	}
 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
-}
-
-void Gui::showPopup(const char* title, const char* msg, float showTime, bool show)
-{
-	static float popupTimer = 0.0f;
-	static bool wasShow = false;
-
-	if (show)
-	{
-		wasShow = true;
-		ImGui::OpenPopup(title);
-		popupTimer = 0.0f;
-	}
-
-	if (wasShow)
-		popupTimer += ImGui::GetIO().DeltaTime;
-
-	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::Text(msg);
-
-		if (popupTimer >= showTime)
-		{
-			wasShow = false;
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::EndPopup();
-	}
 }
 
 std::string Gui::intToHexString(uint32_t var)

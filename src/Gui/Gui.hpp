@@ -14,6 +14,7 @@
 #include "ImguiPlugins.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
+#include "Popup.hpp"
 #include "TracePlotHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
@@ -43,6 +44,8 @@ class Gui
 	TracePlotHandler* tracePlotHandler;
 
 	std::atomic<bool>& done;
+
+	Popup popup;
 
 	enum class AcqusitionWindowType : uint8_t
 	{
@@ -100,7 +103,6 @@ class Gui
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
-	void showPopup(const char* title, const char* msg, float showTime, bool show);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
 
