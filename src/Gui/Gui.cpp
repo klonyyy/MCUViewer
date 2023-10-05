@@ -481,11 +481,20 @@ void Gui::drawPlotsTree()
 	if (typeCombo != (int32_t)plt->getType())
 		plt->setType(static_cast<Plot::Type>(typeCombo));
 
+	bool plotAlreadyExists = false;
+
 	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newName != plt->getName())
 	{
-		plotHandler->renamePlot(plt->getName(), newName);
-		selected = newName;
+		if (!plotHandler->checkIfPlotExists(std::move(newName)))
+		{
+			plotHandler->renamePlot(plt->getName(), newName);
+			selected = newName;
+		}
+		else
+			plotAlreadyExists = true;
 	}
+
+	showPopup("Error", "Plot already exists!", 1.5f, plotAlreadyExists);
 
 	if (plotNameToDelete.has_value())
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
