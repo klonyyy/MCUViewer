@@ -56,11 +56,13 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("core frequency [kHz]   ");
 	ImGui::SameLine();
 
-	drawInputText("##frequency", settings.coreFrequency, [&](std::string str) { settings.coreFrequency = std::stoi(str); });
+	drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
+				  { settings.coreFrequency = std::stoi(str); });
 
 	ImGui::Text("trace prescaler        ");
 	ImGui::SameLine();
-	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str) { settings.tracePrescaler = std::stoi(str); });
+	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str)
+				  { settings.tracePrescaler = std::stoi(str); });
 
 	const char* triggers[] = {"OFF", "CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9"};
 	int32_t trigerCombo = settings.triggerChannel + 1;
@@ -76,7 +78,8 @@ void Gui::drawSettingsSwo()
 		if (plt->trigger.getState())
 			settings.triggerLevel = plt->trigger.getValue();
 
-	drawInputText("##level", settings.triggerLevel, [&](std::string str) { settings.triggerLevel = std::stod(str); });
+	drawInputText("##level", settings.triggerLevel, [&](std::string str)
+				  { settings.triggerLevel = std::stod(str); });
 
 	if (state != PlotHandlerBase::state::STOP)
 		ImGui::EndDisabled();
@@ -120,14 +123,17 @@ void Gui::drawIndicatorsSwo()
 	ImGui::Text("delayed timestamp 2:    ");
 	ImGui::SameLine();
 	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp2)).c_str());
-
-	const char* timestampDelayed3 = "delayed timestamp 3:    ";
-	if (indicators.delayedTimestamp3 > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", timestampDelayed3);
-	else
-		ImGui::Text("%s", timestampDelayed3);
+	ImGui::Text("delayed timestamp 3:    ");
 	ImGui::SameLine();
 	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp3)).c_str());
+
+	const char* timestampDelayed3inView = "delayed timestamp 3 in view:    ";
+	if (indicators.delayedTimestamp3InView > 0)
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", timestampDelayed3inView);
+	else
+		ImGui::Text("%s", timestampDelayed3inView);
+	ImGui::SameLine();
+	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp3InView)).c_str());
 }
 
 void Gui::drawPlotsTreeSwo()

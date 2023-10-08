@@ -22,6 +22,7 @@ class TraceReader
 		uint32_t delayedTimestamp1;
 		uint32_t delayedTimestamp2;
 		uint32_t delayedTimestamp3;
+		uint32_t delayedTimestamp3InView;
 		uint32_t sleepCycles;
 	};
 

@@ -54,16 +54,19 @@ void TracePlotHandler::setSettings(const Settings& settings)
 TraceReader::TraceIndicators TracePlotHandler::getTraceIndicators() const
 {
 	auto indicators = traceReader->getTraceIndicators();
-	indicators.errorFramesInView = errorFrameTimestamps.size();
+	indicators.errorFramesInView = errorFrames.size();
+	indicators.delayedTimestamp3InView = delayed3Frames.size();
 	return indicators;
 }
 
 std::vector<double> TracePlotHandler::getErrorTimestamps()
 {
-	std::vector<double> errorTimestamps;
-	for (auto& elem : errorFrameTimestamps)
-		errorTimestamps.push_back(elem);
-	return errorTimestamps;
+	return errorFrames.getVector();
+}
+
+std::vector<double> TracePlotHandler::getDelayed3Timestamps()
+{
+	return delayed3Frames.getVector();
 }
 
 std::string TracePlotHandler::getLastReaderError() const
@@ -114,6 +117,7 @@ double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 void TracePlotHandler::dataHandler()
 {
 	uint32_t cnt = 0;
+	double time = 0.0;
 
 	while (!done)
 	{
@@ -131,20 +135,15 @@ void TracePlotHandler::dataHandler()
 			if (!traceReader->readTrace(timestamp, traces))
 				continue;
 
-			uint32_t i = 0;
-
 			time += timestamp;
 
 			double oldestTimestamp = plotsMap.begin()->second->getTimeSeries().getOldestValue();
+			auto indicators = traceReader->getTraceIndicators();
 
-			if (errorFrameSinceLastPoint != traceReader->getTraceIndicators().errorFramesTotal)
-				errorFrameTimestamps.push_back(time);
+			errorFrames.handle(time, oldestTimestamp, indicators.errorFramesTotal);
+			delayed3Frames.handle(time, oldestTimestamp, indicators.delayedTimestamp3);
 
-			while (errorFrameTimestamps.size() && errorFrameTimestamps.front() < oldestTimestamp)
-				errorFrameTimestamps.pop_front();
-
-			errorFrameSinceLastPoint = traceReader->getTraceIndicators().errorFramesTotal;
-
+			uint32_t i = 0;
 			for (auto& [key, plot] : plotsMap)
 			{
 				if (!plot->getVisibility())
@@ -173,22 +172,30 @@ void TracePlotHandler::dataHandler()
 			if (traceTriggered && cnt++ >= (traceSettings.maxPoints * 0.9))
 			{
 				logger->info("After-trigger trace collcted. Stopping.");
-				viewerState.store(state::STOP);
-				stateChangeOrdered.store(true);
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
 			}
 
-			if (errorFrameTimestamps.size() > maxAllowedViewportErrors)
+			if (errorFrames.size() > maxAllowedViewportErrors)
 			{
 				lastErrorMsg = "Too many error frames!";
 				logger->error("Too many error frames. Please modify your clock and prescaler settings. Stopping.");
-				viewerState.store(state::STOP);
-				stateChangeOrdered.store(true);
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
+			}
+
+			if (delayed3Frames.size() > maxAllowedViewportErrors)
+			{
+				lastErrorMsg = "Too many delayed timestamp 3 frames!";
+				logger->error("Too many delayed timestamp 3 frames. Please modify your clock and prescaler settings or limit the logged channels. Stopping.");
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
 			}
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-		if (stateChangeOrdered.load())
+		if (stateChangeOrdered)
 		{
 			if (viewerState == state::RUN)
 			{
@@ -198,8 +205,8 @@ void TracePlotHandler::dataHandler()
 				for (auto& [key, plot] : plotsMap)
 					activeChannels[i++] = plot->getVisibility();
 
-				errorFrameTimestamps.clear();
-				errorFrameSinceLastPoint = 0;
+				errorFrames.reset();
+				delayed3Frames.reset();
 				lastErrorMsg = "";
 
 				if (traceReader->startAcqusition(activeChannels))

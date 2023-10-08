@@ -61,8 +61,10 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		}
 
 		ImPlotRect plotLimits = ImPlot::GetPlotLimits();
-		handleMarkers(0, plot->markerX0, plotLimits, [&]() { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
-		handleMarkers(1, plot->markerX1, plotLimits, [&]() {
+		handleMarkers(0, plot->markerX0, plotLimits, [&]()
+					  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
+		handleMarkers(1, plot->markerX1, plotLimits, [&]()
+					  {
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", plot->markerX1.getValue());
 			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 15), true, "x1-x0 %.5f ms", dx * 1000.0);
@@ -95,17 +97,14 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
 		{
 			auto errorTimestamps = tracePlotHandler->getErrorTimestamps();
-			std::vector<double> t;
-			std::vector<double> values;
-
-			for (size_t i = 0; i < errorTimestamps.size(); i++)
-			{
-				values.push_back(0);
-				t.push_back(*(time.getFirstElementCopy() + time.getIndexFromvalue(errorTimestamps.at(i))));
-			}
+			auto delayed3Timestamps = tracePlotHandler->getDelayed3Timestamps();
+			std::array<double, 100> values{0};
 
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Cross, 8, ImVec4(1, 0, 0, 1), 3, ImVec4(1, 0, 0, 1));
-			ImPlot::PlotScatter("###point2", t.data(), values.data(), errorTimestamps.size(), false);
+			ImPlot::PlotScatter("###point2", errorTimestamps.data(), values.data(), errorTimestamps.size(), false);
+
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Cross, 6, ImVec4(1, 1, 0, 1), 3, ImVec4(1, 1, 0, 1));
+			ImPlot::PlotScatter("###point3", delayed3Timestamps.data(), values.data(), delayed3Timestamps.size(), false);
 		}
 
 		ImPlot::EndPlot();
