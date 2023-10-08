@@ -60,24 +60,25 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 			value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
 	}
 
-	if (type == Variable::type::U8)
-		return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
-	else if (type == Variable::type::I8)
-		return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
-	else if (type == Variable::type::U16)
-		return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
-	else if (type == Variable::type::I16)
-		return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
-	else if (type == Variable::type::U32)
-		return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
-	else if (type == Variable::type::I32)
-		return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
-	else if (type == Variable::type::F32)
-		return static_cast<double>(*reinterpret_cast<float*>(&value));
-	else if (type == Variable::type::UNKNOWN)
-		return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
-
-	return 0.0;
+	switch (type)
+	{
+		case Variable::type::U8:
+			return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
+		case Variable::type::I8:
+			return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
+		case Variable::type::U16:
+			return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
+		case Variable::type::I16:
+			return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
+		case Variable::type::U32:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+		case Variable::type::I32:
+			return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
+		case Variable::type::F32:
+			return static_cast<double>(*reinterpret_cast<float*>(&value));
+		default:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+	}
 }
 
 bool TargetMemoryHandler::setValue(const Variable& var, double value)
@@ -88,7 +89,8 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 	if (!memoryHandler->isValid())
 		return false;
 
-	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int {
+	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int
+	{
 		for (size_t i = 0; i < sizeof(var); i++)
 			buf[i] = var >> 8 * i;
 		return memoryHandler->writeMemory(address, buf, sizeof(var));
