@@ -40,7 +40,7 @@ bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
 		return false;
 	}
 
-	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask))
+	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
 	{
 		lastErrorMsg = "";
 		isRunning = true;
@@ -101,6 +101,11 @@ void TraceReader::setTraceFrequency(uint32_t frequencyHz)
 uint32_t TraceReader::getTraceFrequency() const
 {
 	return tracePrescaler;
+}
+
+void TraceReader::setTraceShouldReset(bool shouldReset)
+{
+	this->shouldReset = shouldReset;
 }
 
 TraceReader::TraceIndicators TraceReader::getTraceIndicators() const

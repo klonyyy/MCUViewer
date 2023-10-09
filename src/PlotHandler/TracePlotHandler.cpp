@@ -47,6 +47,7 @@ void TracePlotHandler::setSettings(const Settings& settings)
 {
 	traceReader->setCoreClockFrequency(settings.coreFrequency);
 	traceReader->setTraceFrequency(settings.tracePrescaler);
+	traceReader->setTraceShouldReset(settings.shouldReset);
 	setMaxPoints(settings.maxPoints);
 	traceSettings = settings;
 }

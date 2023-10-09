@@ -24,6 +24,7 @@ class TracePlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPointsPercent = 10;
 		int32_t triggerChannel = -1;
 		double triggerLevel = 0.9;
+		bool shouldReset = false;
 	} Settings;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);

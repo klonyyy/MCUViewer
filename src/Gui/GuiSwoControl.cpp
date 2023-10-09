@@ -81,6 +81,12 @@ void Gui::drawSettingsSwo()
 	drawInputText("##level", settings.triggerLevel, [&](std::string str)
 				  { settings.triggerLevel = std::stod(str); });
 
+	static bool shouldReset = false;
+	ImGui::Text("should reset           ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##rst", &shouldReset);
+	settings.shouldReset = shouldReset;
+
 	if (state != PlotHandlerBase::state::STOP)
 		ImGui::EndDisabled();
 	else

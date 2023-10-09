@@ -24,7 +24,7 @@ bool StlinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask)
+bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 
@@ -33,6 +33,9 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 		logger->error("Stlink not found!");
 		return false;
 	}
+
+	if (shouldReset)
+		stlink_reset(sl, RESET_AUTO);
 
 	/* turn on DWT and ITM */
 	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
