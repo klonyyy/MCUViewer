@@ -104,6 +104,21 @@ class ScrollingBuffer
 		return 0;
 	}
 
+	std::vector<double> getLinearData(size_t startIndex, size_t stopIndex)
+	{
+		std::vector<double> vec;
+
+		if (startIndex < stopIndex)
+			vec.insert(data[startIndex], data[stopIndex]);
+		else if (startIndex > stopIndex)
+		{
+			vec.insert(data[startIndex], data.end());
+			vec.insert(data.begin(), data[stopIndex]);
+		}
+
+		return vec;
+	}
+
    private:
 	mutable std::mutex mtx;
 	uint32_t maxSize = 10000;

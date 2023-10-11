@@ -1,6 +1,7 @@
 #ifndef _IMGUI_PLUGINS_HPP
 #define _IMGUI_PLUGINS_HPP
 #include <string>
+#include <vector>
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -89,5 +90,14 @@ void HelpMarker(const char* desc)
 		ImGui::EndTooltip();
 	}
 }
+
+bool Combo(const char* label, int* current_item, const std::vector<std::string>& items, int height_in_items = -1)
+{
+	return Combo(
+		label, current_item, [](void* data, int idx, const char** out_text)
+		{ *out_text = ((const std::vector<std::string>*)data)->at(idx).c_str(); return true; },
+		(void*)&items, items.size(), height_in_items);
+}
+
 }  // namespace ImGui
 #endif

@@ -450,6 +450,17 @@ void Gui::drawPlotsTree()
 	plt->markerX1.setState(mx1);
 	ImGui::PopID();
 
+	/* Staticstics */
+	std::vector<std::string> serNames{"OFF"};
+	for (auto& [name, ser] : plt->getSeriesMap())
+		serNames.push_back(name);
+
+	static int32_t statsSeries;
+	ImGui::Text("statistics      ");
+	ImGui::SameLine();
+	ImGui::Combo("##stats", &statsSeries, serNames);
+
+	/* Var list within plot*/
 	ImGui::PushID("list");
 	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
 	{
