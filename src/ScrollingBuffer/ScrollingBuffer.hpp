@@ -108,13 +108,18 @@ class ScrollingBuffer
 	{
 		std::vector<double> vec;
 
+		if (getSize() == 0)
+			return vec;
+
 		if (startIndex < stopIndex)
 			vec.insert(vec.end(), &data[startIndex], &data[stopIndex]);
-		else if (startIndex > stopIndex)
+		else if (startIndex > stopIndex || (isFull && startIndex == stopIndex))
 		{
-			vec.insert(vec.end(), &data[startIndex], data.end());
+			vec.insert(vec.end(), &data[startIndex], &data[getSize()]);
 			vec.insert(vec.end(), data.begin(), &data[stopIndex]);
 		}
+		else if (startIndex == stopIndex)
+			vec.insert(vec.end(), &data[0], &data[getSize()]);
 
 		return vec;
 	}
@@ -124,7 +129,7 @@ class ScrollingBuffer
 	uint32_t maxSize = 10000;
 	uint32_t offset = 0;
 	bool isFull = false;
-	static constexpr uint32_t arraySizeMax = 20000;
+	static constexpr uint32_t arraySizeMax = 20001;
 	mutable std::array<T, arraySizeMax> data;
 	mutable std::array<T, arraySizeMax> dataCopy;
 };

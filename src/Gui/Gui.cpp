@@ -463,7 +463,7 @@ void Gui::drawPlotsTree()
 	if (plt->statisticsSeries != 0)
 	{
 		static bool selectRange = false;
-		ImGui::Begin("child");
+		ImGui::Begin("Statistics");
 
 		ImGui::Text("select range: ");
 		ImGui::SameLine();
@@ -473,6 +473,14 @@ void Gui::drawPlotsTree()
 
 		Statistics::AnalogResults results;
 		Statistics::calculateResults((plt->getSeries(serNames[plt->statisticsSeries])).get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		ImGui::Text("t0:    ");
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(plt->stats.getValueX0())).c_str());
+
+		ImGui::Text("t1:    ");
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(plt->stats.getValueX1())).c_str());
 
 		ImGui::Text("min:    ");
 		ImGui::SameLine();
@@ -485,8 +493,14 @@ void Gui::drawPlotsTree()
 		ImGui::Text("mean:    ");
 		ImGui::SameLine();
 		ImGui::Text("%s", (std::to_string(results.mean)).c_str());
+
+		ImGui::Text("stddev:    ");
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(results.stddev)).c_str());
 		ImGui::End();
 	}
+	else
+		plt->stats.setState(false);
 
 	/* Var list within plot*/
 	ImGui::PushID("list");

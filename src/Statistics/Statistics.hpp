@@ -32,6 +32,7 @@ class Statistics
 		results.min = findmin(data);
 		results.max = findmax(data);
 		results.mean = mean(data);
+		results.stddev = stddev(data);
 	}
 
    private:
@@ -58,7 +59,18 @@ class Statistics
 
 	static double stddev(std::vector<double> data)
 	{
-		return 0.0;
+		if (data.empty())
+			return 0.0;
+
+		double m = mean(data);
+
+		double variance = 0.0;
+		for (const double& value : data)
+			variance += (value - m) * (value - m);
+
+		variance /= static_cast<double>(data.size());
+
+		return std::sqrt(variance);
 	}
 };
 
