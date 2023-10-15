@@ -89,15 +89,20 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		if (!newSeries.empty())
 			plot->addSeries(*vars[newSeries]);
 
-		ImPlotRect plotLimits = ImPlot::GetPlotLimits();
-		handleMarkers(0, plot->markerX0, plotLimits, [&]()
-					  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
+		if (plotHandler->getViewerState() == PlotHandler::state::STOP)
+		{
+			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+			handleMarkers(0, plot->markerX0, plotLimits, [&]()
+						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
 
-		handleMarkers(1, plot->markerX1, plotLimits, [&]()
-					  {
+			handleMarkers(1, plot->markerX1, plotLimits, [&]()
+						  {
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", plot->markerX1.getValue());
 			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f", dx); });
+
+			handleDragRect(0, plot->stats, plotLimits);
+		}
 
 		/* make thread safe copies of buffers - TODO refactor */
 		mtx->lock();
@@ -260,4 +265,32 @@ void Gui::handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits
 	}
 	else
 		marker.setValue(0.0);
+}
+
+void Gui::handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits)
+{
+	if (dragRect.getState())
+	{
+		auto markerPosX0 = dragRect.getValueX0();
+		auto markerPosX1 = dragRect.getValueX1();
+
+		if (markerPosX0 == 0.0 && markerPosX1 == 0.0)
+		{
+			float offset = (std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f;
+			markerPosX0 = plotLimits.X.Min + offset;
+			markerPosX1 = plotLimits.X.Min + 2.0f * offset;
+			dragRect.setValueX0(markerPosX0);
+			dragRect.setValueX1(markerPosX1);
+		}
+
+		static ImPlotRect rect(0.0025, 0.0045, 0, 0.5);
+		ImPlot::DragRect(id, &markerPosX0, &plotLimits.Y.Min, &markerPosX1, &plotLimits.Y.Max, ImVec4(0.15, 0.96, 0.9, 0.45), ImPlotDragToolFlags_NoFit);
+		dragRect.setValueX0(markerPosX0);
+		dragRect.setValueX1(markerPosX1);
+	}
+	else
+	{
+		dragRect.setValueX0(0.0);
+		dragRect.setValueX1(0.0);
+	}
 }

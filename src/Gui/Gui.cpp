@@ -456,22 +456,41 @@ void Gui::drawPlotsTree()
 	for (auto& [name, ser] : plt->getSeriesMap())
 		serNames.push_back(name);
 
-	static int32_t statsSeries;
 	ImGui::Text("statistics      ");
 	ImGui::SameLine();
-	ImGui::Combo("##stats", &statsSeries, serNames);
+	ImGui::Combo("##stats", &plt->statisticsSeries, serNames);
 
-	if (statsSeries != 0)
+	if (plt->statisticsSeries != 0)
 	{
-		Statistics::AnalogResults results;
-		Statistics::calculateResults((plt->getSeries(serNames[statsSeries])).get(), &plt->getTimeSeries(), 0.1, 2.1, results);
+		static bool selectRange = false;
+		ImGui::Begin("child");
 
-		std::cout << results.max << " " << results.min << std::endl;
+		ImGui::Text("select range: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectrange", &selectRange);
+
+		plt->stats.setState(selectRange);
+
+		Statistics::AnalogResults results;
+		Statistics::calculateResults((plt->getSeries(serNames[plt->statisticsSeries])).get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		ImGui::Text("min:    ");
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(results.min)).c_str());
+
+		ImGui::Text("max:    ");
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(results.max)).c_str());
+
+		ImGui::Text("mean:    ");
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(results.mean)).c_str());
+		ImGui::End();
 	}
 
 	/* Var list within plot*/
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 175)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
