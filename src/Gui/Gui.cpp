@@ -465,6 +465,12 @@ void Gui::drawPlotsTree()
 		static bool selectRange = false;
 		ImGui::Begin("Statistics");
 
+		auto ser = plt->getSeries(serNames[plt->statisticsSeries]);
+
+		ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+		ImGui::SameLine();
+		ImGui::Text("%s", ser->var->getName().c_str());
+
 		ImGui::Text("select range: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##selectrange", &selectRange);
@@ -472,31 +478,15 @@ void Gui::drawPlotsTree()
 		plt->stats.setState(selectRange);
 
 		Statistics::AnalogResults results;
-		Statistics::calculateResults((plt->getSeries(serNames[plt->statisticsSeries])).get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
 
-		ImGui::Text("t0:    ");
-		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(plt->stats.getValueX0())).c_str());
-
-		ImGui::Text("t1:    ");
-		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(plt->stats.getValueX1())).c_str());
-
-		ImGui::Text("min:    ");
-		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(results.min)).c_str());
-
-		ImGui::Text("max:    ");
-		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(results.max)).c_str());
-
-		ImGui::Text("mean:    ");
-		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(results.mean)).c_str());
-
-		ImGui::Text("stddev:    ");
-		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(results.stddev)).c_str());
+		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		drawDescriptionWithNumber("min:     ", results.min);
+		drawDescriptionWithNumber("max:     ", results.max);
+		drawDescriptionWithNumber("mean:    ", results.mean);
+		drawDescriptionWithNumber("stddev:  ", results.stddev);
 		ImGui::End();
 	}
 	else

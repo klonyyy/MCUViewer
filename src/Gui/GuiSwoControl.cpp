@@ -103,17 +103,9 @@ void Gui::drawIndicatorsSwo()
 
 	auto indicators = tracePlotHandler->getTraceIndicators();
 
-	ImGui::Text("frames total:           ");
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.framesTotal)).c_str());
-
-	ImGui::Text("sleep cycles:           ");
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.sleepCycles)).c_str());
-
-	ImGui::Text("error frames total:     ");
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.errorFramesTotal)).c_str());
+	drawDescriptionWithNumber("frames total:           ", indicators.framesTotal);
+	drawDescriptionWithNumber("sleep cycles:           ", indicators.sleepCycles);
+	drawDescriptionWithNumber("error frames total:     ", indicators.errorFramesTotal);
 
 	const char* inView = "error frames in view:   ";
 	if (indicators.errorFramesInView > 0)
@@ -123,15 +115,9 @@ void Gui::drawIndicatorsSwo()
 	ImGui::SameLine();
 	ImGui::Text("%s", (std::to_string(indicators.errorFramesInView)).c_str());
 
-	ImGui::Text("delayed timestamp 1:    ");
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp1)).c_str());
-	ImGui::Text("delayed timestamp 2:    ");
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp2)).c_str());
-	ImGui::Text("delayed timestamp 3:    ");
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp3)).c_str());
+	drawDescriptionWithNumber("delayed timestamp 1:    ", indicators.delayedTimestamp1);
+	drawDescriptionWithNumber("delayed timestamp 2:    ", indicators.delayedTimestamp2);
+	drawDescriptionWithNumber("delayed timestamp 3:    ", indicators.delayedTimestamp3);
 
 	const char* timestampDelayed3inView = "delayed timestamp 3 in view:    ";
 	if (indicators.delayedTimestamp3InView > 0)

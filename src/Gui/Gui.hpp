@@ -102,6 +102,13 @@ class Gui
 			if (valueChanged)
 				valueChanged(str);
 	}
+	template <typename T>
+	void drawDescriptionWithNumber(const char* description, T number)
+	{
+		ImGui::Text(description);
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(number)).c_str());
+	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
 	std::string intToHexString(uint32_t i);
