@@ -92,12 +92,12 @@ class ScrollingBuffer
 	{
 		for (uint32_t t = 0; t < getSize(); t++)
 		{
-			double first = dataCopy[t];
+			double first = data[t];
 
 			if ((t + 1) >= getSize())
 				return getSize() - 1;
 
-			double second = dataCopy[t + 1];
+			double second = data[t + 1];
 			if (value >= first && value < second)
 				return t;
 		}
@@ -109,11 +109,11 @@ class ScrollingBuffer
 		std::vector<double> vec;
 
 		if (startIndex < stopIndex)
-			vec.insert(data[startIndex], data[stopIndex]);
+			vec.insert(vec.end(), &data[startIndex], &data[stopIndex]);
 		else if (startIndex > stopIndex)
 		{
-			vec.insert(data[startIndex], data.end());
-			vec.insert(data.begin(), data[stopIndex]);
+			vec.insert(vec.end(), &data[startIndex], data.end());
+			vec.insert(vec.end(), data.begin(), &data[stopIndex]);
 		}
 
 		return vec;

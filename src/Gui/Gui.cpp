@@ -10,6 +10,7 @@
 #include "../gitversion.hpp"
 #include "ElfReader.hpp"
 #include "PlotHandlerBase.hpp"
+#include "Statistics.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -459,6 +460,14 @@ void Gui::drawPlotsTree()
 	ImGui::Text("statistics      ");
 	ImGui::SameLine();
 	ImGui::Combo("##stats", &statsSeries, serNames);
+
+	if (statsSeries != 0)
+	{
+		Statistics::AnalogResults results;
+		Statistics::calculateResults((plt->getSeries(serNames[statsSeries])).get(), &plt->getTimeSeries(), 0.1, 2.1, results);
+
+		std::cout << results.max << " " << results.min << std::endl;
+	}
 
 	/* Var list within plot*/
 	ImGui::PushID("list");

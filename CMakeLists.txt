@@ -134,7 +134,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

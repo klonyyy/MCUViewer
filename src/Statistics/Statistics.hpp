@@ -1,7 +1,11 @@
 #ifndef STATISTICS_HPP_
 #define STATISTICS_HPP_
 
+#include <algorithm>
+#include <vector>
+
 #include "Plot.hpp"
+#include "ScrollingBuffer.hpp"
 
 class Statistics
 {
@@ -22,28 +26,40 @@ class Statistics
 		double stddev;
 	};
 
-	void calculateResults(Plot::Series* ser, Plot::Series* time, double start, double end, AnalogResults& results)
+	static void calculateResults(Plot::Series* ser, ScrollingBuffer<double>* time, double start, double end, AnalogResults& results)
 	{
-		auto data = ser->getLinearData(time.getIndexFromvalue(start), time.getIndexFromvalue(end));
-        
+		auto data = ser->buffer->getLinearData(time->getIndexFromvalue(start), time->getIndexFromvalue(end));
+		results.min = findmin(data);
+		results.max = findmax(data);
+		results.mean = mean(data);
 	}
 
    private:
-	double findmin()
+	static double findmin(std::vector<double> data)
 	{
+		if (data.empty())
+			return 0.0;
+		return *std::min_element(data.begin(), data.end());
 	}
 
-	double findmax()
+	static double findmax(std::vector<double> data)
 	{
+		if (data.empty())
+			return 0.0;
+		return *std::max_element(data.begin(), data.end());
 	}
 
-	double mean()
+	static double mean(std::vector<double> data)
 	{
+		if (data.empty())
+			return 0.0;
+		return std::accumulate(data.begin(), data.end(), 0.0) / static_cast<double>(data.size());
 	}
 
-	double stddev()
+	static double stddev(std::vector<double> data)
 	{
+		return 0.0;
 	}
-}
+};
 
 #endif
