@@ -68,6 +68,7 @@ class Gui
 	void acqusitionSettingsViewer();
 	void drawAboutWindow();
 	void drawPreferencesWindow();
+	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
 	void acqusitionSettingsTrace();
 
 	void drawPlots();

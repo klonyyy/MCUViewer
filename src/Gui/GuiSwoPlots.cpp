@@ -60,15 +60,20 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			plot->trigger.setValue(triggerLevel);
 		}
 
-		ImPlotRect plotLimits = ImPlot::GetPlotLimits();
-		handleMarkers(0, plot->markerX0, plotLimits, [&]()
-					  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
-		handleMarkers(1, plot->markerX1, plotLimits, [&]()
-					  {
+		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
+		{
+			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+			handleMarkers(0, plot->markerX0, plotLimits, [&]()
+						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
+			handleMarkers(1, plot->markerX1, plotLimits, [&]()
+						  {
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", plot->markerX1.getValue());
 			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 15), true, "x1-x0 %.5f ms", dx * 1000.0);
 			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 30), true, "1/dt %.1f Hz", 1.0 / dx); });
+
+			handleDragRect(0, plot->stats, plotLimits);
+		}
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 
