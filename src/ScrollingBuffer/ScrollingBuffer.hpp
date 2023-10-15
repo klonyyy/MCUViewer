@@ -59,7 +59,7 @@ class ScrollingBuffer
 	{
 		std::lock_guard<std::mutex> lock(mtx);
 		if (isFull)
-			return data[offset < maxSize ? offset : 0];
+			return data[offset < maxSize ? offset + 1 : 0];
 		else
 			return data[0];
 	}
