@@ -431,27 +431,29 @@ void Gui::drawPlotsTree()
 	std::string newName = plt->getName();
 	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
-	ImGui::Text("name      ");
+	ImGui::Text("name       ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
 	ImGui::InputText("##input", &newName, 0, NULL, NULL);
-	ImGui::Text("type      ");
+	ImGui::Text("type       ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-	bool mx0 = plt->markerX0.getState();
-	bool mx1 = plt->markerX1.getState();
-	ImGui::Text("x0 marker ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##mx0", &mx0);
-	plt->markerX0.setState(mx0);
-	ImGui::Text("x1 marker ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##mx1", &mx1);
-	plt->markerX1.setState(mx1);
-	ImGui::PopID();
-
 	/* Staticstics */
-	drawStatisticsAnalog(plt);
+	if (typeCombo == 0)
+	{
+		bool mx0 = plt->markerX0.getState();
+		bool mx1 = plt->markerX1.getState();
+		ImGui::Text("x0 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx0", &mx0);
+		plt->markerX0.setState(mx0);
+		ImGui::Text("x1 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx1", &mx1);
+		plt->markerX1.setState(mx1);
+		drawStatisticsAnalog(plt);
+	}
+	ImGui::PopID();
 
 	/* Var list within plot*/
 	ImGui::PushID("list");

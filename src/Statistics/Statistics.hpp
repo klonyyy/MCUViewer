@@ -28,7 +28,8 @@ class Statistics
 
 	static void calculateResults(Plot::Series* ser, ScrollingBuffer<double>* time, double start, double end, AnalogResults& results)
 	{
-		auto data = ser->buffer->getLinearData(time->getIndexFromvalue(start), time->getIndexFromvalue(end));
+		/* + 1 is to account for the way sample is "held" for the entire duration of sample period */
+		auto data = ser->buffer->getLinearData(time->getIndexFromvalue(start) + 1, time->getIndexFromvalue(end) + 1);
 		results.min = findmin(data);
 		results.max = findmax(data);
 		results.mean = mean(data);

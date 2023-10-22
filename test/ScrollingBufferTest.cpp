@@ -19,6 +19,9 @@ class ScrollingBufferTest : public ::testing::Test
 			test.addPoint(element);
 
 		test.copyData();
+
+		// for (uint32_t i = 0; i < defaultMaxSize; i++)
+		// 	std::cout << *(test.getFirstElement() + i) << " ";
 	}
 
 	void TearDown() override
