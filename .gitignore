@@ -2,6 +2,7 @@ build/*
 build_test/*
 .vscode/*
 .cache/*
+src/gitversion.hpp
 
 **/[Dd]ebug/
 **/[Rr]elease/

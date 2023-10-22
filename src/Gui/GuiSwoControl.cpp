@@ -191,6 +191,9 @@ void Gui::drawPlotsTreeSwo()
 		ImGui::Combo("##combo2", &traceVarTypeCombo, traceVarTypes, IM_ARRAYSIZE(traceVarTypes));
 		drawStatisticsAnalog(plt);
 	}
+	else
+		drawStatisticsDigital(plt);
+
 	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->markerX0.getState();
 	ImGui::Text("markers    ");
 	ImGui::SameLine();

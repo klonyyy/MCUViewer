@@ -20,11 +20,43 @@ class Statistics
 
 	struct DigitalResults
 	{
-		double min;
-		double max;
-		double mean;
-		double stddev;
+		double Lmin;
+		double Lmax;
+		double Hmin;
+		double Hmax;
+		double fmin;
+		double fmax;
 	};
+
+	static void calculateResults(Plot::Series* ser, ScrollingBuffer<double>* time, double start, double end, DigitalResults& results)
+	{
+		auto data = ser->buffer->getLinearData(time->getIndexFromvalue(start) + 1, time->getIndexFromvalue(end) + 1);
+		std::vector<double> timeData = time->getLinearData(time->getIndexFromvalue(start) + 1, time->getIndexFromvalue(end) + 1);
+
+		std::vector<double> Lvec, Hvec;
+
+		convertDigitalSeriesToVectors(timeData, data, Lvec, Hvec);
+
+		results.Lmin = findmin(Lvec);
+		results.Lmax = findmax(Lvec);
+		results.Hmin = findmin(Hvec);
+		results.Hmax = findmax(Hvec);
+
+		auto shorter = Lvec.size() < Hvec.size() ? Lvec.size() : Hvec.size();
+
+		std::vector<double> T;
+		std::vector<double> f;
+
+		for (size_t i = 0; i < shorter; i++)
+		{
+			auto sum = Lvec[i] + Hvec[i];
+			T.push_back(sum);
+			f.push_back(1 / sum);
+		}
+
+		results.fmin = findmin(f);
+		results.fmax = findmax(f);
+	}
 
 	static void calculateResults(Plot::Series* ser, ScrollingBuffer<double>* time, double start, double end, AnalogResults& results)
 	{
@@ -72,6 +104,28 @@ class Statistics
 		variance /= static_cast<double>(data.size());
 
 		return std::sqrt(variance);
+	}
+
+	static void convertDigitalSeriesToVectors(std::vector<double> time, std::vector<double> data, std::vector<double>& Lvec, std::vector<double>& Hvec)
+	{
+		double lastState = data[0];
+		double timeStart = time[0];
+
+		size_t i = 0;
+		for (auto& state : data)
+		{
+			if (lastState != state)
+			{
+				if (state > 0.0)
+					Lvec.push_back(time[i] - timeStart);
+				else
+					Hvec.push_back(time[i] - timeStart);
+
+				timeStart = time[i];
+				lastState = state;
+			}
+			i++;
+		}
 	}
 };
 

@@ -640,6 +640,51 @@ void Gui::drawStatisticsAnalog(std::shared_ptr<Plot> plt)
 		plt->stats.setState(false);
 }
 
+void Gui::drawStatisticsDigital(std::shared_ptr<Plot> plt)
+{
+	std::vector<std::string> serNames{"OFF"};
+	for (auto& [name, ser] : plt->getSeriesMap())
+		serNames.push_back(name);
+
+	ImGui::Text("statistics ");
+	ImGui::SameLine();
+	ImGui::Combo("##stats", &plt->statisticsSeries, serNames);
+
+	if (plt->statisticsSeries != 0)
+	{
+		static bool selectRange = false;
+		ImGui::Begin("Statistics");
+
+		auto ser = plt->getSeries(serNames[plt->statisticsSeries]);
+
+		ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+		ImGui::SameLine();
+		ImGui::Text("%s", ser->var->getName().c_str());
+
+		ImGui::Text("select range: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectrange", &selectRange);
+
+		plt->stats.setState(selectRange);
+
+		Statistics::DigitalResults results;
+		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		drawDescriptionWithNumber("Lmin:    ", results.Lmin);
+		drawDescriptionWithNumber("Lmax:    ", results.Lmax);
+		drawDescriptionWithNumber("Hmin:    ", results.Hmin);
+		drawDescriptionWithNumber("Hmax:    ", results.Hmax);
+		drawDescriptionWithNumber("fmin:    ", results.fmin);
+		drawDescriptionWithNumber("fmax:    ", results.fmax);
+		ImGui::End();
+	}
+	else
+		plt->stats.setState(false);
+}
+
 void Gui::acqusitionSettingsTrace()
 {
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
