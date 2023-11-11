@@ -2,10 +2,17 @@
 #define STATISTICS_HPP_
 
 #include <algorithm>
+#include <cmath>
+#include <numeric>
 #include <vector>
 
 #include "Plot.hpp"
 #include "ScrollingBuffer.hpp"
+
+#pragma once
+#ifndef TEST_FRIENDS_STATISTICS
+#define TEST_FRIENDS_STATISTICS
+#endif
 
 class Statistics
 {
@@ -51,7 +58,7 @@ class Statistics
 		{
 			auto sum = Lvec[i] + Hvec[i];
 			T.push_back(sum);
-			f.push_back(1 / sum);
+			f.push_back(1.0 / sum);
 		}
 
 		results.fmin = findmin(f);
@@ -69,6 +76,8 @@ class Statistics
 	}
 
    private:
+	TEST_FRIENDS_STATISTICS
+
 	static double findmin(std::vector<double> data)
 	{
 		if (data.empty())
@@ -110,6 +119,7 @@ class Statistics
 	{
 		double lastState = data[0];
 		double timeStart = time[0];
+		size_t maxSize = time.size();
 
 		size_t i = 0;
 		for (auto& state : data)
@@ -125,6 +135,9 @@ class Statistics
 				lastState = state;
 			}
 			i++;
+
+			if (i == maxSize)
+				break;
 		}
 	}
 };
