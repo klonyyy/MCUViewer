@@ -117,27 +117,36 @@ class Statistics
 
 	static void convertDigitalSeriesToVectors(std::vector<double> time, std::vector<double> data, std::vector<double>& Lvec, std::vector<double>& Hvec)
 	{
-		double lastState = data[0];
-		double timeStart = time[0];
-		size_t maxSize = time.size();
+		/* find the first and last signal change */
+		size_t start = 0;
+		size_t end = time.size() - 1;
+		size_t i = 1;
 
-		size_t i = 0;
-		for (auto& state : data)
+		while (data[i] == data[0] && i < data.size())
+			i++;
+		start = i;
+
+		i = end - 1;
+
+		while (data[i] == data[end] && i > 0)
+			i--;
+		end = i;
+
+		double lastState = data[start];
+		double timeStart = time[start];
+
+		for (i = start; i <= end; i++)
 		{
-			if (lastState != state)
+			if (lastState != data[i])
 			{
-				if (state > 0.0)
+				if (data[i] > 0.0)
 					Lvec.push_back(time[i] - timeStart);
 				else
 					Hvec.push_back(time[i] - timeStart);
 
 				timeStart = time[i];
-				lastState = state;
+				lastState = data[i];
 			}
-			i++;
-
-			if (i == maxSize)
-				break;
 		}
 	}
 };
