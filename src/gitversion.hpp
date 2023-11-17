@@ -1,1 +1,1 @@
-static const char* GIT_HASH = "66545e48b29d40ff0217294e9ff19dd7d612de25";
+static const char* GIT_HASH = "4ee85552d1f51cd0c9ba6f5eca58f9c9a4d09d59";

@@ -6,7 +6,7 @@
 PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	stlinkReader = std::make_unique<StlinkHandler>();
+	stlinkReader = std::make_unique<JlinkHandler>();
 	varReader = std::make_unique<TargetMemoryHandler>(stlinkReader.get(), logger);
 }
 PlotHandler::~PlotHandler()

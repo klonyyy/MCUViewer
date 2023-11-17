@@ -41,7 +41,7 @@ if(UNIX)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
-    set(SPDLOG_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/linux/libspdlog.so.1.11.0)
+#    set(SPDLOG_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/linux/libspdlog.so.1.11.0)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 endif()
@@ -72,7 +72,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/JlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp

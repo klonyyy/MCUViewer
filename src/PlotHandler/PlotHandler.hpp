@@ -9,7 +9,8 @@
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "StlinkHandler.hpp"
+//#include "StlinkHandler.hpp"
+#include "JlinkHandler.h"
 #include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
 
@@ -36,7 +37,7 @@ class PlotHandler : public PlotHandlerBase
 	void dataHandler();
 
    private:
-	std::unique_ptr<StlinkHandler> stlinkReader;
+	std::unique_ptr<JlinkHandler> stlinkReader;
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};
