@@ -17,7 +17,7 @@ int spdlogLog(int level, const char* str, ...)
 	va_start(args, str);
 
 	char buf[1000]{};
-	vsprintf(buf, str, args);
+	vsnprintf(buf, 1000, str, args);
 	buf[strlen(buf) - 1] = '\0';
 
 	switch (level)

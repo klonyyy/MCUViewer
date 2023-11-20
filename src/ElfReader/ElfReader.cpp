@@ -114,6 +114,8 @@ std::string ElfReader::executeCommand(const char* cmd)
 	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
 #elif _WIN32
 	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd, "r"), _pclose);
+#elif defined(__APPLE__)
+	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
 #else
 #error "Your system is not supported!"
 #endif

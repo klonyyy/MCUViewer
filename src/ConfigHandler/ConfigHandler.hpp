@@ -14,10 +14,9 @@
 class ConfigHandler
 {
    public:
-	typedef struct
-	{
+	struct GlobalSettings {
 		uint32_t version = 0;
-	} GlobalSettings;
+	} ;
 
 	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::shared_ptr<spdlog::logger> logger);
 	~ConfigHandler() = default;

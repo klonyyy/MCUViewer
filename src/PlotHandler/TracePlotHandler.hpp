@@ -16,8 +16,7 @@
 class TracePlotHandler : public PlotHandlerBase
 {
    public:
-	typedef struct
-	{
+	struct Settings {
 		uint32_t coreFrequency = 160000;
 		uint32_t tracePrescaler = 10;
 		uint32_t maxPoints = 10000;
@@ -25,7 +24,7 @@ class TracePlotHandler : public PlotHandlerBase
 		int32_t triggerChannel = -1;
 		double triggerLevel = 0.9;
 		bool shouldReset = false;
-	} Settings;
+	} ;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
 	~TracePlotHandler();

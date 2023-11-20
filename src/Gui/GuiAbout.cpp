@@ -63,6 +63,13 @@ bool Gui::openWebsite(const char* url)
 	char command[256];
 	snprintf(command, sizeof(command), "%s %s", browser, url);
 	system(command);
+#elif defined(__APPLE__)
+	const char* browser = getenv("BROWSER");
+	if (browser == NULL)
+		browser = "xdg-open";
+	char command[256];
+	snprintf(command, sizeof(command), "%s %s", browser, url);
+	system(command);
 #else
 #error "Your system is not supported!"
 #endif
