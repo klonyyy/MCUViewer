@@ -14,7 +14,7 @@ The only piece of hardware required is an ST-Link programmer.
 
 Variable Viewer can be used to visualize your embedded application data in real time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using the ST-link programmer debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
 
-Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast-changing signals.
+Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or high frequency signals.
 
 ### Trace Viewer 
 ![_](./docs/TraceViewer.gif)

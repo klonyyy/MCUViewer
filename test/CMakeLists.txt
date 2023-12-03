@@ -17,11 +17,13 @@ add_library(GTest::GTest INTERFACE IMPORTED)
 
 include_directories(${EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/Plot
     ${CMAKE_SOURCE_DIR}/src/ElfReader
     ${CMAKE_SOURCE_DIR}/src/Variable
     ${CMAKE_SOURCE_DIR}/src/ScrollingBuffer
     ${CMAKE_SOURCE_DIR}/src/RingBuffer
-    ${CMAKE_SOURCE_DIR}/src/TraceReader)
+    ${CMAKE_SOURCE_DIR}/src/TraceReader
+    ${CMAKE_SOURCE_DIR}/src/Statistics)
 
 include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/spdlog/inc)
@@ -35,6 +37,7 @@ add_executable(${EXECUTABLE} main.cpp
     ScrollingBufferTest.cpp
     RingBufferTest.cpp
     TraceReaderTest.cpp
+    StatisticsTest.cpp
     ${SOURCES})
 
 add_compile_options(-Wall -Wextra -Wpedantic)

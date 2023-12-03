@@ -7,9 +7,9 @@
 #include <string>
 #include <utility>
 
-#include "../gitversion.hpp"
 #include "ElfReader.hpp"
 #include "PlotHandlerBase.hpp"
+#include "Statistics.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -431,27 +431,33 @@ void Gui::drawPlotsTree()
 	std::string newName = plt->getName();
 	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
-	ImGui::Text("name      ");
+	ImGui::Text("name       ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
 	ImGui::InputText("##input", &newName, 0, NULL, NULL);
-	ImGui::Text("type      ");
+	ImGui::Text("type       ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-	bool mx0 = plt->markerX0.getState();
-	bool mx1 = plt->markerX1.getState();
-	ImGui::Text("x0 marker ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##mx0", &mx0);
-	plt->markerX0.setState(mx0);
-	ImGui::Text("x1 marker ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##mx1", &mx1);
-	plt->markerX1.setState(mx1);
+	/* Staticstics */
+	if (typeCombo == 0)
+	{
+		bool mx0 = plt->markerX0.getState();
+		bool mx1 = plt->markerX1.getState();
+		ImGui::Text("x0 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx0", &mx0);
+		plt->markerX0.setState(mx0);
+		ImGui::Text("x1 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx1", &mx1);
+		plt->markerX1.setState(mx1);
+		drawStatisticsAnalog(plt);
+	}
 	ImGui::PopID();
 
+	/* Var list within plot*/
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 175)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
@@ -567,53 +573,6 @@ void Gui::acqusitionSettingsViewer()
 	plotHandler->setSettings(settings);
 }
 
-void Gui::drawAboutWindow()
-{
-	if (showAboutWindow)
-		ImGui::OpenPopup("About");
-
-	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 300));
-	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
-	{
-		drawCenteredText("STMViewer");
-		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
-		drawCenteredText(std::move(line2));
-		drawCenteredText(std::string(GIT_HASH));
-		ImGui::SameLine();
-		const bool copy = ImGui::SmallButton("copy");
-		if (copy)
-		{
-			ImGui::LogToClipboard();
-			ImGui::LogText("%s", GIT_HASH);
-			ImGui::LogFinish();
-		}
-
-		ImGui::Dummy(ImVec2(-1, 20));
-		drawCenteredText("by Piotr Wasilewski (klonyyy)");
-		ImGui::Dummy(ImVec2(-1, 20));
-
-		const float buttonHeight = 25.0f;
-
-		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210) / 2.0f);
-
-		if (ImGui::Button("Releases", ImVec2(100, buttonHeight)))
-			openWebsite("https://github.com/klonyyy/STMViewer/releases");
-		ImGui::SameLine();
-		if (ImGui::Button("Support <3", ImVec2(100, buttonHeight)))
-			openWebsite("https://github.com/sponsors/klonyyy");
-
-		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
-		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
-		{
-			showAboutWindow = false;
-			ImGui::CloseCurrentPopup();
-		}
-
-		ImGui::EndPopup();
-	}
-}
-
 void Gui::drawPreferencesWindow()
 {
 	if (showPreferencesWindow)
@@ -636,6 +595,94 @@ void Gui::drawPreferencesWindow()
 		}
 		ImGui::EndPopup();
 	}
+}
+
+void Gui::drawStatisticsAnalog(std::shared_ptr<Plot> plt)
+{
+	std::vector<std::string> serNames{"OFF"};
+	for (auto& [name, ser] : plt->getSeriesMap())
+		serNames.push_back(name);
+
+	ImGui::Text("statistics ");
+	ImGui::SameLine();
+	ImGui::Combo("##stats", &plt->statisticsSeries, serNames);
+
+	if (plt->statisticsSeries != 0)
+	{
+		static bool selectRange = false;
+		ImGui::Begin("Statistics");
+
+		auto ser = plt->getSeries(serNames[plt->statisticsSeries]);
+
+		ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+		ImGui::SameLine();
+		ImGui::Text("%s", ser->var->getName().c_str());
+
+		ImGui::Text("select range: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectrange", &selectRange);
+
+		plt->stats.setState(selectRange);
+
+		Statistics::AnalogResults results;
+		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		drawDescriptionWithNumber("min:     ", results.min);
+		drawDescriptionWithNumber("max:     ", results.max);
+		drawDescriptionWithNumber("mean:    ", results.mean);
+		drawDescriptionWithNumber("stddev:  ", results.stddev);
+		ImGui::End();
+	}
+	else
+		plt->stats.setState(false);
+}
+
+void Gui::drawStatisticsDigital(std::shared_ptr<Plot> plt)
+{
+	std::vector<std::string> serNames{"OFF"};
+	for (auto& [name, ser] : plt->getSeriesMap())
+		serNames.push_back(name);
+
+	ImGui::Text("statistics ");
+	ImGui::SameLine();
+	ImGui::Combo("##stats", &plt->statisticsSeries, serNames);
+
+	if (plt->statisticsSeries != 0)
+	{
+		static bool selectRange = false;
+		ImGui::Begin("Statistics");
+
+		auto ser = plt->getSeries(serNames[plt->statisticsSeries]);
+
+		ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+		ImGui::SameLine();
+		ImGui::Text("%s", ser->var->getName().c_str());
+
+		ImGui::Text("select range: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectrange", &selectRange);
+
+		plt->stats.setState(selectRange);
+
+		Statistics::DigitalResults results;
+		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		drawDescriptionWithNumber("Lmin:    ", results.Lmin);
+		drawDescriptionWithNumber("Lmax:    ", results.Lmax);
+		drawDescriptionWithNumber("Hmin:    ", results.Hmin);
+		drawDescriptionWithNumber("Hmax:    ", results.Hmax);
+		drawDescriptionWithNumber("fmin:    ", results.fmin);
+		drawDescriptionWithNumber("fmax:    ", results.fmax);
+		ImGui::End();
+	}
+	else
+		plt->stats.setState(false);
 }
 
 void Gui::acqusitionSettingsTrace()
@@ -850,25 +897,4 @@ void Gui::drawCenteredText(std::string&& text)
 {
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
 	ImGui::Text("%s", text.c_str());
-}
-
-bool Gui::openWebsite(const char* url)
-{
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
-#endif
-
-#ifdef _WIN32
-	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif defined _UNIX
-	const char* browser = getenv("BROWSER");
-	if (browser == NULL)
-		browser = "xdg-open";
-	char command[256];
-	snprintf(command, sizeof(command), "%s %s", browser, url);
-	system(command);
-#else
-#error "Your system is not supported!"
-#endif
-	return true;
 }
