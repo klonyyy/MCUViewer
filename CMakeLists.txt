@@ -25,6 +25,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+if(WIN32 AND "${PLATFORM}" STREQUAL "native")
+    set(LLVM_DIR "C:/msys64/mingw64/bin")
+    set(CMAKE_PREFIX_PATH ${LLVM_DIR} ${CMAKE_PREFIX_PATH})
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+    set(CMAKE_AR "C:/msys64/mingw64/bin/llvm-ar.exe")
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
