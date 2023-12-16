@@ -15,6 +15,16 @@
 
 ElfReader::ElfReader(std::string& filename, std::shared_ptr<spdlog::logger> logger) : elfname(filename), logger(logger)
 {
+	auto version = extractGDBVersionNumber(executeCommand("gdb -v"));
+
+	if (version == 0)
+		logger->error("Failed to read GDB version! Make sure it's installed and added to your PATH!");
+	else
+	{
+		logger->info("GDB version: {}", version);
+		if (version < gdbMinimumVersion)
+			logger->error("Your GDB is too old, please update it to at least 12.1");
+	}
 }
 
 bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable>>& vars)
@@ -123,4 +133,23 @@ std::string ElfReader::executeCommand(const char* cmd)
 	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
 		result += buffer.data();
 	return result;
+}
+
+int32_t ElfReader::extractGDBVersionNumber(const std::string&& versionString)
+{
+	int32_t majorVersion = 0;
+	int32_t minorVersion = 0;
+	char dot;
+
+	std::istringstream iss(versionString);
+
+	while (!isdigit(iss.peek()) && iss.peek() != EOF)
+		iss.ignore();
+
+	iss >> majorVersion;
+
+	if (iss >> dot >> minorVersion)
+		return majorVersion * 10 + minorVersion;
+	else
+		return majorVersion * 10;
 }

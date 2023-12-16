@@ -25,6 +25,8 @@ TraceViewer is not influenced by optimizations, which means it is a great tool t
 
 ## Installation
 
+First make sure you've got GDB installed and that it's at least 12.1.
+
 Linux: 
 1. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
@@ -32,7 +34,7 @@ All dependencies should be installed and you should be ready to go.
 Optional: make sure you have the rights to access usb port. When installing ST's software such as Cube Programmer it will most probably also install needed udev rules.
 
 Windows: 
-1. Make sure you've got GDB installed (v12.1 or later) and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
+1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
 2. Download and run the STMViewer installer. Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
 
 You can assign the external GPU to STMViewer for improved performance. 
