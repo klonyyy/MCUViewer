@@ -516,15 +516,9 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == AcqusitionWindowType::VARIABLE)
-		{
 			acqusitionSettingsViewer();
-			ImGui::EndTabItem();
-		}
-		if (type == AcqusitionWindowType::TRACE)
-		{
+		else if (type == AcqusitionWindowType::TRACE)
 			acqusitionSettingsTrace();
-			ImGui::EndTabItem();
-		}
 
 		const float buttonHeight = 25.0f;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
