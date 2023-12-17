@@ -137,7 +137,7 @@ class Statistics
 
 		for (i = start; i <= end; i++)
 		{
-			if (lastState != data[i])
+			if (lastState != data[i] && timeStart < time[i])
 			{
 				if (data[i] > 0.0)
 					Lvec.push_back(time[i] - timeStart);
