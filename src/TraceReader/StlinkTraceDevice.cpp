@@ -35,7 +35,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 	}
 
 	if (shouldReset)
-		stlink_reset(sl, RESET_AUTO);
+		stlink_reset(sl, RESET_SOFT);
 
 	/* turn on DWT and ITM */
 	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
