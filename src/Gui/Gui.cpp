@@ -688,12 +688,16 @@ void Gui::acqusitionSettingsTrace()
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+	if (settings.maxPoints == 0)
+		settings.maxPoints = 10000;
 	settings.maxPoints = std::clamp(settings.maxPoints, static_cast<uint32_t>(100), static_cast<uint32_t>(20000));
 
 	ImGui::Text("Viewport width in percent [0 - 100]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
+	if (settings.maxViewportPointsPercent == 0)
+		settings.maxViewportPointsPercent = 50;
 	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
 	tracePlotHandler->setSettings(settings);
