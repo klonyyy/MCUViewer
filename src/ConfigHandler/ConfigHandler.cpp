@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <random>
+#include <variant>
 
 ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::shared_ptr<spdlog::logger> logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)
 {
@@ -33,17 +34,39 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	globalSettings.version = atoi(ini->get("settings").get("version").c_str());
-	viewerSettings.samplePeriod = atoi(ini->get("settings").get("sample_period").c_str());
-	viewerSettings.maxPoints = atoi(ini->get("settings").get("max_points").c_str());
-	viewerSettings.maxViewportPoints = atoi(ini->get("settings").get("max_viewport_points").c_str());
+	auto getValue = [&](std::string&& category, std::string&& field, auto&& result)
+	{
+		try
+		{
+			std::string value = ini->get(category).get(field);
+			parseValue(value, result);
+		}
+		catch (const std::exception& ex)
+		{
+			logger->error("{}", ex.what());
+		}
+	};
 
-	traceSettings.coreFrequency = atoi(ini->get("trace_settings").get("core_frequency").c_str());
-	traceSettings.tracePrescaler = atoi(ini->get("trace_settings").get("trace_prescaler").c_str());
-	traceSettings.maxPoints = atoi(ini->get("trace_settings").get("max_points").c_str());
-	traceSettings.maxViewportPointsPercent = atoi(ini->get("trace_settings").get("max_viewport_points_percent").c_str());
-	traceSettings.triggerChannel = atoi(ini->get("trace_settings").get("trigger_channel").c_str());
-	traceSettings.triggerLevel = atof(ini->get("trace_settings").get("trigger_level").c_str());
+	getValue("settings", "version", globalSettings.version);
+	getValue("settings", "sample_period", viewerSettings.samplePeriod);
+	getValue("settings", "max_points", viewerSettings.maxPoints);
+	getValue("settings", "max_viewport_points", viewerSettings.maxViewportPoints);
+
+	getValue("trace_settings", "core_frequency", traceSettings.coreFrequency);
+	getValue("trace_settings", "trace_prescaler", traceSettings.tracePrescaler);
+	getValue("trace_settings", "max_points", traceSettings.maxPoints);
+	getValue("trace_settings", "max_viewport_points_percent", traceSettings.maxViewportPointsPercent);
+	getValue("trace_settings", "trigger_channel", traceSettings.triggerChannel);
+	getValue("trace_settings", "trigger_level", traceSettings.triggerLevel);
+
+	if (traceSettings.maxViewportPointsPercent == 0 && traceSettings.maxPoints == 0)
+		traceSettings.triggerChannel = -1;
+
+	if (traceSettings.maxViewportPointsPercent == 0)
+		traceSettings.maxViewportPointsPercent = 50;
+
+	if (traceSettings.maxPoints == 0)
+		traceSettings.maxPoints = 10000;
 
 	if (viewerSettings.samplePeriod == 0)
 		viewerSettings.samplePeriod = 10;
