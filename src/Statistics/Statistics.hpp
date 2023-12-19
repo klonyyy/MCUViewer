@@ -39,10 +39,10 @@ class Statistics
 	{
 		auto data = ser->buffer->getLinearData(time->getIndexFromvalue(start) + 1, time->getIndexFromvalue(end) + 1);
 		std::vector<double> timeData = time->getLinearData(time->getIndexFromvalue(start) + 1, time->getIndexFromvalue(end) + 1);
-
 		std::vector<double> Lvec, Hvec;
 
-		convertDigitalSeriesToVectors(timeData, data, Lvec, Hvec);
+		if (!convertDigitalSeriesToVectors(timeData, data, Lvec, Hvec))
+			return;
 
 		results.Lmin = findmin(Lvec);
 		results.Lmax = findmax(Lvec);
@@ -115,12 +115,15 @@ class Statistics
 		return std::sqrt(variance);
 	}
 
-	static void convertDigitalSeriesToVectors(std::vector<double> time, std::vector<double> data, std::vector<double>& Lvec, std::vector<double>& Hvec)
+	static bool convertDigitalSeriesToVectors(std::vector<double> time, std::vector<double> data, std::vector<double>& Lvec, std::vector<double>& Hvec)
 	{
 		/* find the first and last signal change */
 		size_t start = 0;
 		size_t end = time.size() - 1;
 		size_t i = 1;
+
+		if (data.empty() || time.empty())
+			return false;
 
 		while (data[i] == data[0] && i < data.size())
 			i++;
@@ -148,6 +151,8 @@ class Statistics
 				lastState = data[i];
 			}
 		}
+
+		return true;
 	}
 };
 
