@@ -1,6 +1,8 @@
 #ifndef _STLINKHANDLER_HPP
 #define _STLINKHANDLER_HPP
 
+#include <string>
+
 #include "ITargetMemoryHandler.hpp"
 #include "stlink.h"
 

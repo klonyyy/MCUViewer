@@ -1,7 +1,10 @@
 #ifndef _NFDFILEHANDLER_HPP
 #define _NFDFILEHANDLER_HPP
 
-#include <IFileHandler.hpp>
+#include <string>
+#include <utility>
+
+#include "IFileHandler.hpp"
 
 class NFDFileHandler : public IFileHandler
 {

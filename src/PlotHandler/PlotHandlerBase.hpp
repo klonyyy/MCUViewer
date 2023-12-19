@@ -41,7 +41,7 @@ class PlotHandlerBase
 	{
 	   public:
 		using iterator_category = std::forward_iterator_tag;
-		iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter);
+		explicit iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter);
 		iterator& operator++();
 		iterator operator++(int);
 		bool operator==(const iterator& other) const;

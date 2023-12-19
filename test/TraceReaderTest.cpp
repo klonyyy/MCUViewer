@@ -16,7 +16,7 @@ class TraceDeviceMock : public ITraceDevice
    public:
 	TraceDeviceMock(){};
 
-	MOCK_METHOD(bool, startTrace, (uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask), (override));
+	MOCK_METHOD(bool, startTrace, (uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset), (override));
 	MOCK_METHOD(bool, stopTrace, (), (override));
 	MOCK_METHOD(int32_t, readTraceBuffer, (uint8_t * buffer, uint32_t size), (override));
 };
@@ -35,7 +35,7 @@ class TraceReaderTest : public ::testing::Test
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
 		traceReader = std::make_shared<TraceReader>(traceDevice, logger);
 
-		ON_CALL(*traceDevice, startTrace(_, _, _)).WillByDefault(Return(true));
+		ON_CALL(*traceDevice, startTrace(_, _, _, _)).WillByDefault(Return(true));
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
 
 		for (auto& el : activeChannels)

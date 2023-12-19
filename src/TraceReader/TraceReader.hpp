@@ -1,12 +1,14 @@
 #ifndef _ITRACEREADER_HPP
 #define _ITRACEREADER_HPP
 
+#include <map>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ITraceDevice.hpp"
 #include "RingBuffer.hpp"
-#include "map"
 #include "spdlog/spdlog.h"
 
 class TraceReader
@@ -20,12 +22,13 @@ class TraceReader
 		uint32_t delayedTimestamp1;
 		uint32_t delayedTimestamp2;
 		uint32_t delayedTimestamp3;
+		uint32_t delayedTimestamp3InView;
 		uint32_t sleepCycles;
 	};
 
 	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
 
-	bool startAcqusition(std::array<bool, 32>& activeChannels);
+	bool startAcqusition(const std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
 	bool isValid() const;
 
@@ -37,6 +40,7 @@ class TraceReader
 	uint32_t getCoreClockFrequency() const;
 	void setTraceFrequency(uint32_t frequencyHz);
 	uint32_t getTraceFrequency() const;
+	void setTraceShouldReset(bool shouldReset);
 	TraceIndicators getTraceIndicators() const;
 
    private:
@@ -72,6 +76,7 @@ class TraceReader
 
 	uint32_t coreFrequency = 160000;
 	uint32_t tracePrescaler = 10;
+	bool shouldReset = false;
 
 	std::atomic<bool> isRunning{false};
 	std::string lastErrorMsg = "";

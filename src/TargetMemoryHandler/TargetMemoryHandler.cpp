@@ -1,6 +1,7 @@
 #include "TargetMemoryHandler.hpp"
 
 #include <map>
+#include <memory>
 
 #include "iostream"
 
@@ -19,12 +20,12 @@ bool TargetMemoryHandler::stop() const
 
 double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 {
-	volatile uint32_t value = 0;
+	uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!memoryHandler->readMemory(address, (uint32_t*)&value))
+	if (!memoryHandler->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
 		return 0.0;
 
 	if (type == Variable::type::I8 || type == Variable::type::U8)
@@ -51,9 +52,7 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 	}
 	else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
 	{
-		if (shouldShift == 0)
-			value = value;
-		else if (shouldShift == 1)
+		if (shouldShift == 1)
 			value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
 		else if (shouldShift == 2)
 			value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
@@ -61,24 +60,25 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 			value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
 	}
 
-	if (type == Variable::type::U8)
-		return (double)*(uint8_t*)&value;
-	else if (type == Variable::type::I8)
-		return (double)*(int8_t*)&value;
-	else if (type == Variable::type::U16)
-		return (double)*(uint16_t*)&value;
-	else if (type == Variable::type::I16)
-		return (double)*(int16_t*)&value;
-	else if (type == Variable::type::U32)
-		return (double)*(uint32_t*)&value;
-	else if (type == Variable::type::I32)
-		return (double)*(int32_t*)&value;
-	else if (type == Variable::type::F32)
-		return (double)*(float*)&value;
-	else if (type == Variable::type::UNKNOWN)
-		return (double)*(uint32_t*)&value;
-
-	return 0.0;
+	switch (type)
+	{
+		case Variable::type::U8:
+			return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
+		case Variable::type::I8:
+			return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
+		case Variable::type::U16:
+			return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
+		case Variable::type::I16:
+			return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
+		case Variable::type::U32:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+		case Variable::type::I32:
+			return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
+		case Variable::type::F32:
+			return static_cast<double>(*reinterpret_cast<float*>(&value));
+		default:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+	}
 }
 
 bool TargetMemoryHandler::setValue(const Variable& var, double value)
@@ -115,7 +115,7 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 		case Variable::type::F32:
 		{
 			float valf = static_cast<float>(value);
-			uint32_t val = *(uint32_t*)&valf;
+			uint32_t val = *reinterpret_cast<uint32_t*>(&valf);
 			return prepareBufferAndWrite(val, buf);
 		}
 		default:

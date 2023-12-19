@@ -1,5 +1,9 @@
 #include "TracePlotHandler.hpp"
 
+#include <algorithm>
+#include <memory>
+#include <string>
+
 #include "TraceReader.hpp"
 
 TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
@@ -43,6 +47,7 @@ void TracePlotHandler::setSettings(const Settings& settings)
 {
 	traceReader->setCoreClockFrequency(settings.coreFrequency);
 	traceReader->setTraceFrequency(settings.tracePrescaler);
+	traceReader->setTraceShouldReset(settings.shouldReset);
 	setMaxPoints(settings.maxPoints);
 	traceSettings = settings;
 }
@@ -50,13 +55,25 @@ void TracePlotHandler::setSettings(const Settings& settings)
 TraceReader::TraceIndicators TracePlotHandler::getTraceIndicators() const
 {
 	auto indicators = traceReader->getTraceIndicators();
-	indicators.errorFramesInView = errorFrameTimestamps.size();
+	indicators.errorFramesInView = errorFrames.size();
+	indicators.delayedTimestamp3InView = delayed3Frames.size();
 	return indicators;
+}
+
+std::vector<double> TracePlotHandler::getErrorTimestamps()
+{
+	return errorFrames.getVector();
+}
+
+std::vector<double> TracePlotHandler::getDelayed3Timestamps()
+{
+	return delayed3Frames.getVector();
 }
 
 std::string TracePlotHandler::getLastReaderError() const
 {
-	return traceReader->getLastErrorMsg();
+	auto traceReaderMsg = traceReader->getLastErrorMsg();
+	return traceReaderMsg.empty() ? lastErrorMsg : traceReaderMsg;
 }
 
 void TracePlotHandler::setTriggerChannel(int32_t triggerChannel)
@@ -75,24 +92,25 @@ double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 		return value == 0xaa ? 1.0 : 0.0;
 	else if (plot.getDomain() == Plot::Domain::ANALOG)
 	{
-		auto type = plot.getTraceVarType();
-
-		if (type == Plot::TraceVarType::U8)
-			return (double)*(uint8_t*)&value;
-		else if (type == Plot::TraceVarType::I8)
-			return (double)*(int8_t*)&value;
-		else if (type == Plot::TraceVarType::U16)
-			return (double)*(uint16_t*)&value;
-		else if (type == Plot::TraceVarType::I16)
-			return (double)*(int16_t*)&value;
-		else if (type == Plot::TraceVarType::U32)
-			return (double)*(uint32_t*)&value;
-		else if (type == Plot::TraceVarType::I32)
-			return (double)*(int32_t*)&value;
-		else if (type == Plot::TraceVarType::F32)
-			return (double)*(float*)&value;
-		else
-			return (double)*(uint32_t*)&value;
+		switch (plot.getTraceVarType())
+		{
+			case Plot::TraceVarType::U8:
+				return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
+			case Plot::TraceVarType::I8:
+				return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
+			case Plot::TraceVarType::U16:
+				return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
+			case Plot::TraceVarType::I16:
+				return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
+			case Plot::TraceVarType::U32:
+				return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+			case Plot::TraceVarType::I32:
+				return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
+			case Plot::TraceVarType::F32:
+				return static_cast<double>(*reinterpret_cast<float*>(&value));
+			default:
+				return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+		}
 	}
 
 	return 0.0;
@@ -101,6 +119,7 @@ double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 void TracePlotHandler::dataHandler()
 {
 	uint32_t cnt = 0;
+	double time = 0.0;
 
 	while (!done)
 	{
@@ -118,20 +137,15 @@ void TracePlotHandler::dataHandler()
 			if (!traceReader->readTrace(timestamp, traces))
 				continue;
 
-			uint32_t i = 0;
-
 			time += timestamp;
 
 			double oldestTimestamp = plotsMap.begin()->second->getTimeSeries().getOldestValue();
+			auto indicators = traceReader->getTraceIndicators();
 
-			if (errorFrameSinceLastPoint != traceReader->getTraceIndicators().errorFramesTotal)
-				errorFrameTimestamps.push_back(time);
+			errorFrames.handle(time, oldestTimestamp, indicators.errorFramesTotal);
+			delayed3Frames.handle(time, oldestTimestamp, indicators.delayedTimestamp3);
 
-			while (errorFrameTimestamps.size() && errorFrameTimestamps.front() < oldestTimestamp)
-				errorFrameTimestamps.pop_front();
-
-			errorFrameSinceLastPoint = traceReader->getTraceIndicators().errorFramesTotal;
-
+			uint32_t i = 0;
 			for (auto& [key, plot] : plotsMap)
 			{
 				if (!plot->getVisibility())
@@ -160,14 +174,30 @@ void TracePlotHandler::dataHandler()
 			if (traceTriggered && cnt++ >= (traceSettings.maxPoints * 0.9))
 			{
 				logger->info("After-trigger trace collcted. Stopping.");
-				viewerState.store(state::STOP);
-				stateChangeOrdered.store(true);
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
+			}
+
+			if (errorFrames.size() > maxAllowedViewportErrors)
+			{
+				lastErrorMsg = "Too many error frames!";
+				logger->error("Too many error frames. Please modify your clock and prescaler settings. Stopping.");
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
+			}
+
+			if (delayed3Frames.size() > maxAllowedViewportErrors)
+			{
+				lastErrorMsg = "Too many delayed timestamp 3 frames!";
+				logger->error("Too many delayed timestamp 3 frames. Please modify your clock and prescaler settings or limit the logged channels. Stopping.");
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
 			}
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-		if (stateChangeOrdered.load())
+		if (stateChangeOrdered)
 		{
 			if (viewerState == state::RUN)
 			{
@@ -177,8 +207,9 @@ void TracePlotHandler::dataHandler()
 				for (auto& [key, plot] : plotsMap)
 					activeChannels[i++] = plot->getVisibility();
 
-				errorFrameTimestamps.clear();
-				errorFrameSinceLastPoint = 0;
+				errorFrames.reset();
+				delayed3Frames.reset();
+				lastErrorMsg = "";
 
 				if (traceReader->startAcqusition(activeChannels))
 					time = 0;

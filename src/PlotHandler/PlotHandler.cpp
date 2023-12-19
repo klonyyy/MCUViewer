@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
+#include <string>
 
 PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
 {

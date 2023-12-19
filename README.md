@@ -14,7 +14,7 @@ The only piece of hardware required is an ST-Link programmer.
 
 Variable Viewer can be used to visualize your embedded application data in real time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using the ST-link programmer debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
 
-Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or very fast-changing signals.
+Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or high frequency signals.
 
 ### Trace Viewer 
 ![_](./docs/TraceViewer.gif)
@@ -25,6 +25,8 @@ TraceViewer is not influenced by optimizations, which means it is a great tool t
 
 ## Installation
 
+First make sure you've got GDB installed and that it's at least 12.1.
+
 Linux: 
 1. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
@@ -32,7 +34,7 @@ All dependencies should be installed and you should be ready to go.
 Optional: make sure you have the rights to access usb port. When installing ST's software such as Cube Programmer it will most probably also install needed udev rules.
 
 Windows: 
-1. Make sure you've got GDB installed (v12.1 or later) and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
+1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
 2. Download and run the STMViewer installer. Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
 
 You can assign the external GPU to STMViewer for improved performance. 
@@ -68,7 +70,7 @@ or
 
 ```
 uint16_t a = getAdcSample();       // some super fast signal to trace
-ITM->PORT[x].u16 = a;              // type-punn to desired size
+ITM->PORT[x].u16 = a;              
 ```
 
 The ITM registers are defined in CMSIS headers so no additional includes should be necessary.

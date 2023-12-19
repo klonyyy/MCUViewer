@@ -73,8 +73,19 @@ void Gui::drawSettingsSwo()
 
 	ImGui::Text("trigger level          ");
 	ImGui::SameLine();
+
+	for (auto plt : *tracePlotHandler)
+		if (plt->trigger.getState())
+			settings.triggerLevel = plt->trigger.getValue();
+
 	drawInputText("##level", settings.triggerLevel, [&](std::string str)
 				  { settings.triggerLevel = std::stod(str); });
+
+	static bool shouldReset = false;
+	ImGui::Text("should reset           ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##rst", &shouldReset);
+	settings.shouldReset = shouldReset;
 
 	if (state != PlotHandlerBase::state::STOP)
 		ImGui::EndDisabled();
@@ -92,40 +103,29 @@ void Gui::drawIndicatorsSwo()
 
 	auto indicators = tracePlotHandler->getTraceIndicators();
 
-	ImGui::Text("frames total:           ");
-	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.framesTotal)).c_str());
-
-	ImGui::Text("sleep cycles:           ");
-	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.sleepCycles)).c_str());
-
-	ImGui::Text("error frames total:     ");
-	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.errorFramesTotal)).c_str());
+	drawDescriptionWithNumber("frames total:           ", indicators.framesTotal);
+	drawDescriptionWithNumber("sleep cycles:           ", indicators.sleepCycles);
+	drawDescriptionWithNumber("error frames total:     ", indicators.errorFramesTotal);
 
 	const char* inView = "error frames in view:   ";
 	if (indicators.errorFramesInView > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), inView);
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", inView);
 	else
-		ImGui::Text(inView);
+		ImGui::Text("%s", inView);
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.errorFramesInView)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.errorFramesInView)).c_str());
 
-	ImGui::Text("delayed timestamp 1:    ");
-	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.delayedTimestamp1)).c_str());
-	ImGui::Text("delayed timestamp 2:    ");
-	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.delayedTimestamp2)).c_str());
+	drawDescriptionWithNumber("delayed timestamp 1:    ", indicators.delayedTimestamp1);
+	drawDescriptionWithNumber("delayed timestamp 2:    ", indicators.delayedTimestamp2);
+	drawDescriptionWithNumber("delayed timestamp 3:    ", indicators.delayedTimestamp3);
 
-	const char* timestampDelayed3 = "delayed timestamp 3:    ";
-	if (indicators.delayedTimestamp3 > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), timestampDelayed3);
+	const char* timestampDelayed3inView = "delayed timestamp 3 in view:    ";
+	if (indicators.delayedTimestamp3InView > 0)
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", timestampDelayed3inView);
 	else
-		ImGui::Text(timestampDelayed3);
+		ImGui::Text("%s", timestampDelayed3inView);
 	ImGui::SameLine();
-	ImGui::Text((std::to_string(indicators.delayedTimestamp3)).c_str());
+	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp3InView)).c_str());
 }
 
 void Gui::drawPlotsTreeSwo()
@@ -144,11 +144,14 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
 
 	auto state = tracePlotHandler->getViewerState();
+	int32_t iter = 0;
 
 	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
 	{
 		std::string name = plt->getName();
 		std::string alias = plt->getAlias();
+
+		plt->trigger.setState(tracePlotHandler->getSettings().triggerChannel == iter++);
 
 		if (state == PlotHandlerBase::state::RUN)
 			ImGui::BeginDisabled();
@@ -177,7 +180,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Text("alias      ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getAlias().c_str());
-	ImGui::InputText("##input", &newAlias, 0, NULL, NULL);
+	ImGui::InputText("##input", &newAlias, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL);
 	ImGui::Text("domain     ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &domainCombo, plotDomains, IM_ARRAYSIZE(plotDomains));
@@ -186,13 +189,17 @@ void Gui::drawPlotsTreeSwo()
 		ImGui::Text("type       ");
 		ImGui::SameLine();
 		ImGui::Combo("##combo2", &traceVarTypeCombo, traceVarTypes, IM_ARRAYSIZE(traceVarTypes));
+		drawStatisticsAnalog(plt);
 	}
-	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->getMarkerStateX0();
+	else
+		drawStatisticsDigital(plt);
+
+	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->markerX0.getState();
 	ImGui::Text("markers    ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);
-	plt->setMarkerStateX0(mx0);
-	plt->setMarkerStateX1(mx0);
+	plt->markerX0.setState(mx0);
+	plt->markerX1.setState(mx0);
 	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
@@ -205,7 +212,7 @@ void Gui::drawPlotsTreeSwo()
 	if ((traceVarTypeCombo) != (int32_t)plt->getTraceVarType())
 		plt->setTraceVarType(static_cast<Plot::TraceVarType>(traceVarTypeCombo));
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newAlias != plt->getAlias())
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newAlias != plt->getAlias())
 	{
 		plt->setAlias(newAlias);
 	}

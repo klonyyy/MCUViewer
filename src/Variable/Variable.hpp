@@ -1,7 +1,9 @@
 #ifndef __VARIABLE_HPP
 #define __VARIABLE_HPP
 
+#include <cstdint>
 #include <string>
+
 class Variable
 {
    public:
@@ -26,7 +28,7 @@ class Variable
 		float a;
 	};
 
-	Variable(std::string name);
+	explicit Variable(std::string name);
 	Variable(std::string name, type type, double value);
 
 	void setType(type varType);

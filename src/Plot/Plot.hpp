@@ -5,10 +5,13 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
+#include <vector>
 
 #include "ScrollingBuffer.hpp"
 #include "Variable.hpp"
+
 class Plot
 {
    public:
@@ -24,12 +27,6 @@ class Plot
 		displayFormat format = displayFormat::DEC;
 		std::unique_ptr<ScrollingBuffer<double>> buffer;
 		bool visible = true;
-	};
-
-	struct Marker
-	{
-		bool state = false;
-		double value = 0.0f;
 	};
 
 	enum class Type : uint8_t
@@ -56,7 +53,53 @@ class Plot
 		F32 = 6
 	};
 
-	Plot(std::string name);
+	class DragRect
+	{
+	   public:
+		bool getState() const { return state; }
+		void setState(bool newState) { state = newState; }
+
+		double getValueX0() const { return std::min(rect.x0, rect.x1); }
+		double getValueX1() const { return std::max(rect.x0, rect.x1); }
+
+		void setValueX0(double newX0) { rect.x0 = newX0; }
+		void setValueX1(double newX1) { rect.x1 = newX1; }
+
+	   private:
+		bool state = false;
+
+		struct Rect
+		{
+			double x0;
+			double x1;
+			double y0;
+			double y1;
+		} rect{};
+	};
+
+	class Marker
+	{
+	   public:
+		Marker() : state(false), value(0.0) {}
+
+		bool getState() const { return state; }
+		void setState(bool newState) { state = newState; }
+
+		double getValue() const { return value; }
+		void setValue(double newValue) { value = newValue; }
+
+	   private:
+		bool state;
+		double value;
+	};
+
+	Marker markerX0{};
+	Marker markerX1{};
+	Marker trigger{};
+
+	DragRect stats{};
+
+	explicit Plot(std::string name);
 	void setName(const std::string& newName);
 	std::string getName() const;
 	std::string& getNameVar();
@@ -77,16 +120,6 @@ class Plot
 	bool getVisibility() const;
 	bool& getVisibilityVar();
 
-	bool getMarkerStateX0();
-	void setMarkerStateX0(bool state);
-	double getMarkerValueX0();
-	void setMarkerValueX0(double value);
-
-	bool getMarkerStateX1();
-	void setMarkerStateX1(bool state);
-	double getMarkerValueX1();
-	void setMarkerValueX1(double value);
-
 	void setType(Type newType);
 	Type getType() const;
 
@@ -103,6 +136,8 @@ class Plot
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
 	std::string getSeriesValueString(const std::string& name, double value);
+
+	int32_t statisticsSeries = 0;
 
    private:
 	std::string name;

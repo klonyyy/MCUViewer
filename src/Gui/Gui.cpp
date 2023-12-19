@@ -4,13 +4,16 @@
 
 #include <random>
 #include <sstream>
+#include <string>
+#include <utility>
 
-#include "../gitversion.hpp"
 #include "ElfReader.hpp"
 #include "PlotHandlerBase.hpp"
+#include "Statistics.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -88,6 +91,7 @@ void Gui::mainThread()
 
 		drawMenu();
 		drawAboutWindow();
+		drawPreferencesWindow();
 
 		if (ImGui::Begin("Trace Viewer"))
 		{
@@ -115,6 +119,8 @@ void Gui::mainThread()
 			ImGui::End();
 		}
 		ImGui::End();
+
+		popup.handle();
 
 		// Rendering
 		ImGui::Render();
@@ -179,6 +185,11 @@ void Gui::drawMenu()
 		ImGui::MenuItem("Acquisition settings...", NULL, &showAcqusitionSettingsWindow, active);
 		ImGui::EndMenu();
 	}
+	if (ImGui::BeginMenu("Window"))
+	{
+		ImGui::MenuItem("Preferences", NULL, &showPreferencesWindow, active);
+		ImGui::EndMenu();
+	}
 	if (ImGui::BeginMenu("Help"))
 	{
 		ImGui::MenuItem("About", NULL, &showAboutWindow, active);
@@ -229,11 +240,10 @@ void Gui::drawAddVariableButton()
 	if (ImGui::Button("Add variable", ImVec2(-1, 25)))
 	{
 		uint32_t num = 0;
-		while (vars.find(std::string(" new") + std::to_string(num)) != vars.end())
-		{
+		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
 			num++;
-		}
-		std::string newName = std::string(" new") + std::to_string(num);
+
+		std::string newName = std::string("-new") + std::to_string(num);
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
 		std::random_device rd{};
@@ -246,8 +256,12 @@ void Gui::drawAddVariableButton()
 }
 void Gui::drawUpdateAddressesFromElf()
 {
-	if (ImGui::Button("Update Variable addresses", ImVec2(-1, 25)))
-		elfReader->updateVariableMap(vars);
+	bool success = false;
+	if (ImGui::Button("Update variable addresses", ImVec2(-1, 25)))
+		success = elfReader->updateVariableMap(vars);
+
+	if (success)
+		popup.show("Info", "Updating successful!", 0.65f);
 }
 
 void Gui::drawVarTable()
@@ -282,7 +296,7 @@ void Gui::drawVarTable()
 			char variable[maxVariableNameLength] = {0};
 			std::memcpy(variable, var->getName().data(), (var->getName().length()));
 			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
-			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0))
 			{
 				auto varr = vars.extract(var->getName());
 				varr.key() = std::string(variable);
@@ -303,11 +317,11 @@ void Gui::drawVarTable()
 			}
 			ImGui::TableSetColumnIndex(1);
 			if (var->getIsFound() == true)
-				ImGui::Text(("0x" + std::string(intToHexString(var->getAddress()))).c_str());
+				ImGui::Text("%s", ("0x" + std::string(intToHexString(var->getAddress()))).c_str());
 			else
 				ImGui::Text("NOT FOUND!");
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text(var->getTypeStr().c_str());
+			ImGui::Text("%s", var->getTypeStr().c_str());
 		}
 		if (varNameToDelete.has_value())
 		{
@@ -417,27 +431,33 @@ void Gui::drawPlotsTree()
 	std::string newName = plt->getName();
 	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
-	ImGui::Text("name      ");
+	ImGui::Text("name       ");
 	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
 	ImGui::InputText("##input", &newName, 0, NULL, NULL);
-	ImGui::Text("type      ");
+	ImGui::Text("type       ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
-	bool mx0 = plt->getMarkerStateX0();
-	bool mx1 = plt->getMarkerStateX1();
-	ImGui::Text("x0 marker ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##mx0", &mx0);
-	plt->setMarkerStateX0(mx0);
-	ImGui::Text("x1 marker ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##mx1", &mx1);
-	plt->setMarkerStateX1(mx1);
+	/* Staticstics */
+	if (typeCombo == 0)
+	{
+		bool mx0 = plt->markerX0.getState();
+		bool mx1 = plt->markerX1.getState();
+		ImGui::Text("x0 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx0", &mx0);
+		plt->markerX0.setState(mx0);
+		ImGui::Text("x1 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx1", &mx1);
+		plt->markerX1.setState(mx1);
+		drawStatisticsAnalog(plt);
+	}
 	ImGui::PopID();
 
+	/* Var list within plot*/
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, 190)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 175)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
@@ -472,12 +492,16 @@ void Gui::drawPlotsTree()
 	if (typeCombo != (int32_t)plt->getType())
 		plt->setType(static_cast<Plot::Type>(typeCombo));
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && newName != plt->getName())
+	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newName != plt->getName())
 	{
-		plotHandler->renamePlot(plt->getName(), newName);
-		selected = newName;
+		if (!plotHandler->checkIfPlotExists(std::move(newName)))
+		{
+			plotHandler->renamePlot(plt->getName(), newName);
+			selected = newName;
+		}
+		else
+			popup.show("Error", "Plot already exists!", 1.5f);
 	}
-
 	if (plotNameToDelete.has_value())
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
@@ -492,15 +516,9 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == AcqusitionWindowType::VARIABLE)
-		{
 			acqusitionSettingsViewer();
-			ImGui::EndTabItem();
-		}
-		if (type == AcqusitionWindowType::TRACE)
-		{
+		else if (type == AcqusitionWindowType::TRACE)
 			acqusitionSettingsTrace();
-			ImGui::EndTabItem();
-		}
 
 		const float buttonHeight = 25.0f;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
@@ -530,65 +548,135 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
 	static int one = 1;
 	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
+	settings.samplePeriod = std::clamp(settings.samplePeriod, static_cast<uint32_t>(0), static_cast<uint32_t>(1000));
 
+	const uint32_t minPoints = 100;
+	const uint32_t maxPoints = 20000;
 	ImGui::Text("Max points [100 - 20000]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
 
 	ImGui::Text("Max viewport points [100 - 20000]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
+	settings.maxViewportPoints = std::clamp(settings.maxViewportPoints, minPoints, settings.maxPoints);
 
 	plotHandler->setSettings(settings);
 }
 
-void Gui::drawAboutWindow()
+void Gui::drawPreferencesWindow()
 {
-	if (showAboutWindow)
-		ImGui::OpenPopup("About");
+	if (showPreferencesWindow)
+		ImGui::OpenPopup("Preferences");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize(ImVec2(500, 250));
-	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
+	if (ImGui::BeginPopupModal("Preferences", &showPreferencesWindow, 0))
 	{
-		drawCenteredText("STMViewer");
-		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
-		drawCenteredText(std::move(line2));
-		drawCenteredText(std::move(std::string(GIT_HASH)));
-		ImGui::SameLine();
-		const bool copy = ImGui::SmallButton("copy");
-		if (copy)
-		{
-			ImGui::LogToClipboard();
-			ImGui::LogText(GIT_HASH);
-			ImGui::LogFinish();
-		}
+		ImGuiIO& io = ImGui::GetIO();
 
-		ImGui::Dummy(ImVec2(-1, 20));
-		drawCenteredText("by Piotr Wasilewski (klonyyy)");
-		ImGui::Dummy(ImVec2(-1, 20));
+		ImGui::DragFloat("font size", &io.FontGlobalScale, 0.005f, 0.8f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
 		const float buttonHeight = 25.0f;
-
-		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210) / 2.0f);
-
-		if (ImGui::Button("Releases", ImVec2(100, buttonHeight)))
-			openWebsite("https://github.com/klonyyy/STMViewer/releases");
-		ImGui::SameLine();
-		if (ImGui::Button("Support <3", ImVec2(100, buttonHeight)))
-			openWebsite("https://github.com/sponsors/klonyyy");
-
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
-			showAboutWindow = false;
+			showPreferencesWindow = false;
 			ImGui::CloseCurrentPopup();
 		}
-
 		ImGui::EndPopup();
 	}
+}
+
+void Gui::drawStatisticsAnalog(std::shared_ptr<Plot> plt)
+{
+	std::vector<std::string> serNames{"OFF"};
+	for (auto& [name, ser] : plt->getSeriesMap())
+		serNames.push_back(name);
+
+	ImGui::Text("statistics ");
+	ImGui::SameLine();
+	ImGui::Combo("##stats", &plt->statisticsSeries, serNames);
+
+	if (plt->statisticsSeries != 0)
+	{
+		static bool selectRange = false;
+		ImGui::Begin("Statistics");
+
+		auto ser = plt->getSeries(serNames[plt->statisticsSeries]);
+
+		ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+		ImGui::SameLine();
+		ImGui::Text("%s", ser->var->getName().c_str());
+
+		ImGui::Text("select range: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectrange", &selectRange);
+
+		plt->stats.setState(selectRange);
+
+		Statistics::AnalogResults results;
+		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		drawDescriptionWithNumber("min:     ", results.min);
+		drawDescriptionWithNumber("max:     ", results.max);
+		drawDescriptionWithNumber("mean:    ", results.mean);
+		drawDescriptionWithNumber("stddev:  ", results.stddev);
+		ImGui::End();
+	}
+	else
+		plt->stats.setState(false);
+}
+
+void Gui::drawStatisticsDigital(std::shared_ptr<Plot> plt)
+{
+	std::vector<std::string> serNames{"OFF"};
+	for (auto& [name, ser] : plt->getSeriesMap())
+		serNames.push_back(name);
+
+	ImGui::Text("statistics ");
+	ImGui::SameLine();
+	ImGui::Combo("##stats", &plt->statisticsSeries, serNames);
+
+	if (plt->statisticsSeries != 0)
+	{
+		static bool selectRange = false;
+		ImGui::Begin("Statistics");
+
+		auto ser = plt->getSeries(serNames[plt->statisticsSeries]);
+
+		ImGui::ColorEdit4("##", &ser->var->getColor().r, ImGuiColorEditFlags_NoInputs);
+		ImGui::SameLine();
+		ImGui::Text("%s", ser->var->getName().c_str());
+
+		ImGui::Text("select range: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectrange", &selectRange);
+
+		plt->stats.setState(selectRange);
+
+		Statistics::DigitalResults results;
+		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+
+		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		drawDescriptionWithNumber("Lmin:    ", results.Lmin);
+		drawDescriptionWithNumber("Lmax:    ", results.Lmax);
+		drawDescriptionWithNumber("Hmin:    ", results.Hmin);
+		drawDescriptionWithNumber("Hmax:    ", results.Hmax);
+		drawDescriptionWithNumber("fmin:    ", results.fmin);
+		drawDescriptionWithNumber("fmax:    ", results.fmax);
+		ImGui::End();
+	}
+	else
+		plt->stats.setState(false);
 }
 
 void Gui::acqusitionSettingsTrace()
@@ -600,11 +688,13 @@ void Gui::acqusitionSettingsTrace()
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
+	settings.maxPoints = std::clamp(settings.maxPoints, static_cast<uint32_t>(100), static_cast<uint32_t>(20000));
 
 	ImGui::Text("Viewport width in percent [0 - 100]:");
 	ImGui::SameLine();
 	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
+	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
 	tracePlotHandler->setSettings(settings);
 }
@@ -632,7 +722,7 @@ void Gui::showQuestionBox(const char* id, const char* question, std::function<vo
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(id, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text(question);
+		ImGui::Text("%s", question);
 		ImGui::Separator();
 		if (ImGui::Button("Yes", ImVec2(120, 0)))
 		{
@@ -764,8 +854,9 @@ void Gui::checkShortcuts()
 		wasSaved = saveProject();
 		if (!wasSaved)
 			saveProjectAs();
+
+		popup.show("Info", "Saving successful!", 0.65f);
 	}
-	showSavedPopup(wasSaved);
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)
@@ -775,7 +866,7 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	if (plt.getSeries(name)->var->getType() == Variable::type::F32)
 		return;
 
-	if (ImGui::BeginPopupContextItem())
+	if (ImGui::BeginPopupContextItem(name.c_str()))
 	{
 		if (ImGui::RadioButton("dec", &format, 0))
 			ImGui::CloseCurrentPopup();
@@ -789,35 +880,6 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
 }
 
-void Gui::showSavedPopup(bool show)
-{
-	static float popupTimer = 0.0f;
-	static bool wasShow = false;
-
-	if (show)
-	{
-		wasShow = true;
-		ImGui::OpenPopup("Saved");
-		popupTimer = 0.0f;
-	}
-
-	if (wasShow)
-		popupTimer += ImGui::GetIO().DeltaTime;
-
-	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal("Saved", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::Text("Saving succesful!");
-
-		if (popupTimer >= 0.65f)
-		{
-			wasShow = false;
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::EndPopup();
-	}
-}
-
 std::string Gui::intToHexString(uint32_t var)
 {
 	std::stringstream ss;
@@ -828,26 +890,5 @@ std::string Gui::intToHexString(uint32_t var)
 void Gui::drawCenteredText(std::string&& text)
 {
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
-	ImGui::Text(text.c_str());
-}
-
-bool Gui::openWebsite(const char* url)
-{
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
-#endif
-
-#ifdef _WIN32
-	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif defined _UNIX
-	const char* browser = getenv("BROWSER");
-	if (browser == NULL)
-		browser = "xdg-open";
-	char command[256];
-	snprintf(command, sizeof(command), "%s %s", browser, url);
-	system(command);
-#else
-#error "Your system is not supported!"
-#endif
-	return true;
+	ImGui::Text("%s", text.c_str());
 }

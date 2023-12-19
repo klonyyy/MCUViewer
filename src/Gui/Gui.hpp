@@ -2,8 +2,10 @@
 #define _GUI_HPP
 
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <thread>
 
 #include "ConfigHandler.hpp"
@@ -12,6 +14,7 @@
 #include "ImguiPlugins.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
+#include "Popup.hpp"
 #include "TracePlotHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
@@ -33,6 +36,7 @@ class Gui
 	std::string projectElfPath;
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
+	bool showPreferencesWindow = false;
 
 	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
@@ -40,6 +44,8 @@ class Gui
 	TracePlotHandler* tracePlotHandler;
 
 	std::atomic<bool>& done;
+
+	Popup popup;
 
 	enum class AcqusitionWindowType : uint8_t
 	{
@@ -61,11 +67,18 @@ class Gui
 	void drawAcqusitionSettingsWindow(AcqusitionWindowType type);
 	void acqusitionSettingsViewer();
 	void drawAboutWindow();
+	void drawPreferencesWindow();
+	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
+	void drawStatisticsDigital(std::shared_ptr<Plot> plt);
 	void acqusitionSettingsTrace();
+
 	void drawPlots();
 	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
 	void drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
 	void drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
+	void handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback);
+	void handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits);
+
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);
 	void askShouldSaveOnNew(bool shouldOpenPopup);
@@ -87,18 +100,19 @@ class Gui
 	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
 	{
 		std::string str = std::to_string(variable);
-
-		ImGui::InputText(id, &str, 0, NULL, NULL);
-
-		if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) && str != std::to_string(variable))
-		{
+		if (ImGui::InputText(id, &str, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL) || ImGui::IsMouseClicked(0))
 			if (valueChanged)
 				valueChanged(str);
-		}
+	}
+	template <typename T>
+	void drawDescriptionWithNumber(const char* description, T number)
+	{
+		ImGui::Text(description);
+		ImGui::SameLine();
+		ImGui::Text("%s", (std::to_string(number)).c_str());
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
-	void showSavedPopup(bool show);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
 

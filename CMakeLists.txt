@@ -18,10 +18,19 @@ endif()
 
 project(STMViewer)
 
-set(STMVIEWER_VERSION 0.2.0)
+set(STMVIEWER_VERSION 0.3.0)
 
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+if(WIN32 AND "${PLATFORM}" STREQUAL "native")
+    set(LLVM_DIR "C:/msys64/mingw64/bin")
+    set(CMAKE_PREFIX_PATH ${LLVM_DIR} ${CMAKE_PREFIX_PATH})
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+    set(CMAKE_AR "C:/msys64/mingw64/bin/llvm-ar.exe")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
@@ -71,6 +80,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
@@ -132,7 +142,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

@@ -1,12 +1,13 @@
 #include "StlinkHandler.hpp"
 
-#include <cstring>
+#include <algorithm>
+#include <string>
 
 #include "logging.h"
 
 StlinkHandler::StlinkHandler()
 {
-	init_chipids((char*)"./chips");
+	init_chipids(const_cast<char*>("./chips"));
 }
 
 bool StlinkHandler::startAcqusition()
@@ -51,7 +52,7 @@ bool StlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 {
 	if (!isRunning)
 		return false;
-	memcpy(sl->q_buf, buf, len);
+	std::copy(buf, buf + len, sl->q_buf);
 	return stlink_write_mem8(sl, address, len) == 0;
 }
 

@@ -8,7 +8,7 @@
 
 StlinkTraceDevice::StlinkTraceDevice(std::shared_ptr<spdlog::logger> logger) : logger(logger)
 {
-	init_chipids((char*)"./chips");
+	init_chipids(const_cast<char*>("./chips"));
 }
 
 bool StlinkTraceDevice::stopTrace()
@@ -24,7 +24,7 @@ bool StlinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask)
+bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
 
@@ -33,6 +33,9 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 		logger->error("Stlink not found!");
 		return false;
 	}
+
+	if (shouldReset)
+		stlink_reset(sl, RESET_SOFT);
 
 	/* turn on DWT and ITM */
 	stlink_write_debug32(sl, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
@@ -64,7 +67,7 @@ bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescal
 	stlink_write_debug32(sl, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);
 	stlink_write_debug32(sl, STLINK_REG_ITM_TCR, STLINK_REG_ITM_TCR_TRACE_BUS_ID_1 | STLINK_REG_ITM_TCR_TS_ENA | STLINK_REG_ITM_TCR_ITM_ENA);
 	stlink_write_debug32(sl, STLINK_REG_ITM_TER, activeChannelMask);
-	stlink_write_debug32(sl, STLINK_REG_ITM_TPR, activeChannelMask);
+	stlink_write_debug32(sl, STLINK_REG_ITM_TPR, 0x000F);
 
 	if (stlink_run(sl, RUN_NORMAL))
 	{

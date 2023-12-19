@@ -1,3 +1,5 @@
+#include <implot.h>
+
 #include "Gui.hpp"
 
 void Gui::drawPlotsSwo()
@@ -50,43 +52,28 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_None);
 
 		Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
-		std::string serName = ser->var->getName();
 
-		ImPlotRect plotLimits = ImPlot::GetPlotLimits();
-
-		if (plot->getMarkerStateX0())
+		if (plot->trigger.getState())
 		{
-			double markerPos = plot->getMarkerValueX0();
-			if (markerPos == 0.0)
-			{
-				markerPos = plotLimits.X.Min + ((std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
-				plot->setMarkerValueX0(markerPos);
-			}
-			ImPlot::DragLineX(0, &markerPos, ImVec4(1, 0, 1, 1));
-			plot->setMarkerValueX0(markerPos);
-
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", markerPos);
+			auto triggerLevel = plot->trigger.getValue();
+			ImPlot::DragLineY(0, &triggerLevel, ImVec4(1.0, 0.9, 0.0, 1.0), 1.0f);
+			plot->trigger.setValue(triggerLevel);
 		}
-		else
-			plot->setMarkerValueX0(0.0);
 
-		if (plot->getMarkerStateX1())
+		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
 		{
-			double markerPos = plot->getMarkerValueX1();
-			if (markerPos == 0.0)
-			{
-				markerPos = plotLimits.X.Min + (2.0f * (std::abs(plotLimits.X.Max) - std::abs(plotLimits.X.Min)) / 3.0f);
-				plot->setMarkerValueX1(markerPos);
-			}
-			ImPlot::DragLineX(1, &markerPos, ImVec4(1, 1, 0, 1));
-			plot->setMarkerValueX1(markerPos);
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", markerPos);
-			double dx = markerPos - plot->getMarkerValueX0();
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 15), true, "x1-x0 %.5f ms", dx * 1000.0);
-			ImPlot::Annotation(markerPos, plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 30), true, "1/dt %.1f Hz", 1.0 / dx);
+			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+			handleMarkers(0, plot->markerX0, plotLimits, [&]()
+						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
+			handleMarkers(1, plot->markerX1, plotLimits, [&]()
+						  {
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", plot->markerX1.getValue());
+			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 15), true, "x1-x0 %.5f ms", dx * 1000.0);
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 30), true, "1/dt %.1f Hz", 1.0 / dx); });
+
+			handleDragRect(0, plot->stats, plotLimits);
 		}
-		else
-			plot->setMarkerValueX1(0.0);
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 
@@ -99,17 +86,30 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		uint32_t size = time.getSize();
 		mtx->unlock();
 
-		const double timepoint = plot->getMarkerValueX0();
+		const double timepoint = plot->markerX0.getValue();
 		const double value = *(ser->buffer->getFirstElementCopy() + time.getIndexFromvalue(timepoint));
 
 		ImPlot::SetNextLineStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f));
 		ImPlot::SetNextFillStyle(ImVec4(ser->var->getColor().r, ser->var->getColor().g, ser->var->getColor().b, 1.0f), 0.25f);
 		ImPlot::PlotStairs(plot->getAlias().c_str(), time.getFirstElementCopy(), ser->buffer->getFirstElementCopy(), size, ImPlotStairsFlags_Shaded, offset, sizeof(double));
 
-		if (plot->getMarkerStateX0())
+		if (plot->markerX0.getState())
 		{
-			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3.0f, ImVec4(255, 255, 255, 255), 0.5f);
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 3.0f, ImVec4(1, 1, 1, 1), 0.5f);
 			ImPlot::PlotScatter("###point", &timepoint, &value, 1, false);
+		}
+
+		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
+		{
+			auto errorTimestamps = tracePlotHandler->getErrorTimestamps();
+			auto delayed3Timestamps = tracePlotHandler->getDelayed3Timestamps();
+			std::array<double, 100> values{0};
+
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Cross, 8, ImVec4(1, 0, 0, 1), 3, ImVec4(1, 0, 0, 1));
+			ImPlot::PlotScatter("###point2", errorTimestamps.data(), values.data(), errorTimestamps.size(), false);
+
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Cross, 6, ImVec4(1, 1, 0, 1), 3, ImVec4(1, 1, 0, 1));
+			ImPlot::PlotScatter("###point3", delayed3Timestamps.data(), values.data(), delayed3Timestamps.size(), false);
 		}
 
 		ImPlot::EndPlot();

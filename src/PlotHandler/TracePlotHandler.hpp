@@ -3,6 +3,9 @@
 
 #include <deque>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
@@ -21,6 +24,7 @@ class TracePlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPointsPercent = 10;
 		int32_t triggerChannel = -1;
 		double triggerLevel = 0.9;
+		bool shouldReset = false;
 	} Settings;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
@@ -32,6 +36,8 @@ class TracePlotHandler : public PlotHandlerBase
 	void setSettings(const Settings& settings);
 
 	TraceReader::TraceIndicators getTraceIndicators() const;
+	std::vector<double> getErrorTimestamps();
+	std::vector<double> getDelayed3Timestamps();
 	std::string getLastReaderError() const;
 
 	void setTriggerChannel(int32_t triggerChannel);
@@ -43,16 +49,52 @@ class TracePlotHandler : public PlotHandlerBase
 	void dataHandler();
 
    private:
+	class MarkerTimestamps
+	{
+	   public:
+		void reset()
+		{
+			timestamps.clear();
+			previousErrors = 0;
+		}
+
+		void handle(double time, double oldestTimestamp, uint32_t totalErrors)
+		{
+			if (previousErrors != totalErrors)
+				timestamps.push_back(time);
+
+			while (timestamps.size() && timestamps.front() < oldestTimestamp)
+				timestamps.pop_front();
+			previousErrors = totalErrors;
+		}
+
+		size_t size() const
+		{
+			return timestamps.size();
+		}
+
+		auto getVector()
+		{
+			return std::vector<double>(timestamps.begin(), timestamps.end());
+		}
+
+	   private:
+		std::deque<double> timestamps;
+		uint32_t previousErrors;
+	};
+
 	Settings traceSettings{};
 	std::shared_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
 
-	std::deque<double> errorFrameTimestamps{};
-	uint32_t errorFrameSinceLastPoint = 0;
+	MarkerTimestamps errorFrames{};
+	MarkerTimestamps delayed3Frames{};
+
+	std::string lastErrorMsg{};
 
 	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;
-	double time = 0.0;
+	static constexpr size_t maxAllowedViewportErrors = 100;
 };
 
 #endif

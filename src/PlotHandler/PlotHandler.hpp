@@ -3,7 +3,9 @@
 
 #include <chrono>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "Plot.hpp"
