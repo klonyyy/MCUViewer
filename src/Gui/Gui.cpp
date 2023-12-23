@@ -699,7 +699,7 @@ void Gui::acqusitionSettingsTrace()
 	tracePlotHandler->setSettings(settings);
 }
 
-std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)
+std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string& name)
 {
 	ImGui::PushID(name.c_str());
 	if (ImGui::BeginPopupContextItem(text))
@@ -844,7 +844,7 @@ bool Gui::openElfFile()
 
 void Gui::checkShortcuts()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	const ImGuiIO& io = ImGui::GetIO();
 	bool wasSaved = false;
 
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))

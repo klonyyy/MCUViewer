@@ -172,7 +172,6 @@ void Gui::drawPlotsTreeSwo()
 
 	std::shared_ptr<Plot> plt = tracePlotHandler->getPlot(selected);
 	const char* plotDomains[] = {"analog", "digital"};
-	const char* traceVarTypes[] = {"uint8_t", "int8_t", "uint16_t", "int16_t", "uint32_t", "int32_t", "float"};
 	int32_t domainCombo = (int32_t)plt->getDomain();
 	int32_t traceVarTypeCombo = (int32_t)plt->getTraceVarType();
 	std::string newAlias = plt->getAlias();
@@ -186,6 +185,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Combo("##combo", &domainCombo, plotDomains, IM_ARRAYSIZE(plotDomains));
 	if (domainCombo == static_cast<int32_t>(Plot::Domain::ANALOG))
 	{
+		const char* traceVarTypes[] = {"uint8_t", "int8_t", "uint16_t", "int16_t", "uint32_t", "int32_t", "float"};
 		ImGui::Text("type       ");
 		ImGui::SameLine();
 		ImGui::Combo("##combo2", &traceVarTypeCombo, traceVarTypes, IM_ARRAYSIZE(traceVarTypes));

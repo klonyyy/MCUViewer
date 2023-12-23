@@ -24,7 +24,7 @@ class ConfigHandler
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
 	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath);
-	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newPath);
+	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string& newSavePath);
 
 	template <typename T>
 	void parseValue(const std::string& value, T& result)

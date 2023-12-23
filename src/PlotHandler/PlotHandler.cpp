@@ -22,7 +22,7 @@ PlotHandler::Settings PlotHandler::getSettings() const
 	return settings;
 }
 
-void PlotHandler::setSettings(Settings& newSettings)
+void PlotHandler::setSettings(const Settings& newSettings)
 {
 	settings = newSettings;
 }

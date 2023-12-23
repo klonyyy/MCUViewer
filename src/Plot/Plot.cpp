@@ -10,7 +10,7 @@
 
 #include "implot.h"
 
-Plot::Plot(std::string name) : name(name)
+Plot::Plot(const std::string& name) : name(name)
 {
 }
 

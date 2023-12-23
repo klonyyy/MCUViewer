@@ -93,7 +93,7 @@ void PlotHandlerBase::setMaxPoints(uint32_t maxPoints)
 
 	for (auto& [name, plt] : plotsMap)
 	{
-		for (auto& [name, ser] : plt->getSeriesMap())
+		for (auto& [serName, ser] : plt->getSeriesMap())
 			ser->buffer->setMaxSize(maxPoints);
 		plt->getTimeSeries().setMaxSize(maxPoints);
 	}

@@ -181,7 +181,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string& newSavePath)
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
@@ -193,10 +193,10 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	auto plotFieldFromID = [](uint32_t id, std::string prefix = "")
+	auto plotFieldFromID = [](uint32_t id, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(id)); };
 
-	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, std::string prefix = "")
+	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
 
 	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
@@ -238,11 +238,11 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			(*ini)[plotSeriesFieldFromID(plotId, serId)]["visibility"] = ser->visible ? "true" : "false";
 
 			std::string displayFormat = "DEC";
-			for (auto [key, value] : displayFormatMap)
+			for (auto [format, value] : displayFormatMap)
 			{
 				if (value == ser->format)
 				{
-					displayFormat = key;
+					displayFormat = format;
 					break;
 				}
 			}

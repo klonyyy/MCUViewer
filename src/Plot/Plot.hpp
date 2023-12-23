@@ -99,7 +99,7 @@ class Plot
 
 	DragRect stats{};
 
-	explicit Plot(std::string name);
+	explicit Plot(const std::string& name);
 	void setName(const std::string& newName);
 	std::string getName() const;
 	std::string& getNameVar();

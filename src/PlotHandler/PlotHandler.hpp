@@ -32,7 +32,7 @@ class PlotHandler : public PlotHandlerBase
 	bool writeSeriesValue(Variable& var, double value);
 
 	Settings getSettings() const;
-	void setSettings(Settings& newSettings);
+	void setSettings(const Settings& newSettings);
 
    private:
 	void dataHandler();

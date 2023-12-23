@@ -52,11 +52,11 @@ bool ElfReader::updateVariableMap(std::map<std::string, std::shared_ptr<Variable
 	out += executeCommand(cmdFull.c_str());
 
 	std::string delimiter = "+p /d &";
-	int32_t start = 0;
+	size_t start = 0;
 	/* get rid of file and other start commands */
 	out.erase(0, out.find(delimiter));
 
-	while (out.length() > 0 && (start = out.find(delimiter)) != -1)
+	while (out.length() > 0 && (start = out.find(delimiter)) != std::string::npos)
 	{
 		std::string::size_type end = out.find(delimiter, start + 1);
 		if (end == std::string::npos)

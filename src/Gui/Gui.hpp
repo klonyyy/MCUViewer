@@ -112,7 +112,7 @@ class Gui
 		ImGui::Text("%s", (std::to_string(number)).c_str());
 	}
 
-	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
+	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
 

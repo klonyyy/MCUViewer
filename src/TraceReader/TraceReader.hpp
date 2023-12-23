@@ -63,7 +63,7 @@ class TraceReader
 
 	static constexpr uint32_t channels = 10;
 	static constexpr uint32_t size = 10 * 2048;
-	uint8_t buffer[size];
+	uint8_t buffer[size]{};
 
 	uint32_t currentValue[channels]{};
 	uint8_t currentChannel[channels]{};

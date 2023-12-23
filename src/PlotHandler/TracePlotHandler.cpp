@@ -94,6 +94,7 @@ double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 	{
 		switch (plot.getTraceVarType())
 		{
+			/*TODO: consider the bitcast solution, though the size of input and outpu differ */
 			case Plot::TraceVarType::U8:
 				return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
 			case Plot::TraceVarType::I8:
