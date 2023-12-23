@@ -38,4 +38,4 @@ jobs:
                 
             - name: test_step
               shell: bash
-              run: git config --global --add safe.directory /__w/STMViewer/ && ./launch/run_test.sh
+              run: git config --global --add safe.directory /__w/STMViewer/ && ./launch/run_tests.sh
