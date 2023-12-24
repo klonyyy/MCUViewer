@@ -1,5 +1,6 @@
 #include "TraceReader.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <random>
@@ -170,7 +171,7 @@ void TraceReader::timestampEnd(bool headerData)
 	uint32_t i = 0;
 	while (awaitingTimestamp--)
 	{
-		if (currentChannel[i] > channels || i >= channels-1)
+		if (currentChannel[i] > channels || i >= channels - 1)
 		{
 			traceIndicators.errorFramesTotal++;
 			logger->debug("Wrong channel id {}, {}", i, currentChannel[i]);
