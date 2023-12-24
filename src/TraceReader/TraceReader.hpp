@@ -41,6 +41,7 @@ class TraceReader
 	void setTraceFrequency(uint32_t frequencyHz);
 	uint32_t getTraceFrequency() const;
 	void setTraceShouldReset(bool shouldReset);
+	void setTraceTimeout(uint32_t timeout);
 	TraceIndicators getTraceIndicators() const;
 
    private:
@@ -76,6 +77,7 @@ class TraceReader
 
 	uint32_t coreFrequency = 160000;
 	uint32_t tracePrescaler = 10;
+	uint32_t traceTimeout = 2;
 	bool shouldReset = false;
 
 	std::atomic<bool> isRunning{false};

@@ -33,10 +33,12 @@ class TraceReaderTest : public ::testing::Test
 	void SetUp() override
 	{
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
-		traceReader = std::make_shared<TraceReader>(traceDevice, logger.get());
+		traceReader = std::make_shared<TraceReader>(traceDevice.get(), logger.get());
 
 		ON_CALL(*traceDevice, startTrace(_, _, _, _)).WillByDefault(Return(true));
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
+
+		traceReader->setTraceTimeout(0);
 
 		for (auto& el : activeChannels)
 			el = true;
@@ -76,7 +78,6 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	ASSERT_EQ(traceReader->readTrace(timestamp, trace), true);
 	ASSERT_NEAR(7.6875e-06, timestamp, 1e-9);
 	ASSERT_EQ(trace, expected);
@@ -117,7 +118,6 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundaryTimestamp)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
@@ -157,7 +157,6 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp2)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
@@ -204,7 +203,6 @@ TEST_F(TraceReaderTest, testdoubleBuffers)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
@@ -250,7 +248,6 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundarySource)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)

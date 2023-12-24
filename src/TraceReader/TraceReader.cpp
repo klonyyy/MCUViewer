@@ -66,12 +66,12 @@ bool TraceReader::stopAcqusition()
 
 bool TraceReader::isValid() const
 {
-	return isRunning.load();
+	return isRunning;
 }
 
 bool TraceReader::readTrace(double& timestamp, std::array<uint32_t, 10>& trace)
 {
-	if (!isRunning.load() || traceTable->getSize() == 0)
+	if (!isRunning || traceTable->getSize() == 0)
 		return false;
 	auto entry = traceTable->pop();
 	timestamp = entry.second / static_cast<double>(coreFrequency * 1000);
@@ -107,6 +107,11 @@ uint32_t TraceReader::getTraceFrequency() const
 void TraceReader::setTraceShouldReset(bool shouldReset)
 {
 	this->shouldReset = shouldReset;
+}
+
+void TraceReader::setTraceTimeout(uint32_t timeout)
+{
+	traceTimeout = timeout;
 }
 
 TraceReader::TraceIndicators TraceReader::getTraceIndicators() const
@@ -258,7 +263,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 
 void TraceReader::readerThread()
 {
-	while (isRunning.load())
+	while (isRunning)
 	{
 		int32_t length = traceDevice->readTraceBuffer(buffer, size);
 
@@ -271,9 +276,9 @@ void TraceReader::readerThread()
 			break;
 		}
 
-		if (traceIndicators.sleepCycles > 20000)
+		if (traceTimeout != 0 && traceIndicators.sleepCycles > traceTimeout * 10000)
 		{
-			lastErrorMsg = "No trace registered for 2s!";
+			lastErrorMsg = "No trace registered for " + std::to_string(traceTimeout) + "s!";
 			logger->error(lastErrorMsg);
 			isRunning.store(false);
 			break;
