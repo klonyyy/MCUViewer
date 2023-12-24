@@ -78,6 +78,7 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	ASSERT_EQ(traceReader->readTrace(timestamp, trace), true);
 	ASSERT_NEAR(7.6875e-06, timestamp, 1e-9);
 	ASSERT_EQ(trace, expected);
@@ -118,6 +119,7 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundaryTimestamp)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
@@ -157,6 +159,7 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp2)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
@@ -203,6 +206,7 @@ TEST_F(TraceReaderTest, testdoubleBuffers)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
@@ -248,6 +252,7 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundarySource)
 		.WillRepeatedly(Return(0));
 
 	traceReader->startAcqusition(activeChannels);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	int i = 0;
 	for (auto& e : expectedTrace)
