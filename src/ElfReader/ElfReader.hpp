@@ -13,7 +13,7 @@
 class ElfReader
 {
    public:
-	ElfReader(std::string& filename, std::shared_ptr<spdlog::logger> logger);
+	ElfReader(std::string& filename, spdlog::logger* logger);
 
 	bool updateVariableMap(std::map<std::string, std::shared_ptr<Variable>>& vars);
 	Variable::type getTypeFromString(const std::string& strType);
@@ -26,7 +26,7 @@ class ElfReader
 	static constexpr uint16_t maxGdbCmdLendth = 8160;
 	std::string& elfname;
 	std::string executeCommand(const char* cmd);
-	std::shared_ptr<spdlog::logger> logger;
+	spdlog::logger* logger;
 };
 
 #endif

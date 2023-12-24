@@ -6,8 +6,7 @@
 #include <string>
 #include <utility>
 
-
-PlotHandlerBase::PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : done(done), mtx(mtx), logger(logger)
+PlotHandlerBase::PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : done(done), mtx(mtx), logger(logger)
 {
 }
 
@@ -74,7 +73,8 @@ PlotHandlerBase::state PlotHandlerBase::getViewerState() const
 
 uint32_t PlotHandlerBase::getVisiblePlotsCount() const
 {
-	return std::count_if(plotsMap.begin(), plotsMap.end(), [](const auto& pair) { return pair.second->getVisibility(); });
+	return std::count_if(plotsMap.begin(), plotsMap.end(), [](const auto& pair)
+						 { return pair.second->getVisibility(); });
 }
 uint32_t PlotHandlerBase::getPlotsCount() const
 {

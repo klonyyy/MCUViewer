@@ -19,7 +19,7 @@ class ConfigHandler
 		uint32_t version = 1;
 	} GlobalSettings;
 
-	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::shared_ptr<spdlog::logger> logger);
+	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, spdlog::logger* logger);
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
@@ -42,12 +42,13 @@ class ConfigHandler
 	std::string configFilePath;
 	PlotHandler* plotHandler;
 	TracePlotHandler* tracePlotHandler;
+	spdlog::logger* logger;
 
 	std::map<std::string, Plot::displayFormat> displayFormatMap{{"DEC", Plot::displayFormat::DEC}, {"HEX", Plot::displayFormat::HEX}, {"BIN", Plot::displayFormat::BIN}};
 
 	std::unique_ptr<mINI::INIFile> file;
 	std::unique_ptr<mINI::INIStructure> ini;
-	std::shared_ptr<spdlog::logger> logger;
+
 };
 
 #endif

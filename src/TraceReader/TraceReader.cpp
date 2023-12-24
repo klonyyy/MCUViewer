@@ -17,7 +17,7 @@
 #define TRACE_TIMEOUT_3				   0xF0
 #define TRACE_OP_IS_EXTENSION(c)	   ((c & 0x0b) == 0x08)
 
-TraceReader::TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger) : traceDevice(traceDevice), logger(logger)
+TraceReader::TraceReader(ITraceDevice* traceDevice, spdlog::logger* logger) : traceDevice(traceDevice), logger(logger)
 {
 	traceTable = std::make_unique<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>>(20000);
 }

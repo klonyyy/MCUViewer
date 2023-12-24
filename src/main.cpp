@@ -47,12 +47,14 @@ int main(int argc, char** argv)
 	logger->info("Version: {}.{}.{}", STMVIEWER_VERSION_MAJOR, STMVIEWER_VERSION_MINOR, STMVIEWER_VERSION_REVISION);
 	logger->info("Commit hash {}", GIT_HASH);
 
-	PlotHandler plotHandler(done, &mtx, logger);
-	TracePlotHandler tracePlotHandler(done, &mtx, logger);
-	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, logger);
+	auto loggerPtr = logger.get();
+
+	PlotHandler plotHandler(done, &mtx, loggerPtr);
+	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, loggerPtr);
 	NFDFileHandler fileHandler;
 
-	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, logger);
+	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, loggerPtr);
 
 	while (!done)
 	{

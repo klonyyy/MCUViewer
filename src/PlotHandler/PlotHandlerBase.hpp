@@ -20,7 +20,7 @@ class PlotHandlerBase
 		RUN = 1,
 	};
 
-	PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandlerBase() = default;
 
 	void addPlot(const std::string& name);
@@ -61,7 +61,7 @@ class PlotHandlerBase
 	std::mutex* mtx;
 	std::thread dataHandle;
 	std::atomic<bool> stateChangeOrdered = false;
-	std::shared_ptr<spdlog::logger> logger;
+	spdlog::logger* logger;
 };
 
 #endif

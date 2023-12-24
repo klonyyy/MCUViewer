@@ -6,10 +6,10 @@
 
 #include "TraceReader.hpp"
 
-TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
+TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
 	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
-	traceReader = std::make_unique<TraceReader>(traceDevice, logger);
+	traceReader = std::make_unique<TraceReader>(traceDevice.get(), logger);
 	initPlots();
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 }

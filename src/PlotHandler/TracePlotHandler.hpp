@@ -27,7 +27,7 @@ class TracePlotHandler : public PlotHandlerBase
 		bool shouldReset = false;
 	} Settings;
 
-	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	~TracePlotHandler();
 
 	void initPlots();
@@ -84,7 +84,7 @@ class TracePlotHandler : public PlotHandlerBase
 	};
 
 	Settings traceSettings{};
-	std::shared_ptr<StlinkTraceDevice> traceDevice;
+	std::unique_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
 
 	MarkerTimestamps errorFrames{};

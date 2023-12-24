@@ -33,7 +33,7 @@ class TraceReaderTest : public ::testing::Test
 	void SetUp() override
 	{
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
-		traceReader = std::make_shared<TraceReader>(traceDevice, logger);
+		traceReader = std::make_shared<TraceReader>(traceDevice, logger.get());
 
 		ON_CALL(*traceDevice, startTrace(_, _, _, _)).WillByDefault(Return(true));
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));

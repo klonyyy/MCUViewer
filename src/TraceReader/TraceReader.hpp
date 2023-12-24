@@ -26,7 +26,7 @@ class TraceReader
 		uint32_t sleepCycles;
 	};
 
-	TraceReader(std::shared_ptr<ITraceDevice> traceDevice, std::shared_ptr<spdlog::logger> logger);
+	TraceReader(ITraceDevice* traceDevice, spdlog::logger* logger);
 
 	bool startAcqusition(const std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
@@ -83,8 +83,8 @@ class TraceReader
 	std::array<uint32_t, channels> previousEntry{};
 	std::unique_ptr<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>> traceTable;
 	std::thread readerHandle;
-	std::shared_ptr<ITraceDevice> traceDevice;
-	std::shared_ptr<spdlog::logger> logger;
+	ITraceDevice* traceDevice;
+	spdlog::logger* logger;
 
 	TraceState updateTraceIdle(uint8_t c);
 	TraceState updateTrace(uint8_t c);

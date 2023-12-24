@@ -22,7 +22,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	~Gui();
 
    private:
@@ -118,7 +118,7 @@ class Gui
 
 	bool openWebsite(const char* url);
 
-	std::shared_ptr<spdlog::logger> logger;
+	spdlog::logger* logger;
 };
 
 #endif
