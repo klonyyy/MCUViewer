@@ -43,7 +43,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		}
 		catch (const std::exception& ex)
 		{
-			logger->error("{}", ex.what());
+			logger->error("config parsing exception {}", ex.what());
 		}
 	};
 
@@ -58,6 +58,10 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("trace_settings", "max_viewport_points_percent", traceSettings.maxViewportPointsPercent);
 	getValue("trace_settings", "trigger_channel", traceSettings.triggerChannel);
 	getValue("trace_settings", "trigger_level", traceSettings.triggerLevel);
+	getValue("trace_settings", "timeout", traceSettings.timeout);
+
+	if (traceSettings.timeout == 0)
+		traceSettings.timeout = 2;
 
 	if (traceSettings.maxViewportPointsPercent == 0 && traceSettings.maxPoints == 0)
 		traceSettings.triggerChannel = -1;
@@ -90,7 +94,6 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		varId++;
 
 		if (newVar->getAddress() % 4 != 0)
-
 			logger->warn("--------- Unaligned variable address! ----------");
 
 		if (!newVar->getName().empty())
@@ -211,6 +214,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["trace_settings"]["max_viewport_points_percent"] = std::to_string(traceSettings.maxViewportPointsPercent);
 	(*ini)["trace_settings"]["trigger_channel"] = std::to_string(traceSettings.triggerChannel);
 	(*ini)["trace_settings"]["trigger_level"] = std::to_string(traceSettings.triggerLevel);
+	(*ini)["trace_settings"]["timeout"] = std::to_string(traceSettings.timeout);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)

@@ -25,6 +25,7 @@ class TracePlotHandler : public PlotHandlerBase
 		int32_t triggerChannel = -1;
 		double triggerLevel = 0.9;
 		bool shouldReset = false;
+		uint32_t timeout = 2;
 	} Settings;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);

@@ -696,6 +696,12 @@ void Gui::acqusitionSettingsTrace()
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
 	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
+	ImGui::Text("Timeout [s]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Timeout is the period after which trace will be stopped due to no trace data being received.");
+	ImGui::InputScalar("##timeout", ImGuiDataType_U32, &settings.timeout, &one, NULL, "%u");
+	settings.timeout = std::clamp(settings.timeout, static_cast<uint32_t>(1), static_cast<uint32_t>(999999));
+
 	tracePlotHandler->setSettings(settings);
 }
 
