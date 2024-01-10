@@ -26,7 +26,8 @@ include_directories(${EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/src/ScrollingBuffer
     ${CMAKE_SOURCE_DIR}/src/RingBuffer
     ${CMAKE_SOURCE_DIR}/src/TraceReader
-    ${CMAKE_SOURCE_DIR}/src/Statistics)
+    ${CMAKE_SOURCE_DIR}/src/Statistics
+    ${CMAKE_SOURCE_DIR}/src/GdbParser)
 
 include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/spdlog/inc)
@@ -41,6 +42,7 @@ add_executable(${EXECUTABLE} main.cpp
     RingBufferTest.cpp
     TraceReaderTest.cpp
     StatisticsTest.cpp
+    GdbParser.cpp
     ${SOURCES})
 
 add_compile_options(-Wall -Wextra -Wpedantic)
