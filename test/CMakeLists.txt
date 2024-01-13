@@ -42,7 +42,7 @@ add_executable(${EXECUTABLE} main.cpp
     RingBufferTest.cpp
     TraceReaderTest.cpp
     StatisticsTest.cpp
-    GdbParser.cpp
+    GdbParserTest.cpp
     ${SOURCES})
 
 add_compile_options(-Wall -Wextra -Wpedantic)
