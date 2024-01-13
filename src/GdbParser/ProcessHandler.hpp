@@ -47,7 +47,6 @@ class WindowsProcessHandler
 		while (fgets(buffer.data(), buffer.size(), pipes.second) != nullptr)
 		{
 			result += buffer.data();
-			std::cout << "Output from the process: " << buffer.data();
 			if (result.find("(gdb)") != std::string::npos)
 				break;
 		}

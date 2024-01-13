@@ -25,6 +25,7 @@ class GdbParser
 		std::string name;
 		uint32_t address;
 		std::string filePath;
+		bool isTrivial = false;
 	};
 
    public:
@@ -38,17 +39,84 @@ class GdbParser
 		while (out.length() > 0)
 		{
 			std::string delimiter = "File";
-			std::string::size_type end = out.find(delimiter, start + 1);
+
+			auto end = out.find(delimiter, start);
+			if (end == std::string::npos)
+				break;
+			/* find tylda sign next */
+			start = out.find("~", end);
+			if (start == std::string::npos)
+				break;
+			/* account for tylda and " */
+			start += 2;
+			/* find the end of filepath */
+			end = out.find(":", start);
 			if (end == std::string::npos)
 				break;
 
-			std::string temp = out.substr(start, end - start);
+			auto filename = out.substr(start, end - start);
 
-			std::cout << "File found!" << std::endl;
+			auto end1 = out.find("~\"\\n", end);
+			start = end;
 
-			out.erase(0, temp.length());
+			if (end1 != std::string::npos)
+			{
+				end = end1;
+				auto variableChunk = out.substr(start, end - start);
+				std::cout << "File found! " << filename << std::endl;
+				std::cout << "variable chunk: " << variableChunk << std::endl;
+				parseVariableChunk(variableChunk);
+			}
+			start = end;
 		}
 
+		checkVariableType();
+
+		for (auto& [name, address, path, trivial] : parsedData)
+		{
+			std::cout << name << " is trivial: " << trivial << std::endl;
+		}
+
+		return true;
+	}
+
+	void parseVariableChunk(std::string& chunk)
+	{
+		size_t start = 0;
+
+		while (1)
+		{
+			auto semicolonPos = chunk.find(';', start);
+			if (semicolonPos == std::string::npos)
+				break;
+
+			auto spacePos = chunk.rfind(' ', semicolonPos);
+			if (spacePos == std::string::npos)
+				break;
+
+			std::string variableName = chunk.substr(spacePos + 1, semicolonPos - spacePos - 1);
+			parsedData.push_back({variableName, 0, ""});
+			start = semicolonPos + 1;
+		}
+	}
+
+	void checkVariableType()
+	{
+		for (auto& [name, address, path, trivial] : parsedData)
+		{
+			auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"));
+			auto start = out.find("=");
+			auto end = out.find("\\n", start);
+
+			auto line = out.substr(start + 2, end - start - 2);
+
+			trivial = isTrivial(line);
+		}
+	}
+
+	bool isTrivial(std::string& line)
+	{
+		std::cout << line << std::endl;
 		return true;
 	}
 
