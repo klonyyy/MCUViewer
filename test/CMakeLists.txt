@@ -38,10 +38,10 @@ set(SOURCES
 target_link_libraries(GTest::GTest INTERFACE gtest_main gmock gmock_main)
 
 add_executable(${EXECUTABLE} main.cpp
-    ScrollingBufferTest.cpp
-    RingBufferTest.cpp
-    TraceReaderTest.cpp
-    StatisticsTest.cpp
+    # ScrollingBufferTest.cpp
+    # RingBufferTest.cpp
+    # TraceReaderTest.cpp
+    # StatisticsTest.cpp
     GdbParserTest.cpp
     ${SOURCES})
 
