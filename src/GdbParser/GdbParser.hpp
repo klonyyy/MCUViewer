@@ -106,6 +106,7 @@ class GdbParser
 
 	void checkVariableType(std::string& name)
 	{
+		// std::cout << "NAME: " << name << std::endl;
 		auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"));
 		auto start = out.find("=");
 		auto end = out.find("\\n", start);
@@ -131,32 +132,48 @@ class GdbParser
 			while (1)
 			{
 				auto semicolonPos = out.find(';', subStart);
+
+				// std::cout << "POS: " << subStart << std::endl;
+				// std::cout << "SEMICOLON POS: " << semicolonPos << std::endl;
+				// std::cout << "OUT " << out << std::endl;
+
 				if (semicolonPos == std::string::npos)
 					break;
 
 				if (out[semicolonPos - 1] == ')')
 				{
-					subStart = subStart = semicolonPos + 1;
+					subStart = semicolonPos + 1;
 					continue;
 				}
 
 				auto spacePos = out.rfind(' ', semicolonPos);
+
+				// std::cout << "SPACE POS: " << spacePos << std::endl;
 
 				if (spacePos == std::string::npos)
 					break;
 
 				auto varName = out.substr(spacePos + 1, semicolonPos - spacePos - 1);
 
+				// std::cout << "VAR NAME: " << varName << std::endl;
+
 				if (varName == "const")
 				{
-					subStart = subStart = semicolonPos + 1;
+					subStart = semicolonPos + 1;
 					continue;
 				}
 
-				if (varName[0] == '*')
-					varName.erase(0);
+				auto fullName = name;
 
-				auto fullName = name + "." + varName;
+				if (varName[0] == '*')
+				{
+					varName.erase(0, 1);
+					fullName += "->" + varName;
+				}
+				else
+					fullName += "." + varName;
+
+				// std::cout << "FULL NAME " << fullName << std::endl;
 
 				checkVariableType(fullName);
 				subStart = semicolonPos + 1;
@@ -182,6 +199,7 @@ class GdbParser
 	ProcessHandler<CurrentPlatform> process;
 
 	std::unordered_map<std::string, Variable::type> isTrivial = {
+		{"_Bool", Variable::type::U8},
 		{"bool", Variable::type::U8},
 		{"unsigned char", Variable::type::U8},
 
