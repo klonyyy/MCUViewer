@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -12,6 +13,7 @@
 
 #include "ProcessHandler.hpp"
 #include "Variable.hpp"
+#include "spdlog/spdlog.h"
 
 #ifdef _WIN32
 using CurrentPlatform = WindowsProcessHandler;
@@ -24,14 +26,18 @@ class GdbParser
 	struct VariableData
 	{
 		std::string name;
-		uint32_t address;
 		std::string filePath;
 		bool isTrivial = false;
 	};
 
    public:
+	GdbParser(spdlog::logger* logger) : logger(logger) {}
+
 	bool parse(std::string elfPath)
 	{
+		if (!std::filesystem::exists(elfPath))
+			return false;
+
 		std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
 		process.executeCmd(cmd);
 		auto out = process.executeCmd("info variables\n");
@@ -71,11 +77,6 @@ class GdbParser
 			start = end;
 		}
 
-		for (auto& [name, address, path, trivial] : parsedData)
-		{
-			std::cout << name << " is trivial: " << trivial << std::endl;
-		}
-
 		return true;
 	}
 
@@ -100,13 +101,8 @@ class GdbParser
 		}
 	}
 
-	void parseUntiltrivial()
-	{
-	}
-
 	void checkVariableType(std::string& name)
 	{
-		// std::cout << "NAME: " << name << std::endl;
 		auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"));
 		auto start = out.find("=");
 		auto end = out.find("\\n", start);
@@ -124,7 +120,7 @@ class GdbParser
 		bool isTrivial = checkTrivial(line);
 
 		if (isTrivial)
-			parsedData.push_back({name, 0, "", isTrivial});
+			parsedData.push_back({name, "", isTrivial});
 		else
 		{
 			auto subStart = 0;
@@ -133,9 +129,9 @@ class GdbParser
 			{
 				auto semicolonPos = out.find(';', subStart);
 
-				// std::cout << "POS: " << subStart << std::endl;
-				// std::cout << "SEMICOLON POS: " << semicolonPos << std::endl;
-				// std::cout << "OUT " << out << std::endl;
+				logger->debug("POS: {}", subStart);
+				logger->debug("SEMICOLON POS: {}", semicolonPos);
+				logger->debug("OUT: {}", out);
 
 				if (semicolonPos == std::string::npos)
 					break;
@@ -148,14 +144,14 @@ class GdbParser
 
 				auto spacePos = out.rfind(' ', semicolonPos);
 
-				// std::cout << "SPACE POS: " << spacePos << std::endl;
+				logger->debug("SPACE POS: {}", spacePos);
 
 				if (spacePos == std::string::npos)
 					break;
 
 				auto varName = out.substr(spacePos + 1, semicolonPos - spacePos - 1);
 
-				// std::cout << "VAR NAME: " << varName << std::endl;
+				logger->debug("VAR NAME: {}", varName);
 
 				if (varName == "const")
 				{
@@ -173,9 +169,10 @@ class GdbParser
 				else
 					fullName += "." + varName;
 
-				// std::cout << "FULL NAME " << fullName << std::endl;
+				logger->debug("FULL NAME: {}", fullName);
 
-				checkVariableType(fullName);
+				if (fullName.size() < 100)
+					checkVariableType(fullName);
 				subStart = semicolonPos + 1;
 			}
 		}
@@ -185,7 +182,6 @@ class GdbParser
 	{
 		if (isTrivial.contains(line))
 			return true;
-		std::cout << line << std::endl;
 		return false;
 	}
 
@@ -195,6 +191,8 @@ class GdbParser
 	}
 
    private:
+	spdlog::logger* logger;
+
 	std::vector<VariableData> parsedData;
 	ProcessHandler<CurrentPlatform> process;
 
