@@ -7,9 +7,11 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_set>
 
 #include "ConfigHandler.hpp"
 #include "ElfReader.hpp"
+#include "GdbParser.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
 #include "Plot.hpp"
@@ -22,7 +24,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);
 	~Gui();
 
    private:
@@ -37,6 +39,7 @@ class Gui
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
+	bool showImportVariablesWindow = false;
 
 	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
@@ -55,9 +58,12 @@ class Gui
 
 	std::mutex* mtx;
 
+	GdbParser* parser;
+
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();
+	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
 	void drawVarTable();
@@ -95,6 +101,9 @@ class Gui
 	void drawPlotsSwo();
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
+
+	void drawImportVariablesWindow();
+	void drawImportVariablesTable(const std::vector<GdbParser::VariableData>& importedVars, std::unordered_set<std::string>& selection);
 
 	template <typename T>
 	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)

@@ -23,6 +23,7 @@ using CurrentPlatform = PosixProcessHandler;
 
 class GdbParser
 {
+   public:
 	struct VariableData
 	{
 		std::string name;
@@ -30,7 +31,6 @@ class GdbParser
 		bool isTrivial = false;
 	};
 
-   public:
 	GdbParser(spdlog::logger* logger) : logger(logger) {}
 
 	bool parse(std::string elfPath)

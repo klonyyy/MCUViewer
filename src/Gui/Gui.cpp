@@ -18,7 +18,7 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
 	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
@@ -69,7 +69,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = false;
+	bool show_demo_window = true;
 
 	while (!done)
 	{
@@ -113,6 +113,7 @@ void Gui::mainThread()
 			drawStartButton();
 			drawVarTable();
 			drawPlotsTree();
+			drawImportVariablesWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -235,6 +236,18 @@ void Gui::drawStartButton()
 
 	ImGui::PopStyleColor(3);
 }
+
+void Gui::addNewVariable(const std::string& newName)
+{
+	std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
+	std::random_device rd{};
+	std::mt19937 gen{rd()};
+	std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
+	uint32_t randomColor = dist(gen);
+	newVar->setColor(randomColor);
+	vars.emplace(newName, newVar);
+}
+
 void Gui::drawAddVariableButton()
 {
 	if (ImGui::Button("Add variable", ImVec2(-1, 25)))
@@ -243,17 +256,14 @@ void Gui::drawAddVariableButton()
 		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
 			num++;
 
-		std::string newName = std::string("-new") + std::to_string(num);
-
-		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
-		std::random_device rd{};
-		std::mt19937 gen{rd()};
-		std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
-		uint32_t randomColor = dist(gen);
-		newVar->setColor(randomColor);
-		vars.emplace(newName, newVar);
+		addNewVariable(std::string("-new") + std::to_string(num));
+	}
+	else if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25)))
+	{
+		showImportVariablesWindow = true;
 	}
 }
+
 void Gui::drawUpdateAddressesFromElf()
 {
 	bool success = false;

@@ -53,8 +53,9 @@ int main(int argc, char** argv)
 	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
 	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, loggerPtr);
 	NFDFileHandler fileHandler;
+	GdbParser parser(loggerPtr);
 
-	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, loggerPtr);
+	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, &parser, loggerPtr);
 
 	while (!done)
 	{
