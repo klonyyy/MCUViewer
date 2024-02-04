@@ -1,11 +1,13 @@
 #ifndef _GDBPARSER_HPP
 #define _GDBPARSER_HPP
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -27,8 +29,13 @@ class GdbParser
 	struct VariableData
 	{
 		std::string name;
-		std::string filePath;
+		uint32_t address;
 		bool isTrivial = false;
+
+		bool operator==(const VariableData& other)
+		{
+			return name == other.name;
+		}
 	};
 
 	GdbParser(spdlog::logger* logger) : logger(logger) {}
@@ -103,6 +110,10 @@ class GdbParser
 
 	void checkVariableType(std::string& name)
 	{
+		auto maybeAddress = checkAddress(name);
+		if (!maybeAddress.has_value())
+			return;
+
 		auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"));
 		auto start = out.find("=");
 		auto end = out.find("\\n", start);
@@ -120,7 +131,10 @@ class GdbParser
 		bool isTrivial = checkTrivial(line);
 
 		if (isTrivial)
-			parsedData.push_back({name, "", isTrivial});
+		{
+			if (std::find(parsedData.begin(), parsedData.end(), VariableData{name, 0, true}) == parsedData.end())
+				parsedData.push_back({name, maybeAddress.value(), isTrivial});
+		}
 		else
 		{
 			auto subStart = 0;
@@ -178,6 +192,29 @@ class GdbParser
 		}
 	}
 
+	std::optional<uint32_t> checkAddress(std::string& name)
+	{
+		auto out = process.executeCmd(std::string("p /d &") + name + std::string("\n"));
+
+		size_t dolarSignPos = out.find('$');
+
+		if (dolarSignPos == std::string::npos)
+			return std::nullopt;
+
+		auto out2 = out.substr(dolarSignPos + 1);
+
+		size_t equalSignPos = out2.find('=');
+
+		if (equalSignPos == std::string::npos)
+			return std::nullopt;
+
+		/* this finds the \n as a string consting of '\' and 'n' not '\n' */
+		size_t eol = out2.find("\\n");
+		/* +2 is to skip = and a space */
+		auto address = out2.substr(equalSignPos + 2, eol - equalSignPos - 2);
+		return stoi(address);
+	}
+
 	bool checkTrivial(std::string& line)
 	{
 		if (isTrivial.contains(line))
@@ -191,6 +228,8 @@ class GdbParser
 	}
 
    private:
+	static constexpr uint32_t minimumAddress = 0x20000000;
+
 	spdlog::logger* logger;
 
 	std::vector<VariableData> parsedData;
