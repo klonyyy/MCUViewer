@@ -258,7 +258,7 @@ void Gui::drawAddVariableButton()
 
 		addNewVariable(std::string("-new") + std::to_string(num));
 	}
-	else if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25)))
+	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25)))
 	{
 		showImportVariablesWindow = true;
 	}

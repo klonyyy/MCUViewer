@@ -52,7 +52,7 @@ void Gui::drawImportVariablesWindow()
 	}
 }
 
-void Gui::drawImportVariablesTable(const std::vector<GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring)
+void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring)
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
@@ -63,7 +63,7 @@ void Gui::drawImportVariablesTable(const std::vector<GdbParser::VariableData>& i
 		ImGui::TableSetupColumn("Address", 0);
 		ImGui::TableHeadersRow();
 
-		for (auto& [name, address, trivial] : importedVars)
+		for (auto& [name, varData] : importedVars)
 		{
 			if (name.find(substring) == std::string::npos)
 				continue;
@@ -81,16 +81,16 @@ void Gui::drawImportVariablesTable(const std::vector<GdbParser::VariableData>& i
 					if (item_is_selected)
 						selection.erase(name);
 					else
-						selection[name] = address;
+						selection[name] = varData.address;
 				}
 				else
 				{
 					selection.clear();
-					selection[name] = address;
+					selection[name] = varData.address;
 				}
 			}
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text(("0x" + std::string(intToHexString(address))).c_str());
+			ImGui::Text(("0x" + std::string(intToHexString(varData.address))).c_str());
 		}
 
 		ImGui::EndTable();

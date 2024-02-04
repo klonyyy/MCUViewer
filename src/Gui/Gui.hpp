@@ -103,7 +103,7 @@ class Gui
 	void drawPlotsTreeSwo();
 
 	void drawImportVariablesWindow();
-	void drawImportVariablesTable(const std::vector<GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
+	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
 
 	template <typename T>
 	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)

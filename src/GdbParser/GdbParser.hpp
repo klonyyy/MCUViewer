@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -28,14 +29,8 @@ class GdbParser
    public:
 	struct VariableData
 	{
-		std::string name;
 		uint32_t address;
 		bool isTrivial = false;
-
-		bool operator==(const VariableData& other)
-		{
-			return name == other.name;
-		}
 	};
 
 	GdbParser(spdlog::logger* logger) : logger(logger) {}
@@ -128,10 +123,7 @@ class GdbParser
 		bool isTrivial = checkTrivial(line);
 
 		if (isTrivial)
-		{
-			if (std::find(parsedData.begin(), parsedData.end(), VariableData{name, 0, true}) == parsedData.end())
-				parsedData.push_back({name, maybeAddress.value(), isTrivial});
-		}
+			parsedData[name] = VariableData{maybeAddress.value(), isTrivial};
 		else
 		{
 			auto subStart = 0;
@@ -213,7 +205,7 @@ class GdbParser
 		return false;
 	}
 
-	std::vector<VariableData> getParsedData()
+	std::map<std::string, VariableData> getParsedData()
 	{
 		return parsedData;
 	}
@@ -223,7 +215,7 @@ class GdbParser
 
 	spdlog::logger* logger;
 
-	std::vector<VariableData> parsedData;
+	std::map<std::string, VariableData> parsedData;
 	ProcessHandler<CurrentPlatform> process;
 
 	std::unordered_map<std::string, Variable::type> isTrivial = {
