@@ -76,10 +76,7 @@ class GdbParser
 			if (end1 != std::string::npos)
 			{
 				end = end1;
-				auto variableChunk = out.substr(start, end - start);
-				// std::cout << "File found! " << filename << std::endl;
-				// std::cout << "variable chunk: " << variableChunk << std::endl;
-				parseVariableChunk(variableChunk);
+				parseVariableChunk(out.substr(start, end - start));
 			}
 			start = end;
 		}
@@ -87,7 +84,7 @@ class GdbParser
 		return true;
 	}
 
-	void parseVariableChunk(std::string& chunk)
+	void parseVariableChunk(const std::string& chunk)
 	{
 		size_t start = 0;
 
@@ -167,26 +164,20 @@ class GdbParser
 
 				logger->debug("VAR NAME: {}", varName);
 
-				if (varName == "const")
+				/* if a const method or a pointer */
+				if (varName == "const" || varName[0] == '*')
 				{
 					subStart = semicolonPos + 1;
 					continue;
 				}
 
-				auto fullName = name;
-
-				if (varName[0] == '*')
-				{
-					varName.erase(0, 1);
-					fullName += "->" + varName;
-				}
-				else
-					fullName += "." + varName;
+				auto fullName = name + "." + varName;
 
 				logger->debug("FULL NAME: {}", fullName);
 
 				if (fullName.size() < 100)
 					checkVariableType(fullName);
+
 				subStart = semicolonPos + 1;
 			}
 		}
