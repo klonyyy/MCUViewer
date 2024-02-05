@@ -3,11 +3,6 @@
 
 #include <string>
 #include <utility>
-#ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-#else
-#endif
 
 template <typename Platform>
 class ProcessHandler
@@ -25,6 +20,10 @@ class ProcessHandler
    private:
 	Platform platform;
 };
+
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
 
 class WindowsProcessHandler
 {
@@ -47,7 +46,7 @@ class WindowsProcessHandler
 			fclose(pipes.second);
 			pipes.second = nullptr;
 		}
-		
+
 		if (pipes.first != nullptr && pipes.second != nullptr)
 		{
 			CloseHandle((HANDLE)_get_osfhandle(_fileno(pipes.first)));
@@ -135,5 +134,114 @@ class WindowsProcessHandler
 				fdopen(_open_osfhandle(reinterpret_cast<intptr_t>(hChildStdoutRd), 0), "r")};
 	}
 };
+#endif
+
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define _UNIX
+#endif
+
+#ifdef _UNIX
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+class UnixProcessHandler
+{
+   public:
+	~UnixProcessHandler()
+	{
+		closePipes();
+	}
+
+	void closePipes()
+	{
+		if (pipes.first != nullptr)
+		{
+			fclose(pipes.first);
+			pipes.first = nullptr;
+		}
+
+		if (pipes.second != nullptr)
+		{
+			fclose(pipes.second);
+			pipes.second = nullptr;
+		}
+	}
+
+	std::string executeCmd(std::string cmd)
+	{
+		std::string result{};
+		std::array<char, 128> buffer;
+
+		if (pipes.first == nullptr || pipes.second == nullptr)
+			pipes = popen2(cmd.c_str());
+		else
+		{
+			fputs(cmd.c_str(), pipes.first);
+			fflush(pipes.first);
+		}
+
+		while (fgets(buffer.data(), buffer.size(), pipes.second) != nullptr)
+		{
+			result += buffer.data();
+			if (result.find("(gdb)") != std::string::npos)
+				break;
+		}
+
+		return result;
+	}
+
+   private:
+	std::pair<FILE*, FILE*> pipes{nullptr, nullptr};
+
+	std::pair<FILE*, FILE*> popen2(const char* command)
+	{
+		int inpipefd[2];
+		int outpipefd[2];
+
+		if (pipe(inpipefd) == -1 || pipe(outpipefd) == -1)
+		{
+			return {nullptr, nullptr};
+		}
+
+		pid_t pid = fork();
+
+		if (pid == -1)
+		{
+			close(inpipefd[0]);
+			close(inpipefd[1]);
+			close(outpipefd[0]);
+			close(outpipefd[1]);
+			return {nullptr, nullptr};
+		}
+		else if (pid == 0)
+		{  // Child process
+			close(inpipefd[1]);
+			close(outpipefd[0]);
+
+			dup2(inpipefd[0], STDIN_FILENO);
+			dup2(outpipefd[1], STDOUT_FILENO);
+
+			close(inpipefd[0]);
+			close(outpipefd[1]);
+
+			// Execute the command in the child process
+			execl("/bin/sh", "/bin/sh", "-c", command, (char*)NULL);
+
+			// If execl fails
+			perror("execl");
+			_exit(1);
+		}
+		else
+		{  // Parent process
+			close(inpipefd[0]);
+			close(outpipefd[1]);
+
+			return {fdopen(inpipefd[1], "w"), fdopen(outpipefd[0], "r")};
+		}
+	}
+};
+
+#endif
 
 #endif

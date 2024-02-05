@@ -8,6 +8,7 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -21,7 +22,7 @@
 #ifdef _WIN32
 using CurrentPlatform = WindowsProcessHandler;
 #else
-using CurrentPlatform = PosixProcessHandler;
+using CurrentPlatform = UnixProcessHandler;
 #endif
 
 class GdbParser
@@ -40,7 +41,9 @@ class GdbParser
 		if (!std::filesystem::exists(elfPath))
 			return false;
 
+		std::unique_lock<std::mutex> lock(mtx);
 		parsedData.clear();
+		lock.unlock();
 
 		std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
 		process.executeCmd(cmd);
@@ -127,7 +130,10 @@ class GdbParser
 		bool isTrivial = checkTrivial(line);
 
 		if (isTrivial)
+		{
+			std::lock_guard<std::mutex> lock(mtx);
 			parsedData[name] = VariableData{maybeAddress.value(), isTrivial};
+		}
 		else
 		{
 			auto subStart = 0;
@@ -211,6 +217,7 @@ class GdbParser
 
 	std::map<std::string, VariableData> getParsedData()
 	{
+		std::lock_guard<std::mutex> lock(mtx);
 		return parsedData;
 	}
 
@@ -218,6 +225,7 @@ class GdbParser
 	static constexpr uint32_t minimumAddress = 0x20000000;
 
 	spdlog::logger* logger;
+	std::mutex mtx;
 
 	std::map<std::string, VariableData> parsedData;
 	ProcessHandler<CurrentPlatform> process;
