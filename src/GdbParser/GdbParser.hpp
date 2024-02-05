@@ -40,6 +40,8 @@ class GdbParser
 		if (!std::filesystem::exists(elfPath))
 			return false;
 
+		parsedData.clear();
+
 		std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
 		process.executeCmd(cmd);
 		auto out = process.executeCmd("info variables\n");
@@ -75,6 +77,8 @@ class GdbParser
 			}
 			start = end;
 		}
+
+		process.closePipes();
 
 		return true;
 	}

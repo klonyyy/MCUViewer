@@ -1,3 +1,4 @@
+#include <future>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -9,6 +10,7 @@
 void Gui::drawImportVariablesWindow()
 {
 	static std::unordered_map<std::string, uint32_t> selection;
+	static std::future<bool> refreshThread{};
 
 	if (showImportVariablesWindow)
 		ImGui::OpenPopup("Import Variables");
@@ -18,10 +20,15 @@ void Gui::drawImportVariablesWindow()
 
 	if (ImGui::BeginPopupModal("Import Variables", &showImportVariablesWindow, 0))
 	{
-		if (ImGui::Button("Refresh", ImVec2(-1, 20)))
-		{
-			parser->parse(projectElfPath);
-		}
+		char buttonText[30]{};
+
+		if (refreshThread.valid() && refreshThread.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+			snprintf(buttonText, 30, "Refresh %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
+		else
+			snprintf(buttonText, 30, "Refresh");
+
+		if (ImGui::Button(buttonText, ImVec2(-1, 20)))
+			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, projectElfPath);
 
 		static std::string search{};
 		ImGui::Text("search ");

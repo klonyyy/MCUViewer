@@ -33,6 +33,8 @@ class ConfigHandler
 			result = std::stoi(value);
 		else if constexpr (std::is_same_v<T, float>)
 			result = std::stof(value);
+		else if constexpr (std::is_same_v<T, double>)
+			result = std::stod(value);
 		else
 			throw std::invalid_argument("Unsupported type");
 	}
@@ -48,7 +50,6 @@ class ConfigHandler
 
 	std::unique_ptr<mINI::INIFile> file;
 	std::unique_ptr<mINI::INIStructure> ini;
-
 };
 
 #endif

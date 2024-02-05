@@ -17,6 +17,10 @@ class ProcessHandler
 	{
 		return platform.executeCmd(cmd);
 	}
+	void closePipes()
+	{
+		platform.closePipes();
+	}
 
    private:
 	Platform platform;
@@ -27,8 +31,28 @@ class WindowsProcessHandler
    public:
 	~WindowsProcessHandler()
 	{
-		fclose(pipes.first);
-		fclose(pipes.second);
+		closePipes();
+	}
+
+	void closePipes()
+	{
+		if (pipes.first != nullptr)
+		{
+			fclose(pipes.first);
+			pipes.first = nullptr;
+		}
+
+		if (pipes.second != nullptr)
+		{
+			fclose(pipes.second);
+			pipes.second = nullptr;
+		}
+		
+		if (pipes.first != nullptr && pipes.second != nullptr)
+		{
+			CloseHandle((HANDLE)_get_osfhandle(_fileno(pipes.first)));
+			CloseHandle((HANDLE)_get_osfhandle(_fileno(pipes.second)));
+		}
 	}
 
 	std::string executeCmd(std::string cmd)
@@ -55,7 +79,7 @@ class WindowsProcessHandler
 	}
 
    private:
-	std::pair<FILE*, FILE*> pipes;
+	std::pair<FILE*, FILE*> pipes{nullptr, nullptr};
 
 	std::pair<FILE*, FILE*> popen2(const char* __command)
 	{
