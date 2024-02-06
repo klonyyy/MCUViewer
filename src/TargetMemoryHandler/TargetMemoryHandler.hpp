@@ -14,7 +14,7 @@
 class TargetMemoryHandler
 {
    public:
-	TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, spdlog::logger* logger);
+	TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger);
 
 	bool start() const;
 	bool stop() const;

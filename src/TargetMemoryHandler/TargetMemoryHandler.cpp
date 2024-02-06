@@ -5,7 +5,7 @@
 
 #include "iostream"
 
-TargetMemoryHandler::TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, spdlog::logger* logger) : memoryHandler(memoryHandler), logger(logger)
+TargetMemoryHandler::TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger) : memoryHandler(std::move(memoryHandler)), logger(logger)
 {
 }
 
