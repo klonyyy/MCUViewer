@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 
+#include <future>
 #include <random>
 #include <sstream>
 #include <string>
@@ -266,9 +267,22 @@ void Gui::drawAddVariableButton()
 
 void Gui::drawUpdateAddressesFromElf()
 {
+	static std::future<bool> refreshThread{};
 	bool success = false;
-	if (ImGui::Button("Update variable addresses", ImVec2(-1, 25)))
-		success = elfReader->updateVariableMap(vars);
+
+	char buttonText[30]{};
+
+	if (refreshThread.valid() && refreshThread.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+		snprintf(buttonText, 30, "Update variable addresses %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
+	else
+	{
+		snprintf(buttonText, 30, "Update variable addresses");
+		if (refreshThread.valid())
+			success = refreshThread.get();
+	}
+
+	if (ImGui::Button(buttonText, ImVec2(-1, 20)))
+		refreshThread = std::async(std::launch::async, &ElfReader::updateVariableMap, elfReader.get(), std::ref(vars));
 
 	if (success)
 		popup.show("Info", "Updating successful!", 0.65f);
