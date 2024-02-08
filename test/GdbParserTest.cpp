@@ -13,8 +13,7 @@ TEST(GdbParserTest, test)
 	spdlog::register_logger(logger);
 
 	GdbParser parser(logger.get());
-	// auto result = parser.parse("C:/Users/klonyyy/PROJECTS/STMViewer_/STMViewer/test/testFiles/STMViewer_test.elf");
-	auto result = parser.parse("/home/klonyyy/STMViewer/STMViewer/test/testFiles/STMViewer_test.elf");
+	auto result = parser.parse("./test/STMViewer_test.elf");
 
 	auto parsedData = parser.getParsedData();
 

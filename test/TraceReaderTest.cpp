@@ -26,12 +26,12 @@ class TraceReaderTest : public ::testing::Test
    protected:
 	TraceReaderTest()
 	{
-		stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-		logger = std::make_shared<spdlog::logger>("logger", stdout_sink);
-		spdlog::register_logger(logger);
 	}
 	void SetUp() override
 	{
+		stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+		logger = std::make_shared<spdlog::logger>("logger", stdout_sink);
+
 		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
 		traceReader = std::make_shared<TraceReader>(traceDevice.get(), logger.get());
 
