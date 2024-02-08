@@ -205,7 +205,19 @@ class GdbParser
 		size_t eol = out2.find("\\n");
 		/* +2 is to skip = and a space */
 		auto address = out2.substr(equalSignPos + 2, eol - equalSignPos - 2);
-		return stoi(address);
+
+		uint32_t addressValue = 0;
+
+		try
+		{
+			addressValue = stoi(address);
+		}
+		catch (...)
+		{
+			logger->warn("stoi incorect argument: {}", address);
+		}
+
+		return addressValue;
 	}
 
 	bool checkTrivial(std::string& line)
