@@ -12,6 +12,6 @@ git_hash = subprocess.check_output(
 ).decode()
 
 # Write the output to a Python file, creating it if it doesn't exist
-file_path = "../src/gitversion.h"
+file_path = "../src/gitversion.hpp"
 with open(file_path, "w+") as file:
     file.write(git_hash)

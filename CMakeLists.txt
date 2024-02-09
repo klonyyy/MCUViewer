@@ -117,7 +117,7 @@ add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCE
 # GIT version 
 add_custom_target(addGitVersion COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR} python3 ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.py
 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-COMMENT "Generating gitversion.h..."
+COMMENT "Generating gitversion.hpp..."
 VERBATIM)
 
 add_dependencies(${EXECUTABLE} addGitVersion)
