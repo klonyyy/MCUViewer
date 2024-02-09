@@ -158,7 +158,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} spdlog::spdlog pthread dl GL glfw nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} spdlog::spdlog_header_only pthread dl GL glfw nfd)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
