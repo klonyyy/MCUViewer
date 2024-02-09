@@ -103,9 +103,9 @@ set(IMPLOT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_items.cpp)
 
 set_source_files_properties(
-  ${IMPLOT_SOURCES}
-  PROPERTIES
-  COMPILE_FLAGS "-w"
+    ${IMPLOT_SOURCES}
+    PROPERTIES
+    COMPILE_FLAGS "-w"
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
@@ -114,11 +114,11 @@ set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
 
-# GIT version 
+# GIT version
 add_custom_target(addGitVersion COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR} python3 ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.py
-WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-COMMENT "Generating gitversion.hpp..."
-VERBATIM)
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating gitversion.hpp..."
+    VERBATIM)
 
 add_dependencies(${EXECUTABLE} addGitVersion)
 
@@ -158,7 +158,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${SPDLOG_LINUX} pthread dl GL glfw nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} spdlog:spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
@@ -188,6 +188,7 @@ if(WIN32)
     if(PRODUCTION)
         set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
     endif()
+
     install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
