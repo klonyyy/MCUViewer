@@ -10,7 +10,6 @@
 #include <unordered_set>
 
 #include "ConfigHandler.hpp"
-#include "ElfReader.hpp"
 #include "GdbParser.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
@@ -41,7 +40,6 @@ class Gui
 	bool showPreferencesWindow = false;
 	bool showImportVariablesWindow = false;
 
-	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
 
 	TracePlotHandler* tracePlotHandler;

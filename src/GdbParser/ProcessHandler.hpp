@@ -1,29 +1,14 @@
 #ifndef _PROCESSHANDLER_HPP
 #define _PROCESSHANDLER_HPP
 
+#include <array>
 #include <string>
 #include <utility>
 
 #include "../commons.hpp"
 
-template <typename Platform>
-class ProcessHandler
-{
-   public:
-	std::string executeCmd(std::string cmd, const std::string& endMarker)
-	{
-		return platform.executeCmd(cmd, endMarker);
-	}
-	void closePipes()
-	{
-		platform.closePipes();
-	}
-
-   private:
-	Platform platform;
-};
-
 #ifdef _WIN32
+
 #include <io.h>
 #include <windows.h>
 
@@ -127,9 +112,13 @@ class WindowsProcessHandler
 				fdopen(_open_osfhandle(reinterpret_cast<intptr_t>(hChildStdoutRd), 0), "r")};
 	}
 };
+
+using ProcessHandler = WindowsProcessHandler;
+
 #endif
 
 #ifdef _UNIX
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -226,7 +215,7 @@ class UnixProcessHandler
 		}
 	}
 };
-
+using ProcessHandler = UnixProcessHandler;
 #endif
 
 #endif

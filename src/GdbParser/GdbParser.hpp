@@ -19,12 +19,6 @@
 #include "Variable.hpp"
 #include "spdlog/spdlog.h"
 
-#ifdef _WIN32
-using CurrentPlatform = WindowsProcessHandler;
-#else
-using CurrentPlatform = UnixProcessHandler;
-#endif
-
 class GdbParser
 {
    public:
@@ -34,246 +28,64 @@ class GdbParser
 		bool isTrivial = false;
 	};
 
-	GdbParser(spdlog::logger* logger) : logger(logger) {}
+	GdbParser(spdlog::logger* logger);
 
-	bool parse(std::string elfPath)
-	{
-		if (!std::filesystem::exists(elfPath))
-			return false;
-
-		std::unique_lock<std::mutex> lock(mtx);
-		parsedData.clear();
-		lock.unlock();
-
-		std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
-		process.executeCmd(cmd, "(gdb)");
-		auto out = process.executeCmd("info variables\n", "(gdb)");
-
-		size_t start = 0;
-		while (out.length() > 0)
-		{
-			std::string delimiter = "File";
-
-			auto end = out.find(delimiter, start);
-			if (end == std::string::npos)
-				break;
-			/* find tylda sign next */
-			start = out.find("~", end);
-			if (start == std::string::npos)
-				break;
-			/* account for tylda and " */
-			start += 2;
-			/* find the end of filepath */
-			end = out.find(":", start);
-			if (end == std::string::npos)
-				break;
-
-			auto filename = out.substr(start, end - start);
-
-			auto end1 = out.find("~\"\\n", end);
-			start = end;
-
-			if (end1 != std::string::npos)
-			{
-				end = end1;
-				parseVariableChunk(out.substr(start, end - start));
-			}
-			start = end;
-		}
-
-		process.closePipes();
-
-		return true;
-	}
-
-	void parseVariableChunk(const std::string& chunk)
-	{
-		size_t start = 0;
-
-		while (1)
-		{
-			auto semicolonPos = chunk.find(';', start);
-			if (semicolonPos == std::string::npos)
-				break;
-
-			auto spacePos = chunk.rfind(' ', semicolonPos);
-			if (spacePos == std::string::npos)
-				break;
-
-			std::string variableName = chunk.substr(spacePos + 1, semicolonPos - spacePos - 1);
-
-			checkVariableType(variableName);
-			start = semicolonPos + 1;
-		}
-	}
-
-	void checkVariableType(std::string& name)
-	{
-		auto maybeAddress = checkAddress(name);
-		if (!maybeAddress.has_value())
-			return;
-
-		auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"), "(gdb)");
-		auto start = out.find("=");
-		auto end = out.find("\\n", start);
-
-		auto line = out.substr(start + 2, end - start - 2);
-
-		/* remove const and volatile */
-		if (line.find("volatile ", 0) != std::string::npos)
-			line.erase(0, 9);
-		if (line.find("const ", 0) != std::string::npos)
-			line.erase(0, 6);
-		if (line.find("static const ", 0) != std::string::npos)
-			line.erase(0, 13);
-
-		bool isTrivial = checkTrivial(line);
-
-		if (isTrivial)
-		{
-			std::lock_guard<std::mutex> lock(mtx);
-			parsedData[name] = VariableData{maybeAddress.value(), isTrivial};
-		}
-		else
-		{
-			auto subStart = 0;
-
-			while (1)
-			{
-				auto semicolonPos = out.find(';', subStart);
-
-				logger->debug("POS: {}", subStart);
-				logger->debug("SEMICOLON POS: {}", semicolonPos);
-				logger->debug("OUT: {}", out);
-
-				if (semicolonPos == std::string::npos)
-					break;
-
-				if (out[semicolonPos - 1] == ')')
-				{
-					subStart = semicolonPos + 1;
-					continue;
-				}
-
-				auto spacePos = out.rfind(' ', semicolonPos);
-
-				logger->debug("SPACE POS: {}", spacePos);
-
-				if (spacePos == std::string::npos)
-					break;
-
-				auto varName = out.substr(spacePos + 1, semicolonPos - spacePos - 1);
-
-				logger->debug("VAR NAME: {}", varName);
-
-				/* if a const method or a pointer */
-				if (varName == "const" || varName[0] == '*')
-				{
-					subStart = semicolonPos + 1;
-					continue;
-				}
-
-				auto fullName = name + "." + varName;
-
-				logger->debug("FULL NAME: {}", fullName);
-
-				if (fullName.size() < 100)
-					checkVariableType(fullName);
-
-				subStart = semicolonPos + 1;
-			}
-		}
-	}
-
-	std::optional<uint32_t> checkAddress(std::string& name)
-	{
-		auto out = process.executeCmd(std::string("p /d &") + name + std::string("\n"), "(gdb)");
-
-		size_t dolarSignPos = out.find('$');
-
-		if (dolarSignPos == std::string::npos)
-			return std::nullopt;
-
-		auto out2 = out.substr(dolarSignPos + 1);
-
-		size_t equalSignPos = out2.find('=');
-
-		if (equalSignPos == std::string::npos)
-			return std::nullopt;
-
-		/* this finds the \n as a string consting of '\' and 'n' not '\n' */
-		size_t eol = out2.find("\\n");
-		/* +2 is to skip = and a space */
-		auto address = out2.substr(equalSignPos + 2, eol - equalSignPos - 2);
-
-		uint32_t addressValue = 0;
-
-		try
-		{
-			addressValue = stoi(address);
-		}
-		catch (...)
-		{
-			logger->warn("stoi incorect argument: {}", address);
-		}
-
-		return addressValue;
-	}
-
-	bool checkTrivial(std::string& line)
-	{
-		if (isTrivial.contains(line))
-			return true;
-		return false;
-	}
-
-	std::map<std::string, VariableData> getParsedData()
-	{
-		std::lock_guard<std::mutex> lock(mtx);
-		return parsedData;
-	}
+	bool updateVariableMap2(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars);
+	bool parse(const std::string& elfPath);
+	std::map<std::string, VariableData> getParsedData();
 
    private:
-	static constexpr uint32_t minimumAddress = 0x20000000;
+	void parseVariableChunk(const std::string& chunk);
+	void checkVariableType(std::string& name);
+	Variable::type checkType(const std::string& name, std::string* output);
+	std::optional<uint32_t> checkAddress(const std::string& name);
+	int32_t extractGDBVersionNumber(const std::string&& versionString);
 
+   private:
+	static constexpr int32_t gdbMinimumVersion = 120;
 	spdlog::logger* logger;
 	std::mutex mtx;
-
 	std::map<std::string, VariableData> parsedData;
-	ProcessHandler<CurrentPlatform> process;
+	ProcessHandler process;
 
 	std::unordered_map<std::string, Variable::type> isTrivial = {
 		{"_Bool", Variable::type::U8},
 		{"bool", Variable::type::U8},
 		{"unsigned char", Variable::type::U8},
+		{"unsigned 8-bit", Variable::type::U8},
 
 		{"char", Variable::type::I8},
 		{"signed char", Variable::type::I8},
+		{"signed 8-bit", Variable::type::I8},
 
 		{"unsigned short", Variable::type::U16},
+		{"unsigned 16-bit", Variable::type::U16},
 		{"unsigned short int", Variable::type::U16},
 		{"short unsigned int", Variable::type::U16},
 
 		{"short", Variable::type::I16},
 		{"short int", Variable::type::I16},
 		{"signed short", Variable::type::I16},
+		{"signed 16-bit", Variable::type::I16},
 		{"signed short int", Variable::type::I16},
 		{"short signed int", Variable::type::I16},
 
 		{"unsigned int", Variable::type::U32},
 		{"unsigned long", Variable::type::U32},
+		{"unsigned 32-bit", Variable::type::U32},
 		{"unsigned long int", Variable::type::U32},
 		{"long unsigned int", Variable::type::U32},
 
 		{"int", Variable::type::I32},
 		{"long", Variable::type::I32},
 		{"long int", Variable::type::I32},
+		{"signed int", Variable::type::I32},
 		{"signed long", Variable::type::I32},
+		{"signed 32-bit", Variable::type::I32},
 		{"signed long int", Variable::type::I32},
 		{"long signed int", Variable::type::I32},
 
 		{"float", Variable::type::F32},
 	};
 };
-
 #endif

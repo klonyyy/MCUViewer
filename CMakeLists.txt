@@ -20,7 +20,7 @@ project(STMViewer)
 
 set(STMVIEWER_VERSION 0.3.0)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -67,7 +67,6 @@ endif()
 
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
@@ -86,7 +85,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -130,7 +130,6 @@ target_compile_definitions(${EXECUTABLE}
 )
 
 target_include_directories(${EXECUTABLE} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot

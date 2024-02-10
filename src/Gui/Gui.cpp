@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 
-#include "ElfReader.hpp"
 #include "PlotHandlerBase.hpp"
 #include "Statistics.hpp"
 #include "glfw3.h"
@@ -21,7 +20,6 @@
 
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
-	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
@@ -282,7 +280,7 @@ void Gui::drawUpdateAddressesFromElf()
 	}
 
 	if (ImGui::Button(buttonText, ImVec2(-1, 20)))
-		refreshThread = std::async(std::launch::async, &ElfReader::updateVariableMap, elfReader.get(), std::ref(vars));
+		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
 
 	if (success)
 		popup.show("Info", "Updating successful!", 0.65f);
