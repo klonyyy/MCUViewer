@@ -97,7 +97,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 				}
 			}
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text(("0x" + std::string(intToHexString(varData.address))).c_str());
+			ImGui::Text("%s", ("0x" + std::string(intToHexString(varData.address))).c_str());
 		}
 
 		ImGui::EndTable();

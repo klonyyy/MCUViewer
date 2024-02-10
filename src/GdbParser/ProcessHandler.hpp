@@ -4,6 +4,8 @@
 #include <string>
 #include <utility>
 
+#include "../commons.hpp"
+
 template <typename Platform>
 class ProcessHandler
 {
@@ -125,10 +127,6 @@ class WindowsProcessHandler
 				fdopen(_open_osfhandle(reinterpret_cast<intptr_t>(hChildStdoutRd), 0), "r")};
 	}
 };
-#endif
-
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
 #endif
 
 #ifdef _UNIX

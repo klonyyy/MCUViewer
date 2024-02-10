@@ -116,7 +116,7 @@ class Gui
 	template <typename T>
 	void drawDescriptionWithNumber(const char* description, T number)
 	{
-		ImGui::Text(description);
+		ImGui::Text("%s", description);
 		ImGui::SameLine();
 		ImGui::Text("%s", (std::to_string(number)).c_str());
 	}

@@ -9,10 +9,6 @@
 #include <string>
 #include <utility>
 
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
-#endif
-
 ElfReader::ElfReader(std::string& filename, spdlog::logger* logger) : elfname(filename), logger(logger)
 {
 	auto version = extractGDBVersionNumber(executeCommand("gdb -v"));
