@@ -27,20 +27,22 @@ void Gui::drawImportVariablesWindow()
 		else
 			snprintf(buttonText, 30, "Refresh");
 
-		if (ImGui::Button(buttonText, ImVec2(-1, 20)))
+		if (ImGui::Button(buttonText, ImVec2(-1, 25)))
 			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, projectElfPath);
 
 		static std::string search{};
 		ImGui::Text("search ");
 		ImGui::SameLine();
 		ImGui::InputText("##search", &search, 0, NULL, NULL);
+		ImGui::SameLine();
+		ImGui::HelpMarker("Import feature is still in Beta. If you're unable to find your variable on the list please open an issue on GitHub.");
 
 		drawImportVariablesTable(parser->getParsedData(), selection, search);
 
 		std::string importBtnName{"Import ("};
 		importBtnName += std::to_string(selection.size()) + std::string(")");
 
-		if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 20)))
+		if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 25)))
 		{
 			for (auto& [newName, newAddress] : selection)
 			{
@@ -49,7 +51,7 @@ void Gui::drawImportVariablesWindow()
 			}
 		}
 
-		if (ImGui::Button("Done", ImVec2(-1, 20)))
+		if (ImGui::Button("Done", ImVec2(-1, 25)))
 		{
 			showImportVariablesWindow = false;
 			ImGui::CloseCurrentPopup();
