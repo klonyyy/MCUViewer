@@ -569,7 +569,7 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::Text("Project's *.elf file:");
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();
-	if (ImGui::SmallButton("..."))
+	if (ImGui::Button("...", ImVec2(35, 19)))
 		openElfFile();
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
