@@ -18,7 +18,7 @@ endif()
 
 project(STMViewer)
 
-set(STMVIEWER_VERSION 0.3.0)
+set(STMVIEWER_VERSION 0.4.0)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
