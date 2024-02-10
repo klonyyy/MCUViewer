@@ -46,8 +46,8 @@ class GdbParser
 		lock.unlock();
 
 		std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
-		process.executeCmd(cmd);
-		auto out = process.executeCmd("info variables\n");
+		process.executeCmd(cmd, "(gdb)");
+		auto out = process.executeCmd("info variables\n", "(gdb)");
 
 		size_t start = 0;
 		while (out.length() > 0)
@@ -113,7 +113,7 @@ class GdbParser
 		if (!maybeAddress.has_value())
 			return;
 
-		auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"));
+		auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"), "(gdb)");
 		auto start = out.find("=");
 		auto end = out.find("\\n", start);
 
@@ -187,7 +187,7 @@ class GdbParser
 
 	std::optional<uint32_t> checkAddress(std::string& name)
 	{
-		auto out = process.executeCmd(std::string("p /d &") + name + std::string("\n"));
+		auto out = process.executeCmd(std::string("p /d &") + name + std::string("\n"), "(gdb)");
 
 		size_t dolarSignPos = out.find('$');
 

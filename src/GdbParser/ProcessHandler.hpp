@@ -8,9 +8,9 @@ template <typename Platform>
 class ProcessHandler
 {
    public:
-	std::string executeCmd(std::string cmd)
+	std::string executeCmd(std::string cmd, const std::string& endMarker)
 	{
-		return platform.executeCmd(cmd);
+		return platform.executeCmd(cmd, endMarker);
 	}
 	void closePipes()
 	{
@@ -54,7 +54,7 @@ class WindowsProcessHandler
 		}
 	}
 
-	std::string executeCmd(std::string cmd)
+	std::string executeCmd(std::string cmd, const std::string& endMarker)
 	{
 		std::string result{};
 		std::array<char, 128> buffer;
@@ -70,7 +70,7 @@ class WindowsProcessHandler
 		while (fgets(buffer.data(), buffer.size(), pipes.second) != nullptr)
 		{
 			result += buffer.data();
-			if (result.find("(gdb)") != std::string::npos)
+			if (result.find(endMarker) != std::string::npos)
 				break;
 		}
 
@@ -89,19 +89,13 @@ class WindowsProcessHandler
 
 		HANDLE hChildStdinRd, hChildStdinWr, hChildStdoutRd, hChildStdoutWr;
 
-		// Create the child stdin pipe.
 		if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0))
 			return {nullptr, nullptr};
-
-		// Ensure the read handle to the pipe for the child process is not inherited.
 		if (!SetHandleInformation(hChildStdinWr, HANDLE_FLAG_INHERIT, 0))
 			return {nullptr, nullptr};
 
-		// Create the child stdout pipe.
 		if (!CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0))
 			return {nullptr, nullptr};
-
-		// Ensure the write handle to the pipe for the child process is not inherited.
 		if (!SetHandleInformation(hChildStdoutRd, HANDLE_FLAG_INHERIT, 0))
 			return {nullptr, nullptr};
 
@@ -115,21 +109,18 @@ class WindowsProcessHandler
 		siStartInfo.hStdError = hChildStdoutWr;
 		siStartInfo.hStdOutput = hChildStdoutWr;
 		siStartInfo.hStdInput = hChildStdinRd;
-		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+		siStartInfo.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+		siStartInfo.wShowWindow = SW_HIDE;
 
-		// Create the command line string.
 		char commandLine[MAX_PATH];
 		snprintf(commandLine, MAX_PATH, "%s", __command);
 
-		// Create the child process.
-		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, 0, NULL, NULL, &siStartInfo, &piProcInfo))
+		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &siStartInfo, &piProcInfo))
 			return {nullptr, nullptr};
 
-		// Close unnecessary handles.
 		CloseHandle(hChildStdinRd);
 		CloseHandle(hChildStdoutWr);
 
-		// Return FILE* for child's stdin and stdout, respectively.
 		return {fdopen(_open_osfhandle(reinterpret_cast<intptr_t>(hChildStdinWr), 0), "w"),
 				fdopen(_open_osfhandle(reinterpret_cast<intptr_t>(hChildStdoutRd), 0), "r")};
 	}
@@ -168,7 +159,7 @@ class UnixProcessHandler
 		}
 	}
 
-	std::string executeCmd(std::string cmd)
+	std::string executeCmd(std::string cmd, const std::string& endMarker)
 	{
 		std::string result{};
 		std::array<char, 128> buffer;
@@ -184,7 +175,7 @@ class UnixProcessHandler
 		while (fgets(buffer.data(), buffer.size(), pipes.second) != nullptr)
 		{
 			result += buffer.data();
-			if (result.find("(gdb)") != std::string::npos)
+			if (result.find(endMarker) != std::string::npos)
 				break;
 		}
 
@@ -215,7 +206,7 @@ class UnixProcessHandler
 			return {nullptr, nullptr};
 		}
 		else if (pid == 0)
-		{  // Child process
+		{
 			close(inpipefd[1]);
 			close(outpipefd[0]);
 
@@ -225,18 +216,14 @@ class UnixProcessHandler
 			close(inpipefd[0]);
 			close(outpipefd[1]);
 
-			// Execute the command in the child process
 			execl("/bin/sh", "/bin/sh", "-c", command, (char*)NULL);
-
-			// If execl fails
 			perror("execl");
 			_exit(1);
 		}
 		else
-		{  // Parent process
+		{
 			close(inpipefd[0]);
 			close(outpipefd[1]);
-
 			return {fdopen(inpipefd[1], "w"), fdopen(outpipefd[0], "r")};
 		}
 	}
