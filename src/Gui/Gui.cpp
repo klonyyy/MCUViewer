@@ -257,10 +257,13 @@ void Gui::drawAddVariableButton()
 
 		addNewVariable(std::string("-new") + std::to_string(num));
 	}
+
+	ImGui::BeginDisabled(projectElfPath.empty());
+
 	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25)))
-	{
 		showImportVariablesWindow = true;
-	}
+
+	ImGui::EndDisabled();
 }
 
 void Gui::drawUpdateAddressesFromElf()
@@ -279,8 +282,12 @@ void Gui::drawUpdateAddressesFromElf()
 			success = refreshThread.get();
 	}
 
-	if (ImGui::Button(buttonText, ImVec2(-1, 20)))
+	ImGui::BeginDisabled(projectElfPath.empty());
+
+	if (ImGui::Button(buttonText, ImVec2(-1, 25)))
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
+
+	ImGui::EndDisabled();
 
 	if (success)
 		popup.show("Info", "Updating successful!", 0.65f);
