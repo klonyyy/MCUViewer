@@ -549,6 +549,8 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 		else if (type == AcqusitionWindowType::TRACE)
 			acqusitionSettingsTrace();
 
+		acqusitionErrorPopup.handle();
+
 		const float buttonHeight = 25.0f;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
@@ -868,6 +870,14 @@ bool Gui::openProject()
 bool Gui::openElfFile()
 {
 	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Elf files", "elf"));
+
+	if (path.find(" ") != std::string::npos)
+	{
+		acqusitionErrorPopup.show("Error!", "Selected path contains spaces!", 2.0f);
+		projectElfPath = "";
+		return false;
+	}
+
 	if (path != "")
 	{
 		projectElfPath = path;

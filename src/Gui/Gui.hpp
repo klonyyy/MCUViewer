@@ -47,6 +47,7 @@ class Gui
 	std::atomic<bool>& done;
 
 	Popup popup;
+	Popup acqusitionErrorPopup;
 
 	enum class AcqusitionWindowType : uint8_t
 	{
