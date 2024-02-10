@@ -9,6 +9,8 @@
 #include <string>
 #include <utility>
 
+#include "../commons.hpp"
+
 ElfReader::ElfReader(std::string& filename, spdlog::logger* logger) : elfname(filename), logger(logger)
 {
 	auto version = extractGDBVersionNumber(executeCommand("gdb -v"));
