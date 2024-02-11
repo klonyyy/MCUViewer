@@ -35,7 +35,7 @@ void Gui::drawImportVariablesWindow()
 		ImGui::SameLine();
 		ImGui::InputText("##search", &search, 0, NULL, NULL);
 		ImGui::SameLine();
-		ImGui::HelpMarker("Import feature is still in Beta. If you're unable to find your variable on the list please open an issue on GitHub.");
+		ImGui::HelpMarker("Import feature is still in Beta. If you're unable to find your variable on the list please open an issue on GitHub (remember to attach your *.elf file).");
 
 		drawImportVariablesTable(parser->getParsedData(), selection, search);
 
