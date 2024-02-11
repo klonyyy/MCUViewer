@@ -25,7 +25,11 @@ void Gui::drawImportVariablesWindow()
 		if (refreshThread.valid() && refreshThread.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
 			snprintf(buttonText, 30, "Refresh %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
 		else
+		{
+			if (refreshThread.valid() && !refreshThread.get())
+				acqusitionErrorPopup.show("Error!", "Update error. Please check the *.elf file path!", 2.0f);
 			snprintf(buttonText, 30, "Refresh");
+		}
 
 		if (ImGui::Button(buttonText, ImVec2(-1, 25)))
 			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, projectElfPath);
@@ -56,6 +60,8 @@ void Gui::drawImportVariablesWindow()
 			showImportVariablesWindow = false;
 			ImGui::CloseCurrentPopup();
 		}
+
+		acqusitionErrorPopup.handle();
 
 		ImGui::EndPopup();
 	}

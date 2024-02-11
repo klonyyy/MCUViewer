@@ -269,7 +269,6 @@ void Gui::drawAddVariableButton()
 void Gui::drawUpdateAddressesFromElf()
 {
 	static std::future<bool> refreshThread{};
-	bool success = false;
 
 	char buttonText[30]{};
 
@@ -278,8 +277,8 @@ void Gui::drawUpdateAddressesFromElf()
 	else
 	{
 		snprintf(buttonText, 30, "Update variable addresses");
-		if (refreshThread.valid())
-			success = refreshThread.get();
+		if (refreshThread.valid() && !refreshThread.get())
+			popup.show("Error!", "Update error. Please check the *.elf file path!", 2.0f);
 	}
 
 	ImGui::BeginDisabled(projectElfPath.empty());
@@ -288,9 +287,6 @@ void Gui::drawUpdateAddressesFromElf()
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
 
 	ImGui::EndDisabled();
-
-	if (success)
-		popup.show("Info", "Updating successful!", 0.65f);
 }
 
 void Gui::drawVarTable()
