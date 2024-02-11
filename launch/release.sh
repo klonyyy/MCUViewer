@@ -11,6 +11,7 @@ cd linux
 cmake -DPRODUCTION=TRUE ../..
 make package -j32
 cp *.deb ../packages
+cp *.rpm ../packages
 cd - 
 
 mkdir -p windows

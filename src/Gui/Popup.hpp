@@ -30,7 +30,7 @@ class Popup
 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 		if (ImGui::BeginPopupModal(title.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			ImGui::Text(msg.c_str());
+			ImGui::Text("%s", msg.c_str());
 
 			if (popupTimer.count() / 1000.0f >= showTime)
 			{

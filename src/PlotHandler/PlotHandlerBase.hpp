@@ -20,7 +20,7 @@ class PlotHandlerBase
 		RUN = 1,
 	};
 
-	PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandlerBase() = default;
 
 	void addPlot(const std::string& name);
@@ -33,7 +33,6 @@ class PlotHandlerBase
 	state getViewerState() const;
 	uint32_t getVisiblePlotsCount() const;
 	uint32_t getPlotsCount() const;
-	bool writeSeriesValue(Variable& var, double value);
 	bool checkIfPlotExists(const std::string&& name) const;
 	void setMaxPoints(uint32_t maxPoints);
 
@@ -62,7 +61,7 @@ class PlotHandlerBase
 	std::mutex* mtx;
 	std::thread dataHandle;
 	std::atomic<bool> stateChangeOrdered = false;
-	std::shared_ptr<spdlog::logger> logger;
+	spdlog::logger* logger;
 };
 
 #endif

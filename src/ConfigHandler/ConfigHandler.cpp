@@ -4,7 +4,7 @@
 #include <random>
 #include <variant>
 
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::shared_ptr<spdlog::logger> logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, spdlog::logger* logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
 	file = std::make_unique<mINI::INIFile>(configFilePath);
@@ -43,7 +43,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		}
 		catch (const std::exception& ex)
 		{
-			logger->error("{}", ex.what());
+			logger->error("config parsing exception {}", ex.what());
 		}
 	};
 
@@ -58,6 +58,10 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("trace_settings", "max_viewport_points_percent", traceSettings.maxViewportPointsPercent);
 	getValue("trace_settings", "trigger_channel", traceSettings.triggerChannel);
 	getValue("trace_settings", "trigger_level", traceSettings.triggerLevel);
+	getValue("trace_settings", "timeout", traceSettings.timeout);
+
+	if (traceSettings.timeout == 0)
+		traceSettings.timeout = 2;
 
 	if (traceSettings.maxViewportPointsPercent == 0 && traceSettings.maxPoints == 0)
 		traceSettings.triggerChannel = -1;
@@ -90,7 +94,6 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		varId++;
 
 		if (newVar->getAddress() % 4 != 0)
-
 			logger->warn("--------- Unaligned variable address! ----------");
 
 		if (!newVar->getName().empty())
@@ -181,7 +184,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string newSavePath)
+bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string& newSavePath)
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
@@ -193,10 +196,10 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
-	auto plotFieldFromID = [](uint32_t id, std::string prefix = "")
+	auto plotFieldFromID = [](uint32_t id, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(id)); };
 
-	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, std::string prefix = "")
+	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
 
 	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
@@ -211,6 +214,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["trace_settings"]["max_viewport_points_percent"] = std::to_string(traceSettings.maxViewportPointsPercent);
 	(*ini)["trace_settings"]["trigger_channel"] = std::to_string(traceSettings.triggerChannel);
 	(*ini)["trace_settings"]["trigger_level"] = std::to_string(traceSettings.triggerLevel);
+	(*ini)["trace_settings"]["timeout"] = std::to_string(traceSettings.timeout);
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)
@@ -238,11 +242,11 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			(*ini)[plotSeriesFieldFromID(plotId, serId)]["visibility"] = ser->visible ? "true" : "false";
 
 			std::string displayFormat = "DEC";
-			for (auto [key, value] : displayFormatMap)
+			for (auto [format, value] : displayFormatMap)
 			{
 				if (value == ser->format)
 				{
-					displayFormat = key;
+					displayFormat = format;
 					break;
 				}
 			}

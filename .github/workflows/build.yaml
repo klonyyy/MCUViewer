@@ -12,12 +12,13 @@ jobs:
     build:
         runs-on: ubuntu-20.04
         container:
-            image: klonyyy/mingw-w64-x86-64
+            image: klonyyy/mingw-w64-x86-64:2
         steps:
             - uses: actions/checkout@v3
               with:
                 submodules: recursive
                 token: ${{ secrets.PAT }}
+
             - name: build_step
               shell: bash
               run: git config --global --add safe.directory /__w/STMViewer/ && ./launch/release.sh
@@ -25,3 +26,16 @@ jobs:
               with:
                 name: STMViewer_installer
                 path: /__w/STMViewer/STMViewer/build/packages
+    test:
+        runs-on: ubuntu-20.04
+        container:
+            image: klonyyy/mingw-w64-x86-64:2
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                submodules: recursive
+                token: ${{ secrets.PAT }}
+                
+            - name: test_step
+              shell: bash
+              run: git config --global --add safe.directory /__w/STMViewer/ && ./launch/run_tests.sh

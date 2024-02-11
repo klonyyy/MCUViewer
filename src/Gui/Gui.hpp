@@ -7,9 +7,10 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_set>
 
 #include "ConfigHandler.hpp"
-#include "ElfReader.hpp"
+#include "GdbParser.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
 #include "Plot.hpp"
@@ -22,7 +23,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);
 	~Gui();
 
    private:
@@ -37,8 +38,8 @@ class Gui
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
+	bool showImportVariablesWindow = false;
 
-	std::unique_ptr<ElfReader> elfReader;
 	IFileHandler* fileHandler;
 
 	TracePlotHandler* tracePlotHandler;
@@ -46,6 +47,7 @@ class Gui
 	std::atomic<bool>& done;
 
 	Popup popup;
+	Popup acqusitionErrorPopup;
 
 	enum class AcqusitionWindowType : uint8_t
 	{
@@ -55,9 +57,12 @@ class Gui
 
 	std::mutex* mtx;
 
+	GdbParser* parser;
+
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();
+	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
 	void drawVarTable();
@@ -96,6 +101,9 @@ class Gui
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
 
+	void drawImportVariablesWindow();
+	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
+
 	template <typename T>
 	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
 	{
@@ -107,18 +115,18 @@ class Gui
 	template <typename T>
 	void drawDescriptionWithNumber(const char* description, T number)
 	{
-		ImGui::Text(description);
+		ImGui::Text("%s", description);
 		ImGui::SameLine();
 		ImGui::Text("%s", (std::to_string(number)).c_str());
 	}
 
-	std::optional<std::string> showDeletePopup(const char* text, const std::string name);
+	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
 
 	bool openWebsite(const char* url);
 
-	std::shared_ptr<spdlog::logger> logger;
+	spdlog::logger* logger;
 };
 
 #endif

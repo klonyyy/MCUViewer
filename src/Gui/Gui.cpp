@@ -2,12 +2,12 @@
 
 #include <unistd.h>
 
+#include <future>
 #include <random>
 #include <sstream>
 #include <string>
 #include <utility>
 
-#include "ElfReader.hpp"
 #include "PlotHandlerBase.hpp"
 #include "Statistics.hpp"
 #include "glfw3.h"
@@ -18,9 +18,8 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
-	elfReader = std::make_unique<ElfReader>(projectElfPath, logger);
 	threadHandle = std::thread(&Gui::mainThread, this);
 }
 
@@ -113,6 +112,7 @@ void Gui::mainThread()
 			drawStartButton();
 			drawVarTable();
 			drawPlotsTree();
+			drawImportVariablesWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -235,6 +235,18 @@ void Gui::drawStartButton()
 
 	ImGui::PopStyleColor(3);
 }
+
+void Gui::addNewVariable(const std::string& newName)
+{
+	std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
+	std::random_device rd{};
+	std::mt19937 gen{rd()};
+	std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
+	uint32_t randomColor = dist(gen);
+	newVar->setColor(randomColor);
+	vars.emplace(newName, newVar);
+}
+
 void Gui::drawAddVariableButton()
 {
 	if (ImGui::Button("Add variable", ImVec2(-1, 25)))
@@ -243,25 +255,38 @@ void Gui::drawAddVariableButton()
 		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
 			num++;
 
-		std::string newName = std::string("-new") + std::to_string(num);
-
-		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
-		std::random_device rd{};
-		std::mt19937 gen{rd()};
-		std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
-		uint32_t randomColor = dist(gen);
-		newVar->setColor(randomColor);
-		vars.emplace(newName, newVar);
+		addNewVariable(std::string("-new") + std::to_string(num));
 	}
+
+	ImGui::BeginDisabled(projectElfPath.empty());
+
+	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25)))
+		showImportVariablesWindow = true;
+
+	ImGui::EndDisabled();
 }
+
 void Gui::drawUpdateAddressesFromElf()
 {
-	bool success = false;
-	if (ImGui::Button("Update variable addresses", ImVec2(-1, 25)))
-		success = elfReader->updateVariableMap(vars);
+	static std::future<bool> refreshThread{};
 
-	if (success)
-		popup.show("Info", "Updating successful!", 0.65f);
+	char buttonText[30]{};
+
+	if (refreshThread.valid() && refreshThread.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+		snprintf(buttonText, 30, "Update variable addresses %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
+	else
+	{
+		snprintf(buttonText, 30, "Update variable addresses");
+		if (refreshThread.valid() && !refreshThread.get())
+			popup.show("Error!", "Update error. Please check the *.elf file path!", 2.0f);
+	}
+
+	ImGui::BeginDisabled(projectElfPath.empty());
+
+	if (ImGui::Button(buttonText, ImVec2(-1, 25)))
+		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
+
+	ImGui::EndDisabled();
 }
 
 void Gui::drawVarTable()
@@ -520,6 +545,8 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 		else if (type == AcqusitionWindowType::TRACE)
 			acqusitionSettingsTrace();
 
+		acqusitionErrorPopup.handle();
+
 		const float buttonHeight = 25.0f;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
@@ -538,7 +565,7 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::Text("Project's *.elf file:");
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();
-	if (ImGui::SmallButton("..."))
+	if (ImGui::Button("...", ImVec2(35, 19)))
 		openElfFile();
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
@@ -696,10 +723,16 @@ void Gui::acqusitionSettingsTrace()
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
 	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
+	ImGui::Text("Timeout [s]:");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Timeout is the period after which trace will be stopped due to no trace data being received.");
+	ImGui::InputScalar("##timeout", ImGuiDataType_U32, &settings.timeout, &one, NULL, "%u");
+	settings.timeout = std::clamp(settings.timeout, static_cast<uint32_t>(1), static_cast<uint32_t>(999999));
+
 	tracePlotHandler->setSettings(settings);
 }
 
-std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string name)
+std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string& name)
 {
 	ImGui::PushID(name.c_str());
 	if (ImGui::BeginPopupContextItem(text))
@@ -833,6 +866,14 @@ bool Gui::openProject()
 bool Gui::openElfFile()
 {
 	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Elf files", "elf"));
+
+	if (path.find(" ") != std::string::npos)
+	{
+		acqusitionErrorPopup.show("Error!", "Selected path contains spaces!", 2.0f);
+		projectElfPath = "";
+		return false;
+	}
+
 	if (path != "")
 	{
 		projectElfPath = path;
@@ -844,7 +885,7 @@ bool Gui::openElfFile()
 
 void Gui::checkShortcuts()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	const ImGuiIO& io = ImGui::GetIO();
 	bool wasSaved = false;
 
 	if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))

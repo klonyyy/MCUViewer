@@ -18,7 +18,7 @@ endif()
 
 project(STMViewer)
 
-set(STMVIEWER_VERSION 0.3.0)
+set(STMVIEWER_VERSION 0.4.0)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
@@ -44,25 +44,33 @@ add_compile_options(-Wall
     -Wno-missing-field-initializers)
 
 if(UNIX)
-    add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
+
+    include(FetchContent)
+    FetchContent_Declare(
+            spdlog
+            GIT_REPOSITORY https://github.com/gabime/spdlog.git
+            GIT_TAG        v1.13.0)
+
+    FetchContent_GetProperties(spdlog)
+    if (NOT spdlog_POPULATED)
+        FetchContent_Populate(spdlog)
+        add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
+    endif()
+
+    # this is to avoid warnings from spdlog
+    get_target_property(SPDLOG_IID spdlog INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(spdlog PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${SPDLOG_IID}")
+
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
-    set(SPDLOG_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/linux/libspdlog.so.1.11.0)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 endif()
 
 if(WIN32)
-    # use bat script only if not cross-compiling
-    if("${PLATFORM}" STREQUAL "native")
-        add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.bat)
-    else()
-        add_custom_target(addGitVersion COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.sh)
-    endif()
-
     enable_language("RC")
     set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
@@ -75,12 +83,12 @@ endif()
 
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader/ElfReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiImportVariables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
@@ -93,7 +101,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -110,9 +119,9 @@ set(IMPLOT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot_items.cpp)
 
 set_source_files_properties(
-  ${IMPLOT_SOURCES}
-  PROPERTIES
-  COMPILE_FLAGS "-w"
+    ${IMPLOT_SOURCES}
+    PROPERTIES
+    COMPILE_FLAGS "-w"
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
@@ -120,6 +129,12 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+
+# GIT version
+add_custom_target(addGitVersion COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR} python3 ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating gitversion.hpp..."
+    VERBATIM)
 
 add_dependencies(${EXECUTABLE} addGitVersion)
 
@@ -131,7 +146,6 @@ target_compile_definitions(${EXECUTABLE}
 )
 
 target_include_directories(${EXECUTABLE} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ElfReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot
@@ -143,7 +157,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
@@ -158,7 +173,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 
 if(UNIX)
-    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${SPDLOG_LINUX} pthread dl GL glfw nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
@@ -188,6 +203,7 @@ if(WIN32)
     if(PRODUCTION)
         set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
     endif()
+
     install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
@@ -203,7 +219,7 @@ if(UNIX)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/STMViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
-    set(CPACK_GENERATOR "DEB")
+    set(CPACK_GENERATOR "DEB;RPM")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
 

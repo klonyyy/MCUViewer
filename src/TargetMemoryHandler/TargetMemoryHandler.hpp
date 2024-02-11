@@ -14,7 +14,7 @@
 class TargetMemoryHandler
 {
    public:
-	TargetMemoryHandler(ITargetMemoryHandler* memoryHandler, std::shared_ptr<spdlog::logger> logger);
+	TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger);
 
 	bool start() const;
 	bool stop() const;
@@ -27,7 +27,7 @@ class TargetMemoryHandler
    private:
 	std::mutex mtx;
 	std::unique_ptr<ITargetMemoryHandler> memoryHandler;
-	std::shared_ptr<spdlog::logger> logger;
+	spdlog::logger* logger;
 };
 
 #endif

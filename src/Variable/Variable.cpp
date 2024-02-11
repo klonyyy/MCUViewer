@@ -4,15 +4,18 @@
 
 Variable::Variable(std::string name) : name(name)
 {
+	name.reserve(100);
 	value = 0.0;
 	address = 0x20000000;
 	varType = type::UNKNOWN;
+	color = {0.0, 0.0, 0.0, 0.0};
 }
 
-Variable::Variable(std::string name, Variable::type type, double value) : name(name), varType(type)
+Variable::Variable(std::string name, Variable::type type, double value) : name(name), varType(type), value(value)
 {
-	setValue(value);
 	name.reserve(100);
+	address = 0x20000000;
+	color = {0.0, 0.0, 0.0, 0.0};
 }
 
 void Variable::setType(type varType)

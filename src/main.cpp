@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "../commons.hpp"
 #include "ConfigHandler.hpp"
 #include "Gui.hpp"
 #include "NFDFileHandler.hpp"
@@ -10,10 +11,6 @@
 #include "gitversion.hpp"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/spdlog.h"
-
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
-#endif
 
 std::atomic<bool> done = false;
 std::mutex mtx;
@@ -47,12 +44,15 @@ int main(int argc, char** argv)
 	logger->info("Version: {}.{}.{}", STMVIEWER_VERSION_MAJOR, STMVIEWER_VERSION_MINOR, STMVIEWER_VERSION_REVISION);
 	logger->info("Commit hash {}", GIT_HASH);
 
-	PlotHandler plotHandler(done, &mtx, logger);
-	TracePlotHandler tracePlotHandler(done, &mtx, logger);
-	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, logger);
-	NFDFileHandler fileHandler;
+	auto loggerPtr = logger.get();
 
-	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, logger);
+	PlotHandler plotHandler(done, &mtx, loggerPtr);
+	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, loggerPtr);
+	NFDFileHandler fileHandler;
+	GdbParser parser(loggerPtr);
+
+	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, &parser, loggerPtr);
 
 	while (!done)
 	{

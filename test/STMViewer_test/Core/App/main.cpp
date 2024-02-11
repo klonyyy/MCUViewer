@@ -8,8 +8,10 @@
 #include <main.hpp>
 #include "stm32g4xx_ll_gpio.h"
 #include "testClass.hpp"
+#include "testClass2.hpp"
 
 TestClass test;
+TemplateTest<uint32_t, bool> templateTest;
 volatile float sinTest = 0.0f;
 volatile float cosTest = 0.0f;
 
@@ -36,7 +38,12 @@ void maincpp()
 		x += 0.001f;
 
 		if (x > 6.28f)
+		{
 			x = 0.0f;
+			templateTest.test = true;
+		}
+		else
+			templateTest.test = false;
 
 		test.spin();
 

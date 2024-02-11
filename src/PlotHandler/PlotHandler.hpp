@@ -25,24 +25,22 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 	} Settings;
 
-	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger);
+	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandler();
 
 	std::string getLastReaderError() const;
 	bool writeSeriesValue(Variable& var, double value);
 
 	Settings getSettings() const;
-	void setSettings(Settings& newSettings);
+	void setSettings(const Settings& newSettings);
 
    private:
 	void dataHandler();
 
    private:
-	std::unique_ptr<StlinkHandler> stlinkReader;
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};
-	// float samplePeriodMs = 1;
 };
 
 #endif

@@ -6,10 +6,10 @@
 
 #include "TraceReader.hpp"
 
-TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
+TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
 	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
-	traceReader = std::make_unique<TraceReader>(traceDevice, logger);
+	traceReader = std::make_unique<TraceReader>(traceDevice.get(), logger);
 	initPlots();
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 }
@@ -48,6 +48,7 @@ void TracePlotHandler::setSettings(const Settings& settings)
 	traceReader->setCoreClockFrequency(settings.coreFrequency);
 	traceReader->setTraceFrequency(settings.tracePrescaler);
 	traceReader->setTraceShouldReset(settings.shouldReset);
+	traceReader->setTraceTimeout(settings.timeout);
 	setMaxPoints(settings.maxPoints);
 	traceSettings = settings;
 }
@@ -94,6 +95,7 @@ double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 	{
 		switch (plot.getTraceVarType())
 		{
+			/*TODO: consider the bitcast solution, though the size of input and outpu differ */
 			case Plot::TraceVarType::U8:
 				return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
 			case Plot::TraceVarType::I8:

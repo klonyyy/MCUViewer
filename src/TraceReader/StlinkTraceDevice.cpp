@@ -6,7 +6,7 @@
 #include "logging.h"
 #include "register.h"
 
-StlinkTraceDevice::StlinkTraceDevice(std::shared_ptr<spdlog::logger> logger) : logger(logger)
+StlinkTraceDevice::StlinkTraceDevice(spdlog::logger* logger) : logger(logger)
 {
 	init_chipids(const_cast<char*>("./chips"));
 }

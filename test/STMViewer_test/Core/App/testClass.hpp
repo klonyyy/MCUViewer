@@ -13,8 +13,6 @@
 class TestClass
 {
 public:
-	TestClass() = default;
-	~TestClass() = default;
 
 	float getSin(float x);
 	float getCos(float x);

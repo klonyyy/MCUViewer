@@ -1,3 +1,4 @@
+#include "../commons.hpp"
 #include "../gitversion.hpp"
 #include "Gui.hpp"
 
@@ -50,10 +51,6 @@ void Gui::drawAboutWindow()
 
 bool Gui::openWebsite(const char* url)
 {
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
-#endif
-
 #ifdef _WIN32
 	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 #elif defined _UNIX
@@ -62,7 +59,7 @@ bool Gui::openWebsite(const char* url)
 		browser = "xdg-open";
 	char command[256];
 	snprintf(command, sizeof(command), "%s %s", browser, url);
-	system(command);
+	auto status = system(command);
 #else
 #error "Your system is not supported!"
 #endif

@@ -5,11 +5,10 @@
 #include <memory>
 #include <string>
 
-PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, std::shared_ptr<spdlog::logger> logger) : PlotHandlerBase(done, mtx, logger)
+PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	stlinkReader = std::make_unique<StlinkHandler>();
-	varReader = std::make_unique<TargetMemoryHandler>(stlinkReader.get(), logger);
+	varReader = std::make_unique<TargetMemoryHandler>(std::make_unique<StlinkHandler>(), logger);
 }
 PlotHandler::~PlotHandler()
 {
@@ -22,7 +21,7 @@ PlotHandler::Settings PlotHandler::getSettings() const
 	return settings;
 }
 
-void PlotHandler::setSettings(Settings& newSettings)
+void PlotHandler::setSettings(const Settings& newSettings)
 {
 	settings = newSettings;
 }
