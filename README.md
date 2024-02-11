@@ -96,6 +96,16 @@ Answer: Try logging fewer channels simultaneously. It could be that you've satur
 Answer: This is not a critical error, however, you should be cautious as some of the trace frames may be delayed. To fix try logging fewer channels simultaneously.
 
 
+## Building
+
+STMViewer is build like any other CMake project. On Windows you can use MinGW. If you're a Linux user be sure to install: 
+1. libusb-1.0-0-dev
+2. libglfw3-dev
+3. libgtk-3-dev
+
+After a successful build, copy the ./third_party/stlink/chips directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
+
+
 ## Why
 I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since the beginning, I have been working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that, I think the plot manipulation is much worse compared to STMStudio or STMViewer. 
 
