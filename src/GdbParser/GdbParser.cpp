@@ -25,6 +25,9 @@ bool GdbParser::updateVariableMap2(const std::string& elfPath, std::map<std::str
 
 	for (auto& [name, var] : vars)
 	{
+		var->setIsFound(false);
+		var->setType(Variable::type::UNKNOWN);
+
 		auto maybeAddress = checkAddress(name);
 		if (!maybeAddress.has_value())
 			continue;
