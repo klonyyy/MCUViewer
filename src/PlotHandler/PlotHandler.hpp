@@ -11,7 +11,6 @@
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "StlinkHandler.hpp"
 #include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
 
