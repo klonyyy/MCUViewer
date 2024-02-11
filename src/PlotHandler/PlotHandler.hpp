@@ -38,7 +38,6 @@ class PlotHandler : public PlotHandlerBase
 	void dataHandler();
 
    private:
-	std::unique_ptr<StlinkHandler> stlinkReader;
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};

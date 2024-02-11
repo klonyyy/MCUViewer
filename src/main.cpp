@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "../commons.hpp"
 #include "ConfigHandler.hpp"
 #include "Gui.hpp"
 #include "NFDFileHandler.hpp"
@@ -10,10 +11,6 @@
 #include "gitversion.hpp"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/spdlog.h"
-
-#if defined(unix) || defined(__unix__) || defined(__unix)
-#define _UNIX
-#endif
 
 std::atomic<bool> done = false;
 std::mutex mtx;
@@ -53,8 +50,9 @@ int main(int argc, char** argv)
 	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
 	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, loggerPtr);
 	NFDFileHandler fileHandler;
+	GdbParser parser(loggerPtr);
 
-	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, loggerPtr);
+	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, &parser, loggerPtr);
 
 	while (!done)
 	{

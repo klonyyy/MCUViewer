@@ -29,12 +29,21 @@ class ConfigHandler
 	template <typename T>
 	void parseValue(const std::string& value, T& result)
 	{
-		if constexpr (std::is_integral_v<T>)
-			result = std::stoi(value);
-		else if constexpr (std::is_same_v<T, float>)
-			result = std::stof(value);
-		else
-			throw std::invalid_argument("Unsupported type");
+		try
+		{
+			if constexpr (std::is_integral_v<T>)
+				result = std::stoi(value);
+			else if constexpr (std::is_same_v<T, float>)
+				result = std::stof(value);
+			else if constexpr (std::is_same_v<T, double>)
+				result = std::stod(value);
+			else
+				throw std::invalid_argument("Unsupported type");
+		}
+		catch (...)
+		{
+			logger->warn("stoi incorect argument: {}", value);
+		}
 	}
 
    private:
@@ -48,7 +57,6 @@ class ConfigHandler
 
 	std::unique_ptr<mINI::INIFile> file;
 	std::unique_ptr<mINI::INIStructure> ini;
-
 };
 
 #endif
