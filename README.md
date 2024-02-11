@@ -19,7 +19,7 @@ Variable Viewer is a great tool for debugging, but might be of little use with h
 ### Trace Viewer 
 ![_](./docs/TraceViewer.gif)
 
-Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming the timer's interrupt frequency, or displaying very fast signals. All this is possible thanks to hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequisites and usage please see the Quick Start section. 
+Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming the timer's interrupt frequency, or displaying very high frequency signals. All this is possible thanks to hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequisites and usage please see the Quick Start section. 
 
 TraceViewer is not influenced by optimizations, which means it is a great tool to use for profiling on release builds. Moreover it has a very low influence on the program execution as each datapoint is a single register write. 
 
@@ -31,7 +31,7 @@ Linux:
 1. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
-Optional: make sure you have the rights to access usb port. When installing ST's software such as Cube Programmer it will most probably also install needed udev rules.
+In case your stlink is not detected, please copty the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
 Windows: 
 1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
@@ -42,14 +42,14 @@ You can assign the external GPU to STMViewer for improved performance.
 ## Quick Start 
 
 ### Variable Viewer
-1. Open Options->Acqusition Settings window in the top menu. 
+1. Open `Options -> Acqusition` Settings window in the top menu. 
 2. Select your project's elf file. Make sure the project is compiled in debug mode. Click done. 
-3. Click the 'add variable' button to add a new variable. Double-click to change its name to one of your global variables. If you're using structs or classes in C++ make sure to add its name before the variable, exactly like you'd refer to it in the code (for example myClass.var, or namespace::myClass.var). 
-4. After adding all variables click 'update variable addresses'. The type and address of the variables you've added should change from "NOT FOUND!" to a valid address based on the *.elf file you've provided.
+3. Click the `Import variables form *.elf` button and click `Refresh`. Select variables and click `Import`. Note: the import feature is still in beta. If your variable is not automatically detected just click `Add variable` and input the name yourself. Please let me know if that happens by opening a new issue with *.elf file attached. 
+4. After adding all variables click `Update variable addresses`. The type and address of the variables you've added should change from "NOT FOUND!" to a valid address based on the *.elf file you've provided. Note: 64-bit variables (such as uint64_t and double) are not yet supported #13.
 5. Drag and drop the variable to the plot area.
-6. Make sure the ST-Link is connected. Download your executable to the microcontroller and press the "STOPPED" button. 
+6. Make sure the ST-Link is connected. Download your executable to the microcontroller and press the `STOPPED` button. 
 
-In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the Options -> Acquisition Settings. 
+In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
 
 Example project with STMViewer config file is located in test/STMViewer_test directory.
 
@@ -63,31 +63,31 @@ ITM->PORT[x].u8 = 0xbb; //exit tag 0xbb - plot state low
 ```
 And for tracing "analog" signals you can use: 
 ```
-float a = sin(10.0f * i);          // some super fast signal to trace
+float a = sin(10.0f * i);          // some high frequency signal to trace
 ITM->PORT[x].u32 = *(uint32_t*)&a; // type-punn to desired size: sizeof(float) = sizeof(uint32_t)
 ```
 or
 
 ```
-uint16_t a = getAdcSample();       // some super fast signal to trace
+uint16_t a = getAdcSample();       // some high frequency signal to trace
 ITM->PORT[x].u16 = a;              
 ```
 
-The ITM registers are defined in CMSIS headers so no additional includes should be necessary.
+The ITM registers are defined in CMSIS headers (core_xxxx.h).
 
 3. Compile and download the program to your STM32 target.
 4. In the `Settings` window type in the correct System Core Clock value in kHz (very important as it affects the timebase)
 5. Try different trace prescallers that result in a trace speed lower than the max trace speed of your programmer (for example STLINK V2 can read trace up to 2Mhz, whereas ST-Link V3 is theoretically able to do 24Mhz). Example:
 - System Core Clock is 160 000 kHz (160 Mhz)
 - We're using ST-link V2 so the prescaler should be at least 160 Mhz / 2 Mhz = 80
-6. Configure "analog" channels types according to the type used in your code. 
-7. Press the "STOPPED" button to start recording.
+6. Configure `analog` channels types according to the type used in your code. 
+7. Press the `STOPPED` button to start recording.
 
 Example project with STMViewer config file is located in test/STMViewer_test directory.
 
 FAQ and common issues: 
 1. Problem: My trace doesn't look like it's supposed to and I get a lot of error frames
-Answer: Try lowering the trace prescaller and check the SWO pin connection - the SWO pin output is a fast signal and it shouldn't be too long.
+Answer: Try lowering the trace prescaller and check the SWO pin connection - the SWO pin output is high frequency and it shouldn't be too long.
 
 2. Problem: My trace looks like it's supposed to but I get the "delayed timestamp 3" indicator
 Answer: Try logging fewer channels simultaneously. It could be that you've saturated the SWO pin bandwidth.
@@ -103,7 +103,7 @@ STMViewer is build like any other CMake project. On Windows you can use MinGW. I
 2. libglfw3-dev
 3. libgtk-3-dev
 
-After a successful build, copy the ./third_party/stlink/chips directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
+After a successful build, copy the ``./third_party/stlink/chips`` directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
 
 
 ## Why
