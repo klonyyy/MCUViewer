@@ -1,5 +1,8 @@
 #include "StlinkHandler.hpp"
 
+#include <spdlog/fmt/bin_to_hex.h>
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <string>
 
@@ -59,4 +62,26 @@ bool StlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 std::string StlinkHandler::getLastErrorMsg() const
 {
 	return lastErrorMsg;
+}
+
+std::vector<uint32_t> StlinkHandler::getConnectedDevices()
+{
+	stlink_t** stdevs;
+	uint32_t size;
+
+	size = stlink_probe_usb(&stdevs, CONNECT_HOT_PLUG, 24000);
+
+	std::vector<uint32_t> deviceIDs;
+
+	for (size_t i = 0; i < size; i++)
+	{
+		if (stdevs[i]->serial != 0)
+		{
+			/* TODO */
+			// deviceIDs.push_back();
+			spdlog::info("serial {}", stdevs[i]->serial);
+		}
+	}
+
+	return deviceIDs;
 }

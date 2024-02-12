@@ -28,36 +28,39 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 	if (!memoryHandler->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
 		return 0.0;
 
-	if (type == Variable::type::I8 || type == Variable::type::U8)
+	if (memoryHandler->requiresAlignedAccessOnRead())
 	{
-		if (shouldShift == 0)
-			value = (value & 0x000000ff);
-		else if (shouldShift == 1)
-			value = (value & 0x0000ff00) >> 8;
-		else if (shouldShift == 2)
-			value = (value & 0x00ff0000) >> 16;
-		else if (shouldShift == 3)
-			value = (value & 0xff000000) >> 24;
-	}
-	else if (type == Variable::type::I16 || type == Variable::type::U16)
-	{
-		if (shouldShift == 0)
-			value = (value & 0x0000ffff);
-		else if (shouldShift == 1)
-			value = (value & 0x00ffff00) >> 8;
-		else if (shouldShift == 2)
-			value = (value & 0xffff0000) >> 16;
-		else if (shouldShift == 3)
-			value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
-	}
-	else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
-	{
-		if (shouldShift == 1)
-			value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
-		else if (shouldShift == 2)
-			value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
-		else if (shouldShift == 3)
-			value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
+		if (type == Variable::type::I8 || type == Variable::type::U8)
+		{
+			if (shouldShift == 0)
+				value = (value & 0x000000ff);
+			else if (shouldShift == 1)
+				value = (value & 0x0000ff00) >> 8;
+			else if (shouldShift == 2)
+				value = (value & 0x00ff0000) >> 16;
+			else if (shouldShift == 3)
+				value = (value & 0xff000000) >> 24;
+		}
+		else if (type == Variable::type::I16 || type == Variable::type::U16)
+		{
+			if (shouldShift == 0)
+				value = (value & 0x0000ffff);
+			else if (shouldShift == 1)
+				value = (value & 0x00ffff00) >> 8;
+			else if (shouldShift == 2)
+				value = (value & 0xffff0000) >> 16;
+			else if (shouldShift == 3)
+				value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
+		}
+		else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
+		{
+			if (shouldShift == 1)
+				value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
+			else if (shouldShift == 2)
+				value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
+			else if (shouldShift == 3)
+				value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
+		}
 	}
 
 	switch (type)
@@ -126,4 +129,9 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 std::string TargetMemoryHandler::getLastErrorMsg() const
 {
 	return memoryHandler->getLastErrorMsg();
+}
+
+std::vector<uint32_t> TargetMemoryHandler::getConnectedDevices()
+{
+	return memoryHandler->getConnectedDevices();
 }

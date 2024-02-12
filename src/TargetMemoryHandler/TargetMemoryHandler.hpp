@@ -24,6 +24,8 @@ class TargetMemoryHandler
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 
+	std::vector<uint32_t> getConnectedDevices();
+
    private:
 	std::mutex mtx;
 	std::unique_ptr<ITargetMemoryHandler> memoryHandler;
