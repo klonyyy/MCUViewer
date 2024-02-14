@@ -13,9 +13,9 @@ StlinkHandler::StlinkHandler()
 	init_chipids(const_cast<char*>("./chips"));
 }
 
-bool StlinkHandler::startAcqusition()
+bool StlinkHandler::startAcqusition(const std::string& serialNumber)
 {
-	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
+	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, (char*)serialNumber.data(), 24000);
 	isRunning = false;
 
 	if (sl != nullptr)
@@ -64,22 +64,24 @@ std::string StlinkHandler::getLastErrorMsg() const
 	return lastErrorMsg;
 }
 
-std::vector<uint32_t> StlinkHandler::getConnectedDevices()
+std::vector<std::string> StlinkHandler::getConnectedDevices()
 {
 	stlink_t** stdevs;
 	uint32_t size;
 
 	size = stlink_probe_usb(&stdevs, CONNECT_HOT_PLUG, 24000);
 
-	std::vector<uint32_t> deviceIDs;
+	std::vector<std::string> deviceIDs;
 
 	for (size_t i = 0; i < size; i++)
 	{
-		if (stdevs[i]->serial != 0)
+		std::string serialNumber{stdevs[i]->serial};
+
+		if (!serialNumber.empty())
 		{
 			/* TODO */
-			// deviceIDs.push_back();
-			spdlog::info("serial {}", stdevs[i]->serial);
+			spdlog::info("serial {}", serialNumber);
+			deviceIDs.push_back(serialNumber);
 		}
 	}
 

@@ -12,7 +12,9 @@
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
 #include "IFileHandler.hpp"
+#include "ITargetMemoryHandler.hpp"
 #include "ImguiPlugins.hpp"
+#include "JlinkHandler.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
@@ -23,6 +25,12 @@
 class Gui
 {
    public:
+	typedef struct
+	{
+		uint32_t debugProbe = 0;
+		std::string serialNumber = "";
+	} DebugProbeSettings;
+
 	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);
 	~Gui();
 
@@ -41,8 +49,12 @@ class Gui
 	bool showImportVariablesWindow = false;
 
 	IFileHandler* fileHandler;
-
 	TracePlotHandler* tracePlotHandler;
+
+	DebugProbeSettings debugProbeSettings{};
+	std::shared_ptr<ITargetMemoryHandler> stlinkProbe;
+	std::shared_ptr<ITargetMemoryHandler> jlinkProbe;
+	std::shared_ptr<ITargetMemoryHandler> debugProbeDevice;
 
 	std::atomic<bool>& done;
 

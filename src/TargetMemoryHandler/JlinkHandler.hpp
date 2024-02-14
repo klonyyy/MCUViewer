@@ -35,10 +35,11 @@ class JlinkHandler : public ITargetMemoryHandler
 		} JLINKARM_EMU_CONNECT_INFO;
 
 		int32_t (*jlinkGetList)(int hostIFs, JLINKARM_EMU_CONNECT_INFO* paConnectInfo, int MaxInfos);
+		bool (*jlinkSelectByUsb)(int32_t id);
 
 		int (*jlink_select_by_usb)(int);
 		int (*jlink_lock)(int);
-		int (*jlink_open)(void* log, void* errHandler);
+		const char* (*jlink_open)(void* log, void* errHandler);
 		void (*jlink_close)();
 		bool (*jlink_is_open)();
 		bool (*jlink_read_mem)(uint32_t addr, int32_t size, uint8_t* buf, void* access);
@@ -48,7 +49,7 @@ class JlinkHandler : public ITargetMemoryHandler
    public:
 	JlinkHandler();
 	~JlinkHandler();
-	bool startAcqusition() override;
+	bool startAcqusition(const std::string& serialNumber) override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
 
@@ -56,7 +57,7 @@ class JlinkHandler : public ITargetMemoryHandler
 	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) override;
 
 	std::string getLastErrorMsg() const override;
-	std::vector<uint32_t> getConnectedDevices() override;
+	std::vector<std::string> getConnectedDevices() override;
 
 	bool requiresAlignedAccessOnRead() override
 	{

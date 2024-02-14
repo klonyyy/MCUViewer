@@ -5,13 +5,13 @@
 
 #include "iostream"
 
-TargetMemoryHandler::TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger) : memoryHandler(std::move(memoryHandler)), logger(logger)
+TargetMemoryHandler::TargetMemoryHandler(spdlog::logger* logger) : logger(logger)
 {
 }
 
-bool TargetMemoryHandler::start() const
+bool TargetMemoryHandler::start(const std::string& serialNumber) const
 {
-	return memoryHandler->startAcqusition();
+	return memoryHandler->startAcqusition(serialNumber);
 }
 bool TargetMemoryHandler::stop() const
 {
@@ -131,7 +131,7 @@ std::string TargetMemoryHandler::getLastErrorMsg() const
 	return memoryHandler->getLastErrorMsg();
 }
 
-std::vector<uint32_t> TargetMemoryHandler::getConnectedDevices()
+std::vector<std::string> TargetMemoryHandler::getConnectedDevices()
 {
 	return memoryHandler->getConnectedDevices();
 }

@@ -70,6 +70,16 @@ void Gui::mainThread()
 
 	bool show_demo_window = false;
 
+	jlinkProbe = std::make_shared<JlinkHandler>();
+	stlinkProbe = std::make_shared<StlinkHandler>();
+
+	if (debugProbeSettings.debugProbe == 1)
+	{
+		plotHandler->setDebugProbe(jlinkProbe, "775042853");
+	}
+	else
+		plotHandler->setDebugProbe(stlinkProbe, "002B001F3431511531343632");
+
 	while (!done)
 	{
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
@@ -562,6 +572,27 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 
 void Gui::acqusitionSettingsViewer()
 {
+	static std::vector<std::string> devicesList{};
+
+	ImGui::Text("Debug probe:");
+	const char* debugProbes[] = {"STLINK", "JLINK"};
+	int32_t debugProbe = debugProbeSettings.debugProbe;
+	ImGui::SameLine();
+	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
+	{
+		debugProbeSettings.debugProbe = debugProbe;
+
+		if (debugProbeSettings.debugProbe == 1)
+		{
+			plotHandler->setDebugProbe(jlinkProbe, "775042853");
+		}
+		else
+			plotHandler->setDebugProbe(stlinkProbe, "002B001F3431511531343632");
+	}
+
+	// if (ImGui::Button("...", ImVec2(35, 19)))
+	// 	auto devicesList = debugProbeDevice.getConnectedDevices();
+
 	ImGui::Text("Project's *.elf file:");
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();

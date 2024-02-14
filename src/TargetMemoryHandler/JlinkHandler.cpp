@@ -19,6 +19,7 @@ JlinkHandler::JlinkHandler()
 	jlinkFunctions.jlink_read_mem = (decltype(jlinkFunctions.jlink_read_mem))GetProcAddress(so_handle, "JLINKARM_ReadMemEx");
 	jlinkFunctions.jlink_write_mem = (decltype(jlinkFunctions.jlink_write_mem))GetProcAddress(so_handle, "JLINKARM_WriteMemEx");
 	jlinkFunctions.jlinkGetList = (decltype(jlinkFunctions.jlinkGetList))GetProcAddress(so_handle, "JLINKARM_EMU_GetList");
+	jlinkFunctions.jlinkSelectByUsb = (decltype(jlinkFunctions.jlinkSelectByUsb))GetProcAddress(so_handle, "JLINKARM_EMU_SelectByUSBSN");
 }
 
 JlinkHandler::~JlinkHandler()
@@ -26,13 +27,21 @@ JlinkHandler::~JlinkHandler()
 	FreeLibrary(so_handle);
 }
 
-bool JlinkHandler::startAcqusition()
+bool JlinkHandler::startAcqusition(const std::string& serialNumber)
 {
-	bool ret = jlinkFunctions.jlink_open(nullptr, nullptr);
-	ret = jlinkFunctions.jlink_is_open();
+	/* TODO */
+	int serialNumberInt = std::atoi(serialNumber.c_str());
+
+	// bool ret = jlinkFunctions.jlinkSelectByUsb(serialNumberInt);
+	// if (!ret)
+	// 	return false;
+
+	jlinkFunctions.jlink_open(nullptr, nullptr);
+
+	bool ret = jlinkFunctions.jlink_is_open();
+
 	spdlog::info("Is open JLink {}", ret);
-	isRunning = true;
-	int a = sizeof(JlinkFunctions::JLINKARM_EMU_CONNECT_INFO);
+	isRunning = ret;
 	return ret;
 }
 bool JlinkHandler::stopAcqusition()
@@ -67,7 +76,7 @@ std::string JlinkHandler::getLastErrorMsg() const
 	return lastErrorMsg;
 }
 
-std::vector<uint32_t> JlinkHandler::getConnectedDevices()
+std::vector<std::string> JlinkHandler::getConnectedDevices()
 {
 	JlinkFunctions::JLINKARM_EMU_CONNECT_INFO connectInfo[JlinkFunctions::maxDevices]{};
 	int32_t result = jlinkFunctions.jlinkGetList(1, (JlinkFunctions::JLINKARM_EMU_CONNECT_INFO*)connectInfo, JlinkFunctions::maxDevices);
@@ -75,10 +84,10 @@ std::vector<uint32_t> JlinkHandler::getConnectedDevices()
 	if (result < 0)
 	{
 		spdlog::error("Error reading Jlink devices list. Error code {}", result);
-		return std::vector<uint32_t>{};
+		return std::vector<std::string>{};
 	}
 
-	std::vector<uint32_t> deviceIDs;
+	std::vector<std::string> deviceIDs;
 
 	for (size_t i = 0; i < JlinkFunctions::maxDevices; i++)
 	{
@@ -87,7 +96,7 @@ std::vector<uint32_t> JlinkHandler::getConnectedDevices()
 		if (serialNumber != 0)
 		{
 			spdlog::info("Jlink serial number {}", serialNumber);
-			deviceIDs.push_back(serialNumber);
+			deviceIDs.push_back(std::to_string(serialNumber));
 		}
 	}
 

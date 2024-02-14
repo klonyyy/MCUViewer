@@ -14,9 +14,9 @@
 class TargetMemoryHandler
 {
    public:
-	TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger);
+	TargetMemoryHandler(spdlog::logger* logger);
 
-	bool start() const;
+	bool start(const std::string& serialNumber) const;
 	bool stop() const;
 
 	uint32_t getValue(uint32_t address) const;
@@ -24,11 +24,17 @@ class TargetMemoryHandler
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 
-	std::vector<uint32_t> getConnectedDevices();
+	std::vector<std::string> getConnectedDevices();
+
+	/* TODO */
+	void changeDevice(std::shared_ptr<ITargetMemoryHandler> newProbe)
+	{
+		memoryHandler = newProbe;
+	}
 
    private:
 	std::mutex mtx;
-	std::unique_ptr<ITargetMemoryHandler> memoryHandler;
+	std::shared_ptr<ITargetMemoryHandler> memoryHandler;
 	spdlog::logger* logger;
 };
 

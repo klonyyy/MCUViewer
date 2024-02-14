@@ -11,8 +11,7 @@
 PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	varReader = std::make_unique<TargetMemoryHandler>(std::make_unique<StlinkHandler>(), logger);
-	auto devices = varReader->getConnectedDevices();
+	varReader = std::make_unique<TargetMemoryHandler>(logger);
 }
 PlotHandler::~PlotHandler()
 {
@@ -79,7 +78,7 @@ void PlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (varReader->start())
+				if (varReader->start(probeSerialNumber))
 				{
 					timer = 0;
 					start = std::chrono::steady_clock::now();

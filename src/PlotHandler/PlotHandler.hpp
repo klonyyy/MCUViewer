@@ -33,6 +33,12 @@ class PlotHandler : public PlotHandlerBase
 	Settings getSettings() const;
 	void setSettings(const Settings& newSettings);
 
+	void setDebugProbe(std::shared_ptr<ITargetMemoryHandler> probe, const std::string& serialNumber)
+	{
+		probeSerialNumber = serialNumber;
+		varReader->changeDevice(probe);
+	}
+
    private:
 	void dataHandler();
 
@@ -40,6 +46,7 @@ class PlotHandler : public PlotHandlerBase
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};
+	std::string probeSerialNumber;
 };
 
 #endif

@@ -11,7 +11,7 @@ class StlinkHandler : public ITargetMemoryHandler
 {
    public:
 	StlinkHandler();
-	bool startAcqusition() override;
+	bool startAcqusition(const std::string& serialNumber) override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
 
@@ -19,7 +19,7 @@ class StlinkHandler : public ITargetMemoryHandler
 	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) override;
 
 	std::string getLastErrorMsg() const override;
-	std::vector<uint32_t> getConnectedDevices() override;
+	std::vector<std::string> getConnectedDevices() override;
 	bool requiresAlignedAccessOnRead() override
 	{
 		return true;
