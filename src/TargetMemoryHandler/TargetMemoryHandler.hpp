@@ -29,12 +29,12 @@ class TargetMemoryHandler
 	/* TODO */
 	void changeDevice(std::shared_ptr<IDebugProbe> newProbe)
 	{
-		memoryHandler = newProbe;
+		probe = newProbe;
 	}
 
    private:
 	std::mutex mtx;
-	std::shared_ptr<IDebugProbe> memoryHandler;
+	std::shared_ptr<IDebugProbe> probe;
 	spdlog::logger* logger;
 };
 

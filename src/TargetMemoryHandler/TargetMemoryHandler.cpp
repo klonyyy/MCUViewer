@@ -11,11 +11,11 @@ TargetMemoryHandler::TargetMemoryHandler(spdlog::logger* logger) : logger(logger
 
 bool TargetMemoryHandler::start(const std::string& serialNumber) const
 {
-	return memoryHandler->startAcqusition(serialNumber);
+	return probe->startAcqusition(serialNumber);
 }
 bool TargetMemoryHandler::stop() const
 {
-	return memoryHandler->stopAcqusition();
+	return probe->stopAcqusition();
 }
 
 double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
@@ -25,10 +25,10 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!memoryHandler->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
+	if (!probe->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
 		return 0.0;
 
-	if (memoryHandler->requiresAlignedAccessOnRead())
+	if (probe->requiresAlignedAccessOnRead())
 	{
 		if (type == Variable::type::I8 || type == Variable::type::U8)
 		{
@@ -89,14 +89,14 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 	uint32_t address = var.getAddress();
 	uint8_t buf[4] = {};
 
-	if (!memoryHandler->isValid())
+	if (!probe->isValid())
 		return false;
 
 	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int
 	{
 		for (size_t i = 0; i < sizeof(var); i++)
 			buf[i] = var >> 8 * i;
-		return memoryHandler->writeMemory(address, buf, sizeof(var));
+		return probe->writeMemory(address, buf, sizeof(var));
 	};
 
 	std::lock_guard<std::mutex> lock(mtx);
@@ -128,10 +128,10 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 
 std::string TargetMemoryHandler::getLastErrorMsg() const
 {
-	return memoryHandler->getLastErrorMsg();
+	return probe->getLastErrorMsg();
 }
 
 std::vector<std::string> TargetMemoryHandler::getConnectedDevices()
 {
-	return memoryHandler->getConnectedDevices();
+	return probe->getConnectedDevices();
 }
