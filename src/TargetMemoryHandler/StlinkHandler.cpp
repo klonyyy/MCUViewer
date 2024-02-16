@@ -85,5 +85,7 @@ std::vector<std::string> StlinkHandler::getConnectedDevices()
 		}
 	}
 
+	stlink_probe_usb_free(&stdevs, size);
+
 	return deviceIDs;
 }
