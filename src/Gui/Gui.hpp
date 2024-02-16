@@ -12,7 +12,7 @@
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
 #include "IFileHandler.hpp"
-#include "ITargetMemoryHandler.hpp"
+#include "IDebugProbe.hpp"
 #include "ImguiPlugins.hpp"
 #include "JlinkHandler.hpp"
 #include "Plot.hpp"
@@ -52,9 +52,9 @@ class Gui
 	TracePlotHandler* tracePlotHandler;
 
 	DebugProbeSettings debugProbeSettings{};
-	std::shared_ptr<ITargetMemoryHandler> stlinkProbe;
-	std::shared_ptr<ITargetMemoryHandler> jlinkProbe;
-	std::shared_ptr<ITargetMemoryHandler> debugProbeDevice;
+	std::shared_ptr<IDebugProbe> stlinkProbe;
+	std::shared_ptr<IDebugProbe> jlinkProbe;
+	std::shared_ptr<IDebugProbe> debugProbeDevice;
 
 	std::atomic<bool>& done;
 

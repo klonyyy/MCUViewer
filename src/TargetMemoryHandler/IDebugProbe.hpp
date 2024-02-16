@@ -5,10 +5,10 @@
 #include <string>
 #include <vector>
 
-class ITargetMemoryHandler
+class IDebugProbe
 {
    public:
-	virtual ~ITargetMemoryHandler() = default;
+	virtual ~IDebugProbe() = default;
 	virtual bool startAcqusition(const std::string& serialNumber) = 0;
 	virtual bool stopAcqusition() = 0;
 	virtual bool isValid() const = 0;

@@ -33,7 +33,7 @@ class PlotHandler : public PlotHandlerBase
 	Settings getSettings() const;
 	void setSettings(const Settings& newSettings);
 
-	void setDebugProbe(std::shared_ptr<ITargetMemoryHandler> probe, const std::string& serialNumber)
+	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
 	{
 		probeSerialNumber = serialNumber;
 		varReader->changeDevice(probe);

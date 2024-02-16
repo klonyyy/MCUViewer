@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-#include "ITargetMemoryHandler.hpp"
+#include "IDebugProbe.hpp"
 #include "stlink.h"
 
-class StlinkHandler : public ITargetMemoryHandler
+class StlinkHandler : public IDebugProbe
 {
    public:
 	StlinkHandler();

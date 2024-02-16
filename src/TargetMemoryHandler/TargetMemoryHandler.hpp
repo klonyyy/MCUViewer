@@ -7,7 +7,7 @@
 #include <string>
 #include <thread>
 
-#include "ITargetMemoryHandler.hpp"
+#include "IDebugProbe.hpp"
 #include "Variable.hpp"
 #include "spdlog/spdlog.h"
 
@@ -27,14 +27,14 @@ class TargetMemoryHandler
 	std::vector<std::string> getConnectedDevices();
 
 	/* TODO */
-	void changeDevice(std::shared_ptr<ITargetMemoryHandler> newProbe)
+	void changeDevice(std::shared_ptr<IDebugProbe> newProbe)
 	{
 		memoryHandler = newProbe;
 	}
 
    private:
 	std::mutex mtx;
-	std::shared_ptr<ITargetMemoryHandler> memoryHandler;
+	std::shared_ptr<IDebugProbe> memoryHandler;
 	spdlog::logger* logger;
 };
 

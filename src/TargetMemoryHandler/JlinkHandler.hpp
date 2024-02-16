@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "ITargetMemoryHandler.hpp"
+#include "IDebugProbe.hpp"
 
-class JlinkHandler : public ITargetMemoryHandler
+class JlinkHandler : public IDebugProbe
 {
 	struct JlinkFunctions
 	{

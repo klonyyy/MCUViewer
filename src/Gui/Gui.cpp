@@ -577,7 +577,6 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::Text("Debug probe:");
 	const char* debugProbes[] = {"STLINK", "JLINK"};
 	int32_t debugProbe = debugProbeSettings.debugProbe;
-	ImGui::SameLine();
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
 	{
 		debugProbeSettings.debugProbe = debugProbe;
