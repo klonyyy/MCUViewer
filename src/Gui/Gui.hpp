@@ -11,8 +11,8 @@
 
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
-#include "IFileHandler.hpp"
 #include "IDebugProbe.hpp"
+#include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
 #include "JlinkHandler.hpp"
 #include "Plot.hpp"
@@ -55,6 +55,8 @@ class Gui
 	std::shared_ptr<IDebugProbe> stlinkProbe;
 	std::shared_ptr<IDebugProbe> jlinkProbe;
 	std::shared_ptr<IDebugProbe> debugProbeDevice;
+	std::vector<std::string> devicesList{};
+	const std::string noDevices = "No debug probes found!";
 
 	std::atomic<bool>& done;
 
@@ -74,6 +76,7 @@ class Gui
 	void mainThread();
 	void drawMenu();
 	void drawStartButton();
+	void drawDebugProbes();
 	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
