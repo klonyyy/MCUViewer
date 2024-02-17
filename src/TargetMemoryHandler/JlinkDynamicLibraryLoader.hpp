@@ -97,6 +97,7 @@ class UnixSoLoader
    public:
 	~UnixSoLoader()
 	{
+		dlclose(handle);
 	}
 
 	bool doLoad(JlinkFunctions& jlinkFunctions)
@@ -110,7 +111,10 @@ class UnixSoLoader
 			}
 		};
 
-		handle = dlopen("/opt/SEGGER/JLink/libjlinkarm.so", RTLD_NOW);
+		handle = dlopen("libjlinkarm.so", RTLD_NOW);
+
+		if (handle == nullptr)
+			handle = dlopen("/opt/SEGGER/JLink/libjlinkarm.so", RTLD_NOW);
 
 		if (handle == nullptr)
 			return false;
@@ -128,6 +132,7 @@ class UnixSoLoader
 	}
 
    private:
+	void* handle = nullptr;
 };
 using DynamicLibraryLoader = UnixSoLoader;
 #endif

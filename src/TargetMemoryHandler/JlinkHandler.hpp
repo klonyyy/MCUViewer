@@ -1,8 +1,6 @@
 #ifndef _JLINKHANDLER_HPP
 #define _JLINKHANDLER_HPP
 
-#include <windows.h>
-
 #include <string>
 #include <vector>
 
