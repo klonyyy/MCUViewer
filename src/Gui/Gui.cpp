@@ -249,7 +249,6 @@ void Gui::drawDebugProbes()
 {
 	static bool shouldListDevices = false;
 	static int SNptr = 0;
-	static std::string targetName;
 
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Debug Probe");
@@ -263,13 +262,13 @@ void Gui::drawDebugProbes()
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
-	int32_t debugProbe = debugProbeSettings.debugProbe;
+	int32_t debugProbe = plotHandler->probeSettings.debugProbe;
 
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
 	{
-		debugProbeSettings.debugProbe = debugProbe;
+		plotHandler->probeSettings.debugProbe = debugProbe;
 
-		if (debugProbeSettings.debugProbe == 1)
+		if (plotHandler->probeSettings.debugProbe == 1)
 		{
 			debugProbeDevice = jlinkProbe;
 			shouldListDevices = true;
@@ -297,13 +296,13 @@ void Gui::drawDebugProbes()
 		shouldListDevices = false;
 	}
 
-	if (debugProbeSettings.debugProbe == 1)
+	if (plotHandler->probeSettings.debugProbe == 1)
 	{
 		ImGui::Text("Target name    ");
 		ImGui::SameLine();
 
-		if (ImGui::InputText("##device", &targetName, 0, NULL, NULL))
-			plotHandler->setTargetDevice(targetName);
+		if (ImGui::InputText("##device", &plotHandler->probeSettings.device, 0, NULL, NULL))
+			plotHandler->setTargetDevice(plotHandler->probeSettings.device);
 
 		ImGui::SameLine();
 		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
@@ -937,6 +936,13 @@ bool Gui::openProject()
 		plotHandler->removeAllPlots();
 		configHandler->readConfigFile(vars, projectElfPath);
 		logger->info("Project config path: {}", projectConfigPath);
+		/* TODO refactor */
+		devicesList.clear();
+		if (plotHandler->probeSettings.debugProbe == 1)
+			debugProbeDevice = jlinkProbe;
+		else
+			debugProbeDevice = stlinkProbe;
+
 		return true;
 	}
 	return false;

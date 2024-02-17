@@ -42,13 +42,13 @@ std::string PlotHandler::getLastReaderError() const
 
 void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
 {
-	probeSerialNumber = serialNumber;
+	probeSettings.serialNumber = serialNumber;
 	varReader->changeDevice(probe);
 }
 
 void PlotHandler::setTargetDevice(const std::string& deviceName)
 {
-	targetDeviceName = deviceName;
+	probeSettings.device = deviceName;
 }
 
 void PlotHandler::dataHandler()
@@ -90,7 +90,7 @@ void PlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (varReader->start(probeSerialNumber, targetDeviceName))
+				if (varReader->start(probeSettings.serialNumber, probeSettings.device))
 				{
 					timer = 0;
 					start = std::chrono::steady_clock::now();

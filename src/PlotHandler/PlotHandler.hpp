@@ -24,6 +24,13 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 	} Settings;
 
+	typedef struct
+	{
+		uint32_t debugProbe = 0;
+		std::string serialNumber = "";
+		std::string device = "";
+	} DebugProbeSettings;
+
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandler();
 
@@ -35,6 +42,8 @@ class PlotHandler : public PlotHandlerBase
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber);
 	void setTargetDevice(const std::string& deviceName);
 
+	DebugProbeSettings probeSettings{};
+
    private:
 	void dataHandler();
 
@@ -42,8 +51,6 @@ class PlotHandler : public PlotHandlerBase
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};
-	std::string probeSerialNumber;
-	std::string targetDeviceName;
 };
 
 #endif

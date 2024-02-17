@@ -4,6 +4,7 @@
 #include <random>
 #include <variant>
 
+/* TODO refactor whole config and persistent storage handling */
 ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, spdlog::logger* logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
@@ -22,6 +23,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 {
 	PlotHandler::Settings viewerSettings{};
 	TracePlotHandler::Settings traceSettings{};
+	PlotHandler::DebugProbeSettings& probeSettings = plotHandler->probeSettings;
 
 	if (!file->read(*ini))
 		return false;
@@ -51,6 +53,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("settings", "sample_period", viewerSettings.samplePeriod);
 	getValue("settings", "max_points", viewerSettings.maxPoints);
 	getValue("settings", "max_viewport_points", viewerSettings.maxViewportPoints);
+	getValue("settings", "probe_type", probeSettings.debugProbe);
+	probeSettings.device = ini->get("settings").get("target_name");
 
 	getValue("trace_settings", "core_frequency", traceSettings.coreFrequency);
 	getValue("trace_settings", "trace_prescaler", traceSettings.tracePrescaler);
@@ -188,6 +192,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
+	PlotHandler::DebugProbeSettings& probeSettings = plotHandler->probeSettings;
 
 	(*ini).clear();
 
@@ -207,6 +212,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["sample_period"] = std::to_string(viewerSettings.samplePeriod);
 	(*ini)["settings"]["max_points"] = std::to_string(viewerSettings.maxPoints);
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
+	(*ini)["settings"]["probe_type"] = std::to_string(probeSettings.debugProbe);
+	(*ini)["settings"]["target_name"] = probeSettings.device;
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);

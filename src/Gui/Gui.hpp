@@ -25,13 +25,6 @@
 class Gui
 {
    public:
-	typedef struct
-	{
-		uint32_t debugProbe = 0;
-		std::string serialNumber = "";
-		std::string device = "";
-	} DebugProbeSettings;
-
 	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);
 	~Gui();
 
@@ -52,7 +45,6 @@ class Gui
 	IFileHandler* fileHandler;
 	TracePlotHandler* tracePlotHandler;
 
-	DebugProbeSettings debugProbeSettings{};
 	std::shared_ptr<IDebugProbe> stlinkProbe;
 	std::shared_ptr<IDebugProbe> jlinkProbe;
 	std::shared_ptr<IDebugProbe> debugProbeDevice;
