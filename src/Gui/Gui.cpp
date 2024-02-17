@@ -73,17 +73,7 @@ void Gui::mainThread()
 	jlinkProbe = std::make_shared<JlinkHandler>();
 	stlinkProbe = std::make_shared<StlinkHandler>();
 	debugProbeDevice = stlinkProbe;
-
-	// if (debugProbeSettings.debugProbe == 1)
-	// {
-	// 	plotHandler->setDebugProbe(jlinkProbe, "775042853");
-	// 	debugProbeDevice = jlinkProbe;
-	// }
-	// else
-	// {
-	plotHandler->setDebugProbe(stlinkProbe, "");
-	debugProbeDevice = stlinkProbe;
-	// }
+	plotHandler->setDebugProbe(debugProbeDevice, "");
 
 	while (!done)
 	{
@@ -299,7 +289,8 @@ void Gui::drawDebugProbes()
 	if (ImGui::Button("...", ImVec2(35, 19)) || shouldListDevices || devicesList.empty())
 	{
 		devicesList = debugProbeDevice->getConnectedDevices();
-		plotHandler->setDebugProbe(debugProbeDevice, devicesList[SNptr]);
+		if (!devicesList.empty())
+			plotHandler->setDebugProbe(debugProbeDevice, devicesList[0]);
 		shouldListDevices = false;
 	}
 
