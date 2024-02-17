@@ -31,6 +31,8 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber)
 	}
 	lastErrorMsg = "";
 
+	jlinkFunctions.jlinkExecCommand("Device = STM32F446RE", nullptr, 0);
+
 	jlinkFunctions.jlinkOpen(nullptr, nullptr);
 
 	isRunning = jlinkFunctions.jlinkIsOpen();

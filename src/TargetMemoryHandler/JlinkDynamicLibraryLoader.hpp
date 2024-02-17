@@ -29,13 +29,14 @@ struct JlinkFunctions
 
 	} JLINKARM_EMU_CONNECT_INFO;
 
-	int32_t (*jlinkGetList)(int hostIFs, JLINKARM_EMU_CONNECT_INFO* paConnectInfo, int MaxInfos);
-	int (*jlinkSelectByUsb)(uint32_t serialNo);
+	int32_t (*jlinkGetList)(int32_t hostIFs, JLINKARM_EMU_CONNECT_INFO* paConnectInfo, int32_t MaxInfos);
+	int32_t (*jlinkSelectByUsb)(uint32_t serialNo);
 	const char* (*jlinkOpen)(void* log, void* errHandler);
 	void (*jlinkClose)();
 	bool (*jlinkIsOpen)();
-	int (*jlinkReadMem)(uint32_t addr, uint32_t size, void* buf, uint32_t access);
-	int (*jlinkWriteMem)(uint32_t addr, uint32_t size, const void* buf, uint32_t access);
+	int32_t (*jlinkReadMem)(uint32_t addr, uint32_t size, void* buf, uint32_t access);
+	int32_t (*jlinkWriteMem)(uint32_t addr, uint32_t size, const void* buf, uint32_t access);
+	int32_t (*jlinkExecCommand)(const char* sIn, char* sError, int32_t bufferSize);
 };
 
 #ifdef _WIN32
@@ -75,6 +76,7 @@ class WindowsDllLoader
 		castLambda(jlinkFunctions.jlinkWriteMem, "JLINKARM_WriteMemEx");
 		castLambda(jlinkFunctions.jlinkGetList, "JLINKARM_EMU_GetList");
 		castLambda(jlinkFunctions.jlinkSelectByUsb, "JLINKARM_EMU_SelectByUSBSN");
+		castLambda(jlinkFunctions.jlinkExecCommand, "JLINKARM_ExecCommand");
 
 		return true;
 	}
@@ -127,6 +129,7 @@ class UnixSoLoader
 		castLambda(jlinkFunctions.jlinkWriteMem, "JLINKARM_WriteMemEx");
 		castLambda(jlinkFunctions.jlinkGetList, "JLINKARM_EMU_GetList");
 		castLambda(jlinkFunctions.jlinkSelectByUsb, "JLINKARM_EMU_SelectByUSBSN");
+		castLambda(jlinkFunctions.jlinkExecCommand, "JLINKARM_ExecCommand");
 
 		return true;
 	}
