@@ -38,6 +38,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
 endif()
 
 add_compile_options(-Wall
+    -Wfatal-errors
     -Wextra
     -Wpedantic
     -Wno-unused-parameter

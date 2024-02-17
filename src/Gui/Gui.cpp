@@ -299,6 +299,7 @@ void Gui::drawDebugProbes()
 	if (ImGui::Button("...", ImVec2(35, 19)) || shouldListDevices || devicesList.empty())
 	{
 		devicesList = debugProbeDevice->getConnectedDevices();
+		plotHandler->setDebugProbe(debugProbeDevice, devicesList[SNptr]);
 		shouldListDevices = false;
 	}
 

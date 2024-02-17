@@ -2,29 +2,16 @@
 
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/spdlog.h>
-#include <windows.h>
 
 #include <algorithm>
 #include <string>
 
-#include "logging.h"
-
 JlinkHandler::JlinkHandler()
 {
-	so_handle = LoadLibrary("C:/Program Files/SEGGER/JLink/JLink_x64.dll");
-	jlinkFunctions.jlink_lock = (decltype(jlinkFunctions.jlink_lock))GetProcAddress(so_handle, "JLock");
-	jlinkFunctions.jlink_open = (decltype(jlinkFunctions.jlink_open))GetProcAddress(so_handle, "JLINKARM_OpenEx");
-	jlinkFunctions.jlink_close = (decltype(jlinkFunctions.jlink_close))GetProcAddress(so_handle, "JLINKARM_Close");
-	jlinkFunctions.jlink_is_open = (decltype(jlinkFunctions.jlink_is_open))GetProcAddress(so_handle, "JLINKARM_IsOpen");
-	jlinkFunctions.jlink_read_mem = (decltype(jlinkFunctions.jlink_read_mem))GetProcAddress(so_handle, "JLINKARM_ReadMemEx");
-	jlinkFunctions.jlink_write_mem = (decltype(jlinkFunctions.jlink_write_mem))GetProcAddress(so_handle, "JLINKARM_WriteMemEx");
-	jlinkFunctions.jlinkGetList = (decltype(jlinkFunctions.jlinkGetList))GetProcAddress(so_handle, "JLINKARM_EMU_GetList");
-	jlinkFunctions.jlinkSelectByUsb = (decltype(jlinkFunctions.jlinkSelectByUsb))GetProcAddress(so_handle, "JLINKARM_EMU_SelectByUSBSN");
-}
+	isLoaded = dynamicLibraryLoader.doLoad(jlinkFunctions);
 
-JlinkHandler::~JlinkHandler()
-{
-	FreeLibrary(so_handle);
+	if (!isLoaded)
+		spdlog::error("Error loading jlink dynamic library!");
 }
 
 bool JlinkHandler::startAcqusition(const std::string& serialNumber)
