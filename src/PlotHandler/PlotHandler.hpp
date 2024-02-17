@@ -32,12 +32,8 @@ class PlotHandler : public PlotHandlerBase
 
 	Settings getSettings() const;
 	void setSettings(const Settings& newSettings);
-
-	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
-	{
-		probeSerialNumber = serialNumber;
-		varReader->changeDevice(probe);
-	}
+	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber);
+	void setTargetDevice(const std::string& deviceName);
 
    private:
 	void dataHandler();
@@ -47,6 +43,7 @@ class PlotHandler : public PlotHandlerBase
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};
 	std::string probeSerialNumber;
+	std::string targetDeviceName;
 };
 
 #endif

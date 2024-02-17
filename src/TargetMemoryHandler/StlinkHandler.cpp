@@ -13,7 +13,7 @@ StlinkHandler::StlinkHandler()
 	init_chipids(const_cast<char*>("./chips"));
 }
 
-bool StlinkHandler::startAcqusition(const std::string& serialNumber)
+bool StlinkHandler::startAcqusition(const std::string& serialNumber, const std::string& device)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, (char*)serialNumber.data(), 24000);
 	isRunning = false;

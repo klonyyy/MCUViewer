@@ -9,7 +9,7 @@ class IDebugProbe
 {
    public:
 	virtual ~IDebugProbe() = default;
-	virtual bool startAcqusition(const std::string& serialNumber) = 0;
+	virtual bool startAcqusition(const std::string& serialNumber, const std::string& device = "") = 0;
 	virtual bool stopAcqusition() = 0;
 	virtual bool isValid() const = 0;
 

@@ -29,6 +29,7 @@ class Gui
 	{
 		uint32_t debugProbe = 0;
 		std::string serialNumber = "";
+		std::string device = "";
 	} DebugProbeSettings;
 
 	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);

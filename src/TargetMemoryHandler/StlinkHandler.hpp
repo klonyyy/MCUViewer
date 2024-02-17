@@ -11,7 +11,7 @@ class StlinkHandler : public IDebugProbe
 {
    public:
 	StlinkHandler();
-	bool startAcqusition(const std::string& serialNumber) override;
+	bool startAcqusition(const std::string& serialNumber, const std::string& device = "") override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
 

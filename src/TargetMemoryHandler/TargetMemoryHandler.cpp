@@ -9,10 +9,10 @@ TargetMemoryHandler::TargetMemoryHandler(spdlog::logger* logger) : logger(logger
 {
 }
 
-bool TargetMemoryHandler::start(const std::string& serialNumber) const
+bool TargetMemoryHandler::start(const std::string& serialNumber, const std::string& device) const
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return probe->startAcqusition(serialNumber);
+	return probe->startAcqusition(serialNumber, device);
 }
 bool TargetMemoryHandler::stop() const
 {

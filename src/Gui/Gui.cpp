@@ -249,6 +249,7 @@ void Gui::drawDebugProbes()
 {
 	static bool shouldListDevices = false;
 	static int SNptr = 0;
+	static std::string targetName;
 
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Debug Probe");
@@ -260,8 +261,10 @@ void Gui::drawDebugProbes()
 
 	ImGui::Text("Debug probe    ");
 	ImGui::SameLine();
+
 	const char* debugProbes[] = {"STLINK", "JLINK"};
 	int32_t debugProbe = debugProbeSettings.debugProbe;
+
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
 	{
 		debugProbeSettings.debugProbe = debugProbe;
@@ -292,6 +295,18 @@ void Gui::drawDebugProbes()
 		if (!devicesList.empty())
 			plotHandler->setDebugProbe(debugProbeDevice, devicesList[0]);
 		shouldListDevices = false;
+	}
+
+	if (debugProbeSettings.debugProbe == 1)
+	{
+		ImGui::Text("Target name    ");
+		ImGui::SameLine();
+
+		if (ImGui::InputText("##device", &targetName, 0, NULL, NULL))
+			plotHandler->setTargetDevice(targetName);
+
+		ImGui::SameLine();
+		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
 	}
 
 	ImGui::EndDisabled();

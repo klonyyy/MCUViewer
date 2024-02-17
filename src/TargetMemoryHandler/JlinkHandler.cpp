@@ -17,7 +17,7 @@ JlinkHandler::JlinkHandler()
 	}
 }
 
-bool JlinkHandler::startAcqusition(const std::string& serialNumber)
+bool JlinkHandler::startAcqusition(const std::string& serialNumber, const std::string& device)
 {
 	if (!isLoaded)
 		return false;
@@ -31,9 +31,14 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber)
 	}
 	lastErrorMsg = "";
 
-	jlinkFunctions.jlinkExecCommand("Device = STM32F446RE", nullptr, 0);
+	auto deviceCmd = "Device = " + device;
+	jlinkFunctions.jlinkExecCommand(deviceCmd.c_str(), nullptr, 0);
 
-	jlinkFunctions.jlinkOpen(nullptr, nullptr);
+	if (jlinkFunctions.jlinkOpen(nullptr, nullptr) != nullptr)
+	{
+		isRunning = false;
+		return false;
+	}
 
 	isRunning = jlinkFunctions.jlinkIsOpen();
 

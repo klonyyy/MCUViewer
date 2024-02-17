@@ -34,9 +34,21 @@ bool PlotHandler::writeSeriesValue(Variable& var, double value)
 	std::lock_guard<std::mutex> lock(*mtx);
 	return varReader->setValue(var, value);
 }
+
 std::string PlotHandler::getLastReaderError() const
 {
 	return varReader->getLastErrorMsg();
+}
+
+void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
+{
+	probeSerialNumber = serialNumber;
+	varReader->changeDevice(probe);
+}
+
+void PlotHandler::setTargetDevice(const std::string& deviceName)
+{
+	targetDeviceName = deviceName;
 }
 
 void PlotHandler::dataHandler()
@@ -78,7 +90,7 @@ void PlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (varReader->start(probeSerialNumber))
+				if (varReader->start(probeSerialNumber, targetDeviceName))
 				{
 					timer = 0;
 					start = std::chrono::steady_clock::now();

@@ -16,7 +16,7 @@ class TargetMemoryHandler
    public:
 	TargetMemoryHandler(spdlog::logger* logger);
 
-	bool start(const std::string& serialNumber) const;
+	bool start(const std::string& serialNumber, const std::string& device) const;
 	bool stop() const;
 
 	uint32_t getValue(uint32_t address) const;
