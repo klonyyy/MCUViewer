@@ -30,15 +30,13 @@ struct JlinkFunctions
 	} JLINKARM_EMU_CONNECT_INFO;
 
 	int32_t (*jlinkGetList)(int hostIFs, JLINKARM_EMU_CONNECT_INFO* paConnectInfo, int MaxInfos);
-	bool (*jlinkSelectByUsb)(int32_t id);
-
-	int (*jlink_select_by_usb)(int);
+	int (*jlinkSelectByUsb)(uint32_t serialNo);
 	int (*jlink_lock)(int);
-	const char* (*jlink_open)(void* log, void* errHandler);
-	void (*jlink_close)();
-	bool (*jlink_is_open)();
-	bool (*jlink_read_mem)(uint32_t addr, int32_t size, uint8_t* buf, void* access);
-	bool (*jlink_write_mem)(uint32_t addr, int32_t size, uint8_t* buf, void* access);
+	const char* (*jlinkOpen)(void* log, void* errHandler);
+	void (*jlinkClose)();
+	bool (*jlinkIsOpen)();
+	int (*jlinkReadMem)(uint32_t addr, uint32_t size, void* buf, uint32_t access);
+	int (*jlinkWriteMem)(uint32_t addr, uint32_t size, const void* buf, uint32_t access);
 };
 
 #ifdef _WIN32
@@ -71,12 +69,12 @@ class WindowsDllLoader
 		if (handle == nullptr)
 			return false;
 
-		castLambda(jlinkFunctions.jlink_lock, "JLock");
-		castLambda(jlinkFunctions.jlink_open, "JLINKARM_OpenEx");
-		castLambda(jlinkFunctions.jlink_close, "JLINKARM_Close");
-		castLambda(jlinkFunctions.jlink_is_open, "JLINKARM_IsOpen");
-		castLambda(jlinkFunctions.jlink_read_mem, "JLINKARM_ReadMemEx");
-		castLambda(jlinkFunctions.jlink_write_mem, "JLINKARM_WriteMemEx");
+		castLambda(jlinkFunctions.jlink_lock, "JLINKARM_Lock");
+		castLambda(jlinkFunctions.jlinkOpen, "JLINKARM_OpenEx");
+		castLambda(jlinkFunctions.jlinkClose, "JLINKARM_Close");
+		castLambda(jlinkFunctions.jlinkIsOpen, "JLINKARM_IsOpen");
+		castLambda(jlinkFunctions.jlinkReadMem, "JLINKARM_ReadMemEx");
+		castLambda(jlinkFunctions.jlinkWriteMem, "JLINKARM_WriteMemEx");
 		castLambda(jlinkFunctions.jlinkGetList, "JLINKARM_EMU_GetList");
 		castLambda(jlinkFunctions.jlinkSelectByUsb, "JLINKARM_EMU_SelectByUSBSN");
 
@@ -124,12 +122,12 @@ class UnixSoLoader
 		if (handle == nullptr)
 			return false;
 
-		castLambda(jlinkFunctions.jlink_lock, "JLock");
-		castLambda(jlinkFunctions.jlink_open, "JLINKARM_OpenEx");
-		castLambda(jlinkFunctions.jlink_close, "JLINKARM_Close");
-		castLambda(jlinkFunctions.jlink_is_open, "JLINKARM_IsOpen");
-		castLambda(jlinkFunctions.jlink_read_mem, "JLINKARM_ReadMemEx");
-		castLambda(jlinkFunctions.jlink_write_mem, "JLINKARM_WriteMemEx");
+		castLambda(jlinkFunctions.jlink_lock, "JLINKARM_Lock");
+		castLambda(jlinkFunctions.jlinkOpen, "JLINKARM_OpenEx");
+		castLambda(jlinkFunctions.jlinkClose, "JLINKARM_Close");
+		castLambda(jlinkFunctions.jlinkIsOpen, "JLINKARM_IsOpen");
+		castLambda(jlinkFunctions.jlinkReadMem, "JLINKARM_ReadMemEx");
+		castLambda(jlinkFunctions.jlinkWriteMem, "JLINKARM_WriteMemEx");
 		castLambda(jlinkFunctions.jlinkGetList, "JLINKARM_EMU_GetList");
 		castLambda(jlinkFunctions.jlinkSelectByUsb, "JLINKARM_EMU_SelectByUSBSN");
 
