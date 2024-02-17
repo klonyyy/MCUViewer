@@ -11,10 +11,12 @@ TargetMemoryHandler::TargetMemoryHandler(spdlog::logger* logger) : logger(logger
 
 bool TargetMemoryHandler::start(const std::string& serialNumber) const
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	return probe->startAcqusition(serialNumber);
 }
 bool TargetMemoryHandler::stop() const
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	return probe->stopAcqusition();
 }
 
@@ -96,10 +98,9 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 	{
 		for (size_t i = 0; i < sizeof(var); i++)
 			buf[i] = var >> 8 * i;
+		std::lock_guard<std::mutex> lock(mtx);
 		return probe->writeMemory(address, buf, sizeof(var));
 	};
-
-	std::lock_guard<std::mutex> lock(mtx);
 
 	switch (var.getType())
 	{
@@ -128,10 +129,18 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 
 std::string TargetMemoryHandler::getLastErrorMsg() const
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	return probe->getLastErrorMsg();
 }
 
-std::vector<std::string> TargetMemoryHandler::getConnectedDevices()
+std::vector<std::string> TargetMemoryHandler::getConnectedDevices() const
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	return probe->getConnectedDevices();
+}
+
+void TargetMemoryHandler::changeDevice(std::shared_ptr<IDebugProbe> newProbe)
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	probe = newProbe;
 }

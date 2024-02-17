@@ -24,16 +24,11 @@ class TargetMemoryHandler
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 
-	std::vector<std::string> getConnectedDevices();
-
-	/* TODO */
-	void changeDevice(std::shared_ptr<IDebugProbe> newProbe)
-	{
-		probe = newProbe;
-	}
+	std::vector<std::string> getConnectedDevices() const;
+	void changeDevice(std::shared_ptr<IDebugProbe> newProbe);
 
    private:
-	std::mutex mtx;
+	mutable std::mutex mtx;
 	std::shared_ptr<IDebugProbe> probe;
 	spdlog::logger* logger;
 };

@@ -31,7 +31,6 @@ struct JlinkFunctions
 
 	int32_t (*jlinkGetList)(int hostIFs, JLINKARM_EMU_CONNECT_INFO* paConnectInfo, int MaxInfos);
 	int (*jlinkSelectByUsb)(uint32_t serialNo);
-	int (*jlink_lock)(int);
 	const char* (*jlinkOpen)(void* log, void* errHandler);
 	void (*jlinkClose)();
 	bool (*jlinkIsOpen)();
@@ -69,7 +68,6 @@ class WindowsDllLoader
 		if (handle == nullptr)
 			return false;
 
-		castLambda(jlinkFunctions.jlink_lock, "JLINKARM_Lock");
 		castLambda(jlinkFunctions.jlinkOpen, "JLINKARM_OpenEx");
 		castLambda(jlinkFunctions.jlinkClose, "JLINKARM_Close");
 		castLambda(jlinkFunctions.jlinkIsOpen, "JLINKARM_IsOpen");
@@ -122,7 +120,6 @@ class UnixSoLoader
 		if (handle == nullptr)
 			return false;
 
-		castLambda(jlinkFunctions.jlink_lock, "JLINKARM_Lock");
 		castLambda(jlinkFunctions.jlinkOpen, "JLINKARM_OpenEx");
 		castLambda(jlinkFunctions.jlinkClose, "JLINKARM_Close");
 		castLambda(jlinkFunctions.jlinkIsOpen, "JLINKARM_IsOpen");
