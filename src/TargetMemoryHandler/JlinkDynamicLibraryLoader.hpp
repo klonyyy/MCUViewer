@@ -63,7 +63,10 @@ class WindowsDllLoader
 			}
 		};
 
-		handle = LoadLibrary("C:/Program Files/SEGGER/JLink/JLink_x64.dll");
+		handle = LoadLibrary(primaryPath);
+
+		if (handle == nullptr)
+			handle = LoadLibrary(secondaryPath);
 
 		if (handle == nullptr)
 			return false;
@@ -82,6 +85,8 @@ class WindowsDllLoader
 
    private:
 	HMODULE handle;
+	const char* primaryPath = "JLink_x64.dll";
+	const char* secondaryPath = "C:/Program Files/SEGGER/JLink/JLink_x64.dll";
 };
 
 using DynamicLibraryLoader = WindowsDllLoader;
@@ -133,6 +138,9 @@ class UnixSoLoader
 
    private:
 	void* handle = nullptr;
+
+	const char* primaryPath = "libjlinkarm.so";
+	const char* secondaryPath = "/opt/SEGGER/JLink/libjlinkarm.so";
 };
 using DynamicLibraryLoader = UnixSoLoader;
 #endif
