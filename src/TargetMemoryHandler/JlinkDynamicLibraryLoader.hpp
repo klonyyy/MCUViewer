@@ -5,6 +5,7 @@
 
 #include "../commons.hpp"
 
+#pragma GCC optimize("-fno-strict-aliasing")
 struct JlinkFunctions
 {
 	static constexpr size_t maxDevices = 10;
