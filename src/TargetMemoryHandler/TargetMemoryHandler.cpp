@@ -125,7 +125,7 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 
 std::string TargetMemoryHandler::getLastErrorMsg() const
 {
-	std::lock_guard<std::mutex> lock(mtx);
+	/* TODO lock with timeout as we dont really care if we get it every cycle */
 	return probe->getLastErrorMsg();
 }
 

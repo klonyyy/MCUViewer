@@ -37,7 +37,6 @@ bool PlotHandler::writeSeriesValue(Variable& var, double value)
 
 std::string PlotHandler::getLastReaderError() const
 {
-	/* TODO lock with timeout as we dont really care if we get it every cycle */
 	return varReader->getLastErrorMsg();
 }
 
