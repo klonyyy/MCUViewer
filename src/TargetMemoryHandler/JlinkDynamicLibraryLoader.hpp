@@ -114,10 +114,10 @@ class UnixSoLoader
 			}
 		};
 
-		handle = dlopen("libjlinkarm.so", RTLD_NOW);
+		handle = dlopen(primaryPath, RTLD_NOW);
 
 		if (handle == nullptr)
-			handle = dlopen("/opt/SEGGER/JLink/libjlinkarm.so", RTLD_NOW);
+			handle = dlopen(secondaryPath, RTLD_NOW);
 
 		if (handle == nullptr)
 			return false;
