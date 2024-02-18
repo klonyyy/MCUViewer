@@ -1,18 +1,21 @@
 #include "StlinkHandler.hpp"
 
+#include <spdlog/fmt/bin_to_hex.h>
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <string>
 
 #include "logging.h"
 
-StlinkHandler::StlinkHandler()
+StlinkHandler::StlinkHandler(spdlog::logger* logger) : logger(logger)
 {
 	init_chipids(const_cast<char*>("./chips"));
 }
 
-bool StlinkHandler::startAcqusition()
+bool StlinkHandler::startAcqusition(const std::string& serialNumber, const std::string& device)
 {
-	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
+	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, (char*)serialNumber.data(), 24000);
 	isRunning = false;
 
 	if (sl != nullptr)
@@ -59,4 +62,29 @@ bool StlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 std::string StlinkHandler::getLastErrorMsg() const
 {
 	return lastErrorMsg;
+}
+
+std::vector<std::string> StlinkHandler::getConnectedDevices()
+{
+	stlink_t** stdevs;
+	uint32_t size;
+
+	size = stlink_probe_usb(&stdevs, CONNECT_HOT_PLUG, 24000);
+
+	std::vector<std::string> deviceIDs;
+
+	for (size_t i = 0; i < size; i++)
+	{
+		std::string serialNumber{stdevs[i]->serial};
+
+		if (!serialNumber.empty())
+		{
+			logger->info("STLink serial number {}", serialNumber);
+			deviceIDs.push_back(serialNumber);
+		}
+	}
+
+	stlink_probe_usb_free(&stdevs, size);
+
+	return deviceIDs;
 }

@@ -7,16 +7,13 @@
 #include <string>
 #include <thread>
 
-#include "ITargetMemoryHandler.hpp"
+#include "IDebugProbe.hpp"
 #include "Variable.hpp"
-#include "spdlog/spdlog.h"
 
 class TargetMemoryHandler
 {
    public:
-	TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger);
-
-	bool start() const;
+	bool start(const std::string& serialNumber, const std::string& device) const;
 	bool stop() const;
 
 	uint32_t getValue(uint32_t address) const;
@@ -24,10 +21,12 @@ class TargetMemoryHandler
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 
+	std::vector<std::string> getConnectedDevices() const;
+	void changeDevice(std::shared_ptr<IDebugProbe> newProbe);
+
    private:
-	std::mutex mtx;
-	std::unique_ptr<ITargetMemoryHandler> memoryHandler;
-	spdlog::logger* logger;
+	mutable std::mutex mtx;
+	std::shared_ptr<IDebugProbe> probe;
 };
 
 #endif

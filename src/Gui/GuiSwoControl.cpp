@@ -98,7 +98,7 @@ void Gui::drawIndicatorsSwo()
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Indicators");
 	ImGui::SameLine();
-	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the ative trace channels.");
+	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the number of active trace channels.");
 	ImGui::Separator();
 
 	auto indicators = tracePlotHandler->getTraceIndicators();

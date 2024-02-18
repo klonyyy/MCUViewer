@@ -11,7 +11,6 @@
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "StlinkHandler.hpp"
 #include "TargetMemoryHandler.hpp"
 #include "spdlog/spdlog.h"
 
@@ -25,6 +24,13 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 	} Settings;
 
+	typedef struct
+	{
+		uint32_t debugProbe = 0;
+		std::string serialNumber = "";
+		std::string device = "";
+	} DebugProbeSettings;
+
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandler();
 
@@ -33,6 +39,10 @@ class PlotHandler : public PlotHandlerBase
 
 	Settings getSettings() const;
 	void setSettings(const Settings& newSettings);
+	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber);
+	void setTargetDevice(const std::string& deviceName);
+
+	DebugProbeSettings probeSettings{};
 
    private:
 	void dataHandler();

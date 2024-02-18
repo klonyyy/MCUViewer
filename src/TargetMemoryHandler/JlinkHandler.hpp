@@ -1,17 +1,17 @@
-#ifndef _STLINKHANDLER_HPP
-#define _STLINKHANDLER_HPP
+#ifndef _JLINKHANDLER_HPP
+#define _JLINKHANDLER_HPP
 
 #include <string>
 #include <vector>
 
 #include "IDebugProbe.hpp"
+#include "JlinkDynamicLibraryLoader.hpp"
 #include "spdlog/spdlog.h"
-#include "stlink.h"
 
-class StlinkHandler : public IDebugProbe
+class JlinkHandler : public IDebugProbe
 {
    public:
-	StlinkHandler(spdlog::logger* logger);
+	JlinkHandler(spdlog::logger* logger);
 	bool startAcqusition(const std::string& serialNumber, const std::string& device = "") override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
@@ -21,14 +21,17 @@ class StlinkHandler : public IDebugProbe
 
 	std::string getLastErrorMsg() const override;
 	std::vector<std::string> getConnectedDevices() override;
+
 	bool requiresAlignedAccessOnRead() override
 	{
-		return true;
+		return false;
 	}
 
    private:
-	stlink_t* sl = nullptr;
+	DynamicLibraryLoader dynamicLibraryLoader;
+	JlinkFunctions jlinkFunctions;
 	bool isRunning = false;
+	bool isLoaded = false;
 	std::string lastErrorMsg = "";
 	spdlog::logger* logger;
 };

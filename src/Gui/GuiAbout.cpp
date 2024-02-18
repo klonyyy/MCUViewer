@@ -2,6 +2,10 @@
 #include "../gitversion.hpp"
 #include "Gui.hpp"
 
+#ifdef _WIN32
+#include <shellapi.h>
+#endif
+
 void Gui::drawAboutWindow()
 {
 	if (showAboutWindow)
