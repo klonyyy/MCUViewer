@@ -8,7 +8,7 @@
 
 #include "logging.h"
 
-StlinkHandler::StlinkHandler()
+StlinkHandler::StlinkHandler(spdlog::logger* logger) : logger(logger)
 {
 	init_chipids(const_cast<char*>("./chips"));
 }
@@ -79,8 +79,7 @@ std::vector<std::string> StlinkHandler::getConnectedDevices()
 
 		if (!serialNumber.empty())
 		{
-			/* TODO */
-			spdlog::info("serial {}", serialNumber);
+			logger->info("STLink serial number {}", serialNumber);
 			deviceIDs.push_back(serialNumber);
 		}
 	}

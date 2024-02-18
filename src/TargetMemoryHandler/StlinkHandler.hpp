@@ -5,12 +5,13 @@
 #include <vector>
 
 #include "IDebugProbe.hpp"
+#include "spdlog/spdlog.h"
 #include "stlink.h"
 
 class StlinkHandler : public IDebugProbe
 {
    public:
-	StlinkHandler();
+	StlinkHandler(spdlog::logger* logger);
 	bool startAcqusition(const std::string& serialNumber, const std::string& device = "") override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
@@ -29,6 +30,7 @@ class StlinkHandler : public IDebugProbe
 	stlink_t* sl = nullptr;
 	bool isRunning = false;
 	std::string lastErrorMsg = "";
+	spdlog::logger* logger;
 };
 
 #endif

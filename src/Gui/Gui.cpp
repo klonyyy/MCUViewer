@@ -70,8 +70,8 @@ void Gui::mainThread()
 
 	bool show_demo_window = false;
 
-	jlinkProbe = std::make_shared<JlinkHandler>();
-	stlinkProbe = std::make_shared<StlinkHandler>();
+	jlinkProbe = std::make_shared<JlinkHandler>(logger);
+	stlinkProbe = std::make_shared<StlinkHandler>(logger);
 	debugProbeDevice = stlinkProbe;
 	plotHandler->setDebugProbe(debugProbeDevice, "");
 

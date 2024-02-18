@@ -6,14 +6,14 @@
 #include <algorithm>
 #include <string>
 
-JlinkHandler::JlinkHandler()
+JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 {
 	isLoaded = dynamicLibraryLoader.doLoad(jlinkFunctions);
 
 	if (!isLoaded)
 	{
-		lastErrorMsg = "Could not load the jlink library!";
-		spdlog::error(lastErrorMsg);
+		lastErrorMsg = "Could not load the JLink library!";
+		logger->error(lastErrorMsg);
 	}
 }
 
@@ -83,7 +83,7 @@ std::vector<std::string> JlinkHandler::getConnectedDevices()
 
 	if (result < 0)
 	{
-		spdlog::error("Error reading Jlink devices list. Error code {}", result);
+		logger->error("Error reading JLink devices list. Error code {}", result);
 		return std::vector<std::string>{};
 	}
 
@@ -93,7 +93,7 @@ std::vector<std::string> JlinkHandler::getConnectedDevices()
 
 		if (serialNumber != 0)
 		{
-			spdlog::info("Jlink serial number {}", serialNumber);
+			logger->info("JLink serial number {}", serialNumber);
 			deviceIDs.push_back(std::to_string(serialNumber));
 		}
 	}

@@ -9,13 +9,10 @@
 
 #include "IDebugProbe.hpp"
 #include "Variable.hpp"
-#include "spdlog/spdlog.h"
 
 class TargetMemoryHandler
 {
    public:
-	TargetMemoryHandler(spdlog::logger* logger);
-
 	bool start(const std::string& serialNumber, const std::string& device) const;
 	bool stop() const;
 
@@ -30,7 +27,6 @@ class TargetMemoryHandler
    private:
 	mutable std::mutex mtx;
 	std::shared_ptr<IDebugProbe> probe;
-	spdlog::logger* logger;
 };
 
 #endif

@@ -6,11 +6,12 @@
 
 #include "IDebugProbe.hpp"
 #include "JlinkDynamicLibraryLoader.hpp"
+#include "spdlog/spdlog.h"
 
 class JlinkHandler : public IDebugProbe
 {
    public:
-	JlinkHandler();
+	JlinkHandler(spdlog::logger* logger);
 	bool startAcqusition(const std::string& serialNumber, const std::string& device = "") override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
@@ -32,6 +33,7 @@ class JlinkHandler : public IDebugProbe
 	bool isRunning = false;
 	bool isLoaded = false;
 	std::string lastErrorMsg = "";
+	spdlog::logger* logger;
 };
 
 #endif
