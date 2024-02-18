@@ -1,18 +1,18 @@
 ![example workflow](https://github.com/klonyyy/STMViewer/actions/workflows/build.yaml/badge.svg)
 
 # STMViewer 
-STMViewer is an open-source GUI debug tool for STM32 microcontrollers that consists of two modules:
+STMViewer is an open-source GUI debug tool for ~~STM32~~ microcontrollers that consists of two modules:
 1. Variable Viewer - used for viewing, logging, and manipulating variables data in realtime using debug interface (SWDIO / SWCLK / GND)
 2. Trace Viewer - used for graphically representing real-time SWO trace output (SWDIO / SWCLK / SWO / GND)
 
-The only piece of hardware required is an ST-Link programmer. 
+The only piece of hardware required is an STLink or JLink programmer. 
 
 ## Introduction
 
 ### Variable Viewer
 ![_](./docs/VarViewer.gif)
 
-Variable Viewer can be used to visualize your embedded application data in real time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using the ST-link programmer debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
+Variable Viewer can be used to visualize your embedded application data in real time with no overhead in a non-intrusive way. The software works by reading variables' values directly from RAM using probe's debug interface. Addresses are read from the *.elf file which is created when you build your embedded project. This approach's main downside is that the object's address must stay constant throughout the whole program's lifetime, which means the object has to be global. Even though it seems to be a small price to pay in comparison to running some debug protocol over for example UART which is also not free in terms of intrusiveness.
 
 Variable Viewer is a great tool for debugging, but might be of little use with highly optimized release builds (which usually lack debug info), or high frequency signals.
 
@@ -23,19 +23,34 @@ Trace Viewer is a new module that lets you visualize SWO trace data. It can serv
 
 TraceViewer is not influenced by optimizations, which means it is a great tool to use for profiling on release builds. Moreover it has a very low influence on the program execution as each datapoint is a single register write. 
 
+Note: currently only STLink debug probe is supported. JLink support is in progress. 
+
 ## Installation
 
 First make sure you've got GDB installed and that it's at least 12.1.
 
-Linux: 
+### Linux: 
 1. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
-In case your stlink is not detected, please copty the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
-Windows: 
+Jlink users: 
+- download and install SEGGER software package: https://www.segger.com/downloads/jlink/
+- default search paths are: `./libjlinkarm.so` and	`/opt/SEGGER/JLink/libjlinkarm.so` so if your installation path is the same it should work right away. If not just copy the `libjlinkarm.so` to the STMViewer binary directory. 
+
+Stlink users:
+- in case your STLink is not detected, please copy the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
+
+### Windows: 
 1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
-2. Download and run the STMViewer installer. Make sure the ST-link is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
+2. Download and run the STMViewer installer. 
+
+Stlink users:
+- make sure the STLink is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
+
+Jlink users: 
+- download and install SEGGER software package: https://www.segger.com/downloads/jlink/
+- default search paths are: `./JLink_x64.dll` and `C:/Program Files/SEGGER/JLink/JLink_x64.dll` so if your installation path is the same it should work right away. If not just copy the `./JLink_x64.dll` to the STMViewer binary (install) directory. 
 
 You can assign the external GPU to STMViewer for improved performance. 
 
@@ -47,7 +62,7 @@ You can assign the external GPU to STMViewer for improved performance.
 3. Click the `Import variables form *.elf` button and click `Refresh`. Select variables and click `Import`. Note: the import feature is still in beta. If your variable is not automatically detected just click `Add variable` and input the name yourself. Please let me know if that happens by opening a new issue with *.elf file attached. 
 4. After adding all variables click `Update variable addresses`. The type and address of the variables you've added should change from "NOT FOUND!" to a valid address based on the *.elf file you've provided. Note: 64-bit variables (such as uint64_t and double) are not yet supported #13.
 5. Drag and drop the variable to the plot area.
-6. Make sure the ST-Link is connected. Download your executable to the microcontroller and press the `STOPPED` button. 
+6. Make sure the debug probe is connected and a proper type is selected (STLink/JLink). Download your executable to the microcontroller and press the `STOPPED` button. 
 
 In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
 
@@ -109,7 +124,7 @@ After a successful build, copy the ``./third_party/stlink/chips`` directory to w
 ## Why
 I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since the beginning, I have been working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that, I think the plot manipulation is much worse compared to STMStudio or STMViewer. 
 
-Since the Trace Viewer module was added STMViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. 
+Since the Trace Viewer module was added STMViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. Moreover it now supports JLink programmer as well. 
 
 ## 3rd party projects used in STMViewer
 
@@ -120,4 +135,5 @@ Since the Trace Viewer module was added STMViewer has a unique property of displ
 5. [mINI](https://github.com/pulzed/mINI)
 6. [nfd](https://github.com/btzy/nativefiledialog-extended)
 7. [spdlog](https://github.com/gabime/spdlog)
+8. [SEGGER JLink](https://www.segger.com/downloads/jlink/)
 
