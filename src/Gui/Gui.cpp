@@ -373,6 +373,8 @@ void Gui::drawVarTable()
 
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Variables");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Select your *.elf file in the Options->Acqusition Settings to import or update the variables.");
 	ImGui::Separator();
 
 	drawAddVariableButton();
