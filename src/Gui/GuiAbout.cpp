@@ -57,7 +57,7 @@ bool Gui::openWebsite(const char* url)
 {
 #ifdef _WIN32
 	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif defined _UNIX
+#elif #if defined(__APPLE__) || defined(_UNIX)
 	const char* browser = getenv("BROWSER");
 	if (browser == NULL)
 		browser = "xdg-open";

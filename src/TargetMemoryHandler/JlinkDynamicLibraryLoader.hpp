@@ -92,7 +92,7 @@ using DynamicLibraryLoader = WindowsDllLoader;
 
 #endif
 
-#ifdef _UNIX
+#if defined(__APPLE__) || defined(_UNIX)
 
 #include <dlfcn.h>
 
