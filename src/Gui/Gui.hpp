@@ -41,6 +41,7 @@ class Gui
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
 	bool showImportVariablesWindow = false;
+	bool performVariablesUpdate = false;
 
 	IFileHandler* fileHandler;
 	TracePlotHandler* tracePlotHandler;

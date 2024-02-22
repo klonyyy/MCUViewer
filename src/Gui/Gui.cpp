@@ -361,8 +361,11 @@ void Gui::drawUpdateAddressesFromElf()
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
-	if (ImGui::Button(buttonText, ImVec2(-1, 25)))
+	if (ImGui::Button(buttonText, ImVec2(-1, 25)) || performVariablesUpdate)
+	{
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
+		performVariablesUpdate = false;
+	}
 
 	ImGui::EndDisabled();
 }
