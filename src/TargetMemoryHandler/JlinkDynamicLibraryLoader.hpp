@@ -38,6 +38,7 @@ struct JlinkFunctions
 	int32_t (*jlinkReadMem)(uint32_t addr, uint32_t size, void* buf, uint32_t access);
 	int32_t (*jlinkWriteMem)(uint32_t addr, uint32_t size, const void* buf, uint32_t access);
 	int32_t (*jlinkExecCommand)(const char* sIn, char* sError, int32_t bufferSize);
+	int32_t (*jlinkTifSelect)(int32_t interface);
 };
 
 #ifdef _WIN32
@@ -78,6 +79,7 @@ class WindowsDllLoader
 		castLambda(jlinkFunctions.jlinkGetList, "JLINKARM_EMU_GetList");
 		castLambda(jlinkFunctions.jlinkSelectByUsb, "JLINKARM_EMU_SelectByUSBSN");
 		castLambda(jlinkFunctions.jlinkExecCommand, "JLINKARM_ExecCommand");
+		castLambda(jlinkFunctions.jlinkTifSelect, "JLINKARM_TIF_Select");
 
 		return true;
 	}

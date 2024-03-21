@@ -41,6 +41,8 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, const std::s
 	}
 
 	isRunning = jlinkFunctions.jlinkIsOpen();
+	/* TODO temporary: select interface */
+	jlinkFunctions.jlinkTifSelect(1);
 
 	return isRunning;
 }
