@@ -383,6 +383,14 @@ void Gui::drawVarTable()
 	drawAddVariableButton();
 	drawUpdateAddressesFromElf();
 
+	const char* label = "search ";
+	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8);
+	static std::string search{};
+	ImGui::Text(label);
+	ImGui::SameLine();
+	ImGui::InputText("##search", &search, 0, NULL, NULL);
+	ImGui::PopItemWidth();
+
 	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
@@ -393,11 +401,14 @@ void Gui::drawVarTable()
 
 		std::optional<std::string> varNameToDelete;
 
-		for (auto& [keyName, var] : vars)
+		for (auto& [name, var] : vars)
 		{
+			if (name.find(search) == std::string::npos)
+				continue;
+
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			ImGui::PushID(keyName.c_str());
+			ImGui::PushID(name.c_str());
 			ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
 			ImGui::SameLine();
 			ImGui::PopID();
@@ -413,7 +424,7 @@ void Gui::drawVarTable()
 			}
 
 			if (!varNameToDelete.has_value())
-				varNameToDelete = showDeletePopup("Delete", keyName);
+				varNameToDelete = showDeletePopup("Delete", name);
 
 			if (var->getIsFound() == true && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
