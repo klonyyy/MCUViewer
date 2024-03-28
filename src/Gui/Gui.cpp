@@ -430,7 +430,7 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 
 void Gui::drawPlotsTree()
 {
-	const uint32_t windowHeight = 320;
+	const uint32_t windowHeight = 320*contentScale;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
