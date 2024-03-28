@@ -35,7 +35,7 @@ static void glfw_error_callback(int error, const char* description)
 	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-float getContentScale(GLFWwindow *window) {
+static float getContentScale(GLFWwindow *window) {
     float xscale;
     float yscale;
     glfwGetWindowContentScale(window, &xscale, &yscale);
@@ -60,7 +60,6 @@ void Gui::mainThread()
 	ImPlot::CreateContext();
     
     contentScale = getContentScale(window);
-    printf("content scale %.3f\n", contentScale);
 
     ImFontConfig cfg;
 	cfg.SizePixels = 13.0f*contentScale;
