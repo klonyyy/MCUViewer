@@ -3,13 +3,13 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
-
-class ITargetMemoryHandler
+class IDebugProbe
 {
    public:
-	virtual ~ITargetMemoryHandler() = default;
-	virtual bool startAcqusition() = 0;
+	virtual ~IDebugProbe() = default;
+	virtual bool startAcqusition(const std::string& serialNumber, const std::string& device = "") = 0;
 	virtual bool stopAcqusition() = 0;
 	virtual bool isValid() const = 0;
 
@@ -17,6 +17,9 @@ class ITargetMemoryHandler
 	virtual bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) = 0;
 
 	virtual std::string getLastErrorMsg() const = 0;
+
+	virtual std::vector<std::string> getConnectedDevices() = 0;
+	virtual bool requiresAlignedAccessOnRead() = 0;
 };
 
 #endif

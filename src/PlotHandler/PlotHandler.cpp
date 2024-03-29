@@ -5,10 +5,13 @@
 #include <memory>
 #include <string>
 
+#include "JlinkHandler.hpp"
+#include "StlinkHandler.hpp"
+
 PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	varReader = std::make_unique<TargetMemoryHandler>(std::make_unique<StlinkHandler>(), logger);
+	varReader = std::make_unique<TargetMemoryHandler>();
 }
 PlotHandler::~PlotHandler()
 {
@@ -31,9 +34,21 @@ bool PlotHandler::writeSeriesValue(Variable& var, double value)
 	std::lock_guard<std::mutex> lock(*mtx);
 	return varReader->setValue(var, value);
 }
+
 std::string PlotHandler::getLastReaderError() const
 {
 	return varReader->getLastErrorMsg();
+}
+
+void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
+{
+	probeSettings.serialNumber = serialNumber;
+	varReader->changeDevice(probe);
+}
+
+void PlotHandler::setTargetDevice(const std::string& deviceName)
+{
+	probeSettings.device = deviceName;
 }
 
 void PlotHandler::dataHandler()
@@ -75,7 +90,7 @@ void PlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (varReader->start())
+				if (varReader->start(probeSettings.serialNumber, probeSettings.device))
 				{
 					timer = 0;
 					start = std::chrono::steady_clock::now();

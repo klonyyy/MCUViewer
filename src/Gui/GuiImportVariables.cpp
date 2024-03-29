@@ -57,6 +57,7 @@ void Gui::drawImportVariablesWindow()
 
 		if (ImGui::Button("Done", ImVec2(-1, 25*contentScale)))
 		{
+			performVariablesUpdate = true;
 			showImportVariablesWindow = false;
 			ImGui::CloseCurrentPopup();
 		}

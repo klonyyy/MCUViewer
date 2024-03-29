@@ -88,6 +88,11 @@ void Gui::mainThread()
 
 	bool show_demo_window = false;
 
+	jlinkProbe = std::make_shared<JlinkHandler>(logger);
+	stlinkProbe = std::make_shared<StlinkHandler>(logger);
+	debugProbeDevice = stlinkProbe;
+	plotHandler->setDebugProbe(debugProbeDevice, "");
+
 	while (!done)
 	{
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
@@ -128,6 +133,7 @@ void Gui::mainThread()
 		{
 			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
 			drawStartButton();
+			drawDebugProbes();
 			drawVarTable();
 			drawPlotsTree();
 			drawImportVariablesWindow();
@@ -220,6 +226,8 @@ void Gui::drawMenu()
 
 void Gui::drawStartButton()
 {
+	ImGui::BeginDisabled(!devicesList.empty() && devicesList.front() == noDevices);
+
 	PlotHandlerBase::state state = plotHandler->getViewerState();
 
 	if (state == PlotHandlerBase::state::RUN)
@@ -252,6 +260,76 @@ void Gui::drawStartButton()
 	}
 
 	ImGui::PopStyleColor(3);
+	ImGui::EndDisabled();
+}
+
+void Gui::drawDebugProbes()
+{
+	static bool shouldListDevices = false;
+	static int SNptr = 0;
+
+	ImGui::Dummy(ImVec2(-1, 5));
+	drawCenteredText("Debug Probe");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Select the debug probe type and the serial number of the probe to unlock the START button.");
+	ImGui::Separator();
+
+	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
+
+	ImGui::Text("Debug probe    ");
+	ImGui::SameLine();
+
+	const char* debugProbes[] = {"STLINK", "JLINK"};
+	int32_t debugProbe = plotHandler->probeSettings.debugProbe;
+
+	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
+	{
+		plotHandler->probeSettings.debugProbe = debugProbe;
+
+		if (plotHandler->probeSettings.debugProbe == 1)
+		{
+			debugProbeDevice = jlinkProbe;
+			shouldListDevices = true;
+		}
+		else
+		{
+			debugProbeDevice = stlinkProbe;
+			shouldListDevices = true;
+		}
+		SNptr = 0;
+	}
+	ImGui::Text("Debug probe S/N");
+	ImGui::SameLine();
+
+	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
+		plotHandler->setDebugProbe(debugProbeDevice, devicesList[SNptr]);
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("...", ImVec2(35, 19)) || shouldListDevices || devicesList.empty())
+	{
+		devicesList = debugProbeDevice->getConnectedDevices();
+		if (!devicesList.empty())
+			plotHandler->setDebugProbe(debugProbeDevice, devicesList[0]);
+		shouldListDevices = false;
+	}
+
+	if (plotHandler->probeSettings.debugProbe == 1)
+	{
+		ImGui::Text("Target name    ");
+		ImGui::SameLine();
+
+		if (ImGui::InputText("##device", &plotHandler->probeSettings.device, 0, NULL, NULL))
+			plotHandler->setTargetDevice(plotHandler->probeSettings.device);
+
+		ImGui::SameLine();
+		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
+	}
+
+	ImGui::EndDisabled();
+
+	if (devicesList.empty())
+		devicesList.push_back(noDevices);
 }
 
 void Gui::addNewVariable(const std::string& newName)
@@ -301,8 +379,12 @@ void Gui::drawUpdateAddressesFromElf()
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
-	if (ImGui::Button(buttonText, ImVec2(-1, 25*contentScale)))
+
+	if (ImGui::Button(buttonText, ImVec2(-1, 25*contentScale)) || performVariablesUpdate)
+	{
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
+		performVariablesUpdate = false;
+	}
 
 	ImGui::EndDisabled();
 }
@@ -311,12 +393,23 @@ void Gui::drawVarTable()
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
-	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Variables").x) * 0.5f);
-	ImGui::Text("Variables");
+	ImGui::Dummy(ImVec2(-1, 5));
+	drawCenteredText("Variables");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Select your *.elf file in the Options->Acqusition Settings to import or update the variables.");
 	ImGui::Separator();
 
 	drawAddVariableButton();
 	drawUpdateAddressesFromElf();
+
+
+	const char* label = "search ";
+	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8*contentScale);
+	static std::string search{};
+	ImGui::Text(label);
+	ImGui::SameLine();
+	ImGui::InputText("##search", &search, 0, NULL, NULL);
+	ImGui::PopItemWidth();
 
 	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300*contentScale)))
 	{
@@ -328,11 +421,14 @@ void Gui::drawVarTable()
 
 		std::optional<std::string> varNameToDelete;
 
-		for (auto& [keyName, var] : vars)
+		for (auto& [name, var] : vars)
 		{
+			if (name.find(search) == std::string::npos)
+				continue;
+
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			ImGui::PushID(keyName.c_str());
+			ImGui::PushID(name.c_str());
 			ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
 			ImGui::SameLine();
 			ImGui::PopID();
@@ -348,7 +444,7 @@ void Gui::drawVarTable()
 			}
 
 			if (!varNameToDelete.has_value())
-				varNameToDelete = showDeletePopup("Delete", keyName);
+				varNameToDelete = showDeletePopup("Delete", name);
 
 			if (var->getIsFound() == true && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
@@ -434,8 +530,8 @@ void Gui::drawPlotsTree()
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
 
-	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
-	ImGui::Text("Plots");
+	ImGui::Dummy(ImVec2(-1, 5));
+	drawCenteredText("Plots");
 	ImGui::Separator();
 
 	drawAddPlotButton();
@@ -877,6 +973,13 @@ bool Gui::openProject()
 		plotHandler->removeAllPlots();
 		configHandler->readConfigFile(vars, projectElfPath);
 		logger->info("Project config path: {}", projectConfigPath);
+		/* TODO refactor */
+		devicesList.clear();
+		if (plotHandler->probeSettings.debugProbe == 1)
+			debugProbeDevice = jlinkProbe;
+		else
+			debugProbeDevice = stlinkProbe;
+
 		return true;
 	}
 	return false;

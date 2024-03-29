@@ -18,7 +18,7 @@ endif()
 
 project(STMViewer)
 
-set(STMVIEWER_VERSION 0.4.0)
+set(STMVIEWER_VERSION 0.5.0)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
@@ -38,6 +38,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
 endif()
 
 add_compile_options(-Wall
+    -Wfatal-errors
     -Wextra
     -Wpedantic
     -Wno-unused-parameter
@@ -68,6 +69,16 @@ if(UNIX)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
+
+    if(APPLE)
+        find_package(OpenGL REQUIRED)
+        find_package(GLUT REQUIRED)
+        # TODO distinguish between ARM and x86 */
+        set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
+    else()
+        set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
+    endif()
+
 endif()
 
 if(WIN32)
@@ -91,6 +102,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiImportVariables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/JlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
@@ -172,7 +184,10 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 
-if(UNIX)
+if(APPLE)
+    include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
+    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} spdlog::spdlog pthread dl glfw nfd)
+elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
     target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
