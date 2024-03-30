@@ -22,7 +22,7 @@ void Gui::drawStartButtonSwo()
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button((viewerStateMap.at(state) + " " + tracePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50*contentScale)))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + tracePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * contentScale)))
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
@@ -141,7 +141,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Separator();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-	ImGui::BeginChild("left pane", ImVec2(150*contentScale, -1), true);
+	ImGui::BeginChild("left pane", ImVec2(150 * contentScale, -1), true);
 
 	auto state = tracePlotHandler->getViewerState();
 	int32_t iter = 0;
@@ -200,7 +200,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Checkbox("##mx0", &mx0);
 	plt->markerX0.setState(mx0);
 	plt->markerX1.setState(mx0);
-	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25*contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 * contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();
