@@ -103,7 +103,8 @@ class UnixSoLoader
    public:
 	~UnixSoLoader()
 	{
-		dlclose(handle);
+		if (handle)
+            dlclose(handle);
 	}
 
 	bool doLoad(JlinkFunctions& jlinkFunctions)

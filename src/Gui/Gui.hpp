@@ -43,6 +43,8 @@ class Gui
 	bool showImportVariablesWindow = false;
 	bool performVariablesUpdate = false;
 
+    float contentScale = 1.0f;
+
 	IFileHandler* fileHandler;
 	TracePlotHandler* tracePlotHandler;
 

@@ -1,5 +1,6 @@
 #include "Gui.hpp"
 
+#include <imgui.h>
 #include <unistd.h>
 
 #include <future>
@@ -34,6 +35,13 @@ static void glfw_error_callback(int error, const char* description)
 	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
+static float getContentScale(GLFWwindow *window) {
+    float xscale;
+    float yscale;
+    glfwGetWindowContentScale(window, &xscale, &yscale);
+    return (xscale + yscale)/2.0f;
+}
+
 void Gui::mainThread()
 {
 	glfwSetErrorCallback(glfw_error_callback);
@@ -50,9 +58,19 @@ void Gui::mainThread()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
+    
+    contentScale = getContentScale(window);
+
+    ImFontConfig cfg;
+	cfg.SizePixels = 13.0f*contentScale;
+
+    ImGui::GetStyle().ScaleAllSizes(contentScale);
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+	io.Fonts->AddFontDefault(&cfg);
+	io.FontGlobalScale = 1.0f;//scale;
 
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
@@ -230,7 +248,7 @@ void Gui::drawStartButton()
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 	}
 
-	if (ImGui::Button((viewerStateMap.at(state) + " " + plotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + plotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50*contentScale)))
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
@@ -288,7 +306,7 @@ void Gui::drawDebugProbes()
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("...", ImVec2(35, 19)) || shouldListDevices || devicesList.empty())
+	if (ImGui::Button("...", ImVec2(35*contentScale, 19*contentScale)) || shouldListDevices || devicesList.empty())
 	{
 		devicesList = debugProbeDevice->getConnectedDevices();
 		if (!devicesList.empty())
@@ -327,7 +345,7 @@ void Gui::addNewVariable(const std::string& newName)
 
 void Gui::drawAddVariableButton()
 {
-	if (ImGui::Button("Add variable", ImVec2(-1, 25)))
+	if (ImGui::Button("Add variable", ImVec2(-1, 25*contentScale)))
 	{
 		uint32_t num = 0;
 		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
@@ -338,7 +356,7 @@ void Gui::drawAddVariableButton()
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
-	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25)))
+	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25*contentScale)))
 		showImportVariablesWindow = true;
 
 	ImGui::EndDisabled();
@@ -361,7 +379,8 @@ void Gui::drawUpdateAddressesFromElf()
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
-	if (ImGui::Button(buttonText, ImVec2(-1, 25)) || performVariablesUpdate)
+
+	if (ImGui::Button(buttonText, ImVec2(-1, 25*contentScale)) || performVariablesUpdate)
 	{
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
 		performVariablesUpdate = false;
@@ -383,15 +402,16 @@ void Gui::drawVarTable()
 	drawAddVariableButton();
 	drawUpdateAddressesFromElf();
 
+
 	const char* label = "search ";
-	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8);
+	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8*contentScale);
 	static std::string search{};
-	ImGui::Text(label);
+	ImGui::Text("%s",label);
 	ImGui::SameLine();
 	ImGui::InputText("##search", &search, 0, NULL, NULL);
 	ImGui::PopItemWidth();
 
-	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300)))
+	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300*contentScale)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Name", 0);
@@ -454,7 +474,7 @@ void Gui::drawVarTable()
 
 void Gui::drawAddPlotButton()
 {
-	if (ImGui::Button("Add plot", ImVec2(-1, 25)))
+	if (ImGui::Button("Add plot", ImVec2(-1, 25*contentScale)))
 	{
 		uint32_t num = 0;
 		while (plotHandler->checkIfPlotExists(std::string("new plot") + std::to_string(num)))
@@ -467,7 +487,7 @@ void Gui::drawAddPlotButton()
 
 void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 {
-	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25)))
+	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25*contentScale)))
 	{
 		std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("CSV", "csv"));
 		std::ofstream csvFile(path);
@@ -505,7 +525,7 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 
 void Gui::drawPlotsTree()
 {
-	const uint32_t windowHeight = 320;
+	const uint32_t windowHeight = 320*contentScale;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
@@ -526,7 +546,7 @@ void Gui::drawPlotsTree()
 		selected = plotHandler->begin().operator*()->getName();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
+	ImGui::BeginChild("left pane", ImVec2(150*contentScale, -1), true);
 
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
@@ -576,7 +596,7 @@ void Gui::drawPlotsTree()
 
 	/* Var list within plot*/
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, 175)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 175*contentScale)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
@@ -631,7 +651,7 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 300));
+	ImGui::SetNextWindowSize(ImVec2(500*contentScale, 300*contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == AcqusitionWindowType::VARIABLE)
@@ -641,7 +661,7 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 
 		acqusitionErrorPopup.handle();
 
-		const float buttonHeight = 25.0f;
+		const float buttonHeight = 25.0f*contentScale;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
 		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
@@ -659,7 +679,7 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::Text("Project's *.elf file:");
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();
-	if (ImGui::Button("...", ImVec2(35, 19)))
+	if (ImGui::Button("...", ImVec2(35*contentScale, 19*contentScale)))
 		openElfFile();
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
@@ -694,14 +714,14 @@ void Gui::drawPreferencesWindow()
 		ImGui::OpenPopup("Preferences");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 250));
+	ImGui::SetNextWindowSize(ImVec2(500*contentScale, 250*contentScale));
 	if (ImGui::BeginPopupModal("Preferences", &showPreferencesWindow, 0))
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
 		ImGui::DragFloat("font size", &io.FontGlobalScale, 0.005f, 0.8f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
-		const float buttonHeight = 25.0f;
+		const float buttonHeight = 25.0f*contentScale;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
@@ -846,24 +866,25 @@ std::optional<std::string> Gui::showDeletePopup(const char* text, const std::str
 
 void Gui::showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel)
 {
+    float buttonWidth = 120.0f * contentScale;
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(id, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::Text("%s", question);
 		ImGui::Separator();
-		if (ImGui::Button("Yes", ImVec2(120, 0)))
+		if (ImGui::Button("Yes", ImVec2(buttonWidth, 0)))
 		{
 			onYes();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("No", ImVec2(120, 0)))
+		if (ImGui::Button("No", ImVec2(buttonWidth, 0)))
 		{
 			onNo();
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(buttonWidth, 0)))
 		{
 			onCancel();
 			ImGui::CloseCurrentPopup();
