@@ -57,13 +57,13 @@ bool Gui::openWebsite(const char* url)
 {
 #ifdef _WIN32
 	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif #if defined(__APPLE__) || defined(_UNIX)
+#elif defined(__APPLE__) || defined(_UNIX)
 	const char* browser = getenv("BROWSER");
 	if (browser == NULL)
 		browser = "xdg-open";
 	char command[256];
 	snprintf(command, sizeof(command), "%s %s", browser, url);
-	auto status = system(command);
+	// auto status = system(command);
 #else
 #error "Your system is not supported!"
 #endif

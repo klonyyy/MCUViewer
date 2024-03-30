@@ -200,7 +200,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Checkbox("##mx0", &mx0);
 	plt->markerX0.setState(mx0);
 	plt->markerX1.setState(mx0);
-	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25*contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();

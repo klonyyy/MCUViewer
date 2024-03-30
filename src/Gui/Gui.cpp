@@ -306,7 +306,7 @@ void Gui::drawDebugProbes()
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("...", ImVec2(35, 19)) || shouldListDevices || devicesList.empty())
+	if (ImGui::Button("...", ImVec2(35*contentScale, 19*contentScale)) || shouldListDevices || devicesList.empty())
 	{
 		devicesList = debugProbeDevice->getConnectedDevices();
 		if (!devicesList.empty())
@@ -406,7 +406,7 @@ void Gui::drawVarTable()
 	const char* label = "search ";
 	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8*contentScale);
 	static std::string search{};
-	ImGui::Text(label);
+	ImGui::Text("%s",label);
 	ImGui::SameLine();
 	ImGui::InputText("##search", &search, 0, NULL, NULL);
 	ImGui::PopItemWidth();
