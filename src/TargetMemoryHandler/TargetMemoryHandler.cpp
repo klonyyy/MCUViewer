@@ -5,15 +5,21 @@
 
 #include "iostream"
 
-bool TargetMemoryHandler::start(const std::string& serialNumber, const std::string& device) const
+bool TargetMemoryHandler::start(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, IDebugProbe::Mode mode, const std::string& device) const
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return probe->startAcqusition(serialNumber, device);
+	return probe->startAcqusition(serialNumber, addressSizeVector, mode, device);
 }
 bool TargetMemoryHandler::stop() const
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	return probe->stopAcqusition();
+}
+
+bool TargetMemoryHandler::initRead() const
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->initRead();
 }
 
 double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)

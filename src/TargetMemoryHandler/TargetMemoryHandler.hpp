@@ -13,8 +13,9 @@
 class TargetMemoryHandler
 {
    public:
-	bool start(const std::string& serialNumber, const std::string& device) const;
+	bool start(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL, const std::string& device = "") const;
 	bool stop() const;
+	bool initRead() const;
 
 	uint32_t getValue(uint32_t address) const;
 	double getValue(uint32_t address, Variable::type type);

@@ -46,6 +46,7 @@ class PlotHandler : public PlotHandlerBase
 
    private:
 	void dataHandler();
+	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
 
    private:
 	std::unique_ptr<TargetMemoryHandler> varReader;

@@ -54,6 +54,7 @@ void PlotHandler::setTargetDevice(const std::string& deviceName)
 void PlotHandler::dataHandler()
 {
 	uint32_t timer = 0;
+	IDebugProbe::Mode mode = IDebugProbe::Mode::HSS;
 
 	while (!done)
 	{
@@ -62,6 +63,9 @@ void PlotHandler::dataHandler()
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+
+			if (mode == IDebugProbe::Mode::HSS)
+				varReader->initRead();
 
 			if (t > (settings.samplePeriod * timer) / 1000.0f)
 			{
@@ -90,7 +94,9 @@ void PlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (varReader->start(probeSettings.serialNumber, probeSettings.device))
+				auto addressSizeVector = createAddressSizeVector();
+
+				if (varReader->start(probeSettings.serialNumber, addressSizeVector, mode, probeSettings.device))
 				{
 					timer = 0;
 					start = std::chrono::steady_clock::now();
@@ -102,5 +108,19 @@ void PlotHandler::dataHandler()
 				varReader->stop();
 			stateChangeOrdered = false;
 		}
+	}
+}
+
+std::vector<std::pair<uint32_t, uint8_t>> PlotHandler::createAddressSizeVector()
+{
+	std::vector<std::pair<uint32_t, uint8_t>> addressSizeVector;
+
+	for (auto& [key, plot] : plotsMap)
+	{
+		if (!plot->getVisibility())
+			continue;
+
+		for (auto& [name, ser] : plot->getSeriesMap())
+			addressSizeVector.push_back({ser->var->getAddress(), ser->var->getSize()});
 	}
 }

@@ -17,7 +17,7 @@ JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 	}
 }
 
-bool JlinkHandler::startAcqusition(const std::string& serialNumber, const std::string& device)
+bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, Mode mode, const std::string& device)
 {
 	if (!isLoaded)
 		return false;
@@ -46,6 +46,7 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, const std::s
 
 	return isRunning;
 }
+
 bool JlinkHandler::stopAcqusition()
 {
 	if (!isLoaded)
@@ -54,15 +55,22 @@ bool JlinkHandler::stopAcqusition()
 	jlinkFunctions.jlinkClose();
 	return true;
 }
+
 bool JlinkHandler::isValid() const
 {
 	return isRunning;
+}
+
+bool JlinkHandler::initRead() const
+{
+	// initialize Jlink HSS buffer read
 }
 
 bool JlinkHandler::readMemory(uint32_t address, uint32_t* value)
 {
 	return (isLoaded && isRunning && jlinkFunctions.jlinkReadMem(address, 4, (uint8_t*)value, 0) >= 0);
 }
+
 bool JlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 {
 	return (isLoaded && isRunning && jlinkFunctions.jlinkWriteMem(address, len, buf, 0) >= 0);

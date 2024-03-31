@@ -12,10 +12,11 @@ class JlinkHandler : public IDebugProbe
 {
    public:
 	JlinkHandler(spdlog::logger* logger);
-	bool startAcqusition(const std::string& serialNumber, const std::string& device = "") override;
+	bool startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, Mode mode = Mode::NORMAL, const std::string& device = "") override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
 
+	bool initRead() const override;
 	bool readMemory(uint32_t address, uint32_t* value) override;
 	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) override;
 
@@ -28,6 +29,7 @@ class JlinkHandler : public IDebugProbe
 	}
 
    private:
+	std::unordered_map<uint32_t, uint32_t> addressValueMap;
 	DynamicLibraryLoader dynamicLibraryLoader;
 	JlinkFunctions jlinkFunctions;
 	bool isRunning = false;
