@@ -44,6 +44,10 @@ add_compile_options(-Wall
     -Wno-unused-parameter
     -Wno-missing-field-initializers)
 
+set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
+# TODO only temporary
+set(JLINK C:/Users/klonyyy/piotrek_moje/programs/SEGGER/OFFICIAL/Windows/x86_64/JLink_x64.dll)
+
 if(UNIX)
 
     include(FetchContent)
@@ -174,6 +178,7 @@ target_include_directories(${EXECUTABLE} PRIVATE
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
+    ${JLINK_INCLUDE_DIR}
     ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
@@ -190,7 +195,7 @@ if(APPLE)
 elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} ${JLINK} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
 
 if(WIN32)

@@ -8,23 +8,13 @@
 
 JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 {
-	isLoaded = dynamicLibraryLoader.doLoad(jlinkFunctions);
-
-	if (!isLoaded)
-	{
-		lastErrorMsg = "Could not load the JLink library!";
-		logger->error(lastErrorMsg);
-	}
 }
 
 bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, Mode mode, const std::string& device)
 {
-	if (!isLoaded)
-		return false;
-
 	int serialNumberInt = std::atoi(serialNumber.c_str());
 
-	if (jlinkFunctions.jlinkSelectByUsb(serialNumberInt) < 0)
+	if (JLINKARM_EMU_SelectByUSBSN(serialNumberInt) < 0)
 	{
 		lastErrorMsg = "Could not connect to the selected probe";
 		return false;
@@ -32,27 +22,24 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 	lastErrorMsg = "";
 
 	auto deviceCmd = "Device = " + device;
-	jlinkFunctions.jlinkExecCommand(deviceCmd.c_str(), nullptr, 0);
+	JLINKARM_ExecCommand(deviceCmd.c_str(), nullptr, 0);
 
-	if (jlinkFunctions.jlinkOpen(nullptr, nullptr) != nullptr)
+	if (JLINKARM_OpenEx(nullptr, nullptr) != nullptr)
 	{
 		isRunning = false;
 		return false;
 	}
 
-	isRunning = jlinkFunctions.jlinkIsOpen();
+	isRunning = JLINKARM_IsOpen();
 	/* TODO temporary: select interface */
-	jlinkFunctions.jlinkTifSelect(1);
+	JLINKARM_TIF_Select(1);
 
 	return isRunning;
 }
 
 bool JlinkHandler::stopAcqusition()
 {
-	if (!isLoaded)
-		return false;
-
-	jlinkFunctions.jlinkClose();
+	JLINKARM_Close();
 	return true;
 }
 
@@ -68,12 +55,12 @@ bool JlinkHandler::initRead() const
 
 bool JlinkHandler::readMemory(uint32_t address, uint32_t* value)
 {
-	return (isLoaded && isRunning && jlinkFunctions.jlinkReadMem(address, 4, (uint8_t*)value, 0) >= 0);
+	return (isRunning && JLINKARM_ReadMemEx(address, 4, (uint8_t*)value, 0) >= 0);
 }
 
 bool JlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 {
-	return (isLoaded && isRunning && jlinkFunctions.jlinkWriteMem(address, len, buf, 0) >= 0);
+	return (isRunning && JLINKARM_WriteMemEx(address, len, buf, 0) >= 0);
 }
 
 std::string JlinkHandler::getLastErrorMsg() const
@@ -85,11 +72,8 @@ std::vector<std::string> JlinkHandler::getConnectedDevices()
 {
 	std::vector<std::string> deviceIDs{};
 
-	if (!isLoaded)
-		return deviceIDs;
-
-	JlinkFunctions::JLINKARM_EMU_CONNECT_INFO connectInfo[JlinkFunctions::maxDevices]{};
-	int32_t result = jlinkFunctions.jlinkGetList(1, (JlinkFunctions::JLINKARM_EMU_CONNECT_INFO*)connectInfo, JlinkFunctions::maxDevices);
+	JLINKARM_EMU_CONNECT_INFO connectInfo[maxDevices]{};
+	int32_t result = JLINKARM_EMU_GetList(1, (JLINKARM_EMU_CONNECT_INFO*)connectInfo, maxDevices);
 
 	if (result < 0)
 	{
@@ -97,9 +81,9 @@ std::vector<std::string> JlinkHandler::getConnectedDevices()
 		return std::vector<std::string>{};
 	}
 
-	for (size_t i = 0; i < JlinkFunctions::maxDevices; i++)
+	for (size_t i = 0; i < maxDevices; i++)
 	{
-		auto serialNumber = connectInfo[i].serialNumber;
+		auto serialNumber = connectInfo[i].SerialNumber;
 
 		if (serialNumber != 0)
 		{

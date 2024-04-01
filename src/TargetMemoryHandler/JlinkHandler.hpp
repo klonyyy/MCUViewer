@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "IDebugProbe.hpp"
-#include "JlinkDynamicLibraryLoader.hpp"
+#include "jlink.h"
 #include "spdlog/spdlog.h"
 
 class JlinkHandler : public IDebugProbe
@@ -29,11 +29,10 @@ class JlinkHandler : public IDebugProbe
 	}
 
    private:
+	static constexpr size_t maxDevices = 10;
 	std::unordered_map<uint32_t, uint32_t> addressValueMap;
-	DynamicLibraryLoader dynamicLibraryLoader;
-	JlinkFunctions jlinkFunctions;
 	bool isRunning = false;
-	bool isLoaded = false;
+
 	std::string lastErrorMsg = "";
 	spdlog::logger* logger;
 };
