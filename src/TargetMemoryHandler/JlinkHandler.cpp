@@ -51,6 +51,8 @@ bool JlinkHandler::isValid() const
 bool JlinkHandler::initRead() const
 {
 	// initialize Jlink HSS buffer read
+
+	return true;
 }
 
 bool JlinkHandler::readMemory(uint32_t address, uint32_t* value)

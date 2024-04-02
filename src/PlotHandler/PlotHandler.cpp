@@ -123,4 +123,6 @@ std::vector<std::pair<uint32_t, uint8_t>> PlotHandler::createAddressSizeVector()
 		for (auto& [name, ser] : plot->getSeriesMap())
 			addressSizeVector.push_back({ser->var->getAddress(), ser->var->getSize()});
 	}
+
+	return addressSizeVector;
 }
