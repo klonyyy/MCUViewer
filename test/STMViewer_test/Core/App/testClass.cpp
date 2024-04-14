@@ -21,7 +21,7 @@ float TestClass::getCos(float x)
 
 void TestClass::spin()
 {
-	x += 0.001f;
+	x += 0.0001f;
 
 	if(x > 2.0f*M_PI)
 	{

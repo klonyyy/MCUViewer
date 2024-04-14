@@ -2,6 +2,7 @@
 #define _JLINKHANDLER_HPP
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "IDebugProbe.hpp"
@@ -16,23 +17,27 @@ class JlinkHandler : public IDebugProbe
 	bool stopAcqusition() override;
 	bool isValid() const override;
 
-	bool initRead() const override;
+	std::optional<IDebugProbe::varEntryType> readSingleEntry() override;
+
 	bool readMemory(uint32_t address, uint32_t* value) override;
 	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) override;
 
 	std::string getLastErrorMsg() const override;
 	std::vector<std::string> getConnectedDevices() override;
 
-	bool requiresAlignedAccessOnRead() override
-	{
-		return false;
-	}
+	bool requiresAlignedAccessOnRead() override { return false; }
 
    private:
 	static constexpr size_t maxDevices = 10;
-	std::unordered_map<uint32_t, uint32_t> addressValueMap;
-	bool isRunning = false;
 
+	JLINK_HSS_MEM_BLOCK_DESC variableDesc[500]{};  // TODO
+	size_t trackedVarsCount = 0;
+	size_t trackedVarsTotalSize = 0;
+
+	std::unordered_map<uint32_t, uint8_t> addressSizeMap;
+	std::unique_ptr<RingBuffer<varEntryType>> varTable;
+
+	bool isRunning = false;
 	std::string lastErrorMsg = "";
 	spdlog::logger* logger;
 };

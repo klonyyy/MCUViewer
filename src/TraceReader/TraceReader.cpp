@@ -71,7 +71,7 @@ bool TraceReader::isValid() const
 
 bool TraceReader::readTrace(double& timestamp, std::array<uint32_t, 10>& trace)
 {
-	if (!isRunning || traceTable->getSize() == 0)
+	if (!isRunning || traceTable->size() == 0)
 		return false;
 	auto entry = traceTable->pop();
 	timestamp = entry.second / static_cast<double>(coreFrequency * 1000);

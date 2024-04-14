@@ -16,7 +16,7 @@ class StlinkHandler : public IDebugProbe
 	bool stopAcqusition() override;
 	bool isValid() const override;
 
-	bool initRead() const override;
+	std::optional<IDebugProbe::varEntryType> readSingleEntry() override;
 	bool readMemory(uint32_t address, uint32_t* value) override;
 	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) override;
 

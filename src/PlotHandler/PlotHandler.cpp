@@ -65,9 +65,32 @@ void PlotHandler::dataHandler()
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
 			if (mode == IDebugProbe::Mode::HSS)
-				varReader->initRead();
+			{
+				auto maybeEntry = varReader->readSingleEntry();
 
-			if (t > (settings.samplePeriod * timer) / 1000.0f)
+				if (!maybeEntry.has_value())
+					continue;
+
+				auto entry = maybeEntry.value();
+
+				for (auto& [key, plot] : plotsMap)
+				{
+					if (!plot->getVisibility())
+						continue;
+
+					std::lock_guard<std::mutex> lock(*mtx);
+					/* thread-safe part */
+					for (auto& [name, ser] : plot->getSeriesMap())
+					{
+						double value = varReader->castToProperType(entry.second[ser->var->getAddress()], ser->var->getType());
+						ser->var->setValue(value);
+						plot->addPoint(name, value);
+					}
+					plot->addTimePoint(entry.first);
+				}
+			}
+
+			else if (t > (settings.samplePeriod * timer) / 1000.0f)
 			{
 				for (auto& [key, plot] : plotsMap)
 				{

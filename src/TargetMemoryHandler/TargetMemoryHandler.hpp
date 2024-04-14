@@ -15,10 +15,12 @@ class TargetMemoryHandler
    public:
 	bool start(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL, const std::string& device = "") const;
 	bool stop() const;
-	bool initRead() const;
 
-	uint32_t getValue(uint32_t address) const;
+	std::optional<IDebugProbe::varEntryType> readSingleEntry();
+
 	double getValue(uint32_t address, Variable::type type);
+	double castToProperType(uint32_t value, Variable::type type);
+	
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 

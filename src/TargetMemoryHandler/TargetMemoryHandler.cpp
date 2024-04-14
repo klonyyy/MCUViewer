@@ -16,10 +16,10 @@ bool TargetMemoryHandler::stop() const
 	return probe->stopAcqusition();
 }
 
-bool TargetMemoryHandler::initRead() const
+std::optional<IDebugProbe::varEntryType> TargetMemoryHandler::readSingleEntry()
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return probe->initRead();
+	return probe->readSingleEntry();
 }
 
 double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
@@ -67,6 +67,11 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 		}
 	}
 
+	return castToProperType(value, type);
+}
+
+double TargetMemoryHandler::castToProperType(uint32_t value, Variable::type type)
+{
 	switch (type)
 	{
 		case Variable::type::U8:

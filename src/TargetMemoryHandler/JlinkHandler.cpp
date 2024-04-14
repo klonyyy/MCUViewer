@@ -8,6 +8,7 @@
 
 JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 {
+	varTable = std::make_unique<RingBuffer<varEntryType>>(2000);
 }
 
 bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, Mode mode, const std::string& device)
@@ -24,15 +25,28 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 	auto deviceCmd = "Device = " + device;
 	JLINKARM_ExecCommand(deviceCmd.c_str(), nullptr, 0);
 
-	if (JLINKARM_OpenEx(nullptr, nullptr) != nullptr)
-	{
-		isRunning = false;
-		return false;
-	}
+	JLINKARM_SetSpeed(50000);
 
-	isRunning = JLINKARM_IsOpen();
 	/* TODO temporary: select interface */
 	JLINKARM_TIF_Select(1);
+
+	trackedVarsCount = 0;
+	trackedVarsTotalSize = 4;
+	for (auto [address, size] : addressSizeVector)
+	{
+		auto& desc = variableDesc[trackedVarsCount++];
+		desc.Addr = address;
+		desc.NumBytes = size;
+		desc.Flags = 0;
+		desc.Dummy = 0;
+		addressSizeMap[address] = size;
+		trackedVarsTotalSize += size;
+	}
+
+	if (JLINK_HSS_Start(variableDesc, trackedVarsCount, 100, JLINK_HSS_FLAG_TIMESTAMP_US) >= 0)
+		isRunning = true;
+	else
+		isRunning = false;
 
 	return isRunning;
 }
@@ -48,11 +62,34 @@ bool JlinkHandler::isValid() const
 	return isRunning;
 }
 
-bool JlinkHandler::initRead() const
+std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 {
-	// initialize Jlink HSS buffer read
+	uint8_t rawBuffer[128]{};
 
-	return true;
+	int32_t readSize = JLINK_HSS_Read(rawBuffer, sizeof(rawBuffer));
+
+	for (size_t i = 0; i < readSize; i += trackedVarsTotalSize)	 // +1 is for the timestamp
+	{
+		varEntryType entry{};
+
+		/* timestamp */
+		entry.first = (*(uint32_t*)&rawBuffer[i]) / 1000000.0;
+
+		int32_t k = i + 4;
+		for (size_t j = 0; j < trackedVarsCount; j++)
+		{
+			uint32_t address = variableDesc[j].Addr;
+			entry.second[address] = *(uint32_t*)&rawBuffer[k];
+			k += addressSizeMap[address];
+		}
+
+		varTable->push(entry);
+	}
+
+	if (readSize < 0 || varTable->size() == 0)
+		return std::nullopt;
+
+	return varTable->pop();
 }
 
 bool JlinkHandler::readMemory(uint32_t address, uint32_t* value)

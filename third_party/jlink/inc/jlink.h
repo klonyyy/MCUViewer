@@ -60,6 +60,8 @@ extern "C"
 {  // Make sure we have C-declarations in C++ programs
 #endif
 
+#define JLINK_HSS_FLAG_TIMESTAMP_US (1uL << 0)
+
 	typedef void JLINKARM_LOG(const char* sErr);
 
 	typedef struct
@@ -82,6 +84,14 @@ extern "C"
 		uint8_t aPadding[34];		   // Pad struct size to 264 bytes
 	} JLINKARM_EMU_CONNECT_INFO;	   // In general, unused fields are zeroed.
 
+	typedef struct
+	{
+		uint32_t Addr;
+		uint32_t NumBytes;
+		uint32_t Flags;	 // Future use. SBZ.
+		uint32_t Dummy;	 // Future use. SBZ.
+	} JLINK_HSS_MEM_BLOCK_DESC;
+
 	const char* JLINKARM_OpenEx(JLINKARM_LOG* pfLog, JLINKARM_LOG* pfErrorOut);
 	void JLINKARM_Close(void);
 	char JLINKARM_IsOpen(void);
@@ -91,6 +101,11 @@ extern "C"
 	int32_t JLINKARM_EMU_SelectByUSBSN(uint32_t SerialNo);
 	int32_t JLINKARM_ExecCommand(const char* pIn, char* pOut, int32_t BufferSize);
 	int32_t JLINKARM_TIF_Select(int32_t int32_terface);
+	void JLINKARM_SetSpeed(uint32_t Speed);
+
+	int32_t JLINK_HSS_Start(JLINK_HSS_MEM_BLOCK_DESC* paDesc, int32_t NumBlocks, int32_t Period_us, int32_t Flags);
+	int32_t JLINK_HSS_Stop(void);
+	int32_t JLINK_HSS_Read(void* pBuffer, uint32_t BufferSize);
 
 #if defined(__cplusplus)
 } /* Make sure we have C-declarations in C++ programs */

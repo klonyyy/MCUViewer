@@ -45,9 +45,9 @@ bool StlinkHandler::isValid() const
 	return isRunning;
 }
 
-bool StlinkHandler::initRead() const
+std::optional<IDebugProbe::varEntryType> StlinkHandler::readSingleEntry()
 {
-	return true;
+	return std::nullopt;
 }
 
 bool StlinkHandler::readMemory(uint32_t address, uint32_t* value)
