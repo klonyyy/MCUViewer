@@ -683,12 +683,12 @@ void Gui::acqusitionSettingsViewer()
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
 
-	ImGui::Text("Sample period [ms]:");
+	ImGui::Text("Sample frequency [Hz]:");
 	ImGui::SameLine();
-	ImGui::HelpMarker("Minimum time between two respective sampling points. Set to zero for maximum frequency.");
+	ImGui::HelpMarker("Maximum sampling frequency. Depending on the used debug probe it can be reached or not.");
 	static int one = 1;
-	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.samplePeriod, &one, NULL, "%u");
-	settings.samplePeriod = std::clamp(settings.samplePeriod, static_cast<uint32_t>(0), static_cast<uint32_t>(1000));
+	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, &one, NULL, "%u");
+	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, static_cast<uint32_t>(1), static_cast<uint32_t>(10000));
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;

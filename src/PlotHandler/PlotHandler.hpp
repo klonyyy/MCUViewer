@@ -19,7 +19,7 @@ class PlotHandler : public PlotHandlerBase
    public:
 	typedef struct Settings
 	{
-		uint32_t samplePeriod = 10;
+		uint32_t sampleFrequencyHz = 100;
 		uint32_t maxPoints = 10000;
 		uint32_t maxViewportPoints = 5000;
 	} Settings;

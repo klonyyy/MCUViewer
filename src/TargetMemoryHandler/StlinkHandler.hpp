@@ -12,7 +12,7 @@ class StlinkHandler : public IDebugProbe
 {
    public:
 	StlinkHandler(spdlog::logger* logger);
-	bool startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, Mode mode = Mode::NORMAL, const std::string& device = "") override;
+	bool startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode = Mode::NORMAL, const std::string& device = "") override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
 

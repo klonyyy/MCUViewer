@@ -23,7 +23,7 @@ class IDebugProbe
 	using varEntryType = std::pair<double, std::unordered_map<uint32_t, double>>;
 
 	virtual ~IDebugProbe() = default;
-	virtual bool startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, Mode mode = Mode::NORMAL, const std::string& device = "") = 0;
+	virtual bool startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode = Mode::NORMAL, const std::string& device = "") = 0;
 	virtual bool stopAcqusition() = 0;
 	virtual bool isValid() const = 0;
 

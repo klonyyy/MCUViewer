@@ -50,7 +50,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	};
 
 	getValue("settings", "version", globalSettings.version);
-	getValue("settings", "sample_period", viewerSettings.samplePeriod);
+	getValue("settings", "sample_frequency_Hz", viewerSettings.sampleFrequencyHz);
 	getValue("settings", "max_points", viewerSettings.maxPoints);
 	getValue("settings", "max_viewport_points", viewerSettings.maxViewportPoints);
 	getValue("settings", "probe_type", probeSettings.debugProbe);
@@ -76,8 +76,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	if (traceSettings.maxPoints == 0)
 		traceSettings.maxPoints = 10000;
 
-	if (viewerSettings.samplePeriod == 0)
-		viewerSettings.samplePeriod = 10;
+	if (viewerSettings.sampleFrequencyHz == 0)
+		viewerSettings.sampleFrequencyHz = 100;
 
 	if (viewerSettings.maxPoints == 0)
 		viewerSettings.maxPoints = 1000;
@@ -209,7 +209,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
 
-	(*ini)["settings"]["sample_period"] = std::to_string(viewerSettings.samplePeriod);
+	(*ini)["settings"]["sample_frequency_hz"] = std::to_string(viewerSettings.sampleFrequencyHz);
 	(*ini)["settings"]["max_points"] = std::to_string(viewerSettings.maxPoints);
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
 	(*ini)["settings"]["probe_type"] = std::to_string(probeSettings.debugProbe);

@@ -90,7 +90,8 @@ void PlotHandler::dataHandler()
 				}
 			}
 
-			else if (t > (settings.samplePeriod * timer) / 1000.0f)
+			/* TODO fix sampleFrequencyHz in the statement below */
+			else if (t > (settings.sampleFrequencyHz * timer) / 1000.0f)
 			{
 				for (auto& [key, plot] : plotsMap)
 				{
@@ -119,7 +120,7 @@ void PlotHandler::dataHandler()
 			{
 				auto addressSizeVector = createAddressSizeVector();
 
-				if (varReader->start(probeSettings.serialNumber, addressSizeVector, mode, probeSettings.device))
+				if (varReader->start(probeSettings.serialNumber, addressSizeVector, settings.sampleFrequencyHz, mode, probeSettings.device))
 				{
 					timer = 0;
 					start = std::chrono::steady_clock::now();
