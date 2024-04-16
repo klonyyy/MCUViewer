@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 
+#include "IDebugProbe.hpp"
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
@@ -29,6 +30,8 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t debugProbe = 0;
 		std::string serialNumber = "";
 		std::string device = "";
+		IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL;
+
 	} DebugProbeSettings;
 
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
@@ -41,6 +44,7 @@ class PlotHandler : public PlotHandlerBase
 	void setSettings(const Settings& newSettings);
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber);
 	void setTargetDevice(const std::string& deviceName);
+	void setProbeMode(const IDebugProbe::Mode mode);
 
 	double getAverageSamplingPeriod() const { return averageSamplingFrequency; }
 

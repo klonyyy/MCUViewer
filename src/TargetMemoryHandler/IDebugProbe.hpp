@@ -15,8 +15,8 @@ class IDebugProbe
    public:
 	enum Mode
 	{
-		NORMAL,
-		HSS,
+		NORMAL = 0,
+		HSS = 1,
 	};
 
 	/* timestamp (first) and a map of <address-value> entries (second) only fo HSS mode */

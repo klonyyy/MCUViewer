@@ -55,6 +55,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("settings", "max_viewport_points", viewerSettings.maxViewportPoints);
 	getValue("settings", "probe_type", probeSettings.debugProbe);
 	probeSettings.device = ini->get("settings").get("target_name");
+	getValue("settings", "probe_mode", probeSettings.mode);
 
 	getValue("trace_settings", "core_frequency", traceSettings.coreFrequency);
 	getValue("trace_settings", "trace_prescaler", traceSettings.tracePrescaler);
@@ -214,6 +215,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
 	(*ini)["settings"]["probe_type"] = std::to_string(probeSettings.debugProbe);
 	(*ini)["settings"]["target_name"] = probeSettings.device;
+	(*ini)["settings"]["probe_mode"] = std::to_string(probeSettings.mode);
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);

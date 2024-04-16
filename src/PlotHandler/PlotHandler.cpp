@@ -51,10 +51,14 @@ void PlotHandler::setTargetDevice(const std::string& deviceName)
 	probeSettings.device = deviceName;
 }
 
+void PlotHandler::setProbeMode(const IDebugProbe::Mode mode)
+{
+	probeSettings.mode = mode;
+}
+
 void PlotHandler::dataHandler()
 {
 	uint32_t timer = 0;
-	IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL;
 	double lastT = 0.0;
 	double sum = 0.0;
 
@@ -66,7 +70,7 @@ void PlotHandler::dataHandler()
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
-			if (mode == IDebugProbe::Mode::HSS)
+			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
 				auto maybeEntry = varReader->readSingleEntry();
 
@@ -129,7 +133,7 @@ void PlotHandler::dataHandler()
 			{
 				auto addressSizeVector = createAddressSizeVector();
 
-				if (varReader->start(probeSettings.serialNumber, addressSizeVector, settings.sampleFrequencyHz, mode, probeSettings.device))
+				if (varReader->start(probeSettings.serialNumber, addressSizeVector, settings.sampleFrequencyHz, probeSettings.mode, probeSettings.device))
 				{
 					timer = 0;
 					lastT = 0.0;

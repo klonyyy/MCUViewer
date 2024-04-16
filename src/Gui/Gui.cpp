@@ -325,6 +325,18 @@ void Gui::drawDebugProbes()
 
 		ImGui::SameLine();
 		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
+
+		ImGui::Text("Mode           ");
+		ImGui::SameLine();
+
+		const char* probeModes[] = {"NORMAL", "HSS"};
+		int32_t probeMode = plotHandler->probeSettings.mode;
+
+		if (ImGui::Combo("##mode", &probeMode, probeModes, IM_ARRAYSIZE(probeModes)))
+			plotHandler->setProbeMode(static_cast<IDebugProbe::Mode>(probeMode));
+
+		ImGui::SameLine();
+		ImGui::HelpMarker("Select normal or high speed sampling (HSS) mode");
 	}
 
 	ImGui::EndDisabled();
