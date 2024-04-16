@@ -42,6 +42,8 @@ class PlotHandler : public PlotHandlerBase
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber);
 	void setTargetDevice(const std::string& deviceName);
 
+	double getAverageSamplingPeriod() const { return averageSamplingFrequency; }
+
 	DebugProbeSettings probeSettings{};
 
    private:
@@ -52,6 +54,7 @@ class PlotHandler : public PlotHandlerBase
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	Settings settings{};
+	double averageSamplingFrequency;
 };
 
 #endif

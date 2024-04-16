@@ -54,7 +54,9 @@ void PlotHandler::setTargetDevice(const std::string& deviceName)
 void PlotHandler::dataHandler()
 {
 	uint32_t timer = 0;
-	IDebugProbe::Mode mode = IDebugProbe::Mode::HSS;
+	IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL;
+	double lastT = 0.0;
+	double sum = 0.0;
 
 	while (!done)
 	{
@@ -88,10 +90,14 @@ void PlotHandler::dataHandler()
 					}
 					plot->addTimePoint(entry.first);
 				}
+
+				timer++;
+				sum += (t - lastT);
+				averageSamplingFrequency = sum / timer;
+				lastT = t;
 			}
 
-			/* TODO fix sampleFrequencyHz in the statement below */
-			else if (t > (settings.sampleFrequencyHz * timer) / 1000.0f)
+			else if (t > (1.0f / settings.sampleFrequencyHz) * timer)
 			{
 				for (auto& [key, plot] : plotsMap)
 				{
@@ -109,6 +115,9 @@ void PlotHandler::dataHandler()
 					plot->addTimePoint(t);
 				}
 				timer++;
+				sum += (t - lastT);
+				averageSamplingFrequency = sum / timer;
+				lastT = t;
 			}
 		}
 		else
@@ -123,6 +132,8 @@ void PlotHandler::dataHandler()
 				if (varReader->start(probeSettings.serialNumber, addressSizeVector, settings.sampleFrequencyHz, mode, probeSettings.device))
 				{
 					timer = 0;
+					lastT = 0.0;
+					sum = 0.0;
 					start = std::chrono::steady_clock::now();
 				}
 				else
