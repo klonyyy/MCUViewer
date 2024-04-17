@@ -55,12 +55,15 @@
 
 #include "stdint.h"
 
+#define JLINK_HSS_FLAG_TIMESTAMP_US (1uL << 0)
+
+#define JLINKARM_TIF_JTAG 0
+#define JLINKARM_TIF_SWD  1
+
 #if defined(__cplusplus)
 extern "C"
 {  // Make sure we have C-declarations in C++ programs
 #endif
-
-#define JLINK_HSS_FLAG_TIMESTAMP_US (1uL << 0)
 
 	typedef void JLINKARM_LOG(const char* sErr);
 
@@ -102,6 +105,7 @@ extern "C"
 	int32_t JLINKARM_ExecCommand(const char* pIn, char* pOut, int32_t BufferSize);
 	int32_t JLINKARM_TIF_Select(int32_t int32_terface);
 	void JLINKARM_SetSpeed(uint32_t Speed);
+	uint16_t JLINKARM_GetSpeed(void);
 
 	int32_t JLINK_HSS_Start(JLINK_HSS_MEM_BLOCK_DESC* paDesc, int32_t NumBlocks, int32_t Period_us, int32_t Flags);
 	int32_t JLINK_HSS_Stop(void);

@@ -14,6 +14,7 @@ JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode, const std::string& device)
 {
 	int serialNumberInt = std::atoi(serialNumber.c_str());
+	int32_t result = 0;
 
 	if (JLINKARM_EMU_SelectByUSBSN(serialNumberInt) < 0)
 	{
@@ -22,13 +23,26 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 	}
 	lastErrorMsg = "";
 
+	/* set the desired target */
+	char acOut[256];
 	auto deviceCmd = "Device = " + device;
-	JLINKARM_ExecCommand(deviceCmd.c_str(), nullptr, 0);
+	JLINKARM_ExecCommand(deviceCmd.c_str(), acOut, sizeof(acOut));
 
+	if (acOut[0] != 0)
+		logger->error(acOut);
+
+	/* try to set maximum possible speed */
 	JLINKARM_SetSpeed(50000);
+	logger->info("J-Link speed set to: ", JLINKARM_GetSpeed());
 
-	/* TODO temporary: select interface */
-	JLINKARM_TIF_Select(1);
+	/* select interface */
+	result = JLINKARM_TIF_Select(JLINKARM_TIF_SWD);
+
+	if (mode == IDebugProbe::Mode::NORMAL)
+	{
+		isRunning = true;
+		return true;
+	}
 
 	trackedVarsCount = 0;
 	trackedVarsTotalSize = 4;
@@ -43,13 +57,35 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 		trackedVarsTotalSize += size;
 	}
 
-	/* TODO check for zero */
+	if (samplingFreqency < 1)
+		samplingFreqency = 1;
+
 	uint32_t samplePeriodUs = 1000000 / samplingFreqency;
 
-	if (JLINK_HSS_Start(variableDesc, trackedVarsCount, samplePeriodUs, JLINK_HSS_FLAG_TIMESTAMP_US) >= 0)
+	result = JLINK_HSS_Start(variableDesc, trackedVarsCount, samplePeriodUs, JLINK_HSS_FLAG_TIMESTAMP_US);
+
+	if (result >= 0)
 		isRunning = true;
 	else
+	{
+		JLINKARM_Close();
 		isRunning = false;
+	}
+
+	if (result == -1)
+		logger->error("Unspecified J-Link error!");
+	else if (result == -2)
+		logger->error("Failed to allocate memory for one or more buffers on the debug probe side!");
+	else if (result == -3)
+	{
+		lastErrorMsg = "Too many memory variables specified!";
+		logger->error(lastErrorMsg);
+	}
+	else if (result == -4)
+	{
+		lastErrorMsg = "Target does not support HSS mode!";
+		logger->error(lastErrorMsg);
+	}
 
 	return isRunning;
 }
