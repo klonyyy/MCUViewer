@@ -51,6 +51,12 @@ class RingBuffer
 		return size_;
 	}
 
+	void clear()
+	{
+		while(size_)
+			pop();
+	}
+
    private:
 	std::vector<T> buffer;
 	size_t capacity;

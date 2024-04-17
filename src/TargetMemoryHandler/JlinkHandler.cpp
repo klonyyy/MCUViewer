@@ -44,6 +44,9 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 		return true;
 	}
 
+	if (varTable->size() > 0)
+		varTable->clear();
+
 	trackedVarsCount = 0;
 	trackedVarsTotalSize = 4;
 	for (auto [address, size] : addressSizeVector)
@@ -103,7 +106,7 @@ bool JlinkHandler::isValid() const
 
 std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 {
-	uint8_t rawBuffer[128]{};
+	uint8_t rawBuffer[16384]{};
 
 	int32_t readSize = JLINK_HSS_Read(rawBuffer, sizeof(rawBuffer));
 
