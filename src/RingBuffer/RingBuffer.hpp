@@ -1,19 +1,19 @@
 #ifndef __RIGNBUFFER_HPP
 #define __RIGNBUFFER_HPP
 
+#include <array>
 #include <chrono>
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
-#include <vector>
 
 using std::chrono::operator""ms;
 
-template <typename T>
+template <typename T, size_t capacity>
 class RingBuffer
 {
    public:
-	explicit RingBuffer(size_t capacity) : buffer(capacity), capacity(capacity), read_idx(0), write_idx(0), size_(0) {}
+	explicit RingBuffer() : read_idx(0), write_idx(0), size_(0) {}
 
 	bool push(const T& item)
 	{
@@ -41,7 +41,6 @@ class RingBuffer
 		size_--;
 
 		cond_full.notify_one();
-
 		return item;
 	}
 
@@ -53,13 +52,12 @@ class RingBuffer
 
 	void clear()
 	{
-		while(size_)
+		while (size_)
 			pop();
 	}
 
    private:
-	std::vector<T> buffer;
-	size_t capacity;
+	std::array<T, capacity> buffer;
 	size_t read_idx;
 	size_t write_idx;
 	size_t size_;

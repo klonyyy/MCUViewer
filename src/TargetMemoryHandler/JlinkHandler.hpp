@@ -29,13 +29,15 @@ class JlinkHandler : public IDebugProbe
 
    private:
 	static constexpr size_t maxDevices = 10;
+	static constexpr size_t maxVariables = 100;
+	static constexpr size_t fifoSize = 2000;
 
-	JLINK_HSS_MEM_BLOCK_DESC variableDesc[500]{};  // TODO
+	JLINK_HSS_MEM_BLOCK_DESC variableDesc[maxVariables]{};
 	size_t trackedVarsCount = 0;
 	size_t trackedVarsTotalSize = 0;
 
 	std::unordered_map<uint32_t, uint8_t> addressSizeMap;
-	std::unique_ptr<RingBuffer<varEntryType>> varTable;
+	RingBuffer<varEntryType, fifoSize> varTable;
 
 	bool isRunning = false;
 	std::string lastErrorMsg = "";

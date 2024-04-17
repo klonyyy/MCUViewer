@@ -8,7 +8,6 @@
 
 JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 {
-	varTable = std::make_unique<RingBuffer<varEntryType>>(2000);
 }
 
 bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode, const std::string& device)
@@ -44,11 +43,12 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 		return true;
 	}
 
-	if (varTable->size() > 0)
-		varTable->clear();
+	if (varTable.size() > 0)
+		varTable.clear();
 
 	trackedVarsCount = 0;
-	trackedVarsTotalSize = 4;
+	/* account for timestamp in size */
+	trackedVarsTotalSize = sizeof(uint32_t);
 	for (auto [address, size] : addressSizeVector)
 	{
 		auto& desc = variableDesc[trackedVarsCount++];
@@ -110,7 +110,7 @@ std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 
 	int32_t readSize = JLINK_HSS_Read(rawBuffer, sizeof(rawBuffer));
 
-	for (size_t i = 0; i < readSize; i += trackedVarsTotalSize)	 // +1 is for the timestamp
+	for (size_t i = 0; i < readSize; i += trackedVarsTotalSize)
 	{
 		varEntryType entry{};
 
@@ -125,13 +125,13 @@ std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 			k += addressSizeMap[address];
 		}
 
-		varTable->push(entry);
+		varTable.push(entry);
 	}
 
-	if (readSize < 0 || varTable->size() == 0)
+	if (readSize < 0 || varTable.size() == 0)
 		return std::nullopt;
 
-	return varTable->pop();
+	return varTable.pop();
 }
 
 bool JlinkHandler::readMemory(uint32_t address, uint32_t* value)
