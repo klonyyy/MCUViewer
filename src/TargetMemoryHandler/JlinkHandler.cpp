@@ -32,7 +32,7 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 
 	/* try to set maximum possible speed */
 	JLINKARM_SetSpeed(50000);
-	logger->info("J-Link speed set to: ", JLINKARM_GetSpeed());
+	logger->info("J-Link speed set to: {}", JLINKARM_GetSpeed());
 
 	/* select interface */
 	result = JLINKARM_TIF_Select(JLINKARM_TIF_SWD);
