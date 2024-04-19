@@ -42,8 +42,7 @@ Stlink users:
 - in case your STLink is not detected, please copy the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
 ### Windows: 
-1. Make sure you've got GDB installed and added to your PATH (the easiest way is to install using [MinGW](https://www.mingw-w64.org))
-2. Download and run the STMViewer installer. 
+1. Download and run the STMViewer installer. 
 
 Stlink users:
 - make sure the STLink is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
