@@ -95,6 +95,7 @@ if(WIN32)
     set(LIBUSB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/lib/windows/libusb-1.0.dll)
     set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
     set(SPDLOG_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/windows/libspdlog.dll)
+    set(GDB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GDB/windows/gdb.exe)
     set(INSTALL_PATH bin)
 endif()
 
@@ -226,7 +227,7 @@ if(WIN32)
         set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
     endif()
 
-    install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} DESTINATION ${INSTALL_PATH})
+    install(FILES ${LIBUSB_WINDOWS} ${STLINK_WINDOWS} ${GLFW3_WINDOWS} ${GDB_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
     CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${EXECUTABLE}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${EXECUTABLE}.exe\\\"
