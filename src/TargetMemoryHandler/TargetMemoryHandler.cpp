@@ -22,14 +22,16 @@ std::optional<IDebugProbe::varEntryType> TargetMemoryHandler::readSingleEntry()
 	return probe->readSingleEntry();
 }
 
-double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
+double TargetMemoryHandler::getValue(uint32_t address, Variable::type type, bool& result)
 {
 	uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!probe->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
+	result = probe->readMemory(address, reinterpret_cast<uint32_t*>(&value));
+
+	if (!result)
 		return 0.0;
 
 	if (probe->requiresAlignedAccessOnRead())

@@ -110,7 +110,13 @@ void PlotHandler::dataHandler()
 
 					/* this part consumes most of the thread time */
 					for (auto& [name, ser] : plot->getSeriesMap())
-						ser->var->setValue(varReader->getValue(ser->var->getAddress(), ser->var->getType()));
+					{
+						bool result = false;
+						auto value = varReader->getValue(ser->var->getAddress(), ser->var->getType(), result);
+
+						if (result)
+							ser->var->setValue(value);
+					}
 
 					/* thread-safe part */
 					std::lock_guard<std::mutex> lock(*mtx);

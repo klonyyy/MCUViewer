@@ -18,7 +18,7 @@ class TargetMemoryHandler
 
 	std::optional<IDebugProbe::varEntryType> readSingleEntry();
 
-	double getValue(uint32_t address, Variable::type type);
+	double getValue(uint32_t address, Variable::type type, bool& result);
 	double castToProperType(uint32_t value, Variable::type type);
 	
 	bool setValue(const Variable& var, double value);
