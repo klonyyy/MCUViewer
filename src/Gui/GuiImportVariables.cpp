@@ -81,7 +81,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 
 		for (auto& [name, varData] : importedVars)
 		{
-			if (name.find(substring) == std::string::npos)
+			if (toLower(name).find(toLower(substring)) == std::string::npos)
 				continue;
 
 			ImGui::TableNextRow();

@@ -465,7 +465,7 @@ void Gui::drawVarTable()
 
 		for (auto& [name, var] : vars)
 		{
-			if (name.find(search) == std::string::npos)
+			if (toLower(name).find(toLower(search)) == std::string::npos)
 				continue;
 
 			ImGui::TableNextRow();
