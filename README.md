@@ -63,9 +63,7 @@ You can assign the external GPU to STMViewer for improved performance.
 5. Drag and drop the variable to the plot area.
 6. Make sure the debug probe is connected and a proper type is selected (STLink/JLink). Download your executable to the microcontroller and press the `STOPPED` button. 
 
-In case of any problems, please try the test/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
-
-Example project with STMViewer config file is located in test/STMViewer_test directory.
+In case of any problems, please try the example/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
 
 ### Trace Viewer 
 1. Turn on the SWO pin functionality - in CubeMX System Core -> SYS Mode and Configuration -> choose Trace Asynchronous Sw
