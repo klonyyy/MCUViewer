@@ -31,6 +31,7 @@ class PlotHandler : public PlotHandlerBase
 		std::string serialNumber = "";
 		std::string device = "";
 		IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL;
+		uint32_t speedkHz = 100;
 
 	} DebugProbeSettings;
 
@@ -42,13 +43,12 @@ class PlotHandler : public PlotHandlerBase
 
 	Settings getSettings() const;
 	void setSettings(const Settings& newSettings);
-	void setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber);
-	void setTargetDevice(const std::string& deviceName);
-	void setProbeMode(const IDebugProbe::Mode mode);
 
+	DebugProbeSettings getProbeSettings() const;
+	void setProbeSettings(const DebugProbeSettings& settings);
+
+	void setDebugProbe(std::shared_ptr<IDebugProbe> probe);
 	double getAverageSamplingPeriod() const { return averageSamplingFrequency; }
-
-	DebugProbeSettings probeSettings{};
 
    private:
 	void dataHandler();
@@ -57,6 +57,7 @@ class PlotHandler : public PlotHandlerBase
    private:
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
+	DebugProbeSettings probeSettings{};
 	Settings settings{};
 	double averageSamplingFrequency;
 };

@@ -40,20 +40,19 @@ std::string PlotHandler::getLastReaderError() const
 	return varReader->getLastErrorMsg();
 }
 
-void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
+void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe)
 {
-	probeSettings.serialNumber = serialNumber;
 	varReader->changeDevice(probe);
 }
 
-void PlotHandler::setTargetDevice(const std::string& deviceName)
+PlotHandler::DebugProbeSettings PlotHandler::getProbeSettings() const
 {
-	probeSettings.device = deviceName;
+	return probeSettings;
 }
 
-void PlotHandler::setProbeMode(const IDebugProbe::Mode mode)
+void PlotHandler::setProbeSettings(const DebugProbeSettings& settings)
 {
-	probeSettings.mode = mode;
+	probeSettings = settings;
 }
 
 void PlotHandler::dataHandler()

@@ -92,7 +92,7 @@ void Gui::mainThread()
 	jlinkProbe = std::make_shared<JlinkHandler>(logger);
 	stlinkProbe = std::make_shared<StlinkHandler>(logger);
 	debugProbeDevice = stlinkProbe;
-	plotHandler->setDebugProbe(debugProbeDevice, "");
+	plotHandler->setDebugProbe(debugProbeDevice);
 
 	while (!done)
 	{
@@ -268,6 +268,7 @@ void Gui::drawDebugProbes()
 {
 	static bool shouldListDevices = false;
 	static int SNptr = 0;
+	bool modified = false;
 
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Debug Probe");
@@ -281,13 +282,15 @@ void Gui::drawDebugProbes()
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
-	int32_t debugProbe = plotHandler->probeSettings.debugProbe;
+	PlotHandler::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
+	int32_t debugProbe = probeSettings.debugProbe;
 
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
 	{
-		plotHandler->probeSettings.debugProbe = debugProbe;
+		probeSettings.debugProbe = debugProbe;
+		modified = true;
 
-		if (plotHandler->probeSettings.debugProbe == 1)
+		if (probeSettings.debugProbe == 1)
 		{
 			debugProbeDevice = jlinkProbe;
 			shouldListDevices = true;
@@ -303,7 +306,10 @@ void Gui::drawDebugProbes()
 	ImGui::SameLine();
 
 	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
-		plotHandler->setDebugProbe(debugProbeDevice, devicesList[SNptr]);
+	{
+		probeSettings.serialNumber = devicesList[SNptr];
+		modified = true;
+	}
 
 	ImGui::SameLine();
 
@@ -311,17 +317,30 @@ void Gui::drawDebugProbes()
 	{
 		devicesList = debugProbeDevice->getConnectedDevices();
 		if (!devicesList.empty())
-			plotHandler->setDebugProbe(debugProbeDevice, devicesList[0]);
+		{
+			probeSettings.serialNumber = devicesList[0];
+			modified = true;
+		}
 		shouldListDevices = false;
 	}
 
-	if (plotHandler->probeSettings.debugProbe == 1)
+	ImGui::Text("Probe speed kHz");
+	ImGui::SameLine();
+
+	std::string speedkHz = std::to_string(probeSettings.speedkHz);
+	if (ImGui::InputText("##speed", &speedkHz, 0, NULL, NULL))
+	{
+		probeSettings.speedkHz = std::stoi(speedkHz);
+		modified = true;
+	}
+
+	if (probeSettings.debugProbe == 1)
 	{
 		ImGui::Text("Target name    ");
 		ImGui::SameLine();
 
-		if (ImGui::InputText("##device", &plotHandler->probeSettings.device, 0, NULL, NULL))
-			plotHandler->setTargetDevice(plotHandler->probeSettings.device);
+		if (ImGui::InputText("##device", &probeSettings.device, 0, NULL, NULL))
+			modified = true;
 
 		ImGui::SameLine();
 		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
@@ -330,10 +349,13 @@ void Gui::drawDebugProbes()
 		ImGui::SameLine();
 
 		const char* probeModes[] = {"NORMAL", "HSS"};
-		int32_t probeMode = plotHandler->probeSettings.mode;
+		int32_t probeMode = probeSettings.mode;
 
 		if (ImGui::Combo("##mode", &probeMode, probeModes, IM_ARRAYSIZE(probeModes)))
-			plotHandler->setProbeMode(static_cast<IDebugProbe::Mode>(probeMode));
+		{
+			probeSettings.mode = static_cast<IDebugProbe::Mode>(probeMode);
+			modified = true;
+		}
 
 		ImGui::SameLine();
 		ImGui::HelpMarker("Select normal or high speed sampling (HSS) mode");
@@ -343,6 +365,12 @@ void Gui::drawDebugProbes()
 
 	if (devicesList.empty())
 		devicesList.push_back(noDevices);
+
+	if (modified)
+	{
+		plotHandler->setProbeSettings(probeSettings);
+		plotHandler->setDebugProbe(debugProbeDevice);
+	}
 }
 
 void Gui::addNewVariable(const std::string& newName)
@@ -986,7 +1014,7 @@ bool Gui::openProject()
 		logger->info("Project config path: {}", projectConfigPath);
 		/* TODO refactor */
 		devicesList.clear();
-		if (plotHandler->probeSettings.debugProbe == 1)
+		if (plotHandler->getProbeSettings().debugProbe == 1)
 			debugProbeDevice = jlinkProbe;
 		else
 			debugProbeDevice = stlinkProbe;
