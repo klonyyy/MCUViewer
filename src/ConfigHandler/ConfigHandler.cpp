@@ -23,7 +23,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 {
 	PlotHandler::Settings viewerSettings{};
 	TracePlotHandler::Settings traceSettings{};
-	PlotHandler::DebugProbeSettings probeSettings{};
+	IDebugProbe::DebugProbeSettings probeSettings{};
 
 	if (!file->read(*ini))
 		return false;
@@ -199,7 +199,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
-	PlotHandler::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
+	IDebugProbe::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
 
 	(*ini).clear();
 

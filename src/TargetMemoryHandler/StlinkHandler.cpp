@@ -13,9 +13,9 @@ StlinkHandler::StlinkHandler(spdlog::logger* logger) : logger(logger)
 	init_chipids(const_cast<char*>("./chips"));
 }
 
-bool StlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode, const std::string& device)
+bool StlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
 {
-	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, (char*)serialNumber.data(), 24000);
+	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, (char*)probeSettings.serialNumber.data(), probeSettings.speedkHz);
 	isRunning = false;
 
 	if (sl != nullptr)

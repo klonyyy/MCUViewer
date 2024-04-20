@@ -13,7 +13,7 @@ class JlinkHandler : public IDebugProbe
 {
    public:
 	JlinkHandler(spdlog::logger* logger);
-	bool startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode = Mode::NORMAL, const std::string& device = "") override;
+	bool startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
 
@@ -31,6 +31,7 @@ class JlinkHandler : public IDebugProbe
 	static constexpr size_t maxDevices = 10;
 	static constexpr size_t maxVariables = 100;
 	static constexpr size_t fifoSize = 2000;
+	static constexpr uint32_t maxSpeedkHz = 50000;
 
 	JLINK_HSS_MEM_BLOCK_DESC variableDesc[maxVariables]{};
 	size_t trackedVarsCount = 0;

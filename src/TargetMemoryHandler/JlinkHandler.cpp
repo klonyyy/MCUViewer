@@ -10,9 +10,9 @@ JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
 {
 }
 
-bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency, Mode mode, const std::string& device)
+bool JlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
 {
-	int serialNumberInt = std::atoi(serialNumber.c_str());
+	int serialNumberInt = std::atoi(probeSettings.serialNumber.c_str());
 	lastErrorMsg = "";
 	isRunning = false;
 
@@ -28,7 +28,7 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 		logger->error(error);
 
 	/* try to set maximum possible speed TODO: not always a good thing */
-	JLINKARM_SetSpeed(50000);
+	JLINKARM_SetSpeed(probeSettings.speedkHz > maxSpeedkHz ? maxSpeedkHz : probeSettings.speedkHz);
 	logger->info("J-Link speed set to: {}", JLINKARM_GetSpeed());
 
 	/* select interface - SWD only for now */
@@ -36,7 +36,7 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 
 	/* set the desired target */
 	char acOut[256];
-	auto deviceCmd = "Device = " + device;
+	auto deviceCmd = "Device = " + probeSettings.device;
 	JLINKARM_ExecCommand(deviceCmd.c_str(), acOut, sizeof(acOut));
 
 	if (acOut[0] != 0)
@@ -51,7 +51,7 @@ bool JlinkHandler::startAcqusition(const std::string& serialNumber, std::vector<
 		return isRunning;
 	}
 
-	if (mode == IDebugProbe::Mode::NORMAL)
+	if (probeSettings.mode == IDebugProbe::Mode::NORMAL)
 	{
 		isRunning = true;
 		return true;

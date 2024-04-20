@@ -25,16 +25,6 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 	} Settings;
 
-	typedef struct
-	{
-		uint32_t debugProbe = 0;
-		std::string serialNumber = "";
-		std::string device = "";
-		IDebugProbe::Mode mode = IDebugProbe::Mode::NORMAL;
-		uint32_t speedkHz = 100;
-
-	} DebugProbeSettings;
-
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandler();
 
@@ -44,8 +34,8 @@ class PlotHandler : public PlotHandlerBase
 	Settings getSettings() const;
 	void setSettings(const Settings& newSettings);
 
-	DebugProbeSettings getProbeSettings() const;
-	void setProbeSettings(const DebugProbeSettings& settings);
+	IDebugProbe::DebugProbeSettings getProbeSettings() const;
+	void setProbeSettings(const IDebugProbe::DebugProbeSettings& settings);
 
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe);
 	double getAverageSamplingPeriod() const { return averageSamplingFrequency; }
@@ -57,7 +47,7 @@ class PlotHandler : public PlotHandlerBase
    private:
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	std::chrono::time_point<std::chrono::steady_clock> start;
-	DebugProbeSettings probeSettings{};
+	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
 	double averageSamplingFrequency;
 };

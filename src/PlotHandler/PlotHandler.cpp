@@ -45,12 +45,12 @@ void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe)
 	varReader->changeDevice(probe);
 }
 
-PlotHandler::DebugProbeSettings PlotHandler::getProbeSettings() const
+IDebugProbe::DebugProbeSettings PlotHandler::getProbeSettings() const
 {
 	return probeSettings;
 }
 
-void PlotHandler::setProbeSettings(const DebugProbeSettings& settings)
+void PlotHandler::setProbeSettings(const IDebugProbe::DebugProbeSettings& settings)
 {
 	probeSettings = settings;
 }
@@ -138,7 +138,7 @@ void PlotHandler::dataHandler()
 			{
 				auto addressSizeVector = createAddressSizeVector();
 
-				if (varReader->start(probeSettings.serialNumber, addressSizeVector, settings.sampleFrequencyHz, probeSettings.mode, probeSettings.device))
+				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
 				{
 					timer = 0;
 					lastT = 0.0;

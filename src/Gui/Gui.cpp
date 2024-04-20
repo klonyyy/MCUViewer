@@ -282,7 +282,7 @@ void Gui::drawDebugProbes()
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
-	PlotHandler::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
+	IDebugProbe::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
 	int32_t debugProbe = probeSettings.debugProbe;
 
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
