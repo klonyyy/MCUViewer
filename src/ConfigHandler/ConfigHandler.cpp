@@ -222,7 +222,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["probe_type"] = std::to_string(probeSettings.debugProbe);
 	(*ini)["settings"]["target_name"] = probeSettings.device;
 	(*ini)["settings"]["probe_mode"] = std::to_string(probeSettings.mode);
-	(*ini)["settings"]["probe_speed_kHz"] = probeSettings.speedkHz;
+	(*ini)["settings"]["probe_speed_kHz"] = std::to_string(probeSettings.speedkHz);
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);

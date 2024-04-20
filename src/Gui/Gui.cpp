@@ -330,8 +330,11 @@ void Gui::drawDebugProbes()
 	std::string speedkHz = std::to_string(probeSettings.speedkHz);
 	if (ImGui::InputText("##speed", &speedkHz, 0, NULL, NULL))
 	{
-		probeSettings.speedkHz = std::stoi(speedkHz);
-		modified = true;
+		if (speedkHz.size() > 0)
+		{
+			probeSettings.speedkHz = std::stoi(speedkHz);
+			modified = true;
+		}
 	}
 
 	if (probeSettings.debugProbe == 1)
