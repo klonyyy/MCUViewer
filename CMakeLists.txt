@@ -69,7 +69,7 @@ if(UNIX)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
-    set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.7)
+    set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.7.94.12)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 
