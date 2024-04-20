@@ -95,9 +95,10 @@ extern "C"
 		uint32_t Dummy;	 // Future use. SBZ.
 	} JLINK_HSS_MEM_BLOCK_DESC;
 
-	const char* JLINKARM_OpenEx(JLINKARM_LOG* pfLog, JLINKARM_LOG* pfErrorOut);
+	const char* JLINKARM_Open(void);
 	void JLINKARM_Close(void);
 	char JLINKARM_IsOpen(void);
+	int32_t JLINKARM_Connect(void);
 	int32_t JLINKARM_ReadMemEx(uint32_t Addr, uint32_t NumBytes, void* pData, uint32_t Flags);
 	int32_t JLINKARM_WriteMemEx(uint32_t Addr, uint32_t NumBytes, const void* p, uint32_t Flags);
 	int32_t JLINKARM_EMU_GetList(int32_t HostIFs, JLINKARM_EMU_CONNECT_INFO* paConnectInfo, int32_t MaxInfos);
