@@ -8,9 +8,10 @@ GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
 	version = extractGDBVersionNumber(process.executeCmd("gdb -v", "\n"));
 
 	if (version == 0)
+	{
 		logger->warn("Failed to read GDB version (from PATH). Retrying on the distributed GDB...");
-
-	version = extractGDBVersionNumber(process.executeCmd("./gdb -v", "\n"));
+		version = extractGDBVersionNumber(process.executeCmd("./gdb -v", "\n"));
+	}
 
 	if (version == 0)
 		logger->error("Failed to read GDB version! Make sure it's installed and added to your PATH!");
@@ -262,8 +263,15 @@ int32_t GdbParser::extractGDBVersionNumber(const std::string&& versionString)
 
 	auto dotPos = versionString.find(".", pos);
 
-	majorVersion = std::stoi(versionString.substr(pos + 2, dotPos - pos - 2));
-	minorVersion = std::stoi(versionString.substr(dotPos + 1, 1));
+	try
+	{
+		majorVersion = std::stoi(versionString.substr(pos + 2, dotPos - pos - 2));
+		minorVersion = std::stoi(versionString.substr(dotPos + 1, 1));
+	}
+	catch (...)
+	{
+		logger->warn("std::stoi() incorect argument!");
+	}
 
 	return majorVersion * 10 + minorVersion;
 }
