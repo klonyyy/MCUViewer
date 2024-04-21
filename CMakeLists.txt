@@ -47,15 +47,15 @@ add_compile_options(-Wall
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
 if(UNIX)
-
     include(FetchContent)
     FetchContent_Declare(
-            spdlog
-            GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG        v1.13.0)
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.13.0)
 
     FetchContent_GetProperties(spdlog)
-    if (NOT spdlog_POPULATED)
+
+    if(NOT spdlog_POPULATED)
         FetchContent_Populate(spdlog)
         add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
     endif()
@@ -69,19 +69,19 @@ if(UNIX)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
-    set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.7.94.12)
+    set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.7)
     set(INSTALL_PATH /usr/local/STMViewer)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 
     if(APPLE)
         find_package(OpenGL REQUIRED)
         find_package(GLUT REQUIRED)
+
         # TODO distinguish between ARM and x86 */
         set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
     else()
         set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     endif()
-
 endif()
 
 if(WIN32)
@@ -193,7 +193,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
 
 if(APPLE)
     include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
-    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY}  spdlog::spdlog pthread dl glfw nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} spdlog::spdlog pthread dl glfw nfd)
 elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${JLINK_LINUX} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
@@ -215,7 +215,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy
         ${GDB_WINDOWS}
         ${CMAKE_BINARY_DIR}/gdb.exe)
-   
+
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${JLINK_WINDOWS}
@@ -247,8 +247,11 @@ if(WIN32)
 endif()
 
 if(UNIX)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.png ${JLINK_LINUX} DESTINATION ${INSTALL_PATH})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.png DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/STMViewer.desktop
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${DESKTOP_FILE_PATH})
+    install(FILES ${JLINK_LINUX}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     set(CPACK_GENERATOR "DEB;RPM")
