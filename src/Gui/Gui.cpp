@@ -134,7 +134,6 @@ void Gui::mainThread()
 		{
 			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
 			drawStartButton();
-			drawDebugProbes();
 			drawVarTable();
 			drawPlotsTree();
 			drawImportVariablesWindow();
@@ -278,7 +277,7 @@ void Gui::drawDebugProbes()
 
 	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 
-	ImGui::Text("Debug probe    ");
+	ImGui::Text("Debug probe:    ");
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
@@ -302,7 +301,7 @@ void Gui::drawDebugProbes()
 		}
 		SNptr = 0;
 	}
-	ImGui::Text("Debug probe S/N");
+	ImGui::Text("Debug probe S/N:");
 	ImGui::SameLine();
 
 	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
@@ -324,22 +323,15 @@ void Gui::drawDebugProbes()
 		shouldListDevices = false;
 	}
 
-	ImGui::Text("Probe speed kHz");
+	ImGui::Text("SWD speed [kHz]:");
 	ImGui::SameLine();
 
-	std::string speedkHz = std::to_string(probeSettings.speedkHz);
-	if (ImGui::InputText("##speed", &speedkHz, 0, NULL, NULL))
-	{
-		if (speedkHz.size() > 0)
-		{
-			probeSettings.speedkHz = std::stoi(speedkHz);
-			modified = true;
-		}
-	}
+	if (ImGui::InputScalar("##speed", ImGuiDataType_U32, &probeSettings.speedkHz, NULL, NULL, "%u"))
+		modified = true;
 
 	if (probeSettings.debugProbe == 1)
 	{
-		ImGui::Text("Target name    ");
+		ImGui::Text("Target name:    ");
 		ImGui::SameLine();
 
 		if (ImGui::InputText("##device", &probeSettings.device, 0, NULL, NULL))
@@ -348,7 +340,7 @@ void Gui::drawDebugProbes()
 		ImGui::SameLine();
 		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
 
-		ImGui::Text("Mode           ");
+		ImGui::Text("Mode:           ");
 		ImGui::SameLine();
 
 		const char* probeModes[] = {"NORMAL", "HSS"};
@@ -718,7 +710,12 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 
 void Gui::acqusitionSettingsViewer()
 {
-	ImGui::Text("Project's *.elf file:");
+	ImGui::Dummy(ImVec2(-1, 5));
+	drawCenteredText("Project");
+	ImGui::Separator();
+
+	ImGui::Text("*.elf file:     ");
+	ImGui::SameLine();
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();
 	if (ImGui::Button("...", ImVec2(35 * contentScale, 19 * contentScale)))
@@ -726,28 +723,32 @@ void Gui::acqusitionSettingsViewer()
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
 
-	ImGui::Text("Sample frequency [Hz]:");
+	ImGui::Text("Sampling [Hz]:  ");
+	ImGui::SameLine();
+	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Maximum sampling frequency. Depending on the used debug probe it can be reached or not.");
-	static int one = 1;
-	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, &one, NULL, "%u");
 	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, static_cast<uint32_t>(1), static_cast<uint32_t>(10000));
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;
-	ImGui::Text("Max points [100 - 20000]:");
+	ImGui::Text("Max points :    ");
+	ImGui::SameLine();
+	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
-	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
 	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
 
-	ImGui::Text("Max viewport points [100 - 20000]:");
+	ImGui::Text("Max view points:");
+	ImGui::SameLine();
+	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
-	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, &one, NULL, "%u");
 	settings.maxViewportPoints = std::clamp(settings.maxViewportPoints, minPoints, settings.maxPoints);
 
 	plotHandler->setSettings(settings);
+
+	drawDebugProbes();
 }
 
 void Gui::drawPreferencesWindow()
