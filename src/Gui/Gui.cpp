@@ -312,12 +312,13 @@ void Gui::drawDebugProbes()
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("...", ImVec2(35 * contentScale, 19 * contentScale)) || shouldListDevices || devicesList.empty())
+	if (ImGui::Button("@", ImVec2(35 * contentScale, 19 * contentScale)) || shouldListDevices || devicesList.empty())
 	{
 		devicesList = debugProbeDevice->getConnectedDevices();
 		if (!devicesList.empty())
 		{
 			probeSettings.serialNumber = devicesList[0];
+			std::cout << devicesList.size();
 			modified = true;
 		}
 		shouldListDevices = false;
@@ -685,7 +686,7 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 300 * contentScale));
+	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 350 * contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == AcqusitionWindowType::VARIABLE)
@@ -732,7 +733,7 @@ void Gui::acqusitionSettingsViewer()
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;
-	ImGui::Text("Max points :    ");
+	ImGui::Text("Max points:     ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
