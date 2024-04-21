@@ -455,6 +455,9 @@ void Gui::drawVarTable()
 		ImGui::TableHeadersRow();
 
 		std::optional<std::string> varNameToDelete;
+		std::optional<std::pair<std::string, std::string>> varNameToRename;
+
+		std::string currentName{};
 
 		for (auto& [name, var] : vars)
 		{
@@ -469,13 +472,11 @@ void Gui::drawVarTable()
 			ImGui::PopID();
 			char variable[maxVariableNameLength] = {0};
 			std::memcpy(variable, var->getName().data(), (var->getName().length()));
-			ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength);
-			if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0))
+
+			if (ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength) || ImGui::IsMouseClicked(0))
 			{
-				auto varr = vars.extract(var->getName());
-				varr.key() = std::string(variable);
-				var->setName(variable);
-				vars.insert(std::move(varr));
+				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+					varNameToRename = {name, std::string(variable)};
 			}
 
 			if (!varNameToDelete.has_value())
@@ -497,11 +498,22 @@ void Gui::drawVarTable()
 			ImGui::TableSetColumnIndex(2);
 			ImGui::Text("%s", var->getTypeStr().c_str());
 		}
+
 		if (varNameToDelete.has_value())
 		{
 			for (std::shared_ptr<Plot> plt : *plotHandler)
 				plt->removeSeries(varNameToDelete.value_or(""));
 			vars.erase(varNameToDelete.value_or(""));
+		}
+
+		if (varNameToRename.has_value())
+		{
+			auto oldName = varNameToRename.value().first;
+			auto newName = varNameToRename.value().second;
+			auto varr = vars.extract(oldName);
+			varr.key() = std::string(newName);
+			vars.insert(std::move(varr));
+			vars[newName]->setName(newName);
 		}
 		ImGui::EndTable();
 	}
