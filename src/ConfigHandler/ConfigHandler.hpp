@@ -33,6 +33,8 @@ class ConfigHandler
 		{
 			if constexpr (std::is_integral_v<T>)
 				result = std::stoi(value);
+			else if constexpr (std::is_enum_v<T>)
+				result = static_cast<T>(std::stoi(value));
 			else if constexpr (std::is_same_v<T, float>)
 				result = std::stof(value);
 			else if constexpr (std::is_same_v<T, double>)
