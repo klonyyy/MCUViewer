@@ -1055,6 +1055,7 @@ bool Gui::openProject()
 		else
 			debugProbeDevice = stlinkProbe;
 
+		plotHandler->setDebugProbe(debugProbeDevice);
 		return true;
 	}
 	return false;
