@@ -402,26 +402,45 @@ void Gui::drawAddVariableButton()
 void Gui::drawUpdateAddressesFromElf()
 {
 	static std::future<bool> refreshThread{};
+	static bool shouldPopStyle = false;
 
-	char buttonText[30]{};
+	static constexpr size_t textSize = 40;
+	char buttonText[textSize]{};
 
 	if (refreshThread.valid() && refreshThread.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
-		snprintf(buttonText, 30, "Update variable addresses %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
+		snprintf(buttonText, textSize, "Update variable addresses %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
 	else
 	{
-		snprintf(buttonText, 30, "Update variable addresses");
+		snprintf(buttonText, textSize, "Update variable addresses");
 		if (refreshThread.valid() && !refreshThread.get())
 			popup.show("Error!", "Update error. Please check the *.elf file path!", 2.0f);
 	}
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
+	if (checkElfFileChanged())
+	{
+		ImVec4 color = ImColor::HSV(0.1f, 0.97f, 0.72f);
+		snprintf(buttonText, textSize, "Click to reload *.elf changes!");
+		ImGui::PushStyleColor(ImGuiCol_Button, color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+		shouldPopStyle = true;
+	}
+
 	if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || performVariablesUpdate)
 	{
+		lastModifiedTime = std::filesystem::file_time_type::clock::now();
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
 		performVariablesUpdate = false;
 	}
 
+	/* TODO fix this ugly solution */
+	if (shouldPopStyle)
+	{
+		ImGui::PopStyleColor(3);
+		shouldPopStyle = false;
+	}
 	ImGui::EndDisabled();
 }
 
@@ -1043,7 +1062,7 @@ bool Gui::openProject()
 
 bool Gui::openElfFile()
 {
-	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Elf files", "elf"));
+	std::string path = fileHandler->openFile({"Elf files", "elf"});
 
 	if (path.find(" ") != std::string::npos)
 	{
@@ -1076,6 +1095,15 @@ void Gui::checkShortcuts()
 
 		popup.show("Info", "Saving successful!", 0.65f);
 	}
+}
+
+bool Gui::checkElfFileChanged()
+{
+	if (!std::filesystem::exists(projectElfPath))
+		return false;
+
+	auto writeTime = std::filesystem::last_write_time(projectElfPath);
+	return writeTime > lastModifiedTime;
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)

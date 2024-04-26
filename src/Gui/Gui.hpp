@@ -37,6 +37,7 @@ class Gui
 	ConfigHandler* configHandler;
 	std::string projectConfigPath;
 	std::string projectElfPath;
+	std::filesystem::file_time_type lastModifiedTime = std::filesystem::file_time_type::clock::now();
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
@@ -104,6 +105,7 @@ class Gui
 	bool openProject();
 	bool openElfFile();
 	void checkShortcuts();
+	bool checkElfFileChanged();
 
 	void drawStartButtonSwo();
 	void drawSettingsSwo();
