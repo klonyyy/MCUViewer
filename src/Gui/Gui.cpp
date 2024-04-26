@@ -315,7 +315,7 @@ void Gui::drawDebugProbes()
 		shouldListDevices = false;
 	}
 
-	if (plotHandler->probeSettings.debugProbe == 1)
+	if (plotHandler->probeSettings.debugProbe == 1)	// If JLink
 	{
 		ImGui::Text("Target name    ");
 		ImGui::SameLine();
@@ -337,6 +337,12 @@ void Gui::drawDebugProbes()
 
 		ImGui::SameLine();
 		ImGui::HelpMarker("Select normal or high speed sampling (HSS) mode");
+	} else {	// If STLink
+		ImGui::Text("Read in sleep (WFI):");
+		ImGui::SameLine();
+		ImGui::HelpMarker("It will wakeup the core on every read. Be careful if your application logic depends on time spent in sleep mode.");
+		ImGui::SameLine();
+		ImGui::Checkbox("##ReadSleep", &debugProbeDevice->isReadWhileSleepAllowed);
 	}
 
 	ImGui::EndDisabled();

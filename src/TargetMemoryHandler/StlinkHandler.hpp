@@ -28,6 +28,10 @@ class StlinkHandler : public IDebugProbe
 	}
 
    private:
+	int IsChipHalted(stlink_t* sl);
+	int IsChipSleeping(stlink_t* sl);
+	bool IsWaitForWakeSuccess(stlink_t* sl);
+	bool IsWaitForResumeSuccess(stlink_t* sl);
 	stlink_t* sl = nullptr;
 	bool isRunning = false;
 	std::string lastErrorMsg = "";

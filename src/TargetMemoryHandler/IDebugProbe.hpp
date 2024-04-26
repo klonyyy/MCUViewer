@@ -19,6 +19,9 @@ class IDebugProbe
 		HSS = 1,
 	};
 
+	// Enable read while sleep (WFI) mode
+	bool isReadWhileSleepAllowed = false;
+
 	/* timestamp (first) and a map of <address-value> entries (second) only fo HSS mode */
 	using varEntryType = std::pair<double, std::unordered_map<uint32_t, double>>;
 
