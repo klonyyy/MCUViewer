@@ -5,6 +5,7 @@
 
 #include <future>
 #include <random>
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -447,6 +448,7 @@ void Gui::drawUpdateAddressesFromElf()
 void Gui::drawVarTable()
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
+	static std::set<std::string> selection;
 
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Variables");
@@ -489,11 +491,27 @@ void Gui::drawVarTable()
 			ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
 			ImGui::SameLine();
 			ImGui::PopID();
+			ImGui::SameLine();
 			char variable[maxVariableNameLength] = {0};
-			std::memcpy(variable, var->getName().data(), (var->getName().length()));
+			std::memcpy(variable, var->getName().data(), var->getName().length());
 
-			if (ImGui::SelectableInput(var->getName().c_str(), false, ImGuiSelectableFlags_None, variable, maxVariableNameLength) || ImGui::IsMouseClicked(0))
+			const bool itemIsSelected = selection.contains(name);
+
+			if (ImGui::SelectableInput(var->getName().c_str(), itemIsSelected, ImGuiSelectableFlags_SpanAllColumns, variable, maxVariableNameLength))
 			{
+				if (ImGui::GetIO().KeyCtrl && var->getIsFound())
+				{
+					if (itemIsSelected)
+						selection.erase(name);
+					else
+						selection.insert(name);
+				}
+				else if (var->getIsFound())
+				{
+					selection.clear();
+					selection.insert(name);
+				}
+
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 					varNameToRename = {name, std::string(variable)};
 			}
@@ -501,12 +519,15 @@ void Gui::drawVarTable()
 			if (!varNameToDelete.has_value())
 				varNameToDelete = showDeletePopup("Delete", name);
 
-			if (var->getIsFound() == true && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
-				ImGui::SetDragDropPayload("MY_DND", &var->getName(), sizeof(var->getName()));
+				ImGui::SetDragDropPayload("MY_DND", &selection, sizeof(selection));
 				ImPlot::ItemIcon(var->getColorU32());
 				ImGui::SameLine();
-				ImGui::TextUnformatted(var->getName().c_str());
+				if (selection.size() > 1)
+					ImGui::TextUnformatted("<multiple vars>");
+				else
+					ImGui::TextUnformatted(selection.begin()->c_str());
 				ImGui::EndDragDropSource();
 			}
 			ImGui::TableSetColumnIndex(1);
@@ -685,8 +706,14 @@ void Gui::drawPlotsTree()
 	}
 	if (ImGui::BeginDragDropTarget())
 	{
+		std::set<std::string> selection;
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-			plt->addSeries(*vars[*(std::string*)payload->Data]);
+		{
+			selection = *(decltype(selection)*)payload->Data;
+
+			for (auto& name : selection)
+				plt->addSeries(*vars[name]);
+		}
 		ImGui::EndDragDropTarget();
 	}
 	drawExportPlotToCSVButton(plt);
