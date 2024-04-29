@@ -491,7 +491,6 @@ void Gui::drawVarTable()
 			ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
 			ImGui::SameLine();
 			ImGui::PopID();
-			ImGui::SameLine();
 			char variable[maxVariableNameLength] = {0};
 			std::memcpy(variable, var->getName().data(), var->getName().length());
 
@@ -506,11 +505,8 @@ void Gui::drawVarTable()
 					else
 						selection.insert(name);
 				}
-				else if (var->getIsFound())
-				{
+				else
 					selection.clear();
-					selection.insert(name);
-				}
 
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 					varNameToRename = {name, std::string(variable)};
@@ -521,9 +517,15 @@ void Gui::drawVarTable()
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
+				if (selection.empty())
+					selection.insert(name);
+
 				ImGui::SetDragDropPayload("MY_DND", &selection, sizeof(selection));
-				ImPlot::ItemIcon(var->getColorU32());
+				ImGui::PushID(name.c_str());
+				ImGui::ColorEdit4("##", &vars[*selection.begin()]->getColor().r, ImGuiColorEditFlags_NoInputs);
 				ImGui::SameLine();
+				ImGui::PopID();
+
 				if (selection.size() > 1)
 					ImGui::TextUnformatted("<multiple vars>");
 				else
