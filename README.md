@@ -34,10 +34,6 @@ First make sure you've got GDB installed and that it's at least 12.1.
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
 
-Jlink users: 
-- download and install SEGGER software package: https://www.segger.com/downloads/jlink/
-- default search paths are: `./libjlinkarm.so` and	`/opt/SEGGER/JLink/libjlinkarm.so` so if your installation path is the same it should work right away. If not just copy the `libjlinkarm.so` to the STMViewer binary directory. 
-
 Stlink users:
 - in case your STLink is not detected, please copy the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
@@ -46,10 +42,6 @@ Stlink users:
 
 Stlink users:
 - make sure the STLink is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
-
-Jlink users: 
-- download and install SEGGER software package: https://www.segger.com/downloads/jlink/
-- default search paths are: `./JLink_x64.dll` and `C:/Program Files/SEGGER/JLink/JLink_x64.dll` so if your installation path is the same it should work right away. If not just copy the `./JLink_x64.dll` to the STMViewer binary (install) directory. 
 
 You can assign the external GPU to STMViewer for improved performance. 
 
@@ -110,12 +102,27 @@ Answer: This is not a critical error, however, you should be cautious as some of
 
 ## Building
 
-STMViewer is build like any other CMake project. On Windows you can use MinGW. If you're a Linux user be sure to install: 
+STMViewer is build like any other CMake project:
+
+### Linux:
+If you're a Linux user be sure to install: 
 1. libusb-1.0-0-dev
 2. libglfw3-dev
 3. libgtk-3-dev
 
-After a successful build, copy the ``./third_party/stlink/chips`` directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
+### Windows: 
+1. Install [MSYS2](https://www.msys2.org)
+2. In the MinGW console run `pacman -Syu` 
+3. Install the following packages `pacman -S base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-llvm mingw-w64-x86_64-lld`
+4. Make sure you've added minGW folder to the PATH (`C:\msys64\usr\bin`)
+5. In the main repo directory call
+    - `mkdir build`
+    - `cd build `
+    - `cmake .. -G"MinGW Makefiles`
+    - `mingw32-make.exe -j8`
+
+
+After a successful build, copy the `./third_party/stlink/chips` directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
 
 
 ## Why
