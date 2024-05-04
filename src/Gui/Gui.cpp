@@ -97,7 +97,7 @@ void Gui::mainThread()
 
 	while (!done)
 	{
-		if (!glfwGetWindowAttrib(window, GLFW_FOCUSED))
+		if (glfwGetWindowAttrib(window, GLFW_ICONIFIED))
 		{
 			glfwWaitEvents();
 			continue;
