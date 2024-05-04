@@ -97,6 +97,12 @@ void Gui::mainThread()
 
 	while (!done)
 	{
+		if (!glfwGetWindowAttrib(window, GLFW_FOCUSED))
+		{
+			glfwWaitEvents();
+			continue;
+		}
+
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
@@ -232,7 +238,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 	PlotHandlerBase::state state = activePlotHandler->getViewerState();
 
 	if (state == PlotHandlerBase::state::RUN)
-	{	
+	{
 		ImVec4 green = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImVec4 greenLight = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.57f);
 		ImVec4 greenLightDim = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.47f);
