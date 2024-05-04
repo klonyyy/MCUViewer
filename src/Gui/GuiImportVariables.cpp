@@ -11,9 +11,15 @@ void Gui::drawImportVariablesWindow()
 {
 	static std::unordered_map<std::string, uint32_t> selection;
 	static std::future<bool> refreshThread{};
+	static bool wasPreviouslyOpened = false;
+	static bool shouldUpdateOnOpen = false;
 
 	if (showImportVariablesWindow)
+	{
 		ImGui::OpenPopup("Import Variables");
+		if (!wasPreviouslyOpened)
+			shouldUpdateOnOpen = true;
+	}
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 500 * contentScale), ImGuiCond_Once);
@@ -31,8 +37,11 @@ void Gui::drawImportVariablesWindow()
 			snprintf(buttonText, 30, "Refresh");
 		}
 
-		if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)))
+		if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || shouldUpdateOnOpen)
+		{
 			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, projectElfPath);
+			shouldUpdateOnOpen = false;
+		}
 
 		static std::string search{};
 		ImGui::Text("search ");
@@ -66,6 +75,8 @@ void Gui::drawImportVariablesWindow()
 
 		ImGui::EndPopup();
 	}
+
+	wasPreviouslyOpened = showImportVariablesWindow;
 }
 
 void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring)
