@@ -73,7 +73,7 @@ class Gui
 
 	void mainThread();
 	void drawMenu();
-	void drawStartButton();
+	void drawStartButton(PlotHandlerBase* activePlotHandler);
 	void drawDebugProbes();
 	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
@@ -109,7 +109,6 @@ class Gui
 	void checkShortcuts();
 	bool checkElfFileChanged();
 
-	void drawStartButtonSwo();
 	void drawSettingsSwo();
 	void drawIndicatorsSwo();
 	void drawPlotsSwo();
