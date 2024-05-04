@@ -271,7 +271,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 		}
 	}
 
-	if (ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * contentScale)))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * contentScale)) || ImGui::IsKeyPressed(ImGuiKey_Space, false))
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
