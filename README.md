@@ -1,7 +1,7 @@
 ![example workflow](https://github.com/klonyyy/STMViewer/actions/workflows/build.yaml/badge.svg)
 
 # Downloads
-To download STMViewer installer please proceed to the releases page on the right hand side menu.
+To download STMViewer installer please proceed to the [releases page](https://github.com/klonyyy/STMViewer/releases).
 
 # STMViewer 
 STMViewer is an open-source GUI debug tool for ~~STM32~~ microcontrollers that consists of two modules:
@@ -52,9 +52,9 @@ You can assign the external GPU to STMViewer for improved performance.
 ### Variable Viewer
 1. Open `Options -> Acqusition` Settings window in the top menu. 
 2. Select your project's elf file. Make sure the project is compiled in debug mode. Click done. 
-3. Click the `Import variables form *.elf` button and click `Refresh`. Select variables and click `Import`. Note: the import feature is still in beta. If your variable is not automatically detected just click `Add variable` and input the name yourself. Please let me know if that happens by opening a new issue with *.elf file attached. 
+3. Click the `Import variables form *.elf`. Select variables and click `Import`. Note: the import feature is still in beta. If your variable is not automatically detected just click `Add variable` and input the name yourself. Please let me know if that happens by opening a new issue with *.elf file attached. 
 4. After adding all variables click `Update variable addresses`. The type and address of the variables you've added should change from "NOT FOUND!" to a valid address based on the *.elf file you've provided. Note: 64-bit variables (such as uint64_t and double) are not yet supported #13.
-5. Drag and drop the variable to the plot area.
+5. Drag and drop the variable to the plot area.``
 6. Make sure the debug probe is connected and a proper type is selected (STLink/JLink). Download your executable to the microcontroller and press the `STOPPED` button. 
 
 In case of any problems, please try the example/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
@@ -112,6 +112,8 @@ If you're a Linux user be sure to install:
 2. libglfw3-dev
 3. libgtk-3-dev
 
+After a successful build, copy the `./third_party/stlink/chips` directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
+
 ### Windows: 
 1. Install [MSYS2](https://www.msys2.org)
 2. In the MinGW console run `pacman -Syu` 
@@ -122,7 +124,6 @@ If you're a Linux user be sure to install:
     - `cd build `
     - `cmake .. -G"MinGW Makefiles`
     - `mingw32-make.exe -j8`
-
 
 After a successful build, copy the `./third_party/stlink/chips` directory to where the binary is located. Otherwise the STlink will not detect your STM32 target. 
 
