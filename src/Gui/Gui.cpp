@@ -233,7 +233,8 @@ void Gui::drawMenu()
 
 void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 {
-	ImGui::BeginDisabled(!devicesList.empty() && devicesList.front() == noDevices);
+	bool shouldDisableButton = (!devicesList.empty() && devicesList.front() == noDevices);
+	ImGui::BeginDisabled(shouldDisableButton);
 
 	PlotHandlerBase::state state = activePlotHandler->getViewerState();
 
@@ -271,7 +272,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 		}
 	}
 
-	if (ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * contentScale)) || ImGui::IsKeyPressed(ImGuiKey_Space, false))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * contentScale)) || (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !shouldDisableButton))
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
