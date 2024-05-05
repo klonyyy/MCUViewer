@@ -1,3 +1,5 @@
+name: "Ask a question, report a bug, request a feature, etc."
+description: "Ask any question, discuss best practices, report a bug, request a feature."
 body:
   - type: input
     id: specs_version
