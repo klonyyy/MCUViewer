@@ -579,10 +579,13 @@ void Gui::drawVarTable()
 		{
 			auto oldName = varNameToRename.value().first;
 			auto newName = varNameToRename.value().second;
-			auto varr = vars.extract(oldName);
-			varr.key() = std::string(newName);
-			vars.insert(std::move(varr));
+			auto temp = vars.extract(oldName);
+			temp.key() = std::string(newName);
+			vars.insert(std::move(temp));
 			vars[newName]->setName(newName);
+
+			for (std::shared_ptr<Plot> plt : *plotHandler)
+				plt->renameSeries(oldName, newName);
 		}
 		ImGui::EndTable();
 	}

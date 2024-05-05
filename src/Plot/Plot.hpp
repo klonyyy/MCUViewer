@@ -111,6 +111,7 @@ class Plot
 	ScrollingBuffer<double>& getTimeSeries();
 	bool removeSeries(const std::string& name);
 	bool removeAllVariables();
+	void renameSeries(const std::string& oldName, const std::string newName);
 	std::vector<uint32_t> getVariableAddesses() const;
 	std::vector<Variable::type> getVariableTypes() const;
 	bool addPoint(const std::string& varName, double value);

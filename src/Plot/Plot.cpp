@@ -71,6 +71,7 @@ bool Plot::removeSeries(const std::string& name)
 	seriesMap.erase(name);
 	return true;
 }
+
 bool Plot::removeAllVariables()
 {
 	for (auto& [name, var] : seriesMap)
@@ -80,6 +81,16 @@ bool Plot::removeAllVariables()
 	}
 	seriesMap.clear();
 	return true;
+}
+
+void Plot::renameSeries(const std::string& oldName, const std::string newName)
+{
+	if (!seriesMap.contains(oldName))
+		return;
+
+	auto temp = seriesMap.extract(oldName);
+	temp.key() = std::string(newName);
+	seriesMap.insert(std::move(temp));
 }
 
 std::vector<uint32_t> Plot::getVariableAddesses() const

@@ -142,9 +142,9 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 		std::vector<double> positions;
 
 		float pos = 0.0f;
-		for (const auto& [key, series] : seriesMap)
+		for (const auto& [name, series] : seriesMap)
 		{
-			glabels.push_back(series->var->getName().c_str());
+			glabels.push_back(name.c_str());
 			positions.push_back(pos);
 			pos += 1.0f;
 		}
@@ -159,14 +159,14 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 		double xs = 0.0f;
 		double barSize = 0.5f;
 
-		for (auto& [key, serPtr] : seriesMap)
+		for (auto& [name, series] : seriesMap)
 		{
-			if (!serPtr->visible)
+			if (!series->visible)
 				continue;
-			double value = *serPtr->buffer->getLastElement();
+			double value = *series->buffer->getLastElement();
 
-			ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
-			ImPlot::PlotBars(serPtr->var->getName().c_str(), &xs, &value, 1, barSize);
+			ImPlot::SetNextLineStyle(ImVec4(series->var->getColor().r, series->var->getColor().g, series->var->getColor().b, 1.0f));
+			ImPlot::PlotBars(name.c_str(), &xs, &value, 1, barSize);
 			ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5 * contentScale), true, "%.5f", value);
 			xs += 1.0f;
 		}
