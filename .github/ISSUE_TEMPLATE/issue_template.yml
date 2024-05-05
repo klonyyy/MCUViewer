@@ -4,7 +4,7 @@ body:
   - type: input
     id: specs_version
     attributes:
-      label: "STMViewer Version/Branch:"
+      label: "Version/Branch:"
       placeholder: "eg. Version 0.4.0, Branch: main"
     validations:
       required: true
@@ -36,7 +36,8 @@ body:
     id: screenshots
     attributes:
       label: "Screenshots/Video:"
-      placeholder: "(Drag files here)
+      placeholder: "**Drag files here**
+      
       Attach screenshots or gif/videos to clarify the context. They often convey useful information that is omitted by the description."
     validations:
       required: false
