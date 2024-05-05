@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<JScopeProject>
+    <FileVersion major="1" minor="1" />
+    <Project>
+        <Configuration>
+            <JLink>
+                <Options Connection="1" IsRTTSession="0" IsRTTWithTimeStamp="0" SamplingPeriod="100" SerialNo="0" JTAG_IRPre="0" JTAG_DRPre="0" IP="" TargetDevice="STM32G474CC" TargetInterface="JTAG" InterfaceSpeed="4000" />
+            </JLink>
+            <ElfFile Name="C:\Users\klonyyy\PROJECTS\STMViewer_\STMViewer\test\STMViewer_test\Debug\STMViewer_test.elf" />
+            <Scope>
+                <Options TimeResolutionUs="1000000" />
+            </Scope>
+        </Configuration>
+        <Windows>
+            <Graph Show="1" />
+            <Watch Show="1" />
+        </Windows>
+        <SelectedSymbols>
+            <Symbol>
+                <Options Name="x" Address="0x20000060" Type="volatile float" TypeID="8" Size="4" GraphColorRed="255" GraphColorGreen="0" GraphColorBlue="0" YMinSampled="1.79769e+308" YMaxSampled="-1.79769e+308" YAvgSampled="0" Offset="0" ShowInGraph="1" YOffset="0" IsAutoConfig="0" YResolution="1" MaxValue="-2147483648" File="C:/Users/klonyyy/PROJECTS/STMViewer_/STMViewer/test/STMViewer_test/Debug/../Core/App/main.cpp" DrawStyle="0" NameWithParents="test.x" />
+            </Symbol>
+            <Symbol>
+                <Options Name="c" Address="0x2000005C" Type="volatile float" TypeID="8" Size="4" GraphColorRed="0" GraphColorGreen="0" GraphColorBlue="255" YMinSampled="1.79769e+308" YMaxSampled="-1.79769e+308" YAvgSampled="0" Offset="0" ShowInGraph="1" YOffset="0" IsAutoConfig="0" YResolution="1" MaxValue="-2147483648" File="C:/Users/klonyyy/PROJECTS/STMViewer_/STMViewer/test/STMViewer_test/Debug/../Core/App/main.cpp" DrawStyle="0" NameWithParents="test.c" />
+            </Symbol>
+            <Symbol>
+                <Options Name="b" Address="0x20000058" Type="volatile float" TypeID="8" Size="4" GraphColorRed="0" GraphColorGreen="255" GraphColorBlue="0" YMinSampled="1.79769e+308" YMaxSampled="-1.79769e+308" YAvgSampled="0" Offset="0" ShowInGraph="1" YOffset="0" IsAutoConfig="0" YResolution="1" MaxValue="-2147483648" File="C:/Users/klonyyy/PROJECTS/STMViewer_/STMViewer/test/STMViewer_test/Debug/../Core/App/main.cpp" DrawStyle="0" NameWithParents="test.b" />
+            </Symbol>
+        </SelectedSymbols>
+    </Project>
+</JScopeProject>

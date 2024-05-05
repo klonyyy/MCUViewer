@@ -104,3 +104,22 @@ void Variable::setIsFound(bool found)
 {
 	isFound = found;
 }
+
+uint8_t Variable::getSize()
+{
+	switch (varType)
+	{
+		case type::U8:
+		case type::I8:
+			return 1;
+		case type::U16:
+		case type::I16:
+			return 2;
+		case type::U32:
+		case type::I32:
+		case type::F32:
+			return 4;
+		default:
+			return 1;
+	}
+}

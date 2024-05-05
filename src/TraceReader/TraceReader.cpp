@@ -19,7 +19,7 @@
 
 TraceReader::TraceReader(ITraceDevice* traceDevice, spdlog::logger* logger) : traceDevice(traceDevice), logger(logger)
 {
-	traceTable = std::make_unique<RingBuffer<std::pair<std::array<uint32_t, channels>, double>>>(20000);
+	
 }
 
 bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
@@ -71,9 +71,9 @@ bool TraceReader::isValid() const
 
 bool TraceReader::readTrace(double& timestamp, std::array<uint32_t, 10>& trace)
 {
-	if (!isRunning || traceTable->getSize() == 0)
+	if (!isRunning || traceTable.size() == 0)
 		return false;
-	auto entry = traceTable->pop();
+	auto entry = traceTable.pop();
 	timestamp = entry.second / static_cast<double>(coreFrequency * 1000);
 	trace = entry.first;
 	return true;
@@ -186,7 +186,7 @@ void TraceReader::timestampEnd(bool headerData)
 		i++;
 	}
 
-	traceTable->push(std::pair<std::array<uint32_t, channels>, double>{currentEntry, timestamp});
+	traceTable.push(std::pair<std::array<uint32_t, channels>, double>{currentEntry, timestamp});
 	previousEntry = currentEntry;
 	awaitingTimestamp = 0;
 }

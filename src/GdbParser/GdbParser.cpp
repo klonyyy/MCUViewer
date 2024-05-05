@@ -3,7 +3,15 @@
 GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
 {
 	ProcessHandler process;
-	auto version = extractGDBVersionNumber(process.executeCmd("gdb -v", "\n"));
+	int32_t version = 0;
+
+	version = extractGDBVersionNumber(process.executeCmd("gdb -v", "\n"));
+
+	if (version == 0)
+	{
+		logger->warn("Failed to read GDB version (from PATH). Retrying on the distributed GDB...");
+		version = extractGDBVersionNumber(process.executeCmd("./gdb -v", "\n"));
+	}
 
 	if (version == 0)
 		logger->error("Failed to read GDB version! Make sure it's installed and added to your PATH!");
@@ -11,7 +19,7 @@ GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
 	{
 		logger->info("GDB version: {}", version);
 		if (version < gdbMinimumVersion)
-			logger->error("Your GDB is too old, please update it to at least 12.1");
+			logger->error("Your GDB is too old, please update it to at least 10.3");
 	}
 }
 
@@ -247,17 +255,23 @@ int32_t GdbParser::extractGDBVersionNumber(const std::string&& versionString)
 {
 	int32_t majorVersion = 0;
 	int32_t minorVersion = 0;
-	char dot;
 
-	std::istringstream iss(versionString);
+	auto pos = versionString.find(") ");
 
-	while (!isdigit(iss.peek()) && iss.peek() != EOF)
-		iss.ignore();
+	if (pos == std::string::npos)
+		return 0;
 
-	iss >> majorVersion;
+	auto dotPos = versionString.find(".", pos);
 
-	if (iss >> dot >> minorVersion)
-		return majorVersion * 10 + minorVersion;
-	else
-		return majorVersion * 10;
+	try
+	{
+		majorVersion = std::stoi(versionString.substr(pos + 2, dotPos - pos - 2));
+		minorVersion = std::stoi(versionString.substr(dotPos + 1, 1));
+	}
+	catch (...)
+	{
+		logger->warn("std::stoi() incorect argument!");
+	}
+
+	return majorVersion * 10 + minorVersion;
 }

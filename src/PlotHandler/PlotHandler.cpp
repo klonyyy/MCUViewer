@@ -40,20 +40,26 @@ std::string PlotHandler::getLastReaderError() const
 	return varReader->getLastErrorMsg();
 }
 
-void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe, const std::string& serialNumber)
+void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe)
 {
-	probeSettings.serialNumber = serialNumber;
 	varReader->changeDevice(probe);
 }
 
-void PlotHandler::setTargetDevice(const std::string& deviceName)
+IDebugProbe::DebugProbeSettings PlotHandler::getProbeSettings() const
 {
-	probeSettings.device = deviceName;
+	return probeSettings;
+}
+
+void PlotHandler::setProbeSettings(const IDebugProbe::DebugProbeSettings& settings)
+{
+	probeSettings = settings;
 }
 
 void PlotHandler::dataHandler()
 {
 	uint32_t timer = 0;
+	double lastT = 0.0;
+	double sum = 0.0;
 
 	while (!done)
 	{
@@ -63,7 +69,38 @@ void PlotHandler::dataHandler()
 			auto finish = std::chrono::steady_clock::now();
 			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
-			if (t > (settings.samplePeriod * timer) / 1000.0f)
+			if (probeSettings.mode == IDebugProbe::Mode::HSS)
+			{
+				auto maybeEntry = varReader->readSingleEntry();
+
+				if (!maybeEntry.has_value())
+					continue;
+
+				auto entry = maybeEntry.value();
+
+				for (auto& [key, plot] : plotsMap)
+				{
+					if (!plot->getVisibility())
+						continue;
+
+					std::lock_guard<std::mutex> lock(*mtx);
+					/* thread-safe part */
+					for (auto& [name, ser] : plot->getSeriesMap())
+					{
+						double value = varReader->castToProperType(entry.second[ser->var->getAddress()], ser->var->getType());
+						ser->var->setValue(value);
+						plot->addPoint(name, value);
+					}
+					plot->addTimePoint(entry.first);
+				}
+
+				timer++;
+				sum += (t - lastT);
+				averageSamplingFrequency = sum / timer;
+				lastT = t;
+			}
+
+			else if (t > (1.0f / settings.sampleFrequencyHz) * timer)
 			{
 				for (auto& [key, plot] : plotsMap)
 				{
@@ -72,7 +109,13 @@ void PlotHandler::dataHandler()
 
 					/* this part consumes most of the thread time */
 					for (auto& [name, ser] : plot->getSeriesMap())
-						ser->var->setValue(varReader->getValue(ser->var->getAddress(), ser->var->getType()));
+					{
+						bool result = false;
+						auto value = varReader->getValue(ser->var->getAddress(), ser->var->getType(), result);
+
+						if (result)
+							ser->var->setValue(value);
+					}
 
 					/* thread-safe part */
 					std::lock_guard<std::mutex> lock(*mtx);
@@ -81,6 +124,9 @@ void PlotHandler::dataHandler()
 					plot->addTimePoint(t);
 				}
 				timer++;
+				sum += (t - lastT);
+				averageSamplingFrequency = sum / timer;
+				lastT = t;
 			}
 		}
 		else
@@ -90,9 +136,13 @@ void PlotHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				if (varReader->start(probeSettings.serialNumber, probeSettings.device))
+				auto addressSizeVector = createAddressSizeVector();
+
+				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
 				{
 					timer = 0;
+					lastT = 0.0;
+					sum = 0.0;
 					start = std::chrono::steady_clock::now();
 				}
 				else
@@ -103,4 +153,20 @@ void PlotHandler::dataHandler()
 			stateChangeOrdered = false;
 		}
 	}
+}
+
+std::vector<std::pair<uint32_t, uint8_t>> PlotHandler::createAddressSizeVector()
+{
+	std::vector<std::pair<uint32_t, uint8_t>> addressSizeVector;
+
+	for (auto& [key, plot] : plotsMap)
+	{
+		if (!plot->getVisibility())
+			continue;
+
+		for (auto& [name, ser] : plot->getSeriesMap())
+			addressSizeVector.push_back({ser->var->getAddress(), ser->var->getSize()});
+	}
+
+	return addressSizeVector;
 }

@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
 #include <thread>
 #include <unordered_set>
@@ -37,6 +38,7 @@ class Gui
 	ConfigHandler* configHandler;
 	std::string projectConfigPath;
 	std::string projectElfPath;
+	std::filesystem::file_time_type lastModifiedTime = std::filesystem::file_time_type::clock::now();
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
@@ -71,7 +73,7 @@ class Gui
 
 	void mainThread();
 	void drawMenu();
-	void drawStartButton();
+	void drawStartButton(PlotHandlerBase* activePlotHandler);
 	void drawDebugProbes();
 	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
@@ -94,6 +96,7 @@ class Gui
 	void drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 	void handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback);
 	void handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits);
+	void dragAndDropPlot(Plot* plot);
 
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);
@@ -104,8 +107,8 @@ class Gui
 	bool openProject();
 	bool openElfFile();
 	void checkShortcuts();
+	bool checkElfFileChanged();
 
-	void drawStartButtonSwo();
 	void drawSettingsSwo();
 	void drawIndicatorsSwo();
 	void drawPlotsSwo();

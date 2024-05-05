@@ -1,16 +1,20 @@
 #include "Gui.hpp"
 
-std::string dragAndDrop()
+void Gui::dragAndDropPlot(Plot* plot)
 {
-	std::string name = "";
-
 	if (ImPlot::BeginDragDropTargetPlot())
 	{
+		std::set<std::string> selection;
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-			name = *(std::string*)payload->Data;
+		{
+			selection = *(decltype(selection)*)payload->Data;
+
+			for (auto& name : selection)
+				plot->addSeries(*vars[name]);
+			selection.clear();
+		}
 		ImPlot::EndDragDropTarget();
 	}
-	return name;
 }
 
 void Gui::drawPlots()
@@ -63,7 +67,7 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			PlotHandler::Settings settings = plotHandler->getSettings();
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-			const double viewportWidth = (settings.samplePeriod > 0 ? settings.samplePeriod : 1) * 0.001f * settings.maxViewportPoints;
+			const double viewportWidth = plotHandler->getAverageSamplingPeriod() * settings.maxViewportPoints;
 			const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
 			const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
 			ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
@@ -77,17 +81,7 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 
-		if (ImPlot::BeginDragDropTargetPlot())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(*vars[*(std::string*)payload->Data]);
-
-			ImPlot::EndDragDropTarget();
-		}
-
-		std::string newSeries = dragAndDrop();
-		if (!newSeries.empty())
-			plot->addSeries(*vars[newSeries]);
+		dragAndDropPlot(plot);
 
 		if (plotHandler->getViewerState() == PlotHandler::state::STOP)
 		{
@@ -160,9 +154,7 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 		ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
 		ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
 
-		std::string newSeries = dragAndDrop();
-		if (!newSeries.empty())
-			plot->addSeries(*vars[newSeries]);
+		dragAndDropPlot(plot);
 
 		double xs = 0.0f;
 		double barSize = 0.5f;
@@ -240,8 +232,15 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 
 		if (ImGui::BeginDragDropTarget())
 		{
+			std::set<std::string> selection;
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(*vars[*(std::string*)payload->Data]);
+			{
+				selection = *(decltype(selection)*)payload->Data;
+
+				for (auto& name : selection)
+					plot->addSeries(*vars[name]);
+				selection.clear();
+			}
 			ImGui::EndDragDropTarget();
 		}
 	}

@@ -28,6 +28,7 @@ class PlotHandlerBase
 	bool renamePlot(const std::string& oldName, const std::string& newName);
 	bool removeAllPlots();
 	std::shared_ptr<Plot> getPlot(std::string name);
+	virtual std::string getLastReaderError() const = 0;
 	bool eraseAllPlotData();
 	void setViewerState(state state);
 	state getViewerState() const;

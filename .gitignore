@@ -42,6 +42,5 @@ test/STMViewer_test/.settings/
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app

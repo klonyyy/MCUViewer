@@ -5,10 +5,10 @@
 
 #include "iostream"
 
-bool TargetMemoryHandler::start(const std::string& serialNumber, const std::string& device) const
+bool TargetMemoryHandler::start(const IDebugProbe::DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) const
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return probe->startAcqusition(serialNumber, device);
+	return probe->startAcqusition(probeSettings, addressSizeVector, samplingFreqency);
 }
 bool TargetMemoryHandler::stop() const
 {
@@ -16,14 +16,22 @@ bool TargetMemoryHandler::stop() const
 	return probe->stopAcqusition();
 }
 
-double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
+std::optional<IDebugProbe::varEntryType> TargetMemoryHandler::readSingleEntry()
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->readSingleEntry();
+}
+
+double TargetMemoryHandler::getValue(uint32_t address, Variable::type type, bool& result)
 {
 	uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!probe->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
+	result = probe->readMemory(address, reinterpret_cast<uint32_t*>(&value));
+
+	if (!result)
 		return 0.0;
 
 	if (probe->requiresAlignedAccessOnRead())
@@ -61,6 +69,11 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
 		}
 	}
 
+	return castToProperType(value, type);
+}
+
+double TargetMemoryHandler::castToProperType(uint32_t value, Variable::type type)
+{
 	switch (type)
 	{
 		case Variable::type::U8:
