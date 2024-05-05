@@ -5,8 +5,7 @@ body:
     id: specs_version
     attributes:
       label: "STMViewer Version/Branch:"
-      value: "Version 0.X.Y, Branch: XXX (main/devel/etc.)"
-      placeholder: "Version 0.4.0, Branch: main"
+      placeholder: "eg. Version 0.4.0, Branch: main"
     validations:
       required: true
   - type: input
@@ -27,7 +26,6 @@ body:
     id: issue_description
     attributes:
       label: "Details:"
-      description: "Please describe the problem/enhancement in detail."
       value: |
         **My Issue/Question:**
 
@@ -38,7 +36,7 @@ body:
     id: screenshots
     attributes:
       label: "Screenshots/Video:"
-      description: "Attach screenshots or gif/videos to clarify the context. They often convey useful information that is omitted by the description."
-      placeholder: "(Drag files here)"
+      placeholder: "(Drag files here)
+      Attach screenshots or gif/videos to clarify the context. They often convey useful information that is omitted by the description."
     validations:
       required: false
