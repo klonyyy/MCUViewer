@@ -93,11 +93,6 @@ void PlotHandler::dataHandler()
 					}
 					plot->addTimePoint(entry.first);
 				}
-
-				timer++;
-				sum += (t - lastT);
-				averageSamplingFrequency = sum / timer;
-				lastT = t;
 			}
 
 			else if (t > (1.0f / settings.sampleFrequencyHz) * timer)
@@ -123,11 +118,12 @@ void PlotHandler::dataHandler()
 						plot->addPoint(name, ser->var->getValue());
 					plot->addTimePoint(t);
 				}
-				timer++;
-				sum += (t - lastT);
-				averageSamplingFrequency = sum / timer;
-				lastT = t;
 			}
+
+			timer++;
+			sum += (t - lastT);
+			averageSamplingFrequency = sum / timer;
+			lastT = t;
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
