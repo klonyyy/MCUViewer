@@ -1,5 +1,8 @@
 ![example workflow](https://github.com/klonyyy/STMViewer/actions/workflows/build.yaml/badge.svg)
 
+# Downloads
+To download STMViewer installer please proceed to the releases page on the right hand side menu.
+
 # STMViewer 
 STMViewer is an open-source GUI debug tool for ~~STM32~~ microcontrollers that consists of two modules:
 1. Variable Viewer - used for viewing, logging, and manipulating variables data in realtime using debug interface (SWDIO / SWCLK / GND)
@@ -27,10 +30,9 @@ Note: currently only STLink debug probe is supported. JLink support is in progre
 
 ## Installation
 
-First make sure you've got GDB installed and that it's at least 12.1.
-
 ### Linux: 
-1. Download the *.deb package and install it using:
+1. First make sure you've got GDB installed and that it's at least 12.1.
+2. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
 
@@ -38,7 +40,7 @@ Stlink users:
 - in case your STLink is not detected, please copy the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
 ### Windows: 
-1. Download and run the STMViewer installer. 
+1. Download and run the STMViewer installer from the releases page (right hand side menu of the main repo page).
 
 Stlink users:
 - make sure the STLink is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
