@@ -23,6 +23,8 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t sampleFrequencyHz = 100;
 		uint32_t maxPoints = 10000;
 		uint32_t maxViewportPoints = 5000;
+		bool refreshAddressesOnElfChange = false;
+		bool stopAcqusitionOnElfChange = false;
 	} Settings;
 
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);

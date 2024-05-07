@@ -309,7 +309,7 @@ void Gui::drawDebugProbes()
 
 	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 
-	ImGui::Text("Debug probe:    ");
+	ImGui::Text("Debug probe:                       ");
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
@@ -333,7 +333,7 @@ void Gui::drawDebugProbes()
 		}
 		SNptr = 0;
 	}
-	ImGui::Text("Debug probe S/N:");
+	ImGui::Text("Debug probe S/N:                   ");
 	ImGui::SameLine();
 
 	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
@@ -356,7 +356,7 @@ void Gui::drawDebugProbes()
 		shouldListDevices = false;
 	}
 
-	ImGui::Text("SWD speed [kHz]:");
+	ImGui::Text("SWD speed [kHz]:                   ");
 	ImGui::SameLine();
 
 	if (ImGui::InputScalar("##speed", ImGuiDataType_U32, &probeSettings.speedkHz, NULL, NULL, "%u"))
@@ -364,7 +364,7 @@ void Gui::drawDebugProbes()
 
 	if (probeSettings.debugProbe == 1)
 	{
-		ImGui::Text("Target name:    ");
+		ImGui::Text("Target name:                       ");
 		ImGui::SameLine();
 
 		if (ImGui::InputText("##device", &probeSettings.device, 0, NULL, NULL))
@@ -373,7 +373,7 @@ void Gui::drawDebugProbes()
 		ImGui::SameLine();
 		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
 
-		ImGui::Text("Mode:           ");
+		ImGui::Text("Mode:                              ");
 		ImGui::SameLine();
 
 		const char* probeModes[] = {"NORMAL", "HSS"};
@@ -450,13 +450,26 @@ void Gui::drawUpdateAddressesFromElf()
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
-	if (checkElfFileChanged())
+	bool elfChanged = checkElfFileChanged();
+
+	if (elfChanged)
 	{
 		ImVec4 color = ImColor::HSV(0.1f, 0.97f, 0.72f);
 		snprintf(buttonText, textSize, "Click to reload *.elf changes!");
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+
+		if (plotHandler->getSettings().stopAcqusitionOnElfChange)
+			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
+
+		if (plotHandler->getSettings().refreshAddressesOnElfChange)
+		{
+			performVariablesUpdate = true;
+			/* TODO: examine why elf is not ready to be parsed without the delay */
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+
 		shouldPopStyle = true;
 	}
 
@@ -780,7 +793,7 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 350 * contentScale));
+	ImGui::SetNextWindowSize(ImVec2(950 * contentScale, 400 * contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == AcqusitionWindowType::VARIABLE)
@@ -809,7 +822,7 @@ void Gui::acqusitionSettingsViewer()
 	drawCenteredText("Project");
 	ImGui::Separator();
 
-	ImGui::Text("*.elf file:     ");
+	ImGui::Text("*.elf file:                        ");
 	ImGui::SameLine();
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();
@@ -818,7 +831,15 @@ void Gui::acqusitionSettingsViewer()
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
 
-	ImGui::Text("Sampling [Hz]:  ");
+	ImGui::Text("Refresh addresses on *.elf change: ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##refresh", &settings.refreshAddressesOnElfChange);
+
+	ImGui::Text("Stop acqusition on *.elf change:   ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##stop", &settings.stopAcqusitionOnElfChange);
+
+	ImGui::Text("Sampling [Hz]:                     ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, NULL, NULL, "%u");
 	ImGui::SameLine();
@@ -827,14 +848,14 @@ void Gui::acqusitionSettingsViewer()
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;
-	ImGui::Text("Max points:     ");
+	ImGui::Text("Max points:                        ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
 
-	ImGui::Text("Max view points:");
+	ImGui::Text("Max view points:                   ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
