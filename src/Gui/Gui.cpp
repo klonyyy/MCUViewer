@@ -55,7 +55,6 @@ void Gui::mainThread()
 		return;
 	glfwMakeContextCurrent(window);
 	glfwMaximizeWindow(window);
-	glfwSwapInterval(2);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -102,6 +101,11 @@ void Gui::mainThread()
 			glfwWaitEvents();
 			continue;
 		}
+
+		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) || (plotHandler->getViewerState() == PlotHandlerBase::state::RUN))
+			glfwSwapInterval(2);
+		else
+			glfwSwapInterval(4);
 
 		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
