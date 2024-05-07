@@ -72,6 +72,7 @@ void PlotHandler::dataHandler()
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
+				timer++;
 				auto maybeEntry = varReader->readSingleEntry();
 
 				if (!maybeEntry.has_value())
@@ -96,8 +97,9 @@ void PlotHandler::dataHandler()
 				}
 			}
 
-			else if (t > (1.0f / settings.sampleFrequencyHz) * timer)
+			else if (t > ((1.0 / settings.sampleFrequencyHz) * timer))
 			{
+				timer++;
 				for (auto& [key, plot] : plotsMap)
 				{
 					if (!plot->getVisibility())
@@ -121,7 +123,6 @@ void PlotHandler::dataHandler()
 				}
 			}
 
-			timer++;
 			sum += (t - lastT);
 			averageSamplingFrequency = sum / timer;
 			lastT = t;
