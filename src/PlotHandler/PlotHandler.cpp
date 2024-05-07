@@ -27,6 +27,7 @@ PlotHandler::Settings PlotHandler::getSettings() const
 void PlotHandler::setSettings(const Settings& newSettings)
 {
 	settings = newSettings;
+	setMaxPoints(settings.maxPoints);
 }
 
 bool PlotHandler::writeSeriesValue(Variable& var, double value)
