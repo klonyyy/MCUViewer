@@ -72,7 +72,6 @@ void PlotHandler::dataHandler()
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
-				timer++;
 				auto maybeEntry = varReader->readSingleEntry();
 
 				if (!maybeEntry.has_value())
@@ -95,11 +94,11 @@ void PlotHandler::dataHandler()
 					}
 					plot->addTimePoint(entry.first);
 				}
+				timer++;
 			}
 
 			else if (t > ((1.0 / settings.sampleFrequencyHz) * timer))
 			{
-				timer++;
 				for (auto& [key, plot] : plotsMap)
 				{
 					if (!plot->getVisibility())
@@ -121,6 +120,7 @@ void PlotHandler::dataHandler()
 						plot->addPoint(name, ser->var->getValue());
 					plot->addTimePoint(t);
 				}
+				timer++;
 			}
 
 			sum += (t - lastT);
