@@ -540,7 +540,7 @@ void Gui::drawVarTable()
 
 			const bool itemIsSelected = selection.contains(name);
 
-			if (ImGui::SelectableInput(var->getName().c_str(), itemIsSelected, ImGuiSelectableFlags_SpanAllColumns, variable, maxVariableNameLength))
+			if (ImGui::SelectableInput(var->getName().c_str(), itemIsSelected, 0, variable, maxVariableNameLength))
 			{
 				if (ImGui::GetIO().KeyCtrl && var->getIsFound())
 				{
