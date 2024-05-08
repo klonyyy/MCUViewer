@@ -293,6 +293,8 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 
 	ImGui::PopStyleColor(3);
 	ImGui::EndDisabled();
+
+	drawDescriptionWithNumber("Average sampling frequency: ", plotHandler->getAverageSamplingFrequency());
 }
 
 void Gui::drawDebugProbes()

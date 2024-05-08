@@ -58,6 +58,7 @@ void PlotHandler::setProbeSettings(const IDebugProbe::DebugProbeSettings& settin
 
 void PlotHandler::dataHandler()
 {
+	std::chrono::time_point<std::chrono::steady_clock> start;
 	uint32_t timer = 0;
 	double lastT = 0.0;
 	double sum = 0.0;
@@ -66,9 +67,8 @@ void PlotHandler::dataHandler()
 	{
 		if (viewerState == state::RUN)
 		{
-			std::this_thread::sleep_for(std::chrono::microseconds(100));
 			auto finish = std::chrono::steady_clock::now();
-			double t = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+			double period = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
@@ -97,7 +97,7 @@ void PlotHandler::dataHandler()
 				timer++;
 			}
 
-			else if (t > ((1.0 / settings.sampleFrequencyHz) * timer))
+			else if (period > ((1.0 / settings.sampleFrequencyHz) * timer))
 			{
 				for (auto& [key, plot] : plotsMap)
 				{
@@ -118,14 +118,14 @@ void PlotHandler::dataHandler()
 					std::lock_guard<std::mutex> lock(*mtx);
 					for (auto& [name, ser] : plot->getSeriesMap())
 						plot->addPoint(name, ser->var->getValue());
-					plot->addTimePoint(t);
+					plot->addTimePoint(period);
 				}
 				timer++;
 			}
 
-			sum += (t - lastT);
+			sum += (period - lastT);
 			averageSamplingFrequency = sum / timer;
-			lastT = t;
+			lastT = period;
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));

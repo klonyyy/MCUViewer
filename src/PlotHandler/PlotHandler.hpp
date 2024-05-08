@@ -40,7 +40,7 @@ class PlotHandler : public PlotHandlerBase
 	void setProbeSettings(const IDebugProbe::DebugProbeSettings& settings);
 
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe);
-	double getAverageSamplingPeriod() const { return averageSamplingFrequency; }
+	double getAverageSamplingFrequency() const { return averageSamplingFrequency; }
 
    private:
 	void dataHandler();
@@ -48,7 +48,6 @@ class PlotHandler : public PlotHandlerBase
 
    private:
 	std::unique_ptr<TargetMemoryHandler> varReader;
-	std::chrono::time_point<std::chrono::steady_clock> start;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
 	double averageSamplingFrequency;
