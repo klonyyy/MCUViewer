@@ -390,6 +390,8 @@ void Gui::drawDebugProbes()
 		ImGui::SameLine();
 		ImGui::HelpMarker("Select normal or high speed sampling (HSS) mode");
 	}
+	else
+		probeSettings.mode = IDebugProbe::Mode::NORMAL;
 
 	ImGui::EndDisabled();
 
