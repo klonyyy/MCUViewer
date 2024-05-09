@@ -61,7 +61,6 @@ void PlotHandler::dataHandler()
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	uint32_t timer = 0;
 	double lastT = 0.0;
-	double sum = 0.0;
 
 	while (!done)
 	{
@@ -94,6 +93,9 @@ void PlotHandler::dataHandler()
 					}
 					plot->addTimePoint(entry.first);
 				}
+				/* filter sampling frequency */
+				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
+				lastT = period;
 				timer++;
 			}
 
@@ -120,12 +122,11 @@ void PlotHandler::dataHandler()
 						plot->addPoint(name, ser->var->getValue());
 					plot->addTimePoint(period);
 				}
+				/* filter sampling frequency */
+				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
+				lastT = period;
 				timer++;
 			}
-
-			sum += (period - lastT);
-			averageSamplingFrequency = sum / timer;
-			lastT = period;
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -140,7 +141,6 @@ void PlotHandler::dataHandler()
 				{
 					timer = 0;
 					lastT = 0.0;
-					sum = 0.0;
 					start = std::chrono::steady_clock::now();
 				}
 				else

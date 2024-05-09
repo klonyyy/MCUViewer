@@ -9,6 +9,7 @@
 #include <thread>
 
 #include "IDebugProbe.hpp"
+#include "MovingAverage.hpp"
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
@@ -40,7 +41,7 @@ class PlotHandler : public PlotHandlerBase
 	void setProbeSettings(const IDebugProbe::DebugProbeSettings& settings);
 
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe);
-	double getAverageSamplingFrequency() const { return averageSamplingFrequency; }
+	double getAverageSamplingFrequency() const { return 1.0 / averageSamplingPeriod; }
 
    private:
 	void dataHandler();
@@ -50,7 +51,8 @@ class PlotHandler : public PlotHandlerBase
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
-	double averageSamplingFrequency;
+	MovingAverage samplingPeriodFilter{100};
+	double averageSamplingPeriod;
 };
 
 #endif

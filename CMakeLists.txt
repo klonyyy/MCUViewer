@@ -111,6 +111,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/JlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MovingAverage/MovingAverage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler/ConfigHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileHandler/NFDFileHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins/ImguiPlugins.cpp
@@ -168,6 +169,7 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScrollingBuffer
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MovingAverage
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ImguiPlugins

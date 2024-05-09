@@ -797,7 +797,7 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(950 * contentScale, 400 * contentScale));
+	ImGui::SetNextWindowSize(ImVec2(950 * contentScale, 500 * contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == AcqusitionWindowType::VARIABLE)

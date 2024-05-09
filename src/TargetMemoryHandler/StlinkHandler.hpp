@@ -22,10 +22,7 @@ class StlinkHandler : public IDebugProbe
 
 	std::string getLastErrorMsg() const override;
 	std::vector<std::string> getConnectedDevices() override;
-	bool requiresAlignedAccessOnRead() override
-	{
-		return true;
-	}
+	bool requiresAlignedAccessOnRead() override { return true; }
 
    private:
 	stlink_t* sl = nullptr;
