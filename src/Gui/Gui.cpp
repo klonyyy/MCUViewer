@@ -859,12 +859,11 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
 
-	ImGui::Text("Max view points:                   ");
+	ImGui::Text("Max view time[s]:                  ");
 	ImGui::SameLine();
-	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, NULL, NULL, "%u");
+	ImGui::InputScalar("##maxViewportTime", ImGuiDataType_U32, &settings.maxViewportTime, NULL, NULL, "%u");
 	ImGui::SameLine();
-	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
-	settings.maxViewportPoints = std::clamp(settings.maxViewportPoints, minPoints, settings.maxPoints);
+	ImGui::HelpMarker("Max time used that will be shown in the viewport without scrolling.");
 
 	plotHandler->setSettings(settings);
 
