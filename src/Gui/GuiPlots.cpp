@@ -81,27 +81,23 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
 		static std::chrono::time_point<std::chrono::steady_clock> start;
-		auto finish = std::chrono::steady_clock::now();
-		const double acquisitionTime = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
-		
+		PlotHandler::Settings settings = plotHandler->getSettings();
+		static double viewportWidth = settings.maxViewportTime;
 		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
 		{
-			PlotHandler::Settings settings = plotHandler->getSettings();
-			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
-			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-			const double viewportWidth = settings.maxViewportTime;
-			
+			auto finish = std::chrono::steady_clock::now();
+			const double acquisitionTime = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 			const double min = acquisitionTime < viewportWidth ? 0.0f : acquisitionTime - viewportWidth;
-			const double max = min == 0.0f ? acquisitionTime : min + viewportWidth;
+			const double max = min + viewportWidth;
 			ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always); 
 		}
 		else
 		{
-			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
-			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
-			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
 			start = std::chrono::steady_clock::now(); //there is a bit of a delay between end of stop and timeseries time
 		}
+		ImPlot::SetupAxes("time[s]",NULL, 0, ImPlotAxisFlags_AutoFit);
+		ImPlot::SetupAxisLimits(ImAxis_X1, 0, viewportWidth, ImPlotCond_Once);
+		viewportWidth = ImPlot::GetPlotLimits().X.Size();
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 
