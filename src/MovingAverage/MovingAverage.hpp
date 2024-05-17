@@ -1,7 +1,7 @@
 #ifndef MOVINGAVG_HPP
 #define MOVINGAVG_HPP
 
-#include <cstdint>
+#include <cstdlib>
 
 class MovingAverage
 {
