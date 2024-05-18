@@ -19,7 +19,9 @@ void Gui::dragAndDropPlot(Plot* plot)
 
 void Gui::drawPlots()
 {
-	uint32_t tablePlots = 0;
+	uint8_t tablePlots = 0;
+	uint8_t barPlots = 0;
+	uint8_t curvePlots = 0;
 
 	ImVec2 initialCursorPos = ImGui::GetCursorPos();
 
@@ -31,17 +33,21 @@ void Gui::drawPlots()
 			if (plt->getVisibility())
 				tablePlots++;
 		}
+		else if (plt->getType() == Plot::Type::BAR && plt->getVisibility())
+			barPlots++;
+		else if (plt->getType() == Plot::Type::CURVE && plt->getVisibility())
+			curvePlots++;
 	}
+	curvePlots = (barPlots + curvePlots > 0) ? curvePlots : 1;
 
-	uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
-	uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
+	float remainingSpace = (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) - (ImGui::GetCursorPos().y + initialCursorPos.y) - ImGui::GetStyle().WindowPadding.y * 3;
+	const float minSubPlotHeight = 237; //calibrated to show 4 subplots without a scrollbar on a FUllHD monitor
+	if (remainingSpace / (curvePlots + barPlots) < minSubPlotHeight )
+		remainingSpace = minSubPlotHeight * (curvePlots + barPlots);
+	ImVec2 curvePlotSize(-1, remainingSpace * curvePlots / (curvePlots + barPlots));
+	ImVec2 barPlotSize(-1, remainingSpace * barPlots / (curvePlots + barPlots));
 
-	const float remainingSpace = (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) - (ImGui::GetCursorPos().y + initialCursorPos.y);
-	ImVec2 plotSize(-1, -1);
-	if (remainingSpace < 300)
-		plotSize.y = 300;
-
-	if (ImPlot::BeginSubplots("##subplos", row, 1, plotSize, 0))
+	if (curvePlots && ImPlot::BeginSubplots("##curveplots", curvePlots, 1, curvePlotSize, 0))
 	{
 		for (std::shared_ptr<Plot> plt : *plotHandler)
 		{
@@ -50,12 +56,24 @@ void Gui::drawPlots()
 
 			if (plt->getType() == Plot::Type::CURVE)
 				drawPlotCurve(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
-			else if (plt->getType() == Plot::Type::BAR)
-				drawPlotBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
 		}
 
 		ImPlot::EndSubplots();
 	}
+
+	if (barPlots && ImPlot::BeginSubplots("##barplots", barPlots, 1, barPlotSize, 0))
+	{
+		for (std::shared_ptr<Plot> plt : *plotHandler)
+		{
+			if (!plt->getVisibility())
+				continue;
+
+			if (plt->getType() == Plot::Type::BAR)
+				drawPlotBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
+		}
+
+		ImPlot::EndSubplots();
+	}	
 }
 
 void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
