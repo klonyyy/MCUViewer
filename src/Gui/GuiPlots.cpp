@@ -80,21 +80,22 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 {
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
-		static std::chrono::time_point<std::chrono::steady_clock> start;
+		
 		PlotHandler::Settings settings = plotHandler->getSettings();
 		static double viewportWidth = settings.maxViewportTime;
+		static PlotHandler::state viewerStatePrev = PlotHandler::state::STOP;
 		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
-		{
+		{	
+			static std::chrono::time_point<std::chrono::steady_clock> start;
+			if (viewerStatePrev == PlotHandler::state::STOP)
+				start = std::chrono::steady_clock::now();
 			auto finish = std::chrono::steady_clock::now();
 			const double acquisitionTime = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
 			const double min = acquisitionTime < viewportWidth ? 0.0f : acquisitionTime - viewportWidth;
 			const double max = min + viewportWidth;
 			ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always); 
 		}
-		else
-		{
-			start = std::chrono::steady_clock::now(); //there is a bit of a delay between end of stop and timeseries time
-		}
+		viewerStatePrev = plotHandler->getViewerState();
 		ImPlot::SetupAxes("time[s]",NULL, 0, ImPlotAxisFlags_AutoFit);
 		ImPlot::SetupAxisLimits(ImAxis_X1, 0, viewportWidth, ImPlotCond_Once);
 		viewportWidth = ImPlot::GetPlotLimits().X.Size();
