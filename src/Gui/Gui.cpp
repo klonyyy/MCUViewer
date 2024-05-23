@@ -103,7 +103,7 @@ void Gui::mainThread()
 		}
 
 		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) || (plotHandler->getViewerState() == PlotHandlerBase::state::RUN))
-			glfwSwapInterval(2);
+			glfwSwapInterval(1);
 		else
 			glfwSwapInterval(4);
 
