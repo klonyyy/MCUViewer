@@ -78,7 +78,7 @@ void Gui::drawPlots()
 
 void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
 {
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
 		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
 		{
@@ -154,7 +154,7 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 }
 void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
 {
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
 		std::vector<const char*> glabels;
 		std::vector<double> positions;
