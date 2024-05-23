@@ -53,6 +53,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("settings", "sample_frequency_Hz", viewerSettings.sampleFrequencyHz);
 	getValue("settings", "max_points", viewerSettings.maxPoints);
 	getValue("settings", "max_viewport_points", viewerSettings.maxViewportPoints);
+	getValue("settings", "stop_acq_on_elf_change", viewerSettings.stopAcqusitionOnElfChange);
+	getValue("settings", "refresh_on_elf_change", viewerSettings.refreshAddressesOnElfChange);
 	getValue("settings", "probe_type", probeSettings.debugProbe);
 	probeSettings.device = ini->get("settings").get("target_name");
 	getValue("settings", "probe_mode", probeSettings.mode);
@@ -220,6 +222,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["sample_frequency_hz"] = std::to_string(viewerSettings.sampleFrequencyHz);
 	(*ini)["settings"]["max_points"] = std::to_string(viewerSettings.maxPoints);
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
+	(*ini)["settings"]["refresh_on_elf_change"] = viewerSettings.refreshAddressesOnElfChange ? std::string("true") : std::string("false");
+	(*ini)["settings"]["stop_acq_on_elf_change"] = viewerSettings.stopAcqusitionOnElfChange ? std::string("true") : std::string("false");
 	(*ini)["settings"]["probe_type"] = std::to_string(probeSettings.debugProbe);
 	(*ini)["settings"]["target_name"] = probeSettings.device;
 	(*ini)["settings"]["probe_mode"] = std::to_string(probeSettings.mode);

@@ -31,7 +31,7 @@ class ConfigHandler
 	{
 		try
 		{
-			if constexpr (std::is_integral_v<T>)
+			if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>)
 				result = std::stoi(value);
 			else if constexpr (std::is_enum_v<T>)
 				result = static_cast<T>(std::stoi(value));
@@ -39,6 +39,8 @@ class ConfigHandler
 				result = std::stof(value);
 			else if constexpr (std::is_same_v<T, double>)
 				result = std::stod(value);
+			else if constexpr (std::is_same_v<T, bool>)
+				result = value == "true";
 			else
 				throw std::invalid_argument("Unsupported type");
 		}
