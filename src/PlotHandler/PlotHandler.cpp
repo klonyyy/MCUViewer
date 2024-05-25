@@ -76,7 +76,7 @@ void PlotHandler::dataHandler()
 				if (!maybeEntry.has_value())
 					continue;
 
-				auto entry = maybeEntry.value();
+				auto [timestamp, values] = maybeEntry.value();
 
 				for (auto& [key, plot] : plotsMap)
 				{
@@ -87,11 +87,11 @@ void PlotHandler::dataHandler()
 					/* thread-safe part */
 					for (auto& [name, ser] : plot->getSeriesMap())
 					{
-						double value = varReader->castToProperType(entry.second[ser->var->getAddress()], ser->var->getType());
+						double value = varReader->castToProperType(values[ser->var->getAddress()], ser->var->getType());
 						ser->var->setValue(value);
 						plot->addPoint(name, value);
 					}
-					plot->addTimePoint(entry.first);
+					plot->addTimePoint(timestamp);
 				}
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));

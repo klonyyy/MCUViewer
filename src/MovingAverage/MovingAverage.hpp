@@ -6,11 +6,11 @@
 class MovingAverage
 {
    public:
-	MovingAverage(size_t samples_);
+	MovingAverage(const size_t samples_);
 	double filter(double sampleIn);
 
    private:
-	static constexpr size_t maxSamples = 200;
+	static constexpr size_t maxSamples = 1000;
 	size_t samples = 0;
 	double buffer[maxSamples] = {0};
 	size_t bufferIter = 0;

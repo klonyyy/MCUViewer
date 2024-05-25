@@ -127,11 +127,11 @@ class Gui
 				valueChanged(str);
 	}
 	template <typename T>
-	void drawDescriptionWithNumber(const char* description, T number)
+	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5)
 	{
 		ImGui::Text("%s", description);
 		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(number)).c_str());
+		ImGui::Text("%s", (std::to_string(number) + unit).c_str());
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);

@@ -51,7 +51,7 @@ class PlotHandler : public PlotHandlerBase
 	std::unique_ptr<TargetMemoryHandler> varReader;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
-	MovingAverage samplingPeriodFilter{100};
+	MovingAverage samplingPeriodFilter{1000};
 	double averageSamplingPeriod;
 };
 

@@ -87,7 +87,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = false;
+	bool show_demo_window = true;
 
 	jlinkProbe = std::make_shared<JlinkHandler>(logger);
 	stlinkProbe = std::make_shared<StlinkHandler>(logger);
@@ -230,6 +230,9 @@ void Gui::drawMenu()
 		ImGui::MenuItem("About", NULL, &showAboutWindow, active);
 		ImGui::EndMenu();
 	}
+
+	drawDescriptionWithNumber("avg sampling: ", plotHandler->getAverageSamplingFrequency(), " Hz", 2);
+
 	ImGui::EndMainMenuBar();
 	askShouldSaveOnExit(shouldSaveOnClose);
 	askShouldSaveOnNew(shouldSaveOnNew);
@@ -293,8 +296,6 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 
 	ImGui::PopStyleColor(3);
 	ImGui::EndDisabled();
-
-	drawDescriptionWithNumber("Average sampling frequency: ", plotHandler->getAverageSamplingFrequency());
 }
 
 void Gui::drawDebugProbes()
