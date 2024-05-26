@@ -87,7 +87,7 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 
 	jlinkProbe = std::make_shared<JlinkHandler>(logger);
 	stlinkProbe = std::make_shared<StlinkHandler>(logger);
@@ -129,7 +129,8 @@ void Gui::mainThread()
 
 		if (ImGui::Begin("Trace Viewer"))
 		{
-			drawAcqusitionSettingsWindow(AcqusitionWindowType::TRACE);
+			activeView = ActiveViewType::TraceViewer;
+			drawAcqusitionSettingsWindow(activeView);
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Trace Plots"))
 				drawPlotsSwo();
@@ -143,7 +144,8 @@ void Gui::mainThread()
 
 		if (ImGui::Begin("Var Viewer"))
 		{
-			drawAcqusitionSettingsWindow(AcqusitionWindowType::VARIABLE);
+			activeView = ActiveViewType::VarViewer;
+			drawAcqusitionSettingsWindow(activeView);
 			drawStartButton(plotHandler);
 			drawVarTable();
 			drawPlotsTree();
@@ -231,7 +233,11 @@ void Gui::drawMenu()
 		ImGui::EndMenu();
 	}
 
-	drawDescriptionWithNumber("avg sampling: ", plotHandler->getAverageSamplingFrequency(), " Hz", 2);
+	if (activeView == ActiveViewType::VarViewer)
+	{
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210 * contentScale));
+		drawDescriptionWithNumber("sampling: ", plotHandler->getAverageSamplingFrequency(), " Hz", 2);
+	}
 
 	ImGui::EndMainMenuBar();
 	askShouldSaveOnExit(shouldSaveOnClose);
@@ -792,7 +798,7 @@ void Gui::drawPlotsTree()
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
 
-void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
+void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 {
 	if (showAcqusitionSettingsWindow)
 		ImGui::OpenPopup("Acqusition Settings");
@@ -801,9 +807,9 @@ void Gui::drawAcqusitionSettingsWindow(AcqusitionWindowType type)
 	ImGui::SetNextWindowSize(ImVec2(950 * contentScale, 500 * contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
-		if (type == AcqusitionWindowType::VARIABLE)
+		if (type == ActiveViewType::VarViewer)
 			acqusitionSettingsViewer();
-		else if (type == AcqusitionWindowType::TRACE)
+		else if (type == ActiveViewType::TraceViewer)
 			acqusitionSettingsTrace();
 
 		acqusitionErrorPopup.handle();

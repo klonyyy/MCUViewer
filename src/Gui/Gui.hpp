@@ -61,11 +61,13 @@ class Gui
 	Popup popup;
 	Popup acqusitionErrorPopup;
 
-	enum class AcqusitionWindowType : uint8_t
+	enum class ActiveViewType : uint8_t
 	{
-		VARIABLE = 0,
-		TRACE = 1,
+		VarViewer = 0,
+		TraceViewer = 1,
 	};
+
+	ActiveViewType activeView = ActiveViewType::VarViewer;
 
 	std::mutex* mtx;
 
@@ -82,7 +84,7 @@ class Gui
 	void drawAddPlotButton();
 	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
 	void drawPlotsTree();
-	void drawAcqusitionSettingsWindow(AcqusitionWindowType type);
+	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
 	void drawAboutWindow();
 	void drawPreferencesWindow();
@@ -131,7 +133,9 @@ class Gui
 	{
 		ImGui::Text("%s", description);
 		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(number) + unit).c_str());
+		std::ostringstream formattedNum;
+		formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
+		ImGui::Text("%s", (formattedNum.str() + unit).c_str());
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
