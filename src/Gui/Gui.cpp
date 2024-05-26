@@ -316,8 +316,6 @@ void Gui::drawDebugProbes()
 	ImGui::HelpMarker("Select the debug probe type and the serial number of the probe to unlock the START button.");
 	ImGui::Separator();
 
-	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
-
 	ImGui::Text("Debug probe:                       ");
 	ImGui::SameLine();
 
@@ -399,8 +397,6 @@ void Gui::drawDebugProbes()
 	}
 	else
 		probeSettings.mode = IDebugProbe::Mode::NORMAL;
-
-	ImGui::EndDisabled();
 
 	if (devicesList.empty())
 		devicesList.push_back(noDevices);
@@ -505,6 +501,7 @@ void Gui::drawVarTable()
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 	static std::set<std::string> selection;
 
+	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Variables");
 	ImGui::SameLine();
@@ -617,6 +614,8 @@ void Gui::drawVarTable()
 		}
 		ImGui::EndTable();
 	}
+
+	ImGui::EndDisabled();
 }
 
 void Gui::drawAddPlotButton()
