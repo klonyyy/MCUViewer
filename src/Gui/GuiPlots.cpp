@@ -142,17 +142,22 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 		std::vector<double> positions;
 
 		float pos = 0.0f;
+		float visiblePlotsCnt = 0;
 		for (const auto& [name, series] : seriesMap)
 		{
+			if (!series->visible)
+				continue;
+
 			glabels.push_back(name.c_str());
 			positions.push_back(pos);
 			pos += 1.0f;
+			visiblePlotsCnt++;
 		}
 		glabels.push_back(nullptr);
 
 		ImPlot::SetupAxes(NULL, "Value", 0, 0);
-		ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
-		ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
+		ImPlot::SetupAxisLimits(ImAxis_X1, -1, visiblePlotsCnt, ImPlotCond_Always);
+		ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), visiblePlotsCnt, glabels.data());
 
 		dragAndDropPlot(plot);
 
