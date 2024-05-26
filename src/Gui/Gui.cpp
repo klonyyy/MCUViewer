@@ -119,7 +119,11 @@ void Gui::mainThread()
 			ImPlot::ShowDemoWindow();
 
 		if (glfwWindowShouldClose(window))
+		{
+			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
+			tracePlotHandler->setViewerState(PlotHandlerBase::state::STOP);
 			askShouldSaveOnExit(glfwWindowShouldClose(window));
+		}
 		glfwSetWindowShouldClose(window, done);
 		checkShortcuts();
 
