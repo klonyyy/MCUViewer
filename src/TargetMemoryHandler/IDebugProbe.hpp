@@ -25,7 +25,7 @@ class IDebugProbe
 		std::string serialNumber = "";
 		std::string device = "";
 		Mode mode = Mode::NORMAL;
-		uint32_t speedkHz = 100;
+		uint32_t speedkHz = 10000;
 
 	} DebugProbeSettings;
 
