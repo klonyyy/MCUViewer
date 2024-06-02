@@ -71,6 +71,7 @@ if(UNIX)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.7)
     set(INSTALL_PATH /usr/local/STMViewer)
+    set(LIB_INSTALL_PATH /usr/local/lib)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 
     if(APPLE)
@@ -255,7 +256,7 @@ if(UNIX)
         DESTINATION ${DESKTOP_FILE_PATH})
     install(FILES ${JLINK_LINUX}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        DESTINATION ${DESKTOP_FILE_PATH})
+        DESTINATION ${LIB_INSTALL_PATH})
     set(CPACK_GENERATOR "DEB;RPM")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
