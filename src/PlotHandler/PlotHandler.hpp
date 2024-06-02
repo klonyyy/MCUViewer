@@ -41,7 +41,12 @@ class PlotHandler : public PlotHandlerBase
 	void setProbeSettings(const IDebugProbe::DebugProbeSettings& settings);
 
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe);
-	double getAverageSamplingFrequency() const { return 1.0 / averageSamplingPeriod; }
+	double getAverageSamplingFrequency() const
+	{
+		if (averageSamplingPeriod > 0.0)
+			return 1.0 / averageSamplingPeriod;
+		return 0.0;
+	}
 
    private:
 	void dataHandler();
@@ -52,7 +57,7 @@ class PlotHandler : public PlotHandlerBase
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
 	MovingAverage samplingPeriodFilter{1000};
-	double averageSamplingPeriod;
+	double averageSamplingPeriod = 0.0;
 };
 
 #endif
