@@ -39,7 +39,7 @@ void Gui::drawImportVariablesWindow()
 
 		if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || shouldUpdateOnOpen)
 		{
-			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, projectElfPath);
+			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, convertProjectPathToAbsolute(projectElfPath));
 			shouldUpdateOnOpen = false;
 		}
 
