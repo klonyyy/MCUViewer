@@ -487,7 +487,7 @@ void Gui::drawUpdateAddressesFromElf()
 	if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || performVariablesUpdate)
 	{
 		lastModifiedTime = std::filesystem::file_time_type::clock::now();
-		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
+		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
 		performVariablesUpdate = false;
 	}
 
@@ -1172,11 +1172,30 @@ bool Gui::openElfFile()
 
 	if (path != "")
 	{
-		projectElfPath = path;
+		std::filesystem::path relPath = std::filesystem::relative(path, std::filesystem::path(projectConfigPath).parent_path());
+        projectElfPath = relPath.string();
 		logger->info("Project elf file path: {}", projectElfPath);
 		return true;
 	}
 	return false;
+}
+
+std::string Gui::convertProjectPathToAbsolute(const std::string& relativePath)
+{	
+	if (relativePath.empty())
+		return "";
+
+	try
+	{
+        // Convert relative path to absolute path based on project file location
+        std::filesystem::path absPath = std::filesystem::absolute(std::filesystem::path(projectConfigPath).parent_path() / relativePath);
+        return absPath.string();
+    }
+    catch (std::filesystem::filesystem_error& e)
+    {
+        logger->error("Failed to convert path to absolute: {}", e.what());
+        return "";
+    }
 }
 
 void Gui::checkShortcuts()
@@ -1198,10 +1217,10 @@ void Gui::checkShortcuts()
 
 bool Gui::checkElfFileChanged()
 {
-	if (!std::filesystem::exists(projectElfPath))
+	if (!std::filesystem::exists(convertProjectPathToAbsolute(projectElfPath)))
 		return false;
 
-	auto writeTime = std::filesystem::last_write_time(projectElfPath);
+	auto writeTime = std::filesystem::last_write_time(convertProjectPathToAbsolute(projectElfPath));
 	return writeTime > lastModifiedTime;
 }
 

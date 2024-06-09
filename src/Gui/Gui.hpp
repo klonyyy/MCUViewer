@@ -108,6 +108,7 @@ class Gui
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
 	bool openProject();
 	bool openElfFile();
+	std::string convertProjectPathToAbsolute(const std::string& projectRelativePath);
 	void checkShortcuts();
 	bool checkElfFileChanged();
 
