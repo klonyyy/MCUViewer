@@ -5,61 +5,75 @@
 
 #include "iostream"
 
-TargetMemoryHandler::TargetMemoryHandler(std::unique_ptr<ITargetMemoryHandler> memoryHandler, spdlog::logger* logger) : memoryHandler(std::move(memoryHandler)), logger(logger)
+bool TargetMemoryHandler::start(const IDebugProbe::DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) const
 {
-}
-
-bool TargetMemoryHandler::start() const
-{
-	return memoryHandler->startAcqusition();
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->startAcqusition(probeSettings, addressSizeVector, samplingFreqency);
 }
 bool TargetMemoryHandler::stop() const
 {
-	return memoryHandler->stopAcqusition();
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->stopAcqusition();
 }
 
-double TargetMemoryHandler::getValue(uint32_t address, Variable::type type)
+std::optional<IDebugProbe::varEntryType> TargetMemoryHandler::readSingleEntry()
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->readSingleEntry();
+}
+
+double TargetMemoryHandler::getValue(uint32_t address, Variable::type type, bool& result)
 {
 	uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
 
 	std::lock_guard<std::mutex> lock(mtx);
 
-	if (!memoryHandler->readMemory(address, reinterpret_cast<uint32_t*>(&value)))
+	result = probe->readMemory(address, reinterpret_cast<uint32_t*>(&value));
+
+	if (!result)
 		return 0.0;
 
-	if (type == Variable::type::I8 || type == Variable::type::U8)
+	if (probe->requiresAlignedAccessOnRead())
 	{
-		if (shouldShift == 0)
-			value = (value & 0x000000ff);
-		else if (shouldShift == 1)
-			value = (value & 0x0000ff00) >> 8;
-		else if (shouldShift == 2)
-			value = (value & 0x00ff0000) >> 16;
-		else if (shouldShift == 3)
-			value = (value & 0xff000000) >> 24;
-	}
-	else if (type == Variable::type::I16 || type == Variable::type::U16)
-	{
-		if (shouldShift == 0)
-			value = (value & 0x0000ffff);
-		else if (shouldShift == 1)
-			value = (value & 0x00ffff00) >> 8;
-		else if (shouldShift == 2)
-			value = (value & 0xffff0000) >> 16;
-		else if (shouldShift == 3)
-			value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
-	}
-	else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
-	{
-		if (shouldShift == 1)
-			value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
-		else if (shouldShift == 2)
-			value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
-		else if (shouldShift == 3)
-			value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
+		if (type == Variable::type::I8 || type == Variable::type::U8)
+		{
+			if (shouldShift == 0)
+				value = (value & 0x000000ff);
+			else if (shouldShift == 1)
+				value = (value & 0x0000ff00) >> 8;
+			else if (shouldShift == 2)
+				value = (value & 0x00ff0000) >> 16;
+			else if (shouldShift == 3)
+				value = (value & 0xff000000) >> 24;
+		}
+		else if (type == Variable::type::I16 || type == Variable::type::U16)
+		{
+			if (shouldShift == 0)
+				value = (value & 0x0000ffff);
+			else if (shouldShift == 1)
+				value = (value & 0x00ffff00) >> 8;
+			else if (shouldShift == 2)
+				value = (value & 0xffff0000) >> 16;
+			else if (shouldShift == 3)
+				value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
+		}
+		else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
+		{
+			if (shouldShift == 1)
+				value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
+			else if (shouldShift == 2)
+				value = (value & 0x0000ffff) << 16 | (value & 0xffff0000) >> 16;
+			else if (shouldShift == 3)
+				value = (value & 0x00ffffff) << 24 | (value & 0xff000000) >> 8;
+		}
 	}
 
+	return castToProperType(value, type);
+}
+
+double TargetMemoryHandler::castToProperType(uint32_t value, Variable::type type)
+{
 	switch (type)
 	{
 		case Variable::type::U8:
@@ -86,17 +100,16 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 	uint32_t address = var.getAddress();
 	uint8_t buf[4] = {};
 
-	if (!memoryHandler->isValid())
+	if (!probe->isValid())
 		return false;
 
 	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int
 	{
 		for (size_t i = 0; i < sizeof(var); i++)
 			buf[i] = var >> 8 * i;
-		return memoryHandler->writeMemory(address, buf, sizeof(var));
+		std::lock_guard<std::mutex> lock(mtx);
+		return probe->writeMemory(address, buf, sizeof(var));
 	};
-
-	std::lock_guard<std::mutex> lock(mtx);
 
 	switch (var.getType())
 	{
@@ -125,5 +138,18 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 
 std::string TargetMemoryHandler::getLastErrorMsg() const
 {
-	return memoryHandler->getLastErrorMsg();
+	/* TODO lock with timeout as we dont really care if we get it every cycle */
+	return probe->getLastErrorMsg();
+}
+
+std::vector<std::string> TargetMemoryHandler::getConnectedDevices() const
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->getConnectedDevices();
+}
+
+void TargetMemoryHandler::changeDevice(std::shared_ptr<IDebugProbe> newProbe)
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	probe = newProbe;
 }

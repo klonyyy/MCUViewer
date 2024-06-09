@@ -6,7 +6,7 @@
 
 TEST(RingBufferTest, testpushpop)
 {
-	RingBuffer<std::array<bool, 10>> ringBuffer(2000);
+	RingBuffer<std::array<bool, 10>, 3> ringBuffer;
 
 	std::array<bool, 10> array1{0, 1, 0, 0, 1, 1, 0, 1, 1, 0};
 	std::array<bool, 10> array2{0, 0, 0, 1, 0, 0, 0, 0, 1, 0};

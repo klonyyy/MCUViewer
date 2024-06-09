@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < argc; i++)
 		args.push_back(argv[i]);
 
-#ifdef _UNIX
+#if defined(__APPLE__) || defined(_UNIX)
 	std::string logDirectory = std::string(std::getenv("HOME")) + "/STMViewer/logs/logfile.txt";
 #elif _WIN32
 	std::string logDirectory = std::string(std::getenv("APPDATA")) + "/STMViewer/logs/logfile.txt";

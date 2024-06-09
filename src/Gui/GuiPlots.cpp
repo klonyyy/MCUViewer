@@ -1,16 +1,20 @@
 #include "Gui.hpp"
 
-std::string dragAndDrop()
+void Gui::dragAndDropPlot(Plot* plot)
 {
-	std::string name = "";
-
 	if (ImPlot::BeginDragDropTargetPlot())
 	{
+		std::set<std::string> selection;
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-			name = *(std::string*)payload->Data;
+		{
+			selection = *(decltype(selection)*)payload->Data;
+
+			for (auto& name : selection)
+				plot->addSeries(*vars[name]);
+			selection.clear();
+		}
 		ImPlot::EndDragDropTarget();
 	}
-	return name;
 }
 
 void Gui::drawPlots()
@@ -63,7 +67,7 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			PlotHandler::Settings settings = plotHandler->getSettings();
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-			const double viewportWidth = (settings.samplePeriod > 0 ? settings.samplePeriod : 1) * 0.001f * settings.maxViewportPoints;
+			const double viewportWidth = (1.0 / plotHandler->getAverageSamplingFrequency()) * settings.maxViewportPoints;
 			const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
 			const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
 			ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
@@ -77,29 +81,19 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 
-		if (ImPlot::BeginDragDropTargetPlot())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(*vars[*(std::string*)payload->Data]);
-
-			ImPlot::EndDragDropTarget();
-		}
-
-		std::string newSeries = dragAndDrop();
-		if (!newSeries.empty())
-			plot->addSeries(*vars[newSeries]);
+		dragAndDropPlot(plot);
 
 		if (plotHandler->getViewerState() == PlotHandler::state::STOP)
 		{
 			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
 			handleMarkers(0, plot->markerX0, plotLimits, [&]()
-						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
+						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10 * contentScale, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
 
 			handleMarkers(1, plot->markerX1, plotLimits, [&]()
 						  {
-			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 0), true, "x1 %.5f", plot->markerX1.getValue());
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10*contentScale, 0), true, "x1 %.5f", plot->markerX1.getValue());
 			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
-			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10, 20), true, "x1-x0 %.5f", dx); });
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10*contentScale, 20*contentScale), true, "x1-x0 %.5f", dx); });
 
 			handleDragRect(0, plot->stats, plotLimits);
 		}
@@ -148,34 +142,37 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 		std::vector<double> positions;
 
 		float pos = 0.0f;
-		for (const auto& [key, series] : seriesMap)
+		float visiblePlotsCnt = 0;
+		for (const auto& [name, series] : seriesMap)
 		{
-			glabels.push_back(series->var->getName().c_str());
+			if (!series->visible)
+				continue;
+
+			glabels.push_back(name.c_str());
 			positions.push_back(pos);
 			pos += 1.0f;
+			visiblePlotsCnt++;
 		}
 		glabels.push_back(nullptr);
 
 		ImPlot::SetupAxes(NULL, "Value", 0, 0);
-		ImPlot::SetupAxisLimits(ImAxis_X1, -1, seriesMap.size(), ImPlotCond_Always);
-		ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), seriesMap.size(), glabels.data());
+		ImPlot::SetupAxisLimits(ImAxis_X1, -1, visiblePlotsCnt, ImPlotCond_Always);
+		ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), visiblePlotsCnt, glabels.data());
 
-		std::string newSeries = dragAndDrop();
-		if (!newSeries.empty())
-			plot->addSeries(*vars[newSeries]);
+		dragAndDropPlot(plot);
 
 		double xs = 0.0f;
 		double barSize = 0.5f;
 
-		for (auto& [key, serPtr] : seriesMap)
+		for (auto& [name, series] : seriesMap)
 		{
-			if (!serPtr->visible)
+			if (!series->visible)
 				continue;
-			double value = *serPtr->buffer->getLastElement();
+			double value = *series->buffer->getLastElement();
 
-			ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
-			ImPlot::PlotBars(serPtr->var->getName().c_str(), &xs, &value, 1, barSize);
-			ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5), true, "%.5f", value);
+			ImPlot::SetNextLineStyle(ImVec4(series->var->getColor().r, series->var->getColor().g, series->var->getColor().b, 1.0f));
+			ImPlot::PlotBars(name.c_str(), &xs, &value, 1, barSize);
+			ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5 * contentScale), true, "%.5f", value);
 			xs += 1.0f;
 		}
 		ImPlot::EndPlot();
@@ -209,7 +206,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImGui::TableSetColumnIndex(0);
 			Variable::Color a = serPtr->var->getColor();
 			ImVec4 col = {a.r, a.g, a.b, a.a};
-			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10, 10));
+			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10 * contentScale, 10 * contentScale));
 			ImGui::SameLine();
 			ImGui::Text("%s", key.c_str());
 			ImGui::TableSetColumnIndex(1);
@@ -240,8 +237,15 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 
 		if (ImGui::BeginDragDropTarget())
 		{
+			std::set<std::string> selection;
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
-				plot->addSeries(*vars[*(std::string*)payload->Data]);
+			{
+				selection = *(decltype(selection)*)payload->Data;
+
+				for (auto& name : selection)
+					plot->addSeries(*vars[name]);
+				selection.clear();
+			}
 			ImGui::EndDragDropTarget();
 		}
 	}

@@ -11,12 +11,18 @@ void Gui::drawImportVariablesWindow()
 {
 	static std::unordered_map<std::string, uint32_t> selection;
 	static std::future<bool> refreshThread{};
+	static bool wasPreviouslyOpened = false;
+	static bool shouldUpdateOnOpen = false;
 
 	if (showImportVariablesWindow)
+	{
 		ImGui::OpenPopup("Import Variables");
+		if (!wasPreviouslyOpened)
+			shouldUpdateOnOpen = true;
+	}
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 500 * contentScale), ImGuiCond_Once);
 
 	if (ImGui::BeginPopupModal("Import Variables", &showImportVariablesWindow, 0))
 	{
@@ -31,8 +37,11 @@ void Gui::drawImportVariablesWindow()
 			snprintf(buttonText, 30, "Refresh");
 		}
 
-		if (ImGui::Button(buttonText, ImVec2(-1, 25)))
+		if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || shouldUpdateOnOpen)
+		{
 			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, projectElfPath);
+			shouldUpdateOnOpen = false;
+		}
 
 		static std::string search{};
 		ImGui::Text("search ");
@@ -46,7 +55,7 @@ void Gui::drawImportVariablesWindow()
 		std::string importBtnName{"Import ("};
 		importBtnName += std::to_string(selection.size()) + std::string(")");
 
-		if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 25)))
+		if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 25 * contentScale)))
 		{
 			for (auto& [newName, newAddress] : selection)
 			{
@@ -55,8 +64,9 @@ void Gui::drawImportVariablesWindow()
 			}
 		}
 
-		if (ImGui::Button("Done", ImVec2(-1, 25)))
+		if (ImGui::Button("Done", ImVec2(-1, 25 * contentScale)))
 		{
+			performVariablesUpdate = true;
 			showImportVariablesWindow = false;
 			ImGui::CloseCurrentPopup();
 		}
@@ -65,13 +75,15 @@ void Gui::drawImportVariablesWindow()
 
 		ImGui::EndPopup();
 	}
+
+	wasPreviouslyOpened = showImportVariablesWindow;
 }
 
 void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring)
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
-	if (ImGui::BeginTable("table_scrolly", 2, flags, ImVec2(0.0f, 350)))
+	if (ImGui::BeginTable("table_scrolly", 2, flags, ImVec2(0.0f, 350 * contentScale)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Name", 0);
@@ -80,7 +92,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 
 		for (auto& [name, varData] : importedVars)
 		{
-			if (name.find(substring) == std::string::npos)
+			if (toLower(name).find(toLower(substring)) == std::string::npos)
 				continue;
 
 			ImGui::TableNextRow();
@@ -89,7 +101,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 			const bool item_is_selected = selection.contains(name);
 
 			ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
-			if (ImGui::Selectable(name.c_str(), item_is_selected, selectable_flags, ImVec2(0, 12)))
+			if (ImGui::Selectable(name.c_str(), item_is_selected, selectable_flags, ImVec2(0, 12 * contentScale)))
 			{
 				if (ImGui::GetIO().KeyCtrl)
 				{

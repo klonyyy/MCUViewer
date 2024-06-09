@@ -2,13 +2,17 @@
 #include "../gitversion.hpp"
 #include "Gui.hpp"
 
+#ifdef _WIN32
+#include <shellapi.h>
+#endif
+
 void Gui::drawAboutWindow()
 {
 	if (showAboutWindow)
 		ImGui::OpenPopup("About");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500, 300));
+	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 300 * contentScale));
 	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
 	{
 		drawCenteredText("STMViewer");
@@ -24,18 +28,18 @@ void Gui::drawAboutWindow()
 			ImGui::LogFinish();
 		}
 
-		ImGui::Dummy(ImVec2(-1, 20));
+		ImGui::Dummy(ImVec2(-1, 20 * contentScale));
 		drawCenteredText("by Piotr Wasilewski (klonyyy)");
-		ImGui::Dummy(ImVec2(-1, 20));
+		ImGui::Dummy(ImVec2(-1, 20 * contentScale));
 
-		const float buttonHeight = 25.0f;
+		const float buttonHeight = 25.0f * contentScale;
 
-		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210) / 2.0f);
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210 * contentScale) / 2.0f);
 
-		if (ImGui::Button("Releases", ImVec2(100, buttonHeight)))
+		if (ImGui::Button("Releases", ImVec2(100 * contentScale, buttonHeight)))
 			openWebsite("https://github.com/klonyyy/STMViewer/releases");
 		ImGui::SameLine();
-		if (ImGui::Button("Support <3", ImVec2(100, buttonHeight)))
+		if (ImGui::Button("Support <3", ImVec2(100 * contentScale, buttonHeight)))
 			openWebsite("https://github.com/sponsors/klonyyy");
 
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
@@ -53,13 +57,13 @@ bool Gui::openWebsite(const char* url)
 {
 #ifdef _WIN32
 	ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
-#elif defined _UNIX
+#elif defined(__APPLE__) || defined(_UNIX)
 	const char* browser = getenv("BROWSER");
 	if (browser == NULL)
 		browser = "xdg-open";
 	char command[256];
 	snprintf(command, sizeof(command), "%s %s", browser, url);
-	auto status = system(command);
+	// auto status = system(command);
 #else
 #error "Your system is not supported!"
 #endif

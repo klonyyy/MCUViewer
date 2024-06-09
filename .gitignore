@@ -1,18 +1,10 @@
 build/*
 build_test/*
-.vscode/*
 .cache/*
 src/gitversion.hpp
 
 **/[Dd]ebug/
 **/[Rr]elease/
-
-Project4.cfg
-Project5.cfg
-MD80.cfg
-MD80_copy.cfg
-MD80_older.cfg
-MD80_test.cfg
 
 test/STMViewer_test/.settings/
 
@@ -42,6 +34,5 @@ test/STMViewer_test/.settings/
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app

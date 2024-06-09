@@ -42,7 +42,7 @@ class GdbParser
 	int32_t extractGDBVersionNumber(const std::string&& versionString);
 
    private:
-	static constexpr int32_t gdbMinimumVersion = 120;
+	static constexpr int32_t gdbMinimumVersion = 102;
 	spdlog::logger* logger;
 	std::mutex mtx;
 	std::map<std::string, VariableData> parsedData;

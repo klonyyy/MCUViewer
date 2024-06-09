@@ -1,0 +1,43 @@
+name: "Ask a question, report a bug, request a feature, etc."
+description: "Ask any question, discuss best practices, report a bug, request a feature."
+body:
+  - type: input
+    id: specs_version
+    attributes:
+      label: "Version/Branch:"
+      placeholder: "eg. Version 0.4.0, Branch: main"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: "Operating system:"
+      placeholder: "e.g. Windows 11, Ubuntu 22.04"
+    validations:
+      required: true
+  - type: input
+    id: probe
+    attributes:
+      label: "Debug probe:"
+      placeholder: "e.g. ST-Link V2, ST-Link V3 MINIE, J-Link Ultra"
+    validations:
+      required: true
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: "Details:"
+      value: |
+        **My Issue/Question:**
+
+        Please provide as much context as possible
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "Screenshots/Video:"
+      placeholder: "**Drag files here**
+      
+      Attach screenshots or gif/videos to clarify the context. They often convey useful information that is omitted by the description."
+    validations:
+      required: false

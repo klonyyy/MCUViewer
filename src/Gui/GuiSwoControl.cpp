@@ -1,45 +1,5 @@
 #include "Gui.hpp"
 
-void Gui::drawStartButtonSwo()
-{
-	PlotHandlerBase::state state = tracePlotHandler->getViewerState();
-
-	if (state == PlotHandlerBase::state::RUN)
-	{
-		ImVec4 color = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
-		ImGui::PushStyleColor(ImGuiCol_Button, color);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-	}
-	else if (state == PlotHandlerBase::state::STOP)
-	{
-		ImVec4 color = ImColor::HSV(0.116f, 0.97f, 0.72f);
-
-		if (tracePlotHandler->getLastReaderError() != "")
-			color = ImColor::HSV(0.0f, 0.95f, 0.70f);
-		ImGui::PushStyleColor(ImGuiCol_Button, color);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-	}
-
-	if (ImGui::Button((viewerStateMap.at(state) + " " + tracePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50)))
-	{
-		if (state == PlotHandlerBase::state::STOP)
-		{
-			logger->info("Start trace clicked!");
-			tracePlotHandler->eraseAllPlotData();
-			tracePlotHandler->setViewerState(PlotHandlerBase::state::RUN);
-		}
-		else
-		{
-			logger->info("Stop trace clicked!");
-			tracePlotHandler->setViewerState(PlotHandlerBase::state::STOP);
-		}
-	}
-
-	ImGui::PopStyleColor(3);
-}
-
 void Gui::drawSettingsSwo()
 {
 	ImGui::Dummy(ImVec2(-1, 5));
@@ -98,7 +58,7 @@ void Gui::drawIndicatorsSwo()
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Plots").x) * 0.5f);
 	ImGui::Text("Indicators");
 	ImGui::SameLine();
-	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the ative trace channels.");
+	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the number of active trace channels.");
 	ImGui::Separator();
 
 	auto indicators = tracePlotHandler->getTraceIndicators();
@@ -141,7 +101,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Separator();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-	ImGui::BeginChild("left pane", ImVec2(150, -1), true);
+	ImGui::BeginChild("left pane", ImVec2(150 * contentScale, -1), true);
 
 	auto state = tracePlotHandler->getViewerState();
 	int32_t iter = 0;
@@ -200,7 +160,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Checkbox("##mx0", &mx0);
 	plt->markerX0.setState(mx0);
 	plt->markerX1.setState(mx0);
-	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 * contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();

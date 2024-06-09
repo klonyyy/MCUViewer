@@ -5,14 +5,17 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
 #include <thread>
 #include <unordered_set>
 
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
+#include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
+#include "JlinkHandler.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
@@ -35,25 +38,36 @@ class Gui
 	ConfigHandler* configHandler;
 	std::string projectConfigPath;
 	std::string projectElfPath;
+	std::filesystem::file_time_type lastModifiedTime = std::filesystem::file_time_type::clock::now();
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
 	bool showImportVariablesWindow = false;
+	bool performVariablesUpdate = false;
+
+	float contentScale = 1.0f;
 
 	IFileHandler* fileHandler;
-
 	TracePlotHandler* tracePlotHandler;
+
+	std::shared_ptr<IDebugProbe> stlinkProbe;
+	std::shared_ptr<IDebugProbe> jlinkProbe;
+	std::shared_ptr<IDebugProbe> debugProbeDevice;
+	std::vector<std::string> devicesList{};
+	const std::string noDevices = "No debug probes found!";
 
 	std::atomic<bool>& done;
 
 	Popup popup;
 	Popup acqusitionErrorPopup;
 
-	enum class AcqusitionWindowType : uint8_t
+	enum class ActiveViewType : uint8_t
 	{
-		VARIABLE = 0,
-		TRACE = 1,
+		VarViewer = 0,
+		TraceViewer = 1,
 	};
+
+	ActiveViewType activeView = ActiveViewType::VarViewer;
 
 	std::mutex* mtx;
 
@@ -61,7 +75,8 @@ class Gui
 
 	void mainThread();
 	void drawMenu();
-	void drawStartButton();
+	void drawStartButton(PlotHandlerBase* activePlotHandler);
+	void drawDebugProbes();
 	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
@@ -69,7 +84,7 @@ class Gui
 	void drawAddPlotButton();
 	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
 	void drawPlotsTree();
-	void drawAcqusitionSettingsWindow(AcqusitionWindowType type);
+	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
 	void drawAboutWindow();
 	void drawPreferencesWindow();
@@ -83,6 +98,7 @@ class Gui
 	void drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
 	void handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback);
 	void handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits);
+	void dragAndDropPlot(Plot* plot);
 
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);
@@ -93,8 +109,8 @@ class Gui
 	bool openProject();
 	bool openElfFile();
 	void checkShortcuts();
+	bool checkElfFileChanged();
 
-	void drawStartButtonSwo();
 	void drawSettingsSwo();
 	void drawIndicatorsSwo();
 	void drawPlotsSwo();
@@ -113,11 +129,13 @@ class Gui
 				valueChanged(str);
 	}
 	template <typename T>
-	void drawDescriptionWithNumber(const char* description, T number)
+	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5)
 	{
 		ImGui::Text("%s", description);
 		ImGui::SameLine();
-		ImGui::Text("%s", (std::to_string(number)).c_str());
+		std::ostringstream formattedNum;
+		formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
+		ImGui::Text("%s", (formattedNum.str() + unit).c_str());
 	}
 
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);

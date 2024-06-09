@@ -52,6 +52,8 @@ class Variable
 	bool getIsFound() const;
 	void setIsFound(bool found);
 
+	uint8_t getSize();
+
    private:
 	std::string name;
 	type varType;
