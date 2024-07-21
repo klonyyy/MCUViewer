@@ -15,6 +15,7 @@ class StlinkHandler : public IDebugProbe
 	bool startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) override;
 	bool stopAcqusition() override;
 	bool isValid() const override;
+	std::string getTargetName() override {return std::string();} 
 
 	std::optional<IDebugProbe::varEntryType> readSingleEntry() override;
 	bool readMemory(uint32_t address, uint32_t* value) override;

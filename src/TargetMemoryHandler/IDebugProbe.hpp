@@ -36,6 +36,7 @@ class IDebugProbe
 	virtual bool startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) = 0;
 	virtual bool stopAcqusition() = 0;
 	virtual bool isValid() const = 0;
+	virtual std::string getTargetName() = 0;
 
 	/* only HSS mode */
 	virtual std::optional<varEntryType> readSingleEntry() = 0;

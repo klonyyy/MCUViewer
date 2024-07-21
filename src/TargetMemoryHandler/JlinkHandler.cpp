@@ -118,6 +118,19 @@ bool JlinkHandler::isValid() const
 	return isRunning;
 }
 
+std::string JlinkHandler::getTargetName()
+{
+	JLINKARM_DEVICE_SELECT_INFO info;
+	info.SizeOfStruct = sizeof(JLINKARM_DEVICE_SELECT_INFO);
+	int32_t index = JLINKARM_DEVICE_SelectDialog(NULL, 0, &info);
+
+	JLINKARM_DEVICE_INFO devInfo{};
+	devInfo.SizeOfStruct = sizeof(JLINKARM_DEVICE_INFO);
+	JLINKARM_DEVICE_GetInfo(index, &devInfo);
+
+	return devInfo.sName ? std::string(devInfo.sName) : std::string();
+}
+
 std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 {
 	uint8_t rawBuffer[16384]{};

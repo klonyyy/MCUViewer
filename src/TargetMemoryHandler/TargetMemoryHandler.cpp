@@ -153,3 +153,9 @@ void TargetMemoryHandler::changeDevice(std::shared_ptr<IDebugProbe> newProbe)
 	std::lock_guard<std::mutex> lock(mtx);
 	probe = newProbe;
 }
+
+std::string TargetMemoryHandler::getTargetName()
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->getTargetName();
+}

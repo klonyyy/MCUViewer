@@ -382,6 +382,12 @@ void Gui::drawDebugProbes()
 			modified = true;
 
 		ImGui::SameLine();
+		if (ImGui::Button("#", ImVec2(35 * contentScale, 19 * contentScale)))
+		{
+			probeSettings.device = debugProbeDevice->getTargetName();
+			modified = true;
+		}
+		ImGui::SameLine();
 		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
 
 		ImGui::Text("Mode:                              ");
@@ -1173,7 +1179,7 @@ bool Gui::openElfFile()
 	if (path != "")
 	{
 		std::filesystem::path relPath = std::filesystem::relative(path, std::filesystem::path(projectConfigPath).parent_path());
-        projectElfPath = relPath.string();
+		projectElfPath = relPath.string();
 		logger->info("Project elf file path: {}", projectElfPath);
 		return true;
 	}
@@ -1181,21 +1187,21 @@ bool Gui::openElfFile()
 }
 
 std::string Gui::convertProjectPathToAbsolute(const std::string& relativePath)
-{	
+{
 	if (relativePath.empty())
 		return "";
 
 	try
 	{
-        // Convert relative path to absolute path based on project file location
-        std::filesystem::path absPath = std::filesystem::absolute(std::filesystem::path(projectConfigPath).parent_path() / relativePath);
-        return absPath.string();
-    }
-    catch (std::filesystem::filesystem_error& e)
-    {
-        logger->error("Failed to convert path to absolute: {}", e.what());
-        return "";
-    }
+		// Convert relative path to absolute path based on project file location
+		std::filesystem::path absPath = std::filesystem::absolute(std::filesystem::path(projectConfigPath).parent_path() / relativePath);
+		return absPath.string();
+	}
+	catch (std::filesystem::filesystem_error& e)
+	{
+		logger->error("Failed to convert path to absolute: {}", e.what());
+		return "";
+	}
 }
 
 void Gui::checkShortcuts()

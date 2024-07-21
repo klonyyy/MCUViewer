@@ -60,6 +60,8 @@
 #define JLINKARM_TIF_JTAG 0
 #define JLINKARM_TIF_SWD  1
 
+#define JLINKARM_DEVICE_MAX_NUM_FLASH_BANKS 16
+
 #if defined(__cplusplus)
 extern "C"
 {  // Make sure we have C-declarations in C++ programs
@@ -89,11 +91,103 @@ extern "C"
 
 	typedef struct
 	{
+		uint32_t SizeOfStruct;	// Required. Use SizeofStruct = sizeof(JLINKARM_DEVICE_SELECT_INFO)
+		uint32_t CoreIndex;
+	} JLINKARM_DEVICE_SELECT_INFO;
+
+	typedef struct
+	{
 		uint32_t Addr;
 		uint32_t NumBytes;
 		uint32_t Flags;	 // Future use. SBZ.
 		uint32_t Dummy;	 // Future use. SBZ.
 	} JLINK_HSS_MEM_BLOCK_DESC;
+
+	typedef struct
+	{
+		//
+		// Needed for algos that are implemented via RAMCode + PCode or PCode only
+		// For these algos, pAlgoInfo is == NULL and needs to be constructed at runtime
+		//
+		const void* pRAMCodeTurbo_LE;
+		const void* pRAMCodeTurbo_BE;
+		const void* pRAMCode_LE;
+		const void* pRAMCode_BE;
+		uint32_t SizeRAMCodeTurbo_LE;
+		uint32_t SizeRAMCodeTurbo_BE;
+		uint32_t SizeRAMCode_LE;
+		uint32_t SizeRAMCode_BE;
+		const void* pPCode;	 // PCode for flash bank
+		uint32_t SizePCode;
+	} JLINK_FLASH_BANK_INFO_EXT;
+
+	typedef struct
+	{
+		uint32_t Addr;
+		uint32_t Size;
+	} JLINK_FLASH_AREA_INFO;
+
+	typedef struct
+	{
+		uint32_t Addr;
+		uint32_t Size;
+	} JLINK_RAM_AREA_INFO;
+
+	typedef struct
+	{
+		const char* sBankName;
+		const char* sAlgoFile;
+		uint32_t AlgoType;	// Really of type MAIN_FLASH_ALGO_TYPE but to avoid mutual inclusion, we choose U32 here for now...
+		uint32_t BaseAddr;
+		const void* paBlockInfo;  // For some algos, e.g. for SPIFI, this is just a default block info that may vary from target to target, so we need to request the actual one from the target via the RAMCode, at runtime
+		const void* pAlgoInfo;
+	} JLINK_FLASH_BANK_INFO;
+
+	typedef struct
+	{
+		const uint8_t* pPCode;	// Pointer to PCode.
+		uint32_t NumBytes;		// Length of PCode in bytes.
+	} JLINK_PCODE_INFO;
+
+	typedef JLINK_FLASH_AREA_INFO FLASH_AREA_INFO;
+	typedef JLINK_RAM_AREA_INFO RAM_AREA_INFO;
+
+	typedef struct
+	{
+		//
+		// IMPORTANT!!!!:
+		// New elements must be added at the end of the struct.
+		// Otherwise, positions of existing elements in the struct would change and make the API binary incompatible.
+		//
+		uint32_t SizeOfStruct;	// Required. Use SizeofStruct = sizeof(JLINKARM_DEVICE_INFO)
+		const char* sName;
+		uint32_t CoreId;
+		uint32_t FlashAddr;														// Start address of first flash area
+		uint32_t RAMAddr;														// Start address of first RAM area
+		char EndianMode;														// 0=Little, 1=Big, 2=Both
+		uint32_t FlashSize;														// Total flash size in bytes (flash may contain gaps. For exact address & size of each region, please refer to aFlashArea)
+		uint32_t RAMSize;														// Total RAM size in bytes  (RAM may contain gaps. For exact address & size of each region, please refer to aRAMArea)
+		const char* sManu;														// Device manufacturer
+		JLINK_FLASH_AREA_INFO aFlashArea[32];									// Region size of 0 bytes marks the end of the list
+		JLINK_RAM_AREA_INFO aRAMArea[32];										// Region size of 0 bytes marks the end of the list
+		uint32_t Core;															// JLINKARM_CORE_... value
+		JLINK_FLASH_BANK_INFO aFlashBank[JLINKARM_DEVICE_MAX_NUM_FLASH_BANKS];	// Only interesting for J-Flash. Other applications can safely ignore this
+		JLINK_PCODE_INFO aPCodes[10];											// Only interesting for J-Flash. Other applications can safely ignore this. Currently, we support 5 different PCodes. We have allocated 5 elements as buffer for future versions.
+		//
+		// Available since extension for Flash banks without direct algo info linking
+		//
+		JLINK_FLASH_BANK_INFO_EXT aFlashBankExt[JLINKARM_DEVICE_MAX_NUM_FLASH_BANKS];  // Only interesting for J-Flash. Other applications can safely ignore this
+		const char* sNote;															   // Contains a link to a device specific wiki article (if available). Can be used as additional user / display information.
+		const char* sDeviceFamily;													   // The device family of a specific device is not fixed and may change. Can be used as additional user / display information.
+		//
+		// Supported since V7.68.
+		//
+		uint32_t Flags;	 // Contains flags like "3rd party support"
+		//
+		// Supported since V7.88g
+		//
+		const char* sJLinkScriptFile;  // Path to J-Link Script file associated with this device
+	} JLINKARM_DEVICE_INFO;
 
 	const char* JLINKARM_Open(void);
 	void JLINKARM_Close(void);
@@ -107,6 +201,8 @@ extern "C"
 	int32_t JLINKARM_TIF_Select(int32_t int32_terface);
 	void JLINKARM_SetSpeed(uint32_t Speed);
 	uint16_t JLINKARM_GetSpeed(void);
+	int32_t JLINKARM_DEVICE_SelectDialog(void* hParent, uint32_t Flags, JLINKARM_DEVICE_SELECT_INFO* pInfo);
+	int32_t JLINKARM_DEVICE_GetInfo(int32_t DeviceIndex, JLINKARM_DEVICE_INFO* pDeviceInfo);
 
 	int32_t JLINK_HSS_Start(JLINK_HSS_MEM_BLOCK_DESC* paDesc, int32_t NumBlocks, int32_t Period_us, int32_t Flags);
 	int32_t JLINK_HSS_Stop(void);

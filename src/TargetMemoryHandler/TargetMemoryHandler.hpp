@@ -20,12 +20,13 @@ class TargetMemoryHandler
 
 	double getValue(uint32_t address, Variable::type type, bool& result);
 	double castToProperType(uint32_t value, Variable::type type);
-	
+
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;
 
 	std::vector<std::string> getConnectedDevices() const;
 	void changeDevice(std::shared_ptr<IDebugProbe> newProbe);
+	std::string getTargetName();
 
    private:
 	mutable std::mutex mtx;
