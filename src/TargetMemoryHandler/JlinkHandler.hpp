@@ -32,6 +32,7 @@ class JlinkHandler : public IDebugProbe
 	static constexpr size_t maxVariables = 100;
 	static constexpr size_t fifoSize = 2000;
 	static constexpr uint32_t maxSpeedkHz = 50000;
+	static constexpr double timestampResolution = 1e-6;
 
 	JLINK_HSS_MEM_BLOCK_DESC variableDesc[maxVariables]{};
 	size_t trackedVarsCount = 0;

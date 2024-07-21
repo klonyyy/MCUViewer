@@ -78,7 +78,7 @@ bool JlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std:
 	if (samplingFreqency < 1)
 		samplingFreqency = 1;
 
-	uint32_t samplePeriodUs = 1000000 / samplingFreqency;
+	uint32_t samplePeriodUs = 1.0 / (samplingFreqency * timestampResolution);
 	int32_t result = JLINK_HSS_Start(variableDesc, trackedVarsCount, samplePeriodUs, JLINK_HSS_FLAG_TIMESTAMP_US);
 
 	if (result >= 0)
@@ -129,7 +129,7 @@ std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 		varEntryType entry{};
 
 		/* timestamp */
-		entry.first = (*(uint32_t*)&rawBuffer[i]) / 1000000.0;
+		entry.first = (*(uint32_t*)&rawBuffer[i]) * timestampResolution;
 
 		int32_t k = i + 4;
 		for (size_t j = 0; j < trackedVarsCount; j++)
