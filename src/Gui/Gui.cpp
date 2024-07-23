@@ -314,6 +314,7 @@ void Gui::drawDebugProbes()
 	static int SNptr = 0;
 	bool modified = false;
 
+	ImGui::PushID("DebugProbes");
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Debug Probe");
 	ImGui::SameLine();
@@ -382,13 +383,11 @@ void Gui::drawDebugProbes()
 			modified = true;
 
 		ImGui::SameLine();
-		if (ImGui::Button("#", ImVec2(35 * contentScale, 19 * contentScale)))
+		if (ImGui::Button("...", ImVec2(35 * contentScale, 19 * contentScale)))
 		{
 			probeSettings.device = debugProbeDevice->getTargetName();
 			modified = true;
 		}
-		ImGui::SameLine();
-		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
 
 		ImGui::Text("Mode:                              ");
 		ImGui::SameLine();
@@ -416,6 +415,7 @@ void Gui::drawDebugProbes()
 		plotHandler->setProbeSettings(probeSettings);
 		plotHandler->setDebugProbe(debugProbeDevice);
 	}
+	ImGui::PopID();
 }
 
 void Gui::addNewVariable(const std::string& newName)
