@@ -1179,7 +1179,11 @@ bool Gui::openElfFile()
 	if (path != "")
 	{
 		std::filesystem::path relPath = std::filesystem::relative(path, std::filesystem::path(projectConfigPath).parent_path());
-		projectElfPath = relPath.string();
+		if (relPath != "")
+			projectElfPath = relPath.string();
+		else
+			projectElfPath = path;
+
 		logger->info("Project elf file path: {}", projectElfPath);
 		return true;
 	}
