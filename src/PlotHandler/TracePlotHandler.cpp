@@ -8,8 +8,7 @@
 
 TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
-	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
-	traceReader = std::make_unique<TraceReader>(traceDevice.get(), logger);
+	traceReader = std::make_unique<TraceReader>(logger);
 	initPlots();
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 }
@@ -85,6 +84,21 @@ void TracePlotHandler::setTriggerChannel(int32_t triggerChannel)
 int32_t TracePlotHandler::getTriggerChannel() const
 {
 	return traceSettings.triggerChannel;
+}
+
+void TracePlotHandler::setDebugProbe(std::shared_ptr<ITraceDevice> probe)
+{
+	traceReader->changeDevice(probe);
+}
+
+ITraceDevice::TraceProbeSettings TracePlotHandler::getProbeSettings() const
+{
+	return probeSettings;
+}
+
+void TracePlotHandler::setProbeSettings(const ITraceDevice::TraceProbeSettings& settings)
+{
+	probeSettings = settings;
 }
 
 double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)

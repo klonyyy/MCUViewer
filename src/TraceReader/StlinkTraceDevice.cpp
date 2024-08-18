@@ -87,3 +87,28 @@ int32_t StlinkTraceDevice::readTraceBuffer(uint8_t* buffer, uint32_t size)
 
 	return stlink_trace_read(sl, buffer, size);
 }
+
+std::vector<std::string> StlinkTraceDevice::getConnectedDevices()
+{
+	stlink_t** stdevs;
+	uint32_t size;
+
+	size = stlink_probe_usb(&stdevs, CONNECT_HOT_PLUG, 24000);
+
+	std::vector<std::string> deviceIDs;
+
+	for (size_t i = 0; i < size; i++)
+	{
+		std::string serialNumber{stdevs[i]->serial};
+
+		if (!serialNumber.empty())
+		{
+			logger->info("STLink serial number {}", serialNumber);
+			deviceIDs.push_back(serialNumber);
+		}
+	}
+
+	stlink_probe_usb_free(&stdevs, size);
+
+	return deviceIDs;
+}

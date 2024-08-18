@@ -16,6 +16,7 @@
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
 #include "JlinkHandler.hpp"
+#include "JlinkTraceDevice.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
@@ -56,6 +57,10 @@ class Gui
 	std::vector<std::string> devicesList{};
 	const std::string noDevices = "No debug probes found!";
 
+	std::shared_ptr<ITraceDevice> stlinkTraceProbe;
+	std::shared_ptr<ITraceDevice> jlinkTraceProbe;
+	std::shared_ptr<ITraceDevice> traceProbeDevice;
+
 	std::atomic<bool>& done;
 
 	Popup popup;
@@ -77,6 +82,7 @@ class Gui
 	void drawMenu();
 	void drawStartButton(PlotHandlerBase* activePlotHandler);
 	void drawDebugProbes();
+	void drawTraceProbes();
 	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();

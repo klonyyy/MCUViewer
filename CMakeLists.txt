@@ -20,7 +20,7 @@ project(STMViewer)
 
 set(STMVIEWER_VERSION 0.5.1)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -122,6 +122,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceDevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JLinkTraceDevice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp)
 
 set(IMGUI_SOURCES

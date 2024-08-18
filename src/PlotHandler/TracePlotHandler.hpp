@@ -43,6 +43,11 @@ class TracePlotHandler : public PlotHandlerBase
 
 	void setTriggerChannel(int32_t triggerChannel);
 	int32_t getTriggerChannel() const;
+
+	void setDebugProbe(std::shared_ptr<ITraceDevice> probe);
+	ITraceDevice::TraceProbeSettings getProbeSettings() const;
+	void setProbeSettings(const ITraceDevice::TraceProbeSettings& settings);
+
 	double getDoubleValue(const Plot& plot, uint32_t value);
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 
@@ -85,13 +90,14 @@ class TracePlotHandler : public PlotHandlerBase
 	};
 
 	Settings traceSettings{};
-	std::unique_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
 
 	MarkerTimestamps errorFrames{};
 	MarkerTimestamps delayed3Frames{};
 
 	std::string lastErrorMsg{};
+
+	ITraceDevice::TraceProbeSettings probeSettings;
 
 	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;

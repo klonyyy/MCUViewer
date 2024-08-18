@@ -26,7 +26,7 @@ class TraceReader
 		uint32_t sleepCycles;
 	};
 
-	TraceReader(ITraceDevice* traceDevice, spdlog::logger* logger);
+	TraceReader(spdlog::logger* logger);
 
 	bool startAcqusition(const std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
@@ -42,6 +42,11 @@ class TraceReader
 	uint32_t getTraceFrequency() const;
 	void setTraceShouldReset(bool shouldReset);
 	void setTraceTimeout(uint32_t timeout);
+
+	std::vector<std::string> getConnectedDevices() const;
+	void changeDevice(std::shared_ptr<ITraceDevice> newTraceDevice);
+	std::string getTargetName();
+
 	TraceIndicators getTraceIndicators() const;
 
    private:
@@ -85,8 +90,10 @@ class TraceReader
 	std::array<uint32_t, channels> previousEntry{};
 	RingBuffer<std::pair<std::array<uint32_t, channels>, double>, 2000> traceTable;
 	std::thread readerHandle;
-	ITraceDevice* traceDevice;
+
+	std::shared_ptr<ITraceDevice> traceDevice;
 	spdlog::logger* logger;
+	mutable std::mutex mtx;
 
 	TraceState updateTraceIdle(uint8_t c);
 	TraceState updateTrace(uint8_t c);

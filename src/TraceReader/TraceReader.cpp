@@ -17,9 +17,8 @@
 #define TRACE_TIMEOUT_3				   0xF0
 #define TRACE_OP_IS_EXTENSION(c)	   ((c & 0x0b) == 0x08)
 
-TraceReader::TraceReader(ITraceDevice* traceDevice, spdlog::logger* logger) : traceDevice(traceDevice), logger(logger)
+TraceReader::TraceReader(spdlog::logger* logger) : logger(logger)
 {
-	
 }
 
 bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
@@ -112,6 +111,24 @@ void TraceReader::setTraceShouldReset(bool shouldReset)
 void TraceReader::setTraceTimeout(uint32_t timeout)
 {
 	traceTimeout = timeout;
+}
+
+std::vector<std::string> TraceReader::getConnectedDevices() const
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return traceDevice->getConnectedDevices();
+}
+
+void TraceReader::changeDevice(std::shared_ptr<ITraceDevice> newTraceDevice)
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	traceDevice = newTraceDevice;
+}
+
+std::string TraceReader::getTargetName()
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return traceDevice->getTargetName();
 }
 
 TraceReader::TraceIndicators TraceReader::getTraceIndicators() const
