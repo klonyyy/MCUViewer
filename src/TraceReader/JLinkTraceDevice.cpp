@@ -18,13 +18,68 @@ bool JLinkTraceDevice::stopTrace()
 
 bool JLinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
-	logger->info("Starting reader thread!");
+	int serialNumberInt = 506003225;
+	std::string lastErrorMsg = "";
+
+	if (JLINKARM_EMU_SelectByUSBSN(serialNumberInt) < 0)
+	{
+		lastErrorMsg = "Could not connect to the selected probe";
+		return false;
+	}
+
+	const char* error = JLINKARM_Open();
+
+	if (error != 0)
+		logger->error(error);
+
+	/* try to set maximum possible speed TODO: not always a good thing */
+	JLINKARM_SetSpeed(10000);
+	logger->info("J-Link speed set to: {}", JLINKARM_GetSpeed());
+
+	/* select interface - SWD only for now */
+	JLINKARM_TIF_Select(JLINKARM_TIF_SWD);
+
+	/* set the desired target */
+	char acOut[256];
+	auto deviceCmd = "Device = STM32G474CC";  //+ probeSettings.device;
+	JLINKARM_ExecCommand(deviceCmd, acOut, sizeof(acOut));
+
+	if (acOut[0] != 0)
+		logger->error(acOut);
+
+	/* try to connect to target */
+	if (JLINKARM_Connect() < 0)
+	{
+		lastErrorMsg = "Could not connect to the target!";
+		logger->error(lastErrorMsg);
+		JLINKARM_Close();
+		return false;
+	}
+
+	uint32_t aSWOSpeed[50];
+	uint32_t traceFrequency = coreFrequency / (tracePrescaler + 1);
+
+	// JLINKARM_SWO_GetCompatibleSpeeds(coreFrequency, 0, &aSWOSpeed[0], 50);
+	JLINKARM_SWO_Config("TSEnable=1");
+
+	int32_t result = JLINKARM_SWO_EnableTarget(coreFrequency, traceFrequency, JLINKARM_SWO_IF_UART, activeChannelMask);
+
+	if (result == 0)
+	{
+		logger->info("Starting Jlink reader thread!");
+		return true;
+	}
+
+	logger->info("Error starting Jlink reader thread! Error code {}", result);
 	return true;
 }
 
 int32_t JLinkTraceDevice::readTraceBuffer(uint8_t* buffer, uint32_t size)
 {
-	return -1;
+	/* TODO error handling of these two functions? */
+	JLINKARM_SWO_Read(buffer, 0, &size);
+	JLINKARM_SWO_Control(JLINKARM_SWO_CMD_FLUSH, &size);
+	return size;
 }
 
 std::string JLinkTraceDevice::getTargetName()

@@ -62,6 +62,26 @@
 
 #define JLINKARM_DEVICE_MAX_NUM_FLASH_BANKS 16
 
+/*********************************************************************
+ *
+ *       SWO Commands
+ */
+#define JLINKARM_SWO_CMD_START				 0	// Parameter: JLINKARM_SWO_START_INFO *
+#define JLINKARM_SWO_CMD_STOP				 1
+#define JLINKARM_SWO_CMD_FLUSH				 2	// Parameter: U32* Number of bytes to flush
+#define JLINKARM_SWO_CMD_GET_SPEED_INFO		 3
+#define JLINKARM_SWO_CMD_GET_NUM_BYTES		 10
+#define JLINKARM_SWO_CMD_SET_BUFFERSIZE_HOST 20
+#define JLINKARM_SWO_CMD_SET_BUFFERSIZE_EMU	 21
+
+/*********************************************************************
+ *
+ *       SWO Interfaces
+ */
+#define JLINKARM_SWO_IF_UART	   0
+#define JLINKARM_SWO_IF_MANCHESTER 1  // Not supported in current version
+#define JLINKARM_SWO_IF_TRACE	   2  // Only used internally, in case SWO ITM data is merged into trace stream
+
 #if defined(__cplusplus)
 extern "C"
 {  // Make sure we have C-declarations in C++ programs
@@ -207,6 +227,14 @@ extern "C"
 	int32_t JLINK_HSS_Start(JLINK_HSS_MEM_BLOCK_DESC* paDesc, int32_t NumBlocks, int32_t Period_us, int32_t Flags);
 	int32_t JLINK_HSS_Stop(void);
 	int32_t JLINK_HSS_Read(void* pBuffer, uint32_t BufferSize);
+
+	int32_t JLINKARM_SWO_Control(uint32_t Cmd, void* pData);
+
+	int32_t JLINKARM_SWO_Config(const char* sConfig);
+	int32_t JLINKARM_SWO_DisableTarget(uint32_t PortMask);
+	int32_t JLINKARM_SWO_EnableTarget(uint32_t CPUSpeed, uint32_t SWOSpeed, int32_t Mode, uint32_t PortMask);
+	int32_t JLINKARM_SWO_GetCompatibleSpeeds(uint32_t CPUSpeed, uint32_t MaxSWOSpeed, uint32_t* paSWOSpeed, uint32_t NumEntries);
+	int32_t JLINKARM_SWO_Read(uint8_t* pData, uint32_t Offset, uint32_t* pNumBytes);
 
 #if defined(__cplusplus)
 } /* Make sure we have C-declarations in C++ programs */
