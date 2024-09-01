@@ -24,9 +24,9 @@ bool StlinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool StlinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
+bool StlinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
-	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, 24000);
+	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, probeSettings.speedkHz);
 
 	if (sl == nullptr)
 	{

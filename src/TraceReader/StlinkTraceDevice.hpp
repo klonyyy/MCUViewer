@@ -11,7 +11,7 @@ class StlinkTraceDevice : public ITraceDevice
 {
    public:
 	explicit StlinkTraceDevice(spdlog::logger* logger);
-	bool startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) override;
+	bool startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) override;
 	bool stopTrace() override;
 	int32_t readTraceBuffer(uint8_t* buffer, uint32_t size) override;
 

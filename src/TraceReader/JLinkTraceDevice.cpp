@@ -16,9 +16,9 @@ bool JLinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool JLinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
+bool JLinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
-	int serialNumberInt = 506003225;
+	int32_t serialNumberInt = std::atoi(probeSettings.serialNumber.c_str());
 	std::string lastErrorMsg = "";
 
 	if (JLINKARM_EMU_SelectByUSBSN(serialNumberInt) < 0)
@@ -33,7 +33,7 @@ bool JLinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescale
 		logger->error(error);
 
 	/* try to set maximum possible speed TODO: not always a good thing */
-	JLINKARM_SetSpeed(10000);
+	JLINKARM_SetSpeed(probeSettings.speedkHz > maxSpeedkHz ? maxSpeedkHz : probeSettings.speedkHz);
 	logger->info("J-Link speed set to: {}", JLINKARM_GetSpeed());
 
 	/* select interface - SWD only for now */
@@ -41,8 +41,8 @@ bool JLinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescale
 
 	/* set the desired target */
 	char acOut[256];
-	auto deviceCmd = "Device = STM32G474CC";  //+ probeSettings.device;
-	JLINKARM_ExecCommand(deviceCmd, acOut, sizeof(acOut));
+	auto deviceCmd = "Device =" + probeSettings.device;
+	JLINKARM_ExecCommand(deviceCmd.c_str(), acOut, sizeof(acOut));
 
 	if (acOut[0] != 0)
 		logger->error(acOut);
@@ -56,12 +56,11 @@ bool JLinkTraceDevice::startTrace(uint32_t coreFrequency, uint32_t tracePrescale
 		return false;
 	}
 
-	uint32_t aSWOSpeed[50];
-	uint32_t traceFrequency = coreFrequency / (tracePrescaler + 1);
-
-	// JLINKARM_SWO_GetCompatibleSpeeds(coreFrequency, 0, &aSWOSpeed[0], 50);
+	/* turn on relative timestamping */
 	JLINKARM_SWO_Config("TSEnable=1");
 
+	/* calculate SWO speed */
+	const uint32_t traceFrequency = coreFrequency / (tracePrescaler + 1);
 	int32_t result = JLINKARM_SWO_EnableTarget(coreFrequency, traceFrequency, JLINKARM_SWO_IF_UART, activeChannelMask);
 
 	if (result == 0)

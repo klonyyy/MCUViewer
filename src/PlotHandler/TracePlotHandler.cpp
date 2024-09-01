@@ -227,7 +227,7 @@ void TracePlotHandler::dataHandler()
 				delayed3Frames.reset();
 				lastErrorMsg = "";
 
-				if (traceReader->startAcqusition(activeChannels))
+				if (traceReader->startAcqusition(probeSettings, activeChannels))
 					time = 0;
 				else
 					viewerState = state::STOP;

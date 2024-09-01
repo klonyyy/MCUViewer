@@ -436,7 +436,7 @@ void Gui::drawTraceProbes()
 	ImGui::HelpMarker("Select the debug probe type and the serial number of the probe to unlock the START button.");
 	ImGui::Separator();
 
-	ImGui::Text("Debug probe:                       ");
+	ImGui::Text("Debug probe:           ");
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
@@ -460,7 +460,7 @@ void Gui::drawTraceProbes()
 		}
 		SNptr = 0;
 	}
-	ImGui::Text("Debug probe S/N:                   ");
+	ImGui::Text("Debug probe S/N:       ");
 	ImGui::SameLine();
 
 	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
@@ -483,7 +483,7 @@ void Gui::drawTraceProbes()
 		shouldListDevices = false;
 	}
 
-	ImGui::Text("SWD speed [kHz]:                   ");
+	ImGui::Text("SWD speed [kHz]:       ");
 	ImGui::SameLine();
 
 	if (ImGui::InputScalar("##speed", ImGuiDataType_U32, &probeSettings.speedkHz, NULL, NULL, "%u"))
@@ -1101,21 +1101,21 @@ void Gui::acqusitionSettingsTrace()
 {
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
 
-	ImGui::Text("Max points:           ");
+	ImGui::Text("Max points:            ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	settings.maxPoints = std::clamp(settings.maxPoints, static_cast<uint32_t>(100), static_cast<uint32_t>(20000));
 
-	ImGui::Text("Viewport width [%]:   ");
+	ImGui::Text("Viewport width [%%]:    ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
 	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
-	ImGui::Text("Timeout [s]:          ");
+	ImGui::Text("Timeout [s]:           ");
 	ImGui::SameLine();
 	ImGui::InputScalar("##timeout", ImGuiDataType_U32, &settings.timeout, NULL, NULL, "%u");
 	ImGui::SameLine();

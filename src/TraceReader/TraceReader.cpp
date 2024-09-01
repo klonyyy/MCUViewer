@@ -21,7 +21,7 @@ TraceReader::TraceReader(spdlog::logger* logger) : logger(logger)
 {
 }
 
-bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
+bool TraceReader::startAcqusition(const ITraceDevice::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels)
 {
 	traceIndicators = {};
 
@@ -40,7 +40,7 @@ bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
 		return false;
 	}
 
-	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
+	if (traceDevice->startTrace(probeSettings, coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
 	{
 		lastErrorMsg = "";
 		isRunning = true;

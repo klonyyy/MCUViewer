@@ -11,7 +11,7 @@ class JLinkTraceDevice : public ITraceDevice
 {
    public:
 	explicit JLinkTraceDevice(spdlog::logger* logger);
-	bool startTrace(uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) override;
+	bool startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) override;
 	bool stopTrace() override;
 	int32_t readTraceBuffer(uint8_t* buffer, uint32_t size) override;
 
@@ -19,6 +19,7 @@ class JLinkTraceDevice : public ITraceDevice
 	std::vector<std::string> getConnectedDevices() override;
 
    private:
+	static constexpr uint32_t maxSpeedkHz = 50000;
 	static constexpr size_t maxDevices = 10;
 	spdlog::logger* logger;
 };

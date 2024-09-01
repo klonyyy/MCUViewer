@@ -28,7 +28,7 @@ class TraceReader
 
 	TraceReader(spdlog::logger* logger);
 
-	bool startAcqusition(const std::array<bool, 32>& activeChannels);
+	bool startAcqusition(const ITraceDevice::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
 	bool isValid() const;
 
