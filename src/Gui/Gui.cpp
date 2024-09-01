@@ -962,7 +962,7 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Maximum sampling frequency. Depending on the used debug probe it can be reached or not.");
-	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, static_cast<uint32_t>(1), static_cast<uint32_t>(10000));
+	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, PlotHandler::minSamplinFrequencyHz, PlotHandler::maxSamplinFrequencyHz);
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;

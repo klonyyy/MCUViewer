@@ -19,6 +19,8 @@
 class PlotHandler : public PlotHandlerBase
 {
    public:
+	static constexpr uint32_t minSamplinFrequencyHz = 1;
+	static constexpr uint32_t maxSamplinFrequencyHz = 1000000;
 	typedef struct Settings
 	{
 		uint32_t sampleFrequencyHz = 100;
