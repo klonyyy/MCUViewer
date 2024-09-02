@@ -30,7 +30,7 @@ Note: currently only STLink debug probe is supported. JLink support is in progre
 
 ## Installation
 
-### Linux: 
+### Linux:
 1. First make sure you've got GDB installed and that it's at least 12.1.
 2. Download the *.deb package and install it using:
 `sudo apt install ./STMViewer-x.y.z-Linux.deb`
