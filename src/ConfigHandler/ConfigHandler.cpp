@@ -23,7 +23,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 {
 	PlotHandler::Settings viewerSettings{};
 	TracePlotHandler::Settings traceSettings{};
-	IDebugProbe::DebugProbeSettings probeSettings{};
+	IDebugProbe::DebugProbeSettings debugProbeSettings{};
+	ITraceDevice::TraceProbeSettings traceProbeSettings{};
 
 	if (!file->read(*ini))
 		return false;
@@ -55,11 +56,11 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("settings", "max_viewport_points", viewerSettings.maxViewportPoints);
 	getValue("settings", "stop_acq_on_elf_change", viewerSettings.stopAcqusitionOnElfChange);
 	getValue("settings", "refresh_on_elf_change", viewerSettings.refreshAddressesOnElfChange);
-	getValue("settings", "probe_type", probeSettings.debugProbe);
-	probeSettings.device = ini->get("settings").get("target_name");
-	getValue("settings", "probe_mode", probeSettings.mode);
-	getValue("settings", "probe_speed_kHz", probeSettings.speedkHz);
-	probeSettings.serialNumber = ini->get("settings").get("probe_SN");
+	getValue("settings", "probe_type", debugProbeSettings.debugProbe);
+	debugProbeSettings.device = ini->get("settings").get("target_name");
+	getValue("settings", "probe_mode", debugProbeSettings.mode);
+	getValue("settings", "probe_speed_kHz", debugProbeSettings.speedkHz);
+	debugProbeSettings.serialNumber = ini->get("settings").get("probe_SN");
 
 	getValue("trace_settings", "core_frequency", traceSettings.coreFrequency);
 	getValue("trace_settings", "trace_prescaler", traceSettings.tracePrescaler);
@@ -68,6 +69,10 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("trace_settings", "trigger_channel", traceSettings.triggerChannel);
 	getValue("trace_settings", "trigger_level", traceSettings.triggerLevel);
 	getValue("trace_settings", "timeout", traceSettings.timeout);
+	getValue("trace_settings", "probe_type", traceProbeSettings.debugProbe);
+	traceProbeSettings.device = ini->get("trace_settings").get("target_name");
+	getValue("trace_settings", "probe_speed_kHz", traceProbeSettings.speedkHz);
+	traceProbeSettings.serialNumber = ini->get("trace_settings").get("probe_SN");
 
 	/* TODO magic numbers (lots of them)! */
 	if (traceSettings.timeout == 0)
@@ -91,8 +96,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	if (viewerSettings.maxViewportPoints == 0)
 		viewerSettings.maxViewportPoints = viewerSettings.maxPoints;
 
-	if (probeSettings.speedkHz == 0)
-		probeSettings.speedkHz = 100;
+	if (debugProbeSettings.speedkHz == 0)
+		debugProbeSettings.speedkHz = 100;
 
 	while (!name.empty())
 	{
@@ -191,9 +196,11 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		plotNumber++;
 	}
 
-	tracePlotHandler->setSettings(traceSettings);
 	plotHandler->setSettings(viewerSettings);
-	plotHandler->setProbeSettings(probeSettings);
+	plotHandler->setProbeSettings(debugProbeSettings);
+
+	tracePlotHandler->setSettings(traceSettings);
+	tracePlotHandler->setProbeSettings(traceProbeSettings);
 
 	return true;
 }
@@ -202,7 +209,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
-	IDebugProbe::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
+	IDebugProbe::DebugProbeSettings debugProbeSettings = plotHandler->getProbeSettings();
+	ITraceDevice::TraceProbeSettings traceProbeSettings = tracePlotHandler->getProbeSettings();
 
 	(*ini).clear();
 
@@ -224,11 +232,11 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
 	(*ini)["settings"]["refresh_on_elf_change"] = viewerSettings.refreshAddressesOnElfChange ? std::string("true") : std::string("false");
 	(*ini)["settings"]["stop_acq_on_elf_change"] = viewerSettings.stopAcqusitionOnElfChange ? std::string("true") : std::string("false");
-	(*ini)["settings"]["probe_type"] = std::to_string(probeSettings.debugProbe);
-	(*ini)["settings"]["target_name"] = probeSettings.device;
-	(*ini)["settings"]["probe_mode"] = std::to_string(probeSettings.mode);
-	(*ini)["settings"]["probe_speed_kHz"] = std::to_string(probeSettings.speedkHz);
-	(*ini)["settings"]["probe_SN"] = probeSettings.serialNumber;
+	(*ini)["settings"]["probe_type"] = std::to_string(debugProbeSettings.debugProbe);
+	(*ini)["settings"]["target_name"] = debugProbeSettings.device;
+	(*ini)["settings"]["probe_mode"] = std::to_string(debugProbeSettings.mode);
+	(*ini)["settings"]["probe_speed_kHz"] = std::to_string(debugProbeSettings.speedkHz);
+	(*ini)["settings"]["probe_SN"] = debugProbeSettings.serialNumber;
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
@@ -237,6 +245,10 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["trace_settings"]["trigger_channel"] = std::to_string(traceSettings.triggerChannel);
 	(*ini)["trace_settings"]["trigger_level"] = std::to_string(traceSettings.triggerLevel);
 	(*ini)["trace_settings"]["timeout"] = std::to_string(traceSettings.timeout);
+	(*ini)["trace_settings"]["probe_type"] = std::to_string(traceProbeSettings.debugProbe);
+	(*ini)["trace_settings"]["target_name"] = traceProbeSettings.device;
+	(*ini)["trace_settings"]["probe_speed_kHz"] = std::to_string(traceProbeSettings.speedkHz);
+	(*ini)["trace_settings"]["probe_SN"] = traceProbeSettings.serialNumber;
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)

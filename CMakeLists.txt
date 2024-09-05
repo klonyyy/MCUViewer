@@ -107,6 +107,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiImportVariables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAcqusition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/TargetMemoryHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/StlinkHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetMemoryHandler/JlinkHandler.cpp
@@ -151,12 +152,19 @@ set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
 
-# GIT version
-add_custom_target(addGitVersion COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR} python3 ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.py
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Generating gitversion.hpp..."
-    VERBATIM)
+set(GIT_VERSION_HPP ${CMAKE_CURRENT_SOURCE_DIR}/src/gitversion.hpp)
 
+# Add a custom command to generate gitversion.hpp
+add_custom_command(
+    OUTPUT ${GIT_VERSION_HPP}
+    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR} python3 ${CMAKE_CURRENT_SOURCE_DIR}/launch/addGitVersion.py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/.git/HEAD
+    COMMENT "Generating ${GIT_VERSION_HPP}..."
+    VERBATIM
+)
+
+add_custom_target(addGitVersion ALL DEPENDS ${GIT_VERSION_HPP})
 add_dependencies(${EXECUTABLE} addGitVersion)
 
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${STMVIEWER_VERSION}")
