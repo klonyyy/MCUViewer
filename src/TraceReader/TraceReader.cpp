@@ -289,7 +289,7 @@ void TraceReader::readerThread()
 			lastErrorMsg = "Stlink trace critical error!";
 			logger->error(lastErrorMsg);
 
-			isRunning.store(false);
+			isRunning = false;
 			break;
 		}
 
@@ -297,7 +297,7 @@ void TraceReader::readerThread()
 		{
 			lastErrorMsg = "No trace registered for " + std::to_string(traceTimeout) + "s!";
 			logger->error(lastErrorMsg);
-			isRunning.store(false);
+			isRunning = false;
 			break;
 		}
 
@@ -312,7 +312,7 @@ void TraceReader::readerThread()
 		{
 			lastErrorMsg = "Trace overflow!";
 			logger->error(lastErrorMsg);
-			isRunning.store(false);
+			isRunning = false;
 			continue;
 		}
 

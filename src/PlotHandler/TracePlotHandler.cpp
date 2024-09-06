@@ -144,8 +144,8 @@ void TracePlotHandler::dataHandler()
 			if (!traceReader->isValid())
 			{
 				logger->error("Trace invalid, stopping!");
-				viewerState.store(state::STOP);
-				stateChangeOrdered.store(true);
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
 			}
 
 			double timestamp;
