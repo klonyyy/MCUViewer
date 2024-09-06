@@ -31,6 +31,9 @@ class Gui
 	~Gui();
 
    private:
+
+	static constexpr bool showDemoWindow = false;
+
 	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
 	static constexpr uint32_t maxVariableNameLength = 100;
 	std::map<std::string, std::shared_ptr<Variable>> vars;

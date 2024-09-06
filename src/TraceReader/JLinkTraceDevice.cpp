@@ -32,7 +32,6 @@ bool JLinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint3
 	if (error != 0)
 		logger->error(error);
 
-	/* try to set maximum possible speed TODO: not always a good thing */
 	JLINKARM_SetSpeed(probeSettings.speedkHz > maxSpeedkHz ? maxSpeedkHz : probeSettings.speedkHz);
 	logger->info("J-Link speed set to: {}", JLINKARM_GetSpeed());
 

@@ -76,7 +76,6 @@ void Gui::mainThread()
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
 
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -86,8 +85,6 @@ void Gui::mainThread()
 	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 	fileHandler->init();
-
-	bool show_demo_window = false;
 
 	jlinkProbe = std::make_shared<JlinkHandler>(logger);
 	stlinkProbe = std::make_shared<StlinkHandler>(logger);
@@ -120,7 +117,7 @@ void Gui::mainThread()
 		ImGui::NewFrame();
 		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-		if (show_demo_window)
+		if (showDemoWindow)
 			ImPlot::ShowDemoWindow();
 
 		if (glfwWindowShouldClose(window))
@@ -173,8 +170,6 @@ void Gui::mainThread()
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
-		glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -289,7 +284,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 			ImVec4 orangeLightDim = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.82f);
 
 			ImGui::PushStyleColor(ImGuiCol_Button, orange);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orangeLight);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orange);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, orangeLightDim);
 		}
 	}
