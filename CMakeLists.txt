@@ -123,7 +123,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/TracePlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceProbe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JLinkTraceProbe.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JlinkTraceProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp)
 
 set(IMGUI_SOURCES

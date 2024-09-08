@@ -91,7 +91,7 @@ void Gui::mainThread()
 	debugProbeDevice = stlinkProbe;
 	plotHandler->setDebugProbe(debugProbeDevice);
 
-	jlinkTraceProbe = std::make_shared<JLinkTraceProbe>(logger);
+	jlinkTraceProbe = std::make_shared<JlinkTraceProbe>(logger);
 	stlinkTraceProbe = std::make_shared<StlinkTraceProbe>(logger);
 	traceProbeDevice = stlinkTraceProbe;
 	tracePlotHandler->setDebugProbe(traceProbeDevice);

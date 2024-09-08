@@ -1,5 +1,5 @@
-#ifndef _STLINKTraceProbe_HPP
-#define _STLINKTraceProbe_HPP
+#ifndef _STLINKTRACEPROBE_HPP
+#define _STLINKTRACEPROBE_HPP
 
 #include <memory>
 
