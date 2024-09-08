@@ -86,5 +86,6 @@
         "coroutine": "cpp",
         "resumable": "cpp",
         "future": "cpp"
-    }
+    },
+    "docwriter.style": "Doxygen"
 }

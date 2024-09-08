@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "ITraceDevice.hpp"
+#include "ITraceProbe.hpp"
 #include "TraceReader/TraceReader.hpp"
 #include "gmock/gmock.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -11,10 +11,10 @@
 using namespace testing;
 using testing::InSequence;
 
-class TraceDeviceMock : public ITraceDevice
+class TraceProbeMock : public ITraceProbe
 {
    public:
-	TraceDeviceMock() {};
+	TraceProbeMock() {};
 	MOCK_METHOD(bool, startTrace, (const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset), (override));
 	MOCK_METHOD(bool, stopTrace, (), (override));
 	MOCK_METHOD(int32_t, readTraceBuffer, (uint8_t * buffer, uint32_t size), (override));
@@ -33,14 +33,14 @@ class TraceReaderTest : public ::testing::Test
 		stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 		logger = std::make_shared<spdlog::logger>("logger", stdout_sink);
 
-		traceDevice = std::make_shared<::NiceMock<TraceDeviceMock>>();
+		TraceProbe = std::make_shared<::NiceMock<TraceProbeMock>>();
 		traceReader = std::make_shared<TraceReader>(logger.get());
 
-		ON_CALL(*traceDevice, startTrace(_, _, _, _, _)).WillByDefault(Return(true));
-		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
+		ON_CALL(*TraceProbe, startTrace(_, _, _, _, _)).WillByDefault(Return(true));
+		ON_CALL(*TraceProbe, stopTrace()).WillByDefault(Return(true));
 
 		traceReader->setTraceTimeout(0);
-		traceReader->changeDevice(traceDevice);
+		traceReader->changeDevice(TraceProbe);
 
 		for (auto& el : activeChannels)
 			el = true;
@@ -50,17 +50,17 @@ class TraceReaderTest : public ::testing::Test
 		spdlog::shutdown();
 		traceReader->stopAcqusition();
 		traceReader.reset();
-		traceDevice.reset();
+		TraceProbe.reset();
 	}
 
-	ITraceDevice::TraceProbeSettings probeSettings{};
+	ITraceProbe::TraceProbeSettings probeSettings{};
 	static constexpr uint32_t channels = 10;
 	std::array<bool, 32> activeChannels{};
 	std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> stdout_sink;
 	std::shared_ptr<spdlog::logger> logger;
 
 	std::shared_ptr<TraceReader> traceReader;
-	std::shared_ptr<::NiceMock<TraceDeviceMock>> traceDevice;
+	std::shared_ptr<::NiceMock<TraceProbeMock>> TraceProbe;
 };
 
 TEST_F(TraceReaderTest, startTest)
@@ -75,7 +75,7 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp)
 	std::array<uint32_t, 10> expected{0, 187, 0, 0, 0, 0, 0, 0, 0, 0};
 	double timestamp = 0.0;
 
-	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _)).WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
+	EXPECT_CALL(*TraceProbe, readTraceBuffer(_, _)).WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
 																			  {memcpy(buffer,buf,sizeof(buf));
                                                                                 return sizeof(buf); }))
 		.WillRepeatedly(Return(0));
@@ -112,7 +112,7 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundaryTimestamp)
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
-	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
+	EXPECT_CALL(*TraceProbe, readTraceBuffer(_, _))
 		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
 								  {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
@@ -155,7 +155,7 @@ TEST_F(TraceReaderTest, testChannelsAndTimestamp2)
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
-	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
+	EXPECT_CALL(*TraceProbe, readTraceBuffer(_, _))
 		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
 								  {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
@@ -199,7 +199,7 @@ TEST_F(TraceReaderTest, testdoubleBuffers)
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
-	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
+	EXPECT_CALL(*TraceProbe, readTraceBuffer(_, _))
 		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
 								  {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
@@ -245,7 +245,7 @@ TEST_F(TraceReaderTest, testdoubleBuffersBoundarySource)
 																 {{0, 187, 187, 0, 0, 0, 0, 0, 0, 0}},
 																 {{0, 187, 187, 170, 0, 0, 0, 0, 0, 0}}}};
 
-	EXPECT_CALL(*traceDevice, readTraceBuffer(_, _))
+	EXPECT_CALL(*TraceProbe, readTraceBuffer(_, _))
 		.WillOnce(testing::Invoke([&](uint8_t* buffer, uint32_t size)
 								  {memcpy(buffer,buf,sizeof(buf));
                                    return sizeof(buf); }))
