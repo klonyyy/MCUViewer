@@ -40,6 +40,7 @@ class TraceReaderTest : public ::testing::Test
 		ON_CALL(*traceDevice, stopTrace()).WillByDefault(Return(true));
 
 		traceReader->setTraceTimeout(0);
+		traceReader->changeDevice(traceDevice);
 
 		for (auto& el : activeChannels)
 			el = true;
