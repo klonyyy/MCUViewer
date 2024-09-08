@@ -86,17 +86,17 @@ int32_t TracePlotHandler::getTriggerChannel() const
 	return traceSettings.triggerChannel;
 }
 
-void TracePlotHandler::setDebugProbe(std::shared_ptr<ITraceDevice> probe)
+void TracePlotHandler::setDebugProbe(std::shared_ptr<ITraceProbe> probe)
 {
 	traceReader->changeDevice(probe);
 }
 
-ITraceDevice::TraceProbeSettings TracePlotHandler::getProbeSettings() const
+ITraceProbe::TraceProbeSettings TracePlotHandler::getProbeSettings() const
 {
 	return probeSettings;
 }
 
-void TracePlotHandler::setProbeSettings(const ITraceDevice::TraceProbeSettings& settings)
+void TracePlotHandler::setProbeSettings(const ITraceProbe::TraceProbeSettings& settings)
 {
 	probeSettings = settings;
 }

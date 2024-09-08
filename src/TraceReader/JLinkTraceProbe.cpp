@@ -1,22 +1,22 @@
-#include "JLinkTraceDevice.hpp"
+#include "JLinkTraceProbe.hpp"
 
 #include <cstring>
 #include <random>
 
 #include "logging.h"
 
-JLinkTraceDevice::JLinkTraceDevice(spdlog::logger* logger) : logger(logger)
+JLinkTraceProbe::JLinkTraceProbe(spdlog::logger* logger) : logger(logger)
 {
 }
 
-bool JLinkTraceDevice::stopTrace()
+bool JLinkTraceProbe::stopTrace()
 {
 	JLINKARM_Close();
 	logger->info("Trace stopped.");
 	return true;
 }
 
-bool JLinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
+bool JLinkTraceProbe::startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
 	int32_t serialNumberInt = std::atoi(probeSettings.serialNumber.c_str());
 	std::string lastErrorMsg = "";
@@ -72,7 +72,7 @@ bool JLinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint3
 	return true;
 }
 
-int32_t JLinkTraceDevice::readTraceBuffer(uint8_t* buffer, uint32_t size)
+int32_t JLinkTraceProbe::readTraceBuffer(uint8_t* buffer, uint32_t size)
 {
 	/* TODO error handling of these two functions? */
 	JLINKARM_SWO_Read(buffer, 0, &size);
@@ -80,7 +80,7 @@ int32_t JLinkTraceDevice::readTraceBuffer(uint8_t* buffer, uint32_t size)
 	return size;
 }
 
-std::string JLinkTraceDevice::getTargetName()
+std::string JLinkTraceProbe::getTargetName()
 {
 	JLINKARM_DEVICE_SELECT_INFO info;
 	info.SizeOfStruct = sizeof(JLINKARM_DEVICE_SELECT_INFO);
@@ -93,7 +93,7 @@ std::string JLinkTraceDevice::getTargetName()
 	return devInfo.sName ? std::string(devInfo.sName) : std::string();
 }
 
-std::vector<std::string> JLinkTraceDevice::getConnectedDevices()
+std::vector<std::string> JLinkTraceProbe::getConnectedDevices()
 {
 	std::vector<std::string> deviceIDs{};
 

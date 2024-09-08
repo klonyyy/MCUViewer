@@ -1,5 +1,5 @@
-#ifndef _VARREADER_HPP
-#define _VARREADER_HPP
+#ifndef _MEMORYREADER_HPP
+#define _MEMORYREADER_HPP
 
 #include <map>
 #include <memory>
@@ -10,7 +10,7 @@
 #include "IDebugProbe.hpp"
 #include "Variable.hpp"
 
-class TargetMemoryHandler
+class MemoryReader
 {
    public:
 	bool start(const IDebugProbe::DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) const;

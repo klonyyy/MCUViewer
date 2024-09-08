@@ -1,4 +1,4 @@
-#include "StlinkTraceDevice.hpp"
+#include "StlinkTraceProbe.hpp"
 
 #include <cstring>
 #include <random>
@@ -6,12 +6,12 @@
 #include "logging.h"
 #include "register.h"
 
-StlinkTraceDevice::StlinkTraceDevice(spdlog::logger* logger) : logger(logger)
+StlinkTraceProbe::StlinkTraceProbe(spdlog::logger* logger) : logger(logger)
 {
 	init_chipids(const_cast<char*>("./chips"));
 }
 
-bool StlinkTraceDevice::stopTrace()
+bool StlinkTraceProbe::stopTrace()
 {
 	if (sl == nullptr)
 		return false;
@@ -24,7 +24,7 @@ bool StlinkTraceDevice::stopTrace()
 	return true;
 }
 
-bool StlinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
+bool StlinkTraceProbe::startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, NULL, probeSettings.speedkHz);
 
@@ -80,7 +80,7 @@ bool StlinkTraceDevice::startTrace(const TraceProbeSettings& probeSettings, uint
 	return true;
 }
 
-int32_t StlinkTraceDevice::readTraceBuffer(uint8_t* buffer, uint32_t size)
+int32_t StlinkTraceProbe::readTraceBuffer(uint8_t* buffer, uint32_t size)
 {
 	if (sl == nullptr)
 		return -1;
@@ -88,7 +88,7 @@ int32_t StlinkTraceDevice::readTraceBuffer(uint8_t* buffer, uint32_t size)
 	return stlink_trace_read(sl, buffer, size);
 }
 
-std::vector<std::string> StlinkTraceDevice::getConnectedDevices()
+std::vector<std::string> StlinkTraceProbe::getConnectedDevices()
 {
 	stlink_t** stdevs;
 	uint32_t size;

@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "ITraceDevice.hpp"
+#include "ITraceProbe.hpp"
 #include "RingBuffer.hpp"
 #include "spdlog/spdlog.h"
 
@@ -28,7 +28,7 @@ class TraceReader
 
 	TraceReader(spdlog::logger* logger);
 
-	bool startAcqusition(const ITraceDevice::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels);
+	bool startAcqusition(const ITraceProbe::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels);
 	bool stopAcqusition();
 	bool isValid() const;
 
@@ -44,7 +44,7 @@ class TraceReader
 	void setTraceTimeout(uint32_t timeout);
 
 	std::vector<std::string> getConnectedDevices() const;
-	void changeDevice(std::shared_ptr<ITraceDevice> newTraceDevice);
+	void changeDevice(std::shared_ptr<ITraceProbe> newTraceProbe);
 	std::string getTargetName();
 
 	TraceIndicators getTraceIndicators() const;
@@ -91,7 +91,7 @@ class TraceReader
 	RingBuffer<std::pair<std::array<uint32_t, channels>, double>, 2000> traceTable;
 	std::thread readerHandle;
 
-	std::shared_ptr<ITraceDevice> traceDevice;
+	std::shared_ptr<ITraceProbe> TraceProbe;
 	spdlog::logger* logger;
 	mutable std::mutex mtx;
 

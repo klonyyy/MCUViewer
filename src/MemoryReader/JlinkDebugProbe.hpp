@@ -1,5 +1,5 @@
-#ifndef _JLINKHANDLER_HPP
-#define _JLINKHANDLER_HPP
+#ifndef _JlinkDebugProbe_HPP
+#define _JlinkDebugProbe_HPP
 
 #include <string>
 #include <unordered_map>
@@ -9,10 +9,10 @@
 #include "jlink.h"
 #include "spdlog/spdlog.h"
 
-class JlinkHandler : public IDebugProbe
+class JlinkDebugProbe : public IDebugProbe
 {
    public:
-	JlinkHandler(spdlog::logger* logger);
+	JlinkDebugProbe(spdlog::logger* logger);
 	bool startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) override;
 	bool stopAcqusition() override;
 	bool isValid() const override;

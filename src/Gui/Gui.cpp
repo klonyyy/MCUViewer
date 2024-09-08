@@ -86,13 +86,13 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	jlinkProbe = std::make_shared<JlinkHandler>(logger);
-	stlinkProbe = std::make_shared<StlinkHandler>(logger);
+	jlinkProbe = std::make_shared<JlinkDebugProbe>(logger);
+	stlinkProbe = std::make_shared<StlinkDebugProbe>(logger);
 	debugProbeDevice = stlinkProbe;
 	plotHandler->setDebugProbe(debugProbeDevice);
 
-	jlinkTraceProbe = std::make_shared<JLinkTraceDevice>(logger);
-	stlinkTraceProbe = std::make_shared<StlinkTraceDevice>(logger);
+	jlinkTraceProbe = std::make_shared<JLinkTraceProbe>(logger);
+	stlinkTraceProbe = std::make_shared<StlinkTraceProbe>(logger);
 	traceProbeDevice = stlinkTraceProbe;
 	tracePlotHandler->setDebugProbe(traceProbeDevice);
 

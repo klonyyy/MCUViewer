@@ -1,4 +1,4 @@
-#include "JlinkHandler.hpp"
+#include "JlinkDebugProbe.hpp"
 
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/spdlog.h>
@@ -6,11 +6,11 @@
 #include <algorithm>
 #include <string>
 
-JlinkHandler::JlinkHandler(spdlog::logger* logger) : logger(logger)
+JlinkDebugProbe::JlinkDebugProbe(spdlog::logger* logger) : logger(logger)
 {
 }
 
-bool JlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
+bool JlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
 {
 	int serialNumberInt = std::atoi(probeSettings.serialNumber.c_str());
 	lastErrorMsg = "";
@@ -106,18 +106,18 @@ bool JlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std:
 	return isRunning;
 }
 
-bool JlinkHandler::stopAcqusition()
+bool JlinkDebugProbe::stopAcqusition()
 {
 	JLINKARM_Close();
 	return true;
 }
 
-bool JlinkHandler::isValid() const
+bool JlinkDebugProbe::isValid() const
 {
 	return isRunning;
 }
 
-std::string JlinkHandler::getTargetName()
+std::string JlinkDebugProbe::getTargetName()
 {
 	JLINKARM_DEVICE_SELECT_INFO info;
 	info.SizeOfStruct = sizeof(JLINKARM_DEVICE_SELECT_INFO);
@@ -130,7 +130,7 @@ std::string JlinkHandler::getTargetName()
 	return devInfo.sName ? std::string(devInfo.sName) : std::string();
 }
 
-std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
+std::optional<IDebugProbe::varEntryType> JlinkDebugProbe::readSingleEntry()
 {
 	uint8_t rawBuffer[16384]{};
 
@@ -160,22 +160,22 @@ std::optional<IDebugProbe::varEntryType> JlinkHandler::readSingleEntry()
 	return varTable.pop();
 }
 
-bool JlinkHandler::readMemory(uint32_t address, uint32_t* value)
+bool JlinkDebugProbe::readMemory(uint32_t address, uint32_t* value)
 {
 	return (isRunning && JLINKARM_ReadMemEx(address, 4, (uint8_t*)value, 0) >= 0);
 }
 
-bool JlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
+bool JlinkDebugProbe::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 {
 	return (isRunning && JLINKARM_WriteMemEx(address, len, buf, 0) >= 0);
 }
 
-std::string JlinkHandler::getLastErrorMsg() const
+std::string JlinkDebugProbe::getLastErrorMsg() const
 {
 	return lastErrorMsg;
 }
 
-std::vector<std::string> JlinkHandler::getConnectedDevices()
+std::vector<std::string> JlinkDebugProbe::getConnectedDevices()
 {
 	std::vector<std::string> deviceIDs{};
 

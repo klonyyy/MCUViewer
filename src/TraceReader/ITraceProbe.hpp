@@ -1,11 +1,11 @@
-#ifndef _ITRACEDEVICE_HPP
-#define _ITRACEDEVICE_HPP
+#ifndef _ITRACEPROBE_HPP
+#define _ITRACEPROBE_HPP
 
 #include <stdint.h>
 
 #include <vector>
 
-class ITraceDevice
+class ITraceProbe
 {
    public:
 	typedef struct
@@ -17,7 +17,7 @@ class ITraceDevice
 
 	} TraceProbeSettings;
 
-	virtual ~ITraceDevice() = default;
+	virtual ~ITraceProbe() = default;
 	virtual bool startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) = 0;
 	virtual bool stopTrace() = 0;
 	virtual int32_t readTraceBuffer(uint8_t* buffer, uint32_t size) = 0;

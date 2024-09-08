@@ -1,16 +1,16 @@
-#ifndef _STLINKTRACEDEVICE_HPP
-#define _STLINKTRACEDEVICE_HPP
+#ifndef _STLINKTraceProbe_HPP
+#define _STLINKTraceProbe_HPP
 
 #include <memory>
 
-#include "ITraceDevice.hpp"
+#include "ITraceProbe.hpp"
 #include "spdlog/spdlog.h"
 #include "stlink.h"
 
-class StlinkTraceDevice : public ITraceDevice
+class StlinkTraceProbe : public ITraceProbe
 {
    public:
-	explicit StlinkTraceDevice(spdlog::logger* logger);
+	explicit StlinkTraceProbe(spdlog::logger* logger);
 	bool startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) override;
 	bool stopTrace() override;
 	int32_t readTraceBuffer(uint8_t* buffer, uint32_t size) override;

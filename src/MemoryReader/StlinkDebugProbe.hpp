@@ -1,5 +1,5 @@
-#ifndef _STLINKHANDLER_HPP
-#define _STLINKHANDLER_HPP
+#ifndef _StlinkDebugProbe_HPP
+#define _StlinkDebugProbe_HPP
 
 #include <string>
 #include <vector>
@@ -8,10 +8,10 @@
 #include "spdlog/spdlog.h"
 #include "stlink.h"
 
-class StlinkHandler : public IDebugProbe
+class StlinkDebugProbe : public IDebugProbe
 {
    public:
-	StlinkHandler(spdlog::logger* logger);
+	StlinkDebugProbe(spdlog::logger* logger);
 	bool startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) override;
 	bool stopAcqusition() override;
 	bool isValid() const override;

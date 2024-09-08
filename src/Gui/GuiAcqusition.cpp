@@ -208,7 +208,7 @@ void Gui::drawTraceProbes()
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
-	ITraceDevice::TraceProbeSettings probeSettings = tracePlotHandler->getProbeSettings();
+	ITraceProbe::TraceProbeSettings probeSettings = tracePlotHandler->getProbeSettings();
 	int32_t debugProbe = probeSettings.debugProbe;
 
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))

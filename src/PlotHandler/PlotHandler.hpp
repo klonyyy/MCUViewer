@@ -13,7 +13,7 @@
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "TargetMemoryHandler.hpp"
+#include "MemoryReader.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandler : public PlotHandlerBase
@@ -55,7 +55,7 @@ class PlotHandler : public PlotHandlerBase
 	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
 
    private:
-	std::unique_ptr<TargetMemoryHandler> varReader;
+	std::unique_ptr<MemoryReader> varReader;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
 	MovingAverage samplingPeriodFilter{1000};

@@ -15,8 +15,8 @@
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
-#include "JlinkHandler.hpp"
-#include "JlinkTraceDevice.hpp"
+#include "JlinkDebugProbe.hpp"
+#include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
@@ -60,9 +60,9 @@ class Gui
 	std::vector<std::string> devicesList{};
 	const std::string noDevices = "No debug probes found!";
 
-	std::shared_ptr<ITraceDevice> stlinkTraceProbe;
-	std::shared_ptr<ITraceDevice> jlinkTraceProbe;
-	std::shared_ptr<ITraceDevice> traceProbeDevice;
+	std::shared_ptr<ITraceProbe> stlinkTraceProbe;
+	std::shared_ptr<ITraceProbe> jlinkTraceProbe;
+	std::shared_ptr<ITraceProbe> traceProbeDevice;
 
 	std::atomic<bool>& done;
 

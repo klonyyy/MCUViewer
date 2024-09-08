@@ -21,7 +21,7 @@ TraceReader::TraceReader(spdlog::logger* logger) : logger(logger)
 {
 }
 
-bool TraceReader::startAcqusition(const ITraceDevice::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels)
+bool TraceReader::startAcqusition(const ITraceProbe::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels)
 {
 	traceIndicators = {};
 
@@ -40,14 +40,14 @@ bool TraceReader::startAcqusition(const ITraceDevice::TraceProbeSettings& probeS
 		return false;
 	}
 
-	if (traceDevice->startTrace(probeSettings, coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
+	if (TraceProbe->startTrace(probeSettings, coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
 	{
 		lastErrorMsg = "";
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
 		return true;
 	}
-	lastErrorMsg = "STLink not found!";
+	lastErrorMsg = "Trace probe not found!";
 	stopAcqusition();
 	return false;
 }
@@ -116,19 +116,19 @@ void TraceReader::setTraceTimeout(uint32_t timeout)
 std::vector<std::string> TraceReader::getConnectedDevices() const
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return traceDevice->getConnectedDevices();
+	return TraceProbe->getConnectedDevices();
 }
 
-void TraceReader::changeDevice(std::shared_ptr<ITraceDevice> newTraceDevice)
+void TraceReader::changeDevice(std::shared_ptr<ITraceProbe> newTraceProbe)
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	traceDevice = newTraceDevice;
+	TraceProbe = newTraceProbe;
 }
 
 std::string TraceReader::getTargetName()
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return traceDevice->getTargetName();
+	return TraceProbe->getTargetName();
 }
 
 TraceReader::TraceIndicators TraceReader::getTraceIndicators() const
@@ -282,11 +282,11 @@ void TraceReader::readerThread()
 {
 	while (isRunning)
 	{
-		int32_t length = traceDevice->readTraceBuffer(buffer, size);
+		int32_t length = TraceProbe->readTraceBuffer(buffer, size);
 
 		if (length < 0)
 		{
-			lastErrorMsg = "Stlink trace critical error!";
+			lastErrorMsg = "Trace probe critical error!";
 			logger->error(lastErrorMsg);
 
 			isRunning = false;
@@ -308,14 +308,6 @@ void TraceReader::readerThread()
 			continue;
 		}
 
-		if (length == size)
-		{
-			lastErrorMsg = "Trace overflow!";
-			logger->error(lastErrorMsg);
-			isRunning = false;
-			continue;
-		}
-
 		traceIndicators.sleepCycles = 0;
 
 		for (int32_t i = 0; i < length; i++)
@@ -325,6 +317,6 @@ void TraceReader::readerThread()
 				break;
 		}
 	}
-	traceDevice->stopTrace();
+	TraceProbe->stopTrace();
 	logger->info("Closing trace thread {}", isRunning);
 }

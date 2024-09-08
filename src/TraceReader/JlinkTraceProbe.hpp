@@ -1,16 +1,16 @@
-#ifndef _JLINKTRACEDEVICE_HPP
-#define _JLINKTRACEDEVICE_HPP
+#ifndef _JLINKTraceProbe_HPP
+#define _JLINKTraceProbe_HPP
 
 #include <memory>
 
-#include "ITraceDevice.hpp"
+#include "ITraceProbe.hpp"
 #include "jlink.h"
 #include "spdlog/spdlog.h"
 
-class JLinkTraceDevice : public ITraceDevice
+class JLinkTraceProbe : public ITraceProbe
 {
    public:
-	explicit JLinkTraceDevice(spdlog::logger* logger);
+	explicit JLinkTraceProbe(spdlog::logger* logger);
 	bool startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) override;
 	bool stopTrace() override;
 	int32_t readTraceBuffer(uint8_t* buffer, uint32_t size) override;
