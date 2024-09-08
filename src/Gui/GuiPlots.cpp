@@ -171,6 +171,7 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 			double value = *series->buffer->getLastElement();
 
 			ImPlot::SetNextLineStyle(ImVec4(series->var->getColor().r, series->var->getColor().g, series->var->getColor().b, 1.0f));
+			ImPlot::SetNextFillStyle(ImVec4(series->var->getColor().r, series->var->getColor().g, series->var->getColor().b, 1.0f));
 			ImPlot::PlotBars(name.c_str(), &xs, &value, 1, barSize);
 			ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5 * contentScale), true, "%.5f", value);
 			xs += 1.0f;
