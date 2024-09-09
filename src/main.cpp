@@ -23,9 +23,9 @@ int main(int argc, char** argv)
 		args.push_back(argv[i]);
 
 #if defined(__APPLE__) || defined(_UNIX)
-	std::string logDirectory = std::string(std::getenv("HOME")) + "/STMViewer/logs/logfile.txt";
+	std::string logDirectory = std::string(std::getenv("HOME")) + "/MCUViewer/logs/logfile.txt";
 #elif _WIN32
-	std::string logDirectory = std::string(std::getenv("APPDATA")) + "/STMViewer/logs/logfile.txt";
+	std::string logDirectory = std::string(std::getenv("APPDATA")) + "/MCUViewer/logs/logfile.txt";
 #else
 #error "Your system is not supported!"
 #endif
@@ -40,8 +40,8 @@ int main(int argc, char** argv)
 	else
 		logger->set_level(spdlog::level::info);
 
-	logger->info("Starting STMViewer!");
-	logger->info("Version: {}.{}.{}", STMVIEWER_VERSION_MAJOR, STMVIEWER_VERSION_MINOR, STMVIEWER_VERSION_REVISION);
+	logger->info("Starting MCUViewer!");
+	logger->info("Version: {}.{}.{}", MCUVIEWER_VERSION_MAJOR, MCUVIEWER_VERSION_MINOR, MCUVIEWER_VERSION_REVISION);
 	logger->info("Commit hash {}", GIT_HASH);
 
 	auto loggerPtr = logger.get();
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 	{
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
-	logger->info("Closing STMViewer!");
+	logger->info("Closing MCUViewer!");
 	logger->flush();
 	spdlog::shutdown();
 	return 0;

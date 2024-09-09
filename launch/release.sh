@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-git config --global --add safe.directory /__w/STMViewer/STMViewer
+git config --global --add safe.directory /__w/MCUViewer/MCUViewer
 
 rm -rf build
 mkdir -p build

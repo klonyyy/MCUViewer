@@ -50,7 +50,7 @@ void Gui::mainThread()
 	if (!glfwInit())
 		return;
 
-	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("STMViewer | ") + projectConfigPath).c_str(), NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("MCUViewer | ") + projectConfigPath).c_str(), NULL, NULL);
 	if (window == NULL)
 		return;
 	glfwMakeContextCurrent(window);
@@ -109,7 +109,7 @@ void Gui::mainThread()
 		else
 			glfwSwapInterval(4);
 
-		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
+		glfwSetWindowTitle(window, (std::string("MCUViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();

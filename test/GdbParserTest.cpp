@@ -13,7 +13,7 @@ TEST(GdbParserTest, test)
 	// spdlog::register_logger(logger);
 
 	// GdbParser parser(logger.get());
-	// auto result = parser.parse("./test/STMViewer_test.elf");
+	// auto result = parser.parse("./test/MCUViewer_test.elf");
 
 	// auto parsedData = parser.getParsedData();
 

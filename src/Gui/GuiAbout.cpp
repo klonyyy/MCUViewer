@@ -15,8 +15,8 @@ void Gui::drawAboutWindow()
 	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 300 * contentScale));
 	if (ImGui::BeginPopupModal("About", &showAboutWindow, 0))
 	{
-		drawCenteredText("STMViewer");
-		std::string line2("version: " + std::to_string(STMVIEWER_VERSION_MAJOR) + "." + std::to_string(STMVIEWER_VERSION_MINOR) + "." + std::to_string(STMVIEWER_VERSION_REVISION));
+		drawCenteredText("MCUViewer");
+		std::string line2("version: " + std::to_string(MCUVIEWER_VERSION_MAJOR) + "." + std::to_string(MCUVIEWER_VERSION_MINOR) + "." + std::to_string(MCUVIEWER_VERSION_REVISION));
 		drawCenteredText(std::move(line2));
 		drawCenteredText(std::string(GIT_HASH));
 		ImGui::SameLine();
@@ -37,7 +37,7 @@ void Gui::drawAboutWindow()
 		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210 * contentScale) / 2.0f);
 
 		if (ImGui::Button("Releases", ImVec2(100 * contentScale, buttonHeight)))
-			openWebsite("https://github.com/klonyyy/STMViewer/releases");
+			openWebsite("https://github.com/klonyyy/MCUViewer/releases");
 		ImGui::SameLine();
 		if (ImGui::Button("Support <3", ImVec2(100 * contentScale, buttonHeight)))
 			openWebsite("https://github.com/sponsors/klonyyy");

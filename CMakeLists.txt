@@ -16,9 +16,9 @@ elseif("${PLATFORM}" STREQUAL "WIN")
     set(CMAKE_SYSTEM_NAME Windows)
 endif()
 
-project(STMViewer)
+project(MCUViewer)
 
-set(STMVIEWER_VERSION 0.6.0)
+set(MCUVIEWER_VERSION 1.0.0)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
@@ -70,7 +70,7 @@ if(UNIX)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.7)
-    set(INSTALL_PATH /usr/local/STMViewer)
+    set(INSTALL_PATH /usr/local/MCUViewer)
     set(LIB_INSTALL_PATH /usr/local/lib)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 
@@ -167,11 +167,11 @@ add_custom_command(
 add_custom_target(addGitVersion ALL DEPENDS ${GIT_VERSION_HPP})
 add_dependencies(${EXECUTABLE} addGitVersion)
 
-string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${STMVIEWER_VERSION}")
+string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${MCUVIEWER_VERSION}")
 target_compile_definitions(${EXECUTABLE}
-    PRIVATE STMVIEWER_VERSION_MAJOR=${CMAKE_MATCH_1}
-    PRIVATE STMVIEWER_VERSION_MINOR=${CMAKE_MATCH_2}
-    PRIVATE STMVIEWER_VERSION_REVISION=${CMAKE_MATCH_3}
+    PRIVATE MCUVIEWER_VERSION_MAJOR=${CMAKE_MATCH_1}
+    PRIVATE MCUVIEWER_VERSION_MINOR=${CMAKE_MATCH_2}
+    PRIVATE MCUVIEWER_VERSION_REVISION=${CMAKE_MATCH_3}
 )
 
 target_include_directories(${EXECUTABLE} PRIVATE
@@ -260,7 +260,7 @@ endif()
 
 if(UNIX)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.png DESTINATION ${INSTALL_PATH})
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/STMViewer.desktop
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/MCUViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     install(FILES ${JLINK_LINUX}
@@ -271,7 +271,7 @@ if(UNIX)
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${STMVIEWER_VERSION})
+set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})
 set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")

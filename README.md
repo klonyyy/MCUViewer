@@ -1,10 +1,10 @@
-![example workflow](https://github.com/klonyyy/STMViewer/actions/workflows/build.yaml/badge.svg)
+![example workflow](https://github.com/klonyyy/MCUViewer/actions/workflows/build.yaml/badge.svg)
 
 # Downloads
-To download STMViewer installer please proceed to the [releases page](https://github.com/klonyyy/STMViewer/releases).
+To download MCUViewer installer please proceed to the [releases page](https://github.com/klonyyy/MCUViewer/releases).
 
-# STMViewer 
-STMViewer is an open-source GUI debug tool for ~~STM32~~ microcontrollers that consists of two modules:
+# MCUViewer 
+MCUViewer is an open-source GUI debug tool for microcontrollers that consists of two modules:
 1. Variable Viewer - used for viewing, logging, and manipulating variables data in realtime using debug interface (SWDIO / SWCLK / GND)
 2. Trace Viewer - used for graphically representing real-time SWO trace output (SWDIO / SWCLK / SWO / GND)
 
@@ -33,19 +33,19 @@ Note: currently only STLink debug probe is supported. JLink support is in progre
 ### Linux:
 1. First make sure you've got GDB installed and that it's at least 12.1.
 2. Download the *.deb package and install it using:
-`sudo apt install ./STMViewer-x.y.z-Linux.deb`
+`sudo apt install ./MCUViewer-x.y.z-Linux.deb`
 All dependencies should be installed and you should be ready to go. 
 
 Stlink users:
 - in case your STLink is not detected, please copy the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
 ### Windows: 
-1. Download and run the STMViewer installer from the releases page (right hand side menu of the main repo page).
+1. Download and run the MCUViewer installer from the releases page (right hand side menu of the main repo page).
 
 Stlink users:
 - make sure the STLink is in "STM32 Debug + Mass Storage + VCP" mode as for some reason "STM32 Debug + VCP" throws libusb errors on Windows. This needs further investigation. 
 
-You can assign the external GPU to STMViewer for improved performance. 
+You can assign the external GPU to MCUViewer for improved performance. 
 
 ## Quick Start 
 
@@ -57,7 +57,7 @@ You can assign the external GPU to STMViewer for improved performance.
 5. Drag and drop the variable to the plot area.``
 6. Make sure the debug probe is connected and a proper type is selected (STLink/JLink). Download your executable to the microcontroller and press the `STOPPED` button. 
 
-In case of any problems, please try the example/STMViewer_test CubeIDE project and the corresponding STMViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
+In case of any problems, please try the example/MCUViewer_test CubeIDE project and the corresponding MCUViewer_test.cfg project file. Please remember to build the project and update the elf file path in the `Options -> Acqusition` Settings. 
 
 ### Trace Viewer 
 1. Turn on the SWO pin functionality - in CubeMX System Core -> SYS Mode and Configuration -> choose Trace Asynchronous Sw
@@ -89,7 +89,7 @@ The ITM registers are defined in CMSIS headers (core_xxxx.h).
 6. Configure `analog` channels types according to the type used in your code. 
 7. Press the `STOPPED` button to start recording.
 
-Example project with STMViewer config file is located in test/STMViewer_test directory.
+Example project with MCUViewer config file is located in test/MCUViewer_test directory.
 
 FAQ and common issues: 
 1. Problem: My trace doesn't look like it's supposed to and I get a lot of error frames
@@ -104,7 +104,7 @@ Answer: This is not a critical error, however, you should be cautious as some of
 
 ## Building
 
-STMViewer is build like any other CMake project:
+MCUViewer is build like any other CMake project:
 
 ### Linux:
 If you're a Linux user be sure to install: 
@@ -129,11 +129,11 @@ After a successful build, copy the `./third_party/stlink/chips` directory to whe
 
 
 ## Why
-I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since the beginning, I have been working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating STMViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that, I think the plot manipulation is much worse compared to STMStudio or STMViewer. 
+I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since the beginning, I have been working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating MCUViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that, I think the plot manipulation is much worse compared to STMStudio or MCUViewer. 
 
-Since the Trace Viewer module was added STMViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. Moreover it now supports JLink programmer as well. 
+Since the Trace Viewer module was added MCUViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. Moreover it now supports JLink programmer as well. 
 
-## 3rd party projects used in STMViewer
+## 3rd party projects used in MCUViewer
 
 1. [stlink](https://github.com/stlink-org/stlink)
 2. [libusb](https://github.com/libusb/libusb)

@@ -2,8 +2,8 @@
 Version=1.0
 Encoding=UTF-8
 Type=Application
-Name=STMViewer
-Path=/usr/local/STMViewer
-Icon=/usr/local/STMViewer/icon.png
-Exec=/usr/local/STMViewer/STMViewer
+Name=MCUViewer
+Path=/usr/local/MCUViewer
+Icon=/usr/local/MCUViewer/icon.png
+Exec=/usr/local/MCUViewer/MCUViewer
 Categories=Development;
