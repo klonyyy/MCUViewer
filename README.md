@@ -4,7 +4,7 @@
 To download MCUViewer installer please proceed to the [releases page](https://github.com/klonyyy/MCUViewer/releases).
 
 # MCUViewer 
-MCUViewer is an open-source GUI debug tool for microcontrollers that consists of two modules:
+MCUViewer (previously STMViewer) is an open-source GUI debug tool for microcontrollers that consists of two modules:
 1. Variable Viewer - used for viewing, logging, and manipulating variables data in realtime using debug interface (SWDIO / SWCLK / GND)
 2. Trace Viewer - used for graphically representing real-time SWO trace output (SWDIO / SWCLK / SWO / GND)
 
@@ -25,8 +25,6 @@ Variable Viewer is a great tool for debugging, but might be not enough for some 
 Trace Viewer is a new module that lets you visualize SWO trace data. It can serve multiple purposes such as profiling a function execution time, confirming the timer's interrupt frequency, or displaying very high frequency signals. All this is possible thanks to hardware trace peripherals embedded into Cortex M3/M4/M7/M33 cores. For prerequisites and usage please see the Quick Start section. 
 
 TraceViewer is not influenced by optimizations, which means it is a great tool to use for profiling on release builds. Moreover it has a very low influence on the program execution as each datapoint is a single register write. 
-
-Note: currently only STLink debug probe is supported. JLink support is in progress. 
 
 ## Installation
 
@@ -86,6 +84,7 @@ The ITM registers are defined in CMSIS headers (core_xxxx.h).
 5. Try different trace prescallers that result in a trace speed lower than the max trace speed of your programmer (for example STLINK V2 can read trace up to 2Mhz, whereas ST-Link V3 is theoretically able to do 24Mhz). Example:
 - System Core Clock is 160 000 kHz (160 Mhz)
 - We're using ST-link V2 so the prescaler should be at least 160 Mhz / 2 Mhz = 80
+It works similar with other probes such as JLink, so be sure to check the maximum SWO speed
 6. Configure `analog` channels types according to the type used in your code. 
 7. Press the `STOPPED` button to start recording.
 
@@ -129,9 +128,9 @@ After a successful build, copy the `./third_party/stlink/chips` directory to whe
 
 
 ## Why
-I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since the beginning, I have been working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating MCUViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that, I think the plot manipulation is much worse compared to STMStudio or MCUViewer. 
+I'm working in the motor control industry where it is crucial to visualize some of the process data in real-time. Since the beginning, I have been working with [STMStudio](https://www.st.com/en/development-tools/stm-studio-stm32.html), which is, or rather was a great tool. Unfortunately, ST stopped supporting it which means there are some annoying bugs, and it doesn't work well with mangled c++ object names. Also, it works only on Windows and with STM32 microcontrollers which is a big downside. If you've ever used it you probably see how big of an inspiration it was for creating MCUViewer :) ST's other project in this area - [Cube Monitor](https://www.st.com/en/development-tools/stm32cubemonitor.html) - has, in my opinion, too much overhead on adding variables, plots and writing values. I think it's designed for creating dashboards, and thus it serves a very different purpose. On top of that, I think the plot manipulation is much worse compared to STMStudio or MCUViewer. 
 
-Since the Trace Viewer module was added MCUViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. Moreover it now supports JLink programmer as well. 
+Since the Trace Viewer module was added MCUViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. Moreover it now fully supports JLink programmer as well.
 
 ## 3rd party projects used in MCUViewer
 
