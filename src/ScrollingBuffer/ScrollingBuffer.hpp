@@ -129,7 +129,7 @@ class ScrollingBuffer
 	uint32_t maxSize = 10000;
 	uint32_t offset = 0;
 	bool isFull = false;
-	static constexpr uint32_t arraySizeMax = 20001;
+	static constexpr uint32_t arraySizeMax = 20001; //WHY not 20000? 
 	mutable std::array<T, arraySizeMax> data;
 	mutable std::array<T, arraySizeMax> dataCopy;
 };

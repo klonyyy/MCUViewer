@@ -85,7 +85,8 @@
         "filesystem": "cpp",
         "coroutine": "cpp",
         "resumable": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "codecvt": "cpp"
     },
     "docwriter.style": "Doxygen"
 }

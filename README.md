@@ -142,4 +142,5 @@ Since the Trace Viewer module was added MCUViewer has a unique property of displ
 6. [nfd](https://github.com/btzy/nativefiledialog-extended)
 7. [spdlog](https://github.com/gabime/spdlog)
 8. [SEGGER JLink](https://www.segger.com/downloads/jlink/)
+9. [CLI11](https://github.com/CLIUtils/CLI11)
 

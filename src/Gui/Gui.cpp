@@ -20,9 +20,9 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
-	threadHandle = std::thread(&Gui::mainThread, this);
+	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
 }
 
 Gui::~Gui()
@@ -44,7 +44,7 @@ static float getContentScale(GLFWwindow* window)
 	return (xscale + yscale) / 2.0f;
 }
 
-void Gui::mainThread()
+void Gui::mainThread(std::string externalPath)
 {
 	glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit())
@@ -95,6 +95,9 @@ void Gui::mainThread()
 	stlinkTraceProbe = std::make_shared<StlinkTraceProbe>(logger);
 	traceProbeDevice = stlinkTraceProbe;
 	tracePlotHandler->setDebugProbe(traceProbeDevice);
+
+	if (!externalPath.empty())
+		openProject(externalPath);
 
 	while (!done)
 	{
@@ -307,7 +310,6 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 	ImGui::PopStyleColor(3);
 	ImGui::EndDisabled();
 }
-
 
 void Gui::addNewVariable(const std::string& newName)
 {
@@ -955,9 +957,15 @@ bool Gui::saveProjectAs()
 	return false;
 }
 
-bool Gui::openProject()
+bool Gui::openProject(std::string externalPath)
 {
-	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	std::string path = "";
+
+	if (externalPath.empty())
+		path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	else
+		path = externalPath;
+
 	if (path != "")
 	{
 		projectConfigPath = path;

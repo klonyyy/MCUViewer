@@ -27,11 +27,10 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
-
 	static constexpr bool showDemoWindow = false;
 
 	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
@@ -81,7 +80,7 @@ class Gui
 
 	GdbParser* parser;
 
-	void mainThread();
+	void mainThread(std::string externalPath);
 	void drawMenu();
 	void drawStartButton(PlotHandlerBase* activePlotHandler);
 	void drawDebugProbes();
@@ -115,12 +114,11 @@ class Gui
 	bool saveProject();
 	bool saveProjectAs();
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
-	bool openProject();
 	bool openElfFile();
 	std::string convertProjectPathToAbsolute(const std::string& projectRelativePath);
 	void checkShortcuts();
 	bool checkElfFileChanged();
-
+	bool openProject(std::string externalPath = "");
 	void drawSettingsSwo();
 	void drawIndicatorsSwo();
 	void drawPlotsSwo();

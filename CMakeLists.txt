@@ -20,7 +20,7 @@ project(MCUViewer)
 
 set(MCUVIEWER_VERSION 1.0.0)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -201,7 +201,8 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/inc/)
 
 if(APPLE)
     include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
