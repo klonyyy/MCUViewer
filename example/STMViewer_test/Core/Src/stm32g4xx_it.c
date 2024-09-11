@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -226,6 +227,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
   */
 void TIM6_DAC_IRQHandler(void)
 {
+	static float k = 0.0f;
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
 	ITM->PORT[3].u8 = 0xaa;
 	LL_TIM_ClearFlag_UPDATE(TIM6);
@@ -235,7 +237,9 @@ void TIM6_DAC_IRQHandler(void)
   /* USER CODE END TIM6_DAC_IRQn 0 */
 
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
-
+	float y = sin(k);
+	k += 0.05f;
+	ITM->PORT[4].u32 = *(uint32_t*)&y;
   /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
