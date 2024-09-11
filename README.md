@@ -132,6 +132,12 @@ I'm working in the motor control industry where it is crucial to visualize some 
 
 Since the Trace Viewer module was added MCUViewer has a unique property of displaying SWO trace data which both CubeMonitor and STMStudio currently lack. Moreover it now fully supports JLink programmer as well.
 
+## Support and sponsorship
+
+Maintaining and improving MCUViever takes a lot of time and effort. If you find MCUViewer useful in your project or work you can support the development by becoming a [Github sponsor](https://github.com/sponsors/klonyyy) or simply ["buying a coffe"](https://buymeacoffee.com/klonyyy).
+
+If you're interested in special features, priority feature implementations, or support you can contact me directly.
+
 ## 3rd party projects used in MCUViewer
 
 1. [stlink](https://github.com/stlink-org/stlink)
