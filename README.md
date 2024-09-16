@@ -4,7 +4,7 @@
 To download MCUViewer installer please proceed to the [releases page](https://github.com/klonyyy/MCUViewer/releases).
 
 # MCUViewer 
-MCUViewer (previously STMViewer) is an open-source GUI debug tool for microcontrollers that consists of two modules:
+MCUViewer (formerly STMViewer) is an open-source GUI debug tool for microcontrollers that consists of two modules.
 1. Variable Viewer - used for viewing, logging, and manipulating variables data in realtime using debug interface (SWDIO / SWCLK / GND)
 2. Trace Viewer - used for graphically representing real-time SWO trace output (SWDIO / SWCLK / SWO / GND)
 
@@ -134,7 +134,7 @@ Since the Trace Viewer module was added MCUViewer has a unique property of displ
 
 ## Support and sponsorship
 
-Maintaining and improving MCUViever takes a lot of time and effort. If you find MCUViewer useful in your project or work you can support the development by becoming a [Github sponsor](https://github.com/sponsors/klonyyy) or simply ["buying a coffe"](https://buymeacoffee.com/klonyyy).
+Maintaining and improving MCUViewer takes a lot of time and effort. If you find MCUViewer useful in your project or work you can support the development by becoming a [Github sponsor](https://github.com/sponsors/klonyyy) or simply ["buying a coffe"](https://buymeacoffee.com/klonyyy).
 
 If you're interested in special features, priority feature implementations, or support you can contact me directly.
 
