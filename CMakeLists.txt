@@ -20,7 +20,7 @@ project(MCUViewer)
 
 set(MCUVIEWER_VERSION 1.0.0)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -188,7 +188,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

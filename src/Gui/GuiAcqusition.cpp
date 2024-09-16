@@ -49,6 +49,8 @@ void Gui::acqusitionSettingsViewer()
 	plotHandler->setSettings(settings);
 
 	drawDebugProbes();
+
+	drawLoggingSettings();
 }
 
 void Gui::drawDebugProbes()
@@ -159,6 +161,39 @@ void Gui::drawDebugProbes()
 		plotHandler->setDebugProbe(debugProbeDevice);
 	}
 	ImGui::PopID();
+}
+
+void Gui::drawLoggingSettings()
+{
+	static bool logging = false;
+	static std::string directory = "";
+
+	PlotHandler::Settings settings = plotHandler->getSettings();
+
+	ImGui::PushID("logging");
+	ImGui::Dummy(ImVec2(-1, 5));
+	drawCenteredText("Logging");
+	ImGui::SameLine();
+	ImGui::HelpMarker("Log all registered variables values to a selected log file");
+	ImGui::Separator();
+
+	/* CSV streamer */
+	ImGui::Text("Log to file:                       ");
+	ImGui::SameLine();
+	ImGui::Checkbox("##logging", &logging);
+
+	ImGui::BeginDisabled(!logging);
+
+	ImGui::Text("Logfile directory:                 ");
+	ImGui::SameLine();
+	ImGui::InputText("##", &settings.logFilePath, 0, NULL, NULL);
+	ImGui::SameLine();
+	if (ImGui::Button("...", ImVec2(35 * contentScale, 19 * contentScale)))
+		openLogDirectory(settings.logFilePath);
+
+	ImGui::EndDisabled();
+	ImGui::PopID();
+	plotHandler->setSettings(settings);
 }
 
 void Gui::acqusitionSettingsTrace()

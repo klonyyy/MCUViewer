@@ -1020,6 +1020,19 @@ bool Gui::openElfFile()
 	return false;
 }
 
+bool Gui::openLogDirectory(std::string& logDirectory)
+{
+	std::string path = fileHandler->openDirectory({"", ""});
+
+	if (path != "")
+	{
+		logDirectory = path;
+		logger->info("Log directory: {}", path);
+		return true;
+	}
+	return false;
+}
+
 std::string Gui::convertProjectPathToAbsolute(const std::string& relativePath)
 {
 	if (relativePath.empty())

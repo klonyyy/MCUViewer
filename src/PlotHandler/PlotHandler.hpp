@@ -8,12 +8,13 @@
 #include <string>
 #include <thread>
 
+#include "CSVStreamer.hpp"
 #include "IDebugProbe.hpp"
+#include "MemoryReader.hpp"
 #include "MovingAverage.hpp"
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "MemoryReader.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandler : public PlotHandlerBase
@@ -28,6 +29,7 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 		bool refreshAddressesOnElfChange = false;
 		bool stopAcqusitionOnElfChange = false;
+		std::string logFilePath = "";
 	} Settings;
 
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
@@ -49,6 +51,8 @@ class PlotHandler : public PlotHandlerBase
 			return 1.0 / averageSamplingPeriod;
 		return 0.0;
 	}
+
+	CSVStreamer csvStreamer;
 
    private:
 	void dataHandler();

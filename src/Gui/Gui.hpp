@@ -94,6 +94,7 @@ class Gui
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
+	void drawLoggingSettings();
 	void drawAboutWindow();
 	void drawPreferencesWindow();
 	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
@@ -115,6 +116,7 @@ class Gui
 	bool saveProjectAs();
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
 	bool openElfFile();
+	bool openLogDirectory(std::string& logDirectory);
 	std::string convertProjectPathToAbsolute(const std::string& projectRelativePath);
 	void checkShortcuts();
 	bool checkElfFileChanged();

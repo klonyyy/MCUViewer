@@ -101,6 +101,8 @@ void PlotHandler::dataHandler()
 
 			else if (period > ((1.0 / settings.sampleFrequencyHz) * timer))
 			{
+				std::vector<double> values;
+				values.reserve(100);
 				for (auto& [key, plot] : plotsMap)
 				{
 					if (!plot->getVisibility())
@@ -119,10 +121,14 @@ void PlotHandler::dataHandler()
 					/* thread-safe part */
 					std::lock_guard<std::mutex> lock(*mtx);
 					for (auto& [name, ser] : plot->getSeriesMap())
+					{
 						plot->addPoint(name, ser->var->getValue());
+						values.push_back(ser->var->getValue());
+					}
 					plot->addTimePoint(period);
 				}
 				/* filter sampling frequency */
+				csvStreamer.writeLine(period, values);
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
 				timer++;
@@ -137,6 +143,22 @@ void PlotHandler::dataHandler()
 			{
 				auto addressSizeVector = createAddressSizeVector();
 
+				/* prepare CSV files for streaming */
+				std::vector<std::string> headerNames;
+
+				for (auto& [key, plot] : plotsMap)
+				{
+					if (!plot->getVisibility())
+						continue;
+
+					for (auto& [name, ser] : plot->getSeriesMap())
+					{
+						headerNames.push_back(name);
+					}
+				}
+				csvStreamer.prepareFile(settings.logFilePath);
+				csvStreamer.createHeader(headerNames);
+
 				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
 				{
 					timer = 0;
@@ -147,7 +169,10 @@ void PlotHandler::dataHandler()
 					viewerState = state::STOP;
 			}
 			else
+			{
 				varReader->stop();
+				csvStreamer.finishLogging();
+			}
 			stateChangeOrdered = false;
 		}
 	}

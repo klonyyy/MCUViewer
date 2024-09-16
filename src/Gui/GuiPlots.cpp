@@ -216,7 +216,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
 			showChangeFormatPopup("format", *plot, key);
 			ImGui::TableSetColumnIndex(3);
-			ImGui::PushID("input");
+ 			ImGui::PushID("input");
 			char newValue[maxVariableNameLength] = {0};
 			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
 			{

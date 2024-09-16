@@ -14,12 +14,14 @@ class NFDFileHandler : public IFileHandler
 	bool deinit() override;
 	std::string openFile(std::pair<std::string, std::string>&& filterFileNameFileExtension) override;
 	std::string saveFile(std::pair<std::string, std::string>&& filterFileNameFileExtension) override;
+	std::string openDirectory(std::pair<std::string, std::string>&& filterFileNameFileExtension) override;
 
    private:
 	enum class handleType
 	{
 		SAVE,
-		OPEN
+		OPEN,
+		OPENDIR
 	};
 	std::string handleFile(handleType type, std::pair<std::string, std::string>& filterFileNameFileExtension);
 };
