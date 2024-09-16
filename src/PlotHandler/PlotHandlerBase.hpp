@@ -8,7 +8,7 @@
 
 #include "Plot.hpp"
 #include "ScrollingBuffer.hpp"
-#include "StlinkHandler.hpp"
+#include "StlinkDebugProbe.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandlerBase

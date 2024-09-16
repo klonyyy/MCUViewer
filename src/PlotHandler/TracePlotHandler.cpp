@@ -8,8 +8,7 @@
 
 TracePlotHandler::TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
-	traceDevice = std::make_unique<StlinkTraceDevice>(logger);
-	traceReader = std::make_unique<TraceReader>(traceDevice.get(), logger);
+	traceReader = std::make_unique<TraceReader>(logger);
 	initPlots();
 	dataHandle = std::thread(&TracePlotHandler::dataHandler, this);
 }
@@ -87,6 +86,21 @@ int32_t TracePlotHandler::getTriggerChannel() const
 	return traceSettings.triggerChannel;
 }
 
+void TracePlotHandler::setDebugProbe(std::shared_ptr<ITraceProbe> probe)
+{
+	traceReader->changeDevice(probe);
+}
+
+ITraceProbe::TraceProbeSettings TracePlotHandler::getProbeSettings() const
+{
+	return probeSettings;
+}
+
+void TracePlotHandler::setProbeSettings(const ITraceProbe::TraceProbeSettings& settings)
+{
+	probeSettings = settings;
+}
+
 double TracePlotHandler::getDoubleValue(const Plot& plot, uint32_t value)
 {
 	if (plot.getDomain() == Plot::Domain::DIGITAL)
@@ -130,8 +144,8 @@ void TracePlotHandler::dataHandler()
 			if (!traceReader->isValid())
 			{
 				logger->error("Trace invalid, stopping!");
-				viewerState.store(state::STOP);
-				stateChangeOrdered.store(true);
+				viewerState = state::STOP;
+				stateChangeOrdered = true;
 			}
 
 			double timestamp;
@@ -213,7 +227,7 @@ void TracePlotHandler::dataHandler()
 				delayed3Frames.reset();
 				lastErrorMsg = "";
 
-				if (traceReader->startAcqusition(activeChannels))
+				if (traceReader->startAcqusition(probeSettings, activeChannels))
 					time = 0;
 				else
 					viewerState = state::STOP;

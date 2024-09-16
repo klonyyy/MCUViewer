@@ -6,7 +6,7 @@ src/gitversion.hpp
 **/[Dd]ebug/
 **/[Rr]elease/
 
-test/STMViewer_test/.settings/
+test/MCUViewer_test/.settings/
 
 # Prerequisites
 *.d

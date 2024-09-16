@@ -9,7 +9,7 @@
 
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
-#include "StlinkTraceDevice.hpp"
+#include "StlinkTraceProbe.hpp"
 #include "TraceReader.hpp"
 #include "spdlog/spdlog.h"
 
@@ -43,6 +43,11 @@ class TracePlotHandler : public PlotHandlerBase
 
 	void setTriggerChannel(int32_t triggerChannel);
 	int32_t getTriggerChannel() const;
+
+	void setDebugProbe(std::shared_ptr<ITraceProbe> probe);
+	ITraceProbe::TraceProbeSettings getProbeSettings() const;
+	void setProbeSettings(const ITraceProbe::TraceProbeSettings& settings);
+
 	double getDoubleValue(const Plot& plot, uint32_t value);
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 
@@ -85,13 +90,14 @@ class TracePlotHandler : public PlotHandlerBase
 	};
 
 	Settings traceSettings{};
-	std::unique_ptr<StlinkTraceDevice> traceDevice;
 	std::unique_ptr<TraceReader> traceReader;
 
 	MarkerTimestamps errorFrames{};
 	MarkerTimestamps delayed3Frames{};
 
 	std::string lastErrorMsg{};
+
+	ITraceProbe::TraceProbeSettings probeSettings;
 
 	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;

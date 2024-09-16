@@ -15,7 +15,8 @@
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
-#include "JlinkHandler.hpp"
+#include "JlinkDebugProbe.hpp"
+#include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
@@ -26,10 +27,12 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
+	static constexpr bool showDemoWindow = false;
+
 	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
 	static constexpr uint32_t maxVariableNameLength = 100;
 	std::map<std::string, std::shared_ptr<Variable>> vars;
@@ -56,6 +59,10 @@ class Gui
 	std::vector<std::string> devicesList{};
 	const std::string noDevices = "No debug probes found!";
 
+	std::shared_ptr<ITraceProbe> stlinkTraceProbe;
+	std::shared_ptr<ITraceProbe> jlinkTraceProbe;
+	std::shared_ptr<ITraceProbe> traceProbeDevice;
+
 	std::atomic<bool>& done;
 
 	Popup popup;
@@ -73,10 +80,11 @@ class Gui
 
 	GdbParser* parser;
 
-	void mainThread();
+	void mainThread(std::string externalPath);
 	void drawMenu();
 	void drawStartButton(PlotHandlerBase* activePlotHandler);
 	void drawDebugProbes();
+	void drawTraceProbes();
 	void addNewVariable(const std::string& newName);
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
@@ -106,11 +114,11 @@ class Gui
 	bool saveProject();
 	bool saveProjectAs();
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
-	bool openProject();
 	bool openElfFile();
+	std::string convertProjectPathToAbsolute(const std::string& projectRelativePath);
 	void checkShortcuts();
 	bool checkElfFileChanged();
-
+	bool openProject(std::string externalPath = "");
 	void drawSettingsSwo();
 	void drawIndicatorsSwo();
 	void drawPlotsSwo();

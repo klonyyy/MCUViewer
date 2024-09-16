@@ -17,12 +17,11 @@
 #define TRACE_TIMEOUT_3				   0xF0
 #define TRACE_OP_IS_EXTENSION(c)	   ((c & 0x0b) == 0x08)
 
-TraceReader::TraceReader(ITraceDevice* traceDevice, spdlog::logger* logger) : traceDevice(traceDevice), logger(logger)
+TraceReader::TraceReader(spdlog::logger* logger) : logger(logger)
 {
-	
 }
 
-bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
+bool TraceReader::startAcqusition(const ITraceProbe::TraceProbeSettings& probeSettings, const std::array<bool, 32>& activeChannels)
 {
 	traceIndicators = {};
 
@@ -41,14 +40,14 @@ bool TraceReader::startAcqusition(const std::array<bool, 32>& activeChannels)
 		return false;
 	}
 
-	if (traceDevice->startTrace(coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
+	if (TraceProbe->startTrace(probeSettings, coreFrequency * 1000, tracePrescaler, activeChannelsMask, shouldReset))
 	{
 		lastErrorMsg = "";
 		isRunning = true;
 		readerHandle = std::thread(&TraceReader::readerThread, this);
 		return true;
 	}
-	lastErrorMsg = "STLink not found!";
+	lastErrorMsg = "Trace probe not found!";
 	stopAcqusition();
 	return false;
 }
@@ -112,6 +111,24 @@ void TraceReader::setTraceShouldReset(bool shouldReset)
 void TraceReader::setTraceTimeout(uint32_t timeout)
 {
 	traceTimeout = timeout;
+}
+
+std::vector<std::string> TraceReader::getConnectedDevices() const
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return TraceProbe->getConnectedDevices();
+}
+
+void TraceReader::changeDevice(std::shared_ptr<ITraceProbe> newTraceProbe)
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	TraceProbe = newTraceProbe;
+}
+
+std::string TraceReader::getTargetName()
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return TraceProbe->getTargetName();
 }
 
 TraceReader::TraceIndicators TraceReader::getTraceIndicators() const
@@ -265,14 +282,14 @@ void TraceReader::readerThread()
 {
 	while (isRunning)
 	{
-		int32_t length = traceDevice->readTraceBuffer(buffer, size);
+		int32_t length = TraceProbe->readTraceBuffer(buffer, size);
 
 		if (length < 0)
 		{
-			lastErrorMsg = "Stlink trace critical error!";
+			lastErrorMsg = "Trace probe critical error!";
 			logger->error(lastErrorMsg);
 
-			isRunning.store(false);
+			isRunning = false;
 			break;
 		}
 
@@ -280,7 +297,7 @@ void TraceReader::readerThread()
 		{
 			lastErrorMsg = "No trace registered for " + std::to_string(traceTimeout) + "s!";
 			logger->error(lastErrorMsg);
-			isRunning.store(false);
+			isRunning = false;
 			break;
 		}
 
@@ -288,14 +305,6 @@ void TraceReader::readerThread()
 		{
 			traceIndicators.sleepCycles++;
 			std::this_thread::sleep_for(std::chrono::microseconds(100));
-			continue;
-		}
-
-		if (length == size)
-		{
-			lastErrorMsg = "Trace overflow!";
-			logger->error(lastErrorMsg);
-			isRunning.store(false);
 			continue;
 		}
 
@@ -308,6 +317,6 @@ void TraceReader::readerThread()
 				break;
 		}
 	}
-	traceDevice->stopTrace();
+	TraceProbe->stopTrace();
 	logger->info("Closing trace thread {}", isRunning);
 }

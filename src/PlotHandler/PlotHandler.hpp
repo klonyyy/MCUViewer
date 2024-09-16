@@ -13,12 +13,14 @@
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "TargetMemoryHandler.hpp"
+#include "MemoryReader.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandler : public PlotHandlerBase
 {
    public:
+	static constexpr uint32_t minSamplinFrequencyHz = 1;
+	static constexpr uint32_t maxSamplinFrequencyHz = 1000000;
 	typedef struct Settings
 	{
 		uint32_t sampleFrequencyHz = 100;
@@ -53,7 +55,7 @@ class PlotHandler : public PlotHandlerBase
 	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
 
    private:
-	std::unique_ptr<TargetMemoryHandler> varReader;
+	std::unique_ptr<MemoryReader> varReader;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
 	MovingAverage samplingPeriodFilter{1000};

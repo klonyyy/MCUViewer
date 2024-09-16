@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.8)
 project(nativefiledialog-extended VERSION 1.0.1)
 
 set(nfd_ROOT_PROJECT OFF)

@@ -1,6 +1,6 @@
 include(FetchContent)
 
-project(STMViewer_test)
+project(MCUViewer_test)
 
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
@@ -52,7 +52,7 @@ target_link_libraries(${EXECUTABLE}
     GTest::GTest)
 
 # Copy test elf file to binary directory
-set(SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/testFiles/STMViewer_test.elf")
+set(SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/testFiles/MCUViewer_test.elf")
 set(DESTINATION_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_custom_command(

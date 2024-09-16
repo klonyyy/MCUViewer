@@ -1,4 +1,4 @@
-#include "StlinkHandler.hpp"
+#include "StlinkDebugProbe.hpp"
 
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/spdlog.h>
@@ -8,12 +8,12 @@
 
 #include "logging.h"
 
-StlinkHandler::StlinkHandler(spdlog::logger* logger) : logger(logger)
+StlinkDebugProbe::StlinkDebugProbe(spdlog::logger* logger) : logger(logger)
 {
 	init_chipids(const_cast<char*>("./chips"));
 }
 
-bool StlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
+bool StlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
 {
 	sl = stlink_open_usb(UINFO, CONNECT_HOT_PLUG, (char*)probeSettings.serialNumber.data(), probeSettings.speedkHz);
 	isRunning = false;
@@ -34,29 +34,29 @@ bool StlinkHandler::startAcqusition(const DebugProbeSettings& probeSettings, std
 	lastErrorMsg = "STLink not found!";
 	return false;
 }
-bool StlinkHandler::stopAcqusition()
+bool StlinkDebugProbe::stopAcqusition()
 {
 	isRunning = false;
 	stlink_close(sl);
 	return true;
 }
-bool StlinkHandler::isValid() const
+bool StlinkDebugProbe::isValid() const
 {
 	return isRunning;
 }
 
-std::optional<IDebugProbe::varEntryType> StlinkHandler::readSingleEntry()
+std::optional<IDebugProbe::varEntryType> StlinkDebugProbe::readSingleEntry()
 {
 	return std::nullopt;
 }
 
-bool StlinkHandler::readMemory(uint32_t address, uint32_t* value)
+bool StlinkDebugProbe::readMemory(uint32_t address, uint32_t* value)
 {
 	if (!isRunning)
 		return false;
 	return stlink_read_debug32(sl, address, value) == 0;
 }
-bool StlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
+bool StlinkDebugProbe::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 {
 	if (!isRunning)
 		return false;
@@ -64,12 +64,12 @@ bool StlinkHandler::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
 	return stlink_write_mem8(sl, address, len) == 0;
 }
 
-std::string StlinkHandler::getLastErrorMsg() const
+std::string StlinkDebugProbe::getLastErrorMsg() const
 {
 	return lastErrorMsg;
 }
 
-std::vector<std::string> StlinkHandler::getConnectedDevices()
+std::vector<std::string> StlinkDebugProbe::getConnectedDevices()
 {
 	stlink_t** stdevs;
 	uint32_t size;

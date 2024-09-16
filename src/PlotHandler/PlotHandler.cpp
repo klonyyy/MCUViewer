@@ -5,13 +5,13 @@
 #include <memory>
 #include <string>
 
-#include "JlinkHandler.hpp"
-#include "StlinkHandler.hpp"
+#include "JlinkDebugProbe.hpp"
+#include "StlinkDebugProbe.hpp"
 
 PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
 {
 	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	varReader = std::make_unique<TargetMemoryHandler>();
+	varReader = std::make_unique<MemoryReader>();
 }
 PlotHandler::~PlotHandler()
 {

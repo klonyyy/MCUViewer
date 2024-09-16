@@ -20,9 +20,9 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
-	threadHandle = std::thread(&Gui::mainThread, this);
+	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
 }
 
 Gui::~Gui()
@@ -44,13 +44,13 @@ static float getContentScale(GLFWwindow* window)
 	return (xscale + yscale) / 2.0f;
 }
 
-void Gui::mainThread()
+void Gui::mainThread(std::string externalPath)
 {
 	glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit())
 		return;
 
-	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("STMViewer | ") + projectConfigPath).c_str(), NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("MCUViewer | ") + projectConfigPath).c_str(), NULL, NULL);
 	if (window == NULL)
 		return;
 	glfwMakeContextCurrent(window);
@@ -76,7 +76,6 @@ void Gui::mainThread()
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
 
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -87,12 +86,18 @@ void Gui::mainThread()
 
 	fileHandler->init();
 
-	bool show_demo_window = false;
-
-	jlinkProbe = std::make_shared<JlinkHandler>(logger);
-	stlinkProbe = std::make_shared<StlinkHandler>(logger);
+	jlinkProbe = std::make_shared<JlinkDebugProbe>(logger);
+	stlinkProbe = std::make_shared<StlinkDebugProbe>(logger);
 	debugProbeDevice = stlinkProbe;
 	plotHandler->setDebugProbe(debugProbeDevice);
+
+	jlinkTraceProbe = std::make_shared<JlinkTraceProbe>(logger);
+	stlinkTraceProbe = std::make_shared<StlinkTraceProbe>(logger);
+	traceProbeDevice = stlinkTraceProbe;
+	tracePlotHandler->setDebugProbe(traceProbeDevice);
+
+	if (!externalPath.empty())
+		openProject(externalPath);
 
 	while (!done)
 	{
@@ -107,7 +112,7 @@ void Gui::mainThread()
 		else
 			glfwSwapInterval(4);
 
-		glfwSetWindowTitle(window, (std::string("STMViewer - ") + projectConfigPath).c_str());
+		glfwSetWindowTitle(window, (std::string("MCUViewer - ") + projectConfigPath).c_str());
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -115,7 +120,7 @@ void Gui::mainThread()
 		ImGui::NewFrame();
 		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-		if (show_demo_window)
+		if (showDemoWindow)
 			ImPlot::ShowDemoWindow();
 
 		if (glfwWindowShouldClose(window))
@@ -168,8 +173,6 @@ void Gui::mainThread()
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
-		glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -284,7 +287,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 			ImVec4 orangeLightDim = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.82f);
 
 			ImGui::PushStyleColor(ImGuiCol_Button, orange);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orangeLight);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orange);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, orangeLightDim);
 		}
 	}
@@ -306,110 +309,6 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 
 	ImGui::PopStyleColor(3);
 	ImGui::EndDisabled();
-}
-
-void Gui::drawDebugProbes()
-{
-	static bool shouldListDevices = false;
-	static int SNptr = 0;
-	bool modified = false;
-
-	ImGui::Dummy(ImVec2(-1, 5));
-	drawCenteredText("Debug Probe");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Select the debug probe type and the serial number of the probe to unlock the START button.");
-	ImGui::Separator();
-
-	ImGui::Text("Debug probe:                       ");
-	ImGui::SameLine();
-
-	const char* debugProbes[] = {"STLINK", "JLINK"};
-	IDebugProbe::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
-	int32_t debugProbe = probeSettings.debugProbe;
-
-	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
-	{
-		probeSettings.debugProbe = debugProbe;
-		modified = true;
-
-		if (probeSettings.debugProbe == 1)
-		{
-			debugProbeDevice = jlinkProbe;
-			shouldListDevices = true;
-		}
-		else
-		{
-			debugProbeDevice = stlinkProbe;
-			shouldListDevices = true;
-		}
-		SNptr = 0;
-	}
-	ImGui::Text("Debug probe S/N:                   ");
-	ImGui::SameLine();
-
-	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
-	{
-		probeSettings.serialNumber = devicesList[SNptr];
-		modified = true;
-	}
-
-	ImGui::SameLine();
-
-	if (ImGui::Button("@", ImVec2(35 * contentScale, 19 * contentScale)) || shouldListDevices || devicesList.empty())
-	{
-		devicesList = debugProbeDevice->getConnectedDevices();
-		if (!devicesList.empty())
-		{
-			probeSettings.serialNumber = devicesList[0];
-			std::cout << devicesList.size();
-			modified = true;
-		}
-		shouldListDevices = false;
-	}
-
-	ImGui::Text("SWD speed [kHz]:                   ");
-	ImGui::SameLine();
-
-	if (ImGui::InputScalar("##speed", ImGuiDataType_U32, &probeSettings.speedkHz, NULL, NULL, "%u"))
-		modified = true;
-
-	if (probeSettings.debugProbe == 1)
-	{
-		ImGui::Text("Target name:                       ");
-		ImGui::SameLine();
-
-		if (ImGui::InputText("##device", &probeSettings.device, 0, NULL, NULL))
-			modified = true;
-
-		ImGui::SameLine();
-		ImGui::HelpMarker("Provide a full target name, or leave empty to select from JLink list");
-
-		ImGui::Text("Mode:                              ");
-		ImGui::SameLine();
-
-		const char* probeModes[] = {"NORMAL", "HSS"};
-		int32_t probeMode = probeSettings.mode;
-
-		if (ImGui::Combo("##mode", &probeMode, probeModes, IM_ARRAYSIZE(probeModes)))
-		{
-			probeSettings.mode = static_cast<IDebugProbe::Mode>(probeMode);
-			modified = true;
-		}
-
-		ImGui::SameLine();
-		ImGui::HelpMarker("Select normal or high speed sampling (HSS) mode");
-	}
-	else
-		probeSettings.mode = IDebugProbe::Mode::NORMAL;
-
-	if (devicesList.empty())
-		devicesList.push_back(noDevices);
-
-	if (modified)
-	{
-		plotHandler->setProbeSettings(probeSettings);
-		plotHandler->setDebugProbe(debugProbeDevice);
-	}
 }
 
 void Gui::addNewVariable(const std::string& newName)
@@ -487,7 +386,7 @@ void Gui::drawUpdateAddressesFromElf()
 	if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || performVariablesUpdate)
 	{
 		lastModifiedTime = std::filesystem::file_time_type::clock::now();
-		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, projectElfPath, std::ref(vars));
+		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
 		performVariablesUpdate = false;
 	}
 
@@ -830,57 +729,6 @@ void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 	}
 }
 
-void Gui::acqusitionSettingsViewer()
-{
-	ImGui::Dummy(ImVec2(-1, 5));
-	drawCenteredText("Project");
-	ImGui::Separator();
-
-	ImGui::Text("*.elf file:                        ");
-	ImGui::SameLine();
-	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
-	ImGui::SameLine();
-	if (ImGui::Button("...", ImVec2(35 * contentScale, 19 * contentScale)))
-		openElfFile();
-
-	PlotHandler::Settings settings = plotHandler->getSettings();
-
-	ImGui::Text("Refresh addresses on *.elf change: ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##refresh", &settings.refreshAddressesOnElfChange);
-
-	ImGui::Text("Stop acqusition on *.elf change:   ");
-	ImGui::SameLine();
-	ImGui::Checkbox("##stop", &settings.stopAcqusitionOnElfChange);
-
-	ImGui::Text("Sampling [Hz]:                     ");
-	ImGui::SameLine();
-	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, NULL, NULL, "%u");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Maximum sampling frequency. Depending on the used debug probe it can be reached or not.");
-	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, static_cast<uint32_t>(1), static_cast<uint32_t>(10000));
-
-	const uint32_t minPoints = 100;
-	const uint32_t maxPoints = 20000;
-	ImGui::Text("Max points:                        ");
-	ImGui::SameLine();
-	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
-	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
-
-	ImGui::Text("Max view points:                   ");
-	ImGui::SameLine();
-	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, NULL, NULL, "%u");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Max points used for a single series that will be shown in the viewport without scroling.");
-	settings.maxViewportPoints = std::clamp(settings.maxViewportPoints, minPoints, settings.maxPoints);
-
-	plotHandler->setSettings(settings);
-
-	drawDebugProbes();
-}
-
 void Gui::drawPreferencesWindow()
 {
 	if (showPreferencesWindow)
@@ -991,32 +839,6 @@ void Gui::drawStatisticsDigital(std::shared_ptr<Plot> plt)
 	}
 	else
 		plt->stats.setState(false);
-}
-
-void Gui::acqusitionSettingsTrace()
-{
-	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
-
-	static int one = 1;
-	ImGui::Text("Max points [100 - 20000]:");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
-	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, &one, NULL, "%u");
-	settings.maxPoints = std::clamp(settings.maxPoints, static_cast<uint32_t>(100), static_cast<uint32_t>(20000));
-
-	ImGui::Text("Viewport width in percent [0 - 100]:");
-	ImGui::SameLine();
-	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
-	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, &one, NULL, "%u");
-	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
-
-	ImGui::Text("Timeout [s]:");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Timeout is the period after which trace will be stopped due to no trace data being received.");
-	ImGui::InputScalar("##timeout", ImGuiDataType_U32, &settings.timeout, &one, NULL, "%u");
-	settings.timeout = std::clamp(settings.timeout, static_cast<uint32_t>(1), static_cast<uint32_t>(999999));
-
-	tracePlotHandler->setSettings(settings);
 }
 
 std::optional<std::string> Gui::showDeletePopup(const char* text, const std::string& name)
@@ -1135,9 +957,15 @@ bool Gui::saveProjectAs()
 	return false;
 }
 
-bool Gui::openProject()
+bool Gui::openProject(std::string externalPath)
 {
-	std::string path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	std::string path = "";
+
+	if (externalPath.empty())
+		path = fileHandler->openFile(std::pair<std::string, std::string>("Project files", "cfg"));
+	else
+		path = externalPath;
+
 	if (path != "")
 	{
 		projectConfigPath = path;
@@ -1154,6 +982,14 @@ bool Gui::openProject()
 			debugProbeDevice = stlinkProbe;
 
 		plotHandler->setDebugProbe(debugProbeDevice);
+
+		if (tracePlotHandler->getProbeSettings().debugProbe == 1)
+			traceProbeDevice = jlinkTraceProbe;
+		else
+			traceProbeDevice = stlinkTraceProbe;
+
+		tracePlotHandler->setDebugProbe(traceProbeDevice);
+
 		return true;
 	}
 	return false;
@@ -1172,11 +1008,34 @@ bool Gui::openElfFile()
 
 	if (path != "")
 	{
-		projectElfPath = path;
+		std::filesystem::path relPath = std::filesystem::relative(path, std::filesystem::path(projectConfigPath).parent_path());
+		if (relPath != "")
+			projectElfPath = relPath.string();
+		else
+			projectElfPath = path;
+
 		logger->info("Project elf file path: {}", projectElfPath);
 		return true;
 	}
 	return false;
+}
+
+std::string Gui::convertProjectPathToAbsolute(const std::string& relativePath)
+{
+	if (relativePath.empty())
+		return "";
+
+	try
+	{
+		// Convert relative path to absolute path based on project file location
+		std::filesystem::path absPath = std::filesystem::absolute(std::filesystem::path(projectConfigPath).parent_path() / relativePath);
+		return absPath.string();
+	}
+	catch (std::filesystem::filesystem_error& e)
+	{
+		logger->error("Failed to convert path to absolute: {}", e.what());
+		return "";
+	}
 }
 
 void Gui::checkShortcuts()
@@ -1198,10 +1057,10 @@ void Gui::checkShortcuts()
 
 bool Gui::checkElfFileChanged()
 {
-	if (!std::filesystem::exists(projectElfPath))
+	if (!std::filesystem::exists(convertProjectPathToAbsolute(projectElfPath)))
 		return false;
 
-	auto writeTime = std::filesystem::last_write_time(projectElfPath);
+	auto writeTime = std::filesystem::last_write_time(convertProjectPathToAbsolute(projectElfPath));
 	return writeTime > lastModifiedTime;
 }
 

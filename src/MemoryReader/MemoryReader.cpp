@@ -1,28 +1,28 @@
-#include "TargetMemoryHandler.hpp"
+#include "MemoryReader.hpp"
 
 #include <map>
 #include <memory>
 
 #include "iostream"
 
-bool TargetMemoryHandler::start(const IDebugProbe::DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) const
+bool MemoryReader::start(const IDebugProbe::DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) const
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	return probe->startAcqusition(probeSettings, addressSizeVector, samplingFreqency);
 }
-bool TargetMemoryHandler::stop() const
+bool MemoryReader::stop() const
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	return probe->stopAcqusition();
 }
 
-std::optional<IDebugProbe::varEntryType> TargetMemoryHandler::readSingleEntry()
+std::optional<IDebugProbe::varEntryType> MemoryReader::readSingleEntry()
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	return probe->readSingleEntry();
 }
 
-double TargetMemoryHandler::getValue(uint32_t address, Variable::type type, bool& result)
+double MemoryReader::getValue(uint32_t address, Variable::type type, bool& result)
 {
 	uint32_t value = 0;
 	uint8_t shouldShift = address % 4;
@@ -72,7 +72,7 @@ double TargetMemoryHandler::getValue(uint32_t address, Variable::type type, bool
 	return castToProperType(value, type);
 }
 
-double TargetMemoryHandler::castToProperType(uint32_t value, Variable::type type)
+double MemoryReader::castToProperType(uint32_t value, Variable::type type)
 {
 	switch (type)
 	{
@@ -95,7 +95,7 @@ double TargetMemoryHandler::castToProperType(uint32_t value, Variable::type type
 	}
 }
 
-bool TargetMemoryHandler::setValue(const Variable& var, double value)
+bool MemoryReader::setValue(const Variable& var, double value)
 {
 	uint32_t address = var.getAddress();
 	uint8_t buf[4] = {};
@@ -136,20 +136,26 @@ bool TargetMemoryHandler::setValue(const Variable& var, double value)
 	}
 }
 
-std::string TargetMemoryHandler::getLastErrorMsg() const
+std::string MemoryReader::getLastErrorMsg() const
 {
 	/* TODO lock with timeout as we dont really care if we get it every cycle */
 	return probe->getLastErrorMsg();
 }
 
-std::vector<std::string> TargetMemoryHandler::getConnectedDevices() const
+std::vector<std::string> MemoryReader::getConnectedDevices() const
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	return probe->getConnectedDevices();
 }
 
-void TargetMemoryHandler::changeDevice(std::shared_ptr<IDebugProbe> newProbe)
+void MemoryReader::changeDevice(std::shared_ptr<IDebugProbe> newProbe)
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	probe = newProbe;
+}
+
+std::string MemoryReader::getTargetName()
+{
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->getTargetName();
 }
