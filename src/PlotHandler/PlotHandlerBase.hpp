@@ -10,6 +10,7 @@
 #include "ScrollingBuffer.hpp"
 #include "StlinkDebugProbe.hpp"
 #include "spdlog/spdlog.h"
+#include "CSVStreamer.hpp"
 
 class PlotHandlerBase
 {
@@ -56,6 +57,7 @@ class PlotHandlerBase
 	iterator end();
 
    protected:
+	CSVStreamer csvStreamer;
 	std::atomic<bool>& done;
 	std::atomic<state> viewerState = state::STOP;
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;

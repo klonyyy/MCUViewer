@@ -8,7 +8,6 @@
 #include <string>
 #include <thread>
 
-#include "CSVStreamer.hpp"
 #include "IDebugProbe.hpp"
 #include "MemoryReader.hpp"
 #include "MovingAverage.hpp"
@@ -29,6 +28,7 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 		bool refreshAddressesOnElfChange = false;
 		bool stopAcqusitionOnElfChange = false;
+		bool shouldLog = false;
 		std::string logFilePath = "";
 	} Settings;
 
@@ -52,13 +52,13 @@ class PlotHandler : public PlotHandlerBase
 		return 0.0;
 	}
 
-	CSVStreamer csvStreamer;
-
    private:
 	void dataHandler();
 	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
 
    private:
+	static constexpr size_t maxVariablesOnSinglePlot = 100;
+
 	std::unique_ptr<MemoryReader> varReader;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};

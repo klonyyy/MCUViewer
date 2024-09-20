@@ -61,6 +61,8 @@ void PlotHandler::dataHandler()
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	uint32_t timer = 0;
 	double lastT = 0.0;
+	std::vector<double> csvValues;
+	csvValues.reserve(maxVariablesOnSinglePlot);
 
 	while (!done)
 	{
@@ -68,6 +70,7 @@ void PlotHandler::dataHandler()
 		{
 			auto finish = std::chrono::steady_clock::now();
 			double period = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+			csvValues.clear();
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
@@ -90,9 +93,13 @@ void PlotHandler::dataHandler()
 						double value = varReader->castToProperType(values[ser->var->getAddress()], ser->var->getType());
 						ser->var->setValue(value);
 						plot->addPoint(name, value);
+						csvValues.push_back(ser->var->getValue());
 					}
 					plot->addTimePoint(timestamp);
 				}
+
+				if (settings.shouldLog)
+					csvStreamer.writeLine(period, csvValues);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -101,8 +108,6 @@ void PlotHandler::dataHandler()
 
 			else if (period > ((1.0 / settings.sampleFrequencyHz) * timer))
 			{
-				std::vector<double> values;
-				values.reserve(100);
 				for (auto& [key, plot] : plotsMap)
 				{
 					if (!plot->getVisibility())
@@ -123,12 +128,14 @@ void PlotHandler::dataHandler()
 					for (auto& [name, ser] : plot->getSeriesMap())
 					{
 						plot->addPoint(name, ser->var->getValue());
-						values.push_back(ser->var->getValue());
+						csvValues.push_back(ser->var->getValue());
 					}
 					plot->addTimePoint(period);
 				}
+
+				if (settings.shouldLog)
+					csvStreamer.writeLine(period, csvValues);
 				/* filter sampling frequency */
-				csvStreamer.writeLine(period, values);
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
 				timer++;

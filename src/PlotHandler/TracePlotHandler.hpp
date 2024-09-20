@@ -26,6 +26,8 @@ class TracePlotHandler : public PlotHandlerBase
 		double triggerLevel = 0.9;
 		bool shouldReset = false;
 		uint32_t timeout = 2;
+		bool shouldLog = false;
+		std::string logFilePath = "";
 	} Settings;
 
 	TracePlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
@@ -89,7 +91,7 @@ class TracePlotHandler : public PlotHandlerBase
 		uint32_t previousErrors;
 	};
 
-	Settings traceSettings{};
+	Settings settings{};
 	std::unique_ptr<TraceReader> traceReader;
 
 	MarkerTimestamps errorFrames{};

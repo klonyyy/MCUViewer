@@ -94,7 +94,10 @@ class Gui
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
-	void drawLoggingSettings();
+
+	template <typename Settings>
+	void drawLoggingSettings(PlotHandlerBase* handler, Settings& settings);
+
 	void drawAboutWindow();
 	void drawPreferencesWindow();
 	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
