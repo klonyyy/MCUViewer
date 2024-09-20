@@ -54,7 +54,7 @@ class CSVStreamer
 	bool prepareFile(std::string& directory)
 	{
 		filePath = directory + "/logfile.csv";
-		csvFile.open(filePath, std::ios::app);
+		csvFile.open(filePath, std::ios::out);
 		if (!csvFile.is_open())
 		{
 			std::cerr << "Failed to open file: " << filePath << std::endl;
@@ -65,7 +65,7 @@ class CSVStreamer
 
 	void createHeader(const std::vector<std::string>& values)
 	{
-		std::string header;
+		std::string header = "time,";
 		for (const auto& value : values)
 		{
 			header += value + ",";
@@ -87,11 +87,16 @@ class CSVStreamer
 
 		if (currentBuffer->isFull())
 		{
-			processingBuffer = currentBuffer;
-			currentBuffer = currentBuffer->nextBuffer;
-			currentBuffer->index = 0;
+			exchangeBuffers();
 			saveTask = std::async(std::launch::async, &CSVStreamer::save, this);
 		}
+	}
+
+	void exchangeBuffers()
+	{
+		processingBuffer = currentBuffer;
+		currentBuffer = currentBuffer->nextBuffer;
+		currentBuffer->index = 0;
 	}
 
 	void save()
@@ -101,9 +106,10 @@ class CSVStreamer
 			std::cerr << "CSV file is not open!" << std::endl;
 			return;
 		}
-		for (const auto& line : processingBuffer->buffer)
+
+		for (size_t i = 0; i < processingBuffer->index; i++)
 		{
-			csvFile << line;
+			csvFile << processingBuffer->buffer[i];
 		}
 	}
 
@@ -111,6 +117,8 @@ class CSVStreamer
 	{
 		if (csvFile.is_open())
 		{
+			exchangeBuffers();
+			save();
 			csvFile.close();
 		}
 	}
