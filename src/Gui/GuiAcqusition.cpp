@@ -1,12 +1,14 @@
 #include "Gui.hpp"
 
+static constexpr size_t alignment = 30;
+
 void Gui::acqusitionSettingsViewer()
 {
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Project");
 	ImGui::Separator();
 
-	ImGui::Text("*.elf file:                   ");
+	drawTextAlignedToSize("*.elf file:", alignment);
 	ImGui::SameLine();
 	ImGui::InputText("##", &projectElfPath, 0, NULL, NULL);
 	ImGui::SameLine();
@@ -15,15 +17,15 @@ void Gui::acqusitionSettingsViewer()
 
 	PlotHandler::Settings settings = plotHandler->getSettings();
 
-	ImGui::Text("Refresh vars on *.elf change: ");
+	drawTextAlignedToSize("Refresh vars on *.elf change:", alignment);
 	ImGui::SameLine();
 	ImGui::Checkbox("##refresh", &settings.refreshAddressesOnElfChange);
 
-	ImGui::Text("Stop on *.elf change:         ");
+	drawTextAlignedToSize("Stop on *.elf change:", alignment);
 	ImGui::SameLine();
 	ImGui::Checkbox("##stop", &settings.stopAcqusitionOnElfChange);
 
-	ImGui::Text("Sampling [Hz]:                ");
+	drawTextAlignedToSize("Sampling [Hz]:", alignment);
 	ImGui::SameLine();
 	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, NULL, NULL, "%u");
 	ImGui::SameLine();
@@ -32,14 +34,14 @@ void Gui::acqusitionSettingsViewer()
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;
-	ImGui::Text("Max points:                   ");
+	drawTextAlignedToSize("Max points:", alignment);
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	settings.maxPoints = std::clamp(settings.maxPoints, minPoints, maxPoints);
 
-	ImGui::Text("Max view points:              ");
+	drawTextAlignedToSize("Max view points:", alignment);
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
@@ -66,7 +68,7 @@ void Gui::drawDebugProbes()
 	ImGui::HelpMarker("Select the debug probe type and the serial number of the probe to unlock the START button.");
 	ImGui::Separator();
 
-	ImGui::Text("Debug probe:                  ");
+	drawTextAlignedToSize("Debug probe:", alignment);
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
@@ -90,7 +92,7 @@ void Gui::drawDebugProbes()
 		}
 		SNptr = 0;
 	}
-	ImGui::Text("Debug probe S/N:              ");
+	drawTextAlignedToSize("Debug probe S/N:", alignment);
 	ImGui::SameLine();
 
 	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
@@ -113,7 +115,7 @@ void Gui::drawDebugProbes()
 		shouldListDevices = false;
 	}
 
-	ImGui::Text("SWD speed [kHz]:              ");
+	drawTextAlignedToSize("SWD speed [kHz]:", alignment);
 	ImGui::SameLine();
 
 	if (ImGui::InputScalar("##speed", ImGuiDataType_U32, &probeSettings.speedkHz, NULL, NULL, "%u"))
@@ -121,7 +123,7 @@ void Gui::drawDebugProbes()
 
 	if (probeSettings.debugProbe == 1)
 	{
-		ImGui::Text("Target name:                 ");
+		drawTextAlignedToSize("Target name:", alignment);
 		ImGui::SameLine();
 
 		if (ImGui::InputText("##device", &probeSettings.device, 0, NULL, NULL))
@@ -134,7 +136,7 @@ void Gui::drawDebugProbes()
 			modified = true;
 		}
 
-		ImGui::Text("Mode:                         ");
+		drawTextAlignedToSize("Mode:", alignment);
 		ImGui::SameLine();
 
 		const char* probeModes[] = {"NORMAL", "HSS"};
@@ -174,13 +176,13 @@ void Gui::drawLoggingSettings(PlotHandlerBase* handler, Settings& settings)
 	ImGui::Separator();
 
 	/* CSV streamer */
-	ImGui::Text("Log to file:                  ");
+	drawTextAlignedToSize("Log to file:", alignment);
 	ImGui::SameLine();
 	ImGui::Checkbox("##logging", &settings.shouldLog);
 
 	ImGui::BeginDisabled(!settings.shouldLog);
 
-	ImGui::Text("Logfile directory:            ");
+	drawTextAlignedToSize("Logfile directory:", alignment);
 	ImGui::SameLine();
 	ImGui::InputText("##", &settings.logFilePath, 0, NULL, NULL);
 	ImGui::SameLine();
@@ -195,21 +197,21 @@ void Gui::acqusitionSettingsTrace()
 {
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
 
-	ImGui::Text("Max points:                   ");
+	drawTextAlignedToSize("Max points:", alignment);
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxPoints", ImGuiDataType_U32, &settings.maxPoints, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Max points used for a single series after which the oldest points will be overwritten.");
 	settings.maxPoints = std::clamp(settings.maxPoints, static_cast<uint32_t>(100), static_cast<uint32_t>(20000));
 
-	ImGui::Text("Viewport width [%%]:           ");
+	drawTextAlignedToSize("Viewport width [%%]:", alignment);
 	ImGui::SameLine();
 	ImGui::InputScalar("##maxViewportPoints", ImGuiDataType_U32, &settings.maxViewportPointsPercent, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("The percentage of trace time visible during collect. Expressed in percent since the sample period is not constant.");
 	settings.maxViewportPointsPercent = std::clamp(settings.maxViewportPointsPercent, static_cast<uint32_t>(1), static_cast<uint32_t>(100));
 
-	ImGui::Text("Timeout [s]:                  ");
+	drawTextAlignedToSize("Timeout [s]:", alignment);
 	ImGui::SameLine();
 	ImGui::InputScalar("##timeout", ImGuiDataType_U32, &settings.timeout, NULL, NULL, "%u");
 	ImGui::SameLine();
@@ -236,7 +238,7 @@ void Gui::drawTraceProbes()
 	ImGui::HelpMarker("Select the debug probe type and the serial number of the probe to unlock the START button.");
 	ImGui::Separator();
 
-	ImGui::Text("Debug probe:                  ");
+	drawTextAlignedToSize("Debug probe:", alignment);
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
@@ -260,7 +262,7 @@ void Gui::drawTraceProbes()
 		}
 		SNptr = 0;
 	}
-	ImGui::Text("Debug probe S/N:              ");
+	drawTextAlignedToSize("Debug probe S/N:", alignment);
 	ImGui::SameLine();
 
 	if (ImGui::Combo("##debugProbeSN", &SNptr, devicesList))
@@ -283,7 +285,7 @@ void Gui::drawTraceProbes()
 		shouldListDevices = false;
 	}
 
-	ImGui::Text("SWD speed [kHz]:              ");
+	drawTextAlignedToSize("SWD speed [kHz]:", alignment);
 	ImGui::SameLine();
 
 	if (ImGui::InputScalar("##speed", ImGuiDataType_U32, &probeSettings.speedkHz, NULL, NULL, "%u"))
@@ -291,7 +293,7 @@ void Gui::drawTraceProbes()
 
 	if (probeSettings.debugProbe == 1)
 	{
-		ImGui::Text("Target name:                   ");
+		drawTextAlignedToSize("Target name:", alignment);
 		ImGui::SameLine();
 
 		if (ImGui::InputText("##device", &probeSettings.device, 0, NULL, NULL))

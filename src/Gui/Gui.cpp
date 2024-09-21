@@ -1110,3 +1110,11 @@ void Gui::drawCenteredText(std::string&& text)
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
 	ImGui::Text("%s", text.c_str());
 }
+
+void Gui::drawTextAlignedToSize(std::string&& text, size_t alignTo)
+{
+    size_t currentLength = text.length();
+    size_t spacesToAdd = (currentLength < alignTo) ? (alignTo - currentLength) : 0;
+    std::string alignedText = text + std::string(spacesToAdd, ' ');
+    ImGui::Text("%s", alignedText.c_str());
+}

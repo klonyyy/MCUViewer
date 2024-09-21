@@ -154,6 +154,7 @@ class Gui
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
+	void drawTextAlignedToSize(std::string&& text, size_t alignTo);
 
 	bool openWebsite(const char* url);
 
