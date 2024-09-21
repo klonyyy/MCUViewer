@@ -8,9 +8,7 @@
 bool CSVStreamer::Buffer::appendLine(std::string& line)
 {
 	if (isFull())
-	{
 		return false;
-	}
 
 	buffer[index] = line;
 	index++;
@@ -40,7 +38,7 @@ bool CSVStreamer::prepareFile(std::string& directory)
 	csvFile.open(filePath, std::ios::out);
 	if (!csvFile.is_open())
 	{
-		std::cerr << "Failed to open file: " << filePath << std::endl;
+		logger->error("Failed to open file: {}", filePath);
 		return false;
 	}
 	return true;
@@ -75,7 +73,7 @@ void CSVStreamer::writeLine(double time, const std::vector<double>& values)
 		if (saveTask.valid() && saveTask.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
 			logger->error("Buffer overrun in CSVStreamer object!");
 
-		saveTask = std::async(std::launch::async, &CSVStreamer::save, this);
+		saveTask = std::async(std::launch::async, &CSVStreamer::writeFile, this);
 	}
 }
 
@@ -86,11 +84,11 @@ void CSVStreamer::exchangeBuffers()
 	currentBuffer->index = 0;
 }
 
-void CSVStreamer::save()
+void CSVStreamer::writeFile()
 {
 	if (!csvFile.is_open())
 	{
-		std::cerr << "CSV file is not open!" << std::endl;
+		logger->error("CSV file is not open!");
 		return;
 	}
 
@@ -105,7 +103,7 @@ void CSVStreamer::finishLogging()
 	if (csvFile.is_open())
 	{
 		exchangeBuffers();
-		save();
+		writeFile();
 		csvFile.close();
 	}
 }

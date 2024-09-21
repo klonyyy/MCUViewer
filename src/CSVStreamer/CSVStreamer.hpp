@@ -41,8 +41,8 @@ class CSVStreamer
 	/// @brief exchanges the buffer that is being processed with the one that's being written to
 	void exchangeBuffers();
 
-	/// @brief saves the processing buffer to the opened csv file
-	void save();
+	/// @brief writes the processing buffer to the opened csv file
+	void writeFile();
 
 	/// @brief writes the rest of the buffer to the file and closes it
 	void finishLogging();
