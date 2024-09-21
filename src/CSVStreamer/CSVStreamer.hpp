@@ -22,27 +22,36 @@ class CSVStreamer
 	};
 
 	CSVStreamer(spdlog::logger* logger);
-
 	~CSVStreamer();
 
+	/// @brief Creates file in given directory with a fixed name
+	/// @param directory directory string
+	/// @return
 	bool prepareFile(std::string& directory);
 
+	/// @brief create csv file header from given argument, first column - time - is added internally
+	/// @param values table headers
 	void createHeader(const std::vector<std::string>& values);
 
+	/// @brief writes single line to internal buffer
+	/// @param time
+	/// @param values
 	void writeLine(double time, const std::vector<double>& values);
 
+	/// @brief exchanges the buffer that is being processed with the one that's being written to
 	void exchangeBuffers();
 
+	/// @brief saves the processing buffer to the opened csv file
 	void save();
 
+	/// @brief writes the rest of the buffer to the file and closes it
 	void finishLogging();
 
    private:
 	const char* logFileName = "/logfile.csv";
 
 	spdlog::logger* logger;
-	std::future<void>
-		saveTask{};
+	std::future<void> saveTask{};
 	std::string filePath;
 	std::ofstream csvFile;
 	Buffer buffer1;
