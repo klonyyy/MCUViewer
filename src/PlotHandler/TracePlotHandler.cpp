@@ -194,7 +194,7 @@ void TracePlotHandler::dataHandler()
 			}
 
 			if (settings.shouldLog)
-				csvStreamer.writeLine(time, csvValues);
+				csvStreamer->writeLine(time, csvValues);
 
 			if (traceTriggered && cnt++ >= (settings.maxPoints * 0.9))
 			{
@@ -242,8 +242,8 @@ void TracePlotHandler::dataHandler()
 				delayed3Frames.reset();
 				lastErrorMsg = "";
 
-				csvStreamer.prepareFile(settings.logFilePath);
-				csvStreamer.createHeader(headerNames);
+				csvStreamer->prepareFile(settings.logFilePath);
+				csvStreamer->createHeader(headerNames);
 
 				if (traceReader->startAcqusition(probeSettings, activeChannels))
 					time = 0;

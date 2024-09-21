@@ -57,7 +57,7 @@ class PlotHandlerBase
 	iterator end();
 
    protected:
-	CSVStreamer csvStreamer;
+	std::unique_ptr<CSVStreamer> csvStreamer;
 	std::atomic<bool>& done;
 	std::atomic<state> viewerState = state::STOP;
 	std::map<std::string, std::shared_ptr<Plot>> plotsMap;

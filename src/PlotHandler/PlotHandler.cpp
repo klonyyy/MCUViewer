@@ -99,7 +99,7 @@ void PlotHandler::dataHandler()
 				}
 
 				if (settings.shouldLog)
-					csvStreamer.writeLine(period, csvValues);
+					csvStreamer->writeLine(period, csvValues);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -134,7 +134,7 @@ void PlotHandler::dataHandler()
 				}
 
 				if (settings.shouldLog)
-					csvStreamer.writeLine(period, csvValues);
+					csvStreamer->writeLine(period, csvValues);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -163,8 +163,8 @@ void PlotHandler::dataHandler()
 						headerNames.push_back(name);
 					}
 				}
-				csvStreamer.prepareFile(settings.logFilePath);
-				csvStreamer.createHeader(headerNames);
+				csvStreamer->prepareFile(settings.logFilePath);
+				csvStreamer->createHeader(headerNames);
 
 				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
 				{
@@ -178,7 +178,7 @@ void PlotHandler::dataHandler()
 			else
 			{
 				varReader->stop();
-				csvStreamer.finishLogging();
+				csvStreamer->finishLogging();
 			}
 			stateChangeOrdered = false;
 		}

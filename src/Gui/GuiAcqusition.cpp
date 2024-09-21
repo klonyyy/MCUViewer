@@ -49,9 +49,7 @@ void Gui::acqusitionSettingsViewer()
 	settings.maxViewportPoints = std::clamp(settings.maxViewportPoints, minPoints, settings.maxPoints);
 
 	drawDebugProbes();
-
 	drawLoggingSettings(plotHandler, settings);
-
 	plotHandler->setSettings(settings);
 }
 
@@ -219,9 +217,7 @@ void Gui::acqusitionSettingsTrace()
 	settings.timeout = std::clamp(settings.timeout, static_cast<uint32_t>(1), static_cast<uint32_t>(999999));
 
 	drawTraceProbes();
-
 	drawLoggingSettings(tracePlotHandler, settings);
-
 	tracePlotHandler->setSettings(settings);
 }
 
