@@ -151,7 +151,7 @@ void TracePlotHandler::dataHandler()
 			}
 
 			double timestamp;
-			std::array<uint32_t, 10> traces{};
+			std::array<uint32_t, channels> traces{};
 			if (!traceReader->readTrace(timestamp, traces))
 				continue;
 
@@ -253,6 +253,7 @@ void TracePlotHandler::dataHandler()
 			else
 			{
 				traceReader->stopAcqusition();
+				csvStreamer->finishLogging();
 				traceTriggered = false;
 			}
 			stateChangeOrdered = false;

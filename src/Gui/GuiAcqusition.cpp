@@ -170,7 +170,7 @@ void Gui::drawLoggingSettings(PlotHandlerBase* handler, Settings& settings)
 	ImGui::Dummy(ImVec2(-1, 5));
 	drawCenteredText("Logging");
 	ImGui::SameLine();
-	ImGui::HelpMarker("Log all registered variables values to a selected log file.");
+	ImGui::HelpMarker("Log all registered variables values to a selected log directory. File is created automatically and overwritten on each start.");
 	ImGui::Separator();
 
 	/* CSV streamer */
