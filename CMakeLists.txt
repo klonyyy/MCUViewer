@@ -20,7 +20,7 @@ project(MCUViewer)
 
 set(MCUVIEWER_VERSION 1.0.0)
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE ReleaseWithDbg)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -33,8 +33,8 @@ if(WIN32 AND "${PLATFORM}" STREQUAL "native")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g1")
 endif()
 
 add_compile_options(-Wall
@@ -42,7 +42,8 @@ add_compile_options(-Wall
     -Wextra
     -Wpedantic
     -Wno-unused-parameter
-    -Wno-missing-field-initializers)
+    -Wno-missing-field-initializers
+    -mbig-obj)
 
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
