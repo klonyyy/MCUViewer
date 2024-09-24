@@ -42,8 +42,11 @@ add_compile_options(-Wall
     -Wextra
     -Wpedantic
     -Wno-unused-parameter
-    -Wno-missing-field-initializers
-    -Wa,-mbig-obj)
+    -Wno-missing-field-initializers)
+
+if(WIN32)
+    add_compile_options(-Wa,-mbig-obj)
+endif()
 
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
