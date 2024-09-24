@@ -19,11 +19,15 @@ endif()
 project(MCUViewer)
 
 set(MCUVIEWER_VERSION 1.0.0)
-
-set(CMAKE_BUILD_TYPE ReleaseWithDbg)
 set(CMAKE_CXX_STANDARD 20)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+if(PRODUCTION)
+    set(CMAKE_BUILD_TYPE Release)
+    message("Building for production!")
+else()
+    set(CMAKE_BUILD_TYPE ReleaseWithDbg)
+endif()
 
 if(WIN32 AND "${PLATFORM}" STREQUAL "native")
     set(LLVM_DIR "C:/msys64/mingw64/bin")
