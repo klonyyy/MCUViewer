@@ -55,6 +55,7 @@ class TracePlotHandler : public PlotHandlerBase
 
    private:
 	void dataHandler();
+	void prepareCSVFile();
 
    private:
 	class MarkerTimestamps

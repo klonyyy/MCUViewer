@@ -227,23 +227,16 @@ void TracePlotHandler::dataHandler()
 			if (viewerState == state::RUN)
 			{
 				std::array<bool, 32> activeChannels{};
-				/* prepare CSV files for streaming */
-				std::vector<std::string> headerNames;
 
-				uint32_t i = 0;
+				size_t i = 0;
 				for (auto& [key, plot] : plotsMap)
-				{
 					activeChannels[i++] = plot->getVisibility();
-					if (plot->getVisibility())
-						headerNames.push_back(std::string("CH") + std::to_string(i));
-				}
 
 				errorFrames.reset();
 				delayed3Frames.reset();
 				lastErrorMsg = "";
 
-				csvStreamer->prepareFile(settings.logFilePath);
-				csvStreamer->createHeader(headerNames);
+				prepareCSVFile();
 
 				if (traceReader->startAcqusition(probeSettings, activeChannels))
 					time = 0;
@@ -253,11 +246,31 @@ void TracePlotHandler::dataHandler()
 			else
 			{
 				traceReader->stopAcqusition();
-				csvStreamer->finishLogging();
+				if (settings.shouldLog)
+					csvStreamer->finishLogging();
 				traceTriggered = false;
 			}
 			stateChangeOrdered = false;
 		}
 	}
 	logger->info("Exiting trace plot handler thread");
+}
+
+void TracePlotHandler::prepareCSVFile()
+{
+	if (!settings.shouldLog)
+		return;
+
+	std::vector<std::string> headerNames;
+
+	size_t i = 0;
+	for (auto& [key, plot] : plotsMap)
+	{
+		if (plot->getVisibility())
+			headerNames.push_back(std::string("CH") + std::to_string(i));
+		i++;
+	}
+
+	csvStreamer->prepareFile(settings.logFilePath);
+	csvStreamer->createHeader(headerNames);
 }

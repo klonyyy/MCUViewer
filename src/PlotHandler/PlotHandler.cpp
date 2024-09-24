@@ -150,21 +150,7 @@ void PlotHandler::dataHandler()
 			{
 				auto addressSizeVector = createAddressSizeVector();
 
-				/* prepare CSV files for streaming */
-				std::vector<std::string> headerNames;
-
-				for (auto& [key, plot] : plotsMap)
-				{
-					if (!plot->getVisibility())
-						continue;
-
-					for (auto& [name, ser] : plot->getSeriesMap())
-					{
-						headerNames.push_back(name);
-					}
-				}
-				csvStreamer->prepareFile(settings.logFilePath);
-				csvStreamer->createHeader(headerNames);
+				prepareCSVFile();
 
 				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
 				{
@@ -178,7 +164,8 @@ void PlotHandler::dataHandler()
 			else
 			{
 				varReader->stop();
-				csvStreamer->finishLogging();
+				if (settings.shouldLog)
+					csvStreamer->finishLogging();
 			}
 			stateChangeOrdered = false;
 		}
@@ -199,4 +186,23 @@ std::vector<std::pair<uint32_t, uint8_t>> PlotHandler::createAddressSizeVector()
 	}
 
 	return addressSizeVector;
+}
+
+void PlotHandler::prepareCSVFile()
+{
+	if (!settings.shouldLog)
+		return;
+
+	std::vector<std::string> headerNames;
+
+	for (auto& [key, plot] : plotsMap)
+	{
+		if (!plot->getVisibility())
+			continue;
+
+		for (auto& [name, ser] : plot->getSeriesMap())
+			headerNames.push_back(name);
+	}
+	csvStreamer->prepareFile(settings.logFilePath);
+	csvStreamer->createHeader(headerNames);
 }

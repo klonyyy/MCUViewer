@@ -55,6 +55,7 @@ class PlotHandler : public PlotHandlerBase
    private:
 	void dataHandler();
 	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
+	void prepareCSVFile();
 
    private:
 	static constexpr size_t maxVariablesOnSinglePlot = 100;
