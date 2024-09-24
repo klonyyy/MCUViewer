@@ -74,7 +74,7 @@ if(UNIX)
     set(LIB_INSTALL_PATH /usr/local/lib)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 
-    set(LIB_CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/launch/MCUViewer.conf)
+    set(LIB_CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.conf)
     set(LIB_CONF_FILE_PATH /etc/ld.so.conf.d/)
 
     if(APPLE)
@@ -90,7 +90,7 @@ endif()
 
 if(WIN32)
     enable_language("RC")
-    set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.rc")
+    set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Windows/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
     set(STLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
     set(JLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/windows/JLink_x64.dll)
@@ -265,8 +265,8 @@ if(WIN32)
 endif()
 
 if(UNIX)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.png DESTINATION ${INSTALL_PATH})
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/MCUViewer.desktop
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     install(FILES ${JLINK_LINUX}
@@ -291,5 +291,5 @@ set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set(CPACK_NSIS_MODIFY_PATH ON)
 set(CPACK_ALL_INSTALL_TYPES Full Developer)
 set(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full)
-set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/launch/postinst")
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/launch/install/Unix/postinst")
 include(CPack)
