@@ -11,6 +11,12 @@ JlinkTraceProbe::JlinkTraceProbe(spdlog::logger* logger) : logger(logger)
 
 bool JlinkTraceProbe::stopTrace()
 {
+	if (JLINKARM_SWO_Control(JLINKARM_SWO_CMD_STOP, nullptr) == -1)
+	{
+		logger->error("Error stopping trace!");
+		return false;
+	}
+
 	JLINKARM_Close();
 	logger->info("Trace stopped.");
 	return true;
