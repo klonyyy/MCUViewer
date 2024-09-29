@@ -142,9 +142,12 @@ class Gui
 				valueChanged(str);
 	}
 	template <typename T>
-	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5)
+	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5, float threshold = std::nan(""), ImVec4 thresholdExceededColor = {0.0f, 0.0f, 0.0f, 1.0f})
 	{
-		ImGui::Text("%s", description);
+		if (threshold != std::nan("") && number > threshold)
+			ImGui::TextColored(thresholdExceededColor, "%s", description);
+		else
+			ImGui::Text("%s", description);
 		ImGui::SameLine();
 		std::ostringstream formattedNum;
 		formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
