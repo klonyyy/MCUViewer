@@ -26,7 +26,7 @@ if(PRODUCTION)
     set(CMAKE_BUILD_TYPE Release)
     message("Building for production!")
 else()
-    set(CMAKE_BUILD_TYPE ReleaseWithDbg)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 if(WIN32 AND "${PLATFORM}" STREQUAL "native")

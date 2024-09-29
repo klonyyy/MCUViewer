@@ -4,14 +4,13 @@ void Gui::dragAndDropPlot(Plot* plot)
 {
 	if (ImPlot::BeginDragDropTargetPlot())
 	{
-		std::set<std::string> selection;
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
 		{
-			selection = *(decltype(selection)*)payload->Data;
+			std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
-			for (auto& name : selection)
+			for (const auto& name : *selection)
 				plot->addSeries(*vars[name]);
-			selection.clear();
+			selection->clear();
 		}
 		ImPlot::EndDragDropTarget();
 	}
@@ -216,7 +215,7 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
 			showChangeFormatPopup("format", *plot, key);
 			ImGui::TableSetColumnIndex(3);
- 			ImGui::PushID("input");
+			ImGui::PushID("input");
 			char newValue[maxVariableNameLength] = {0};
 			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
 			{
@@ -238,14 +237,13 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 
 		if (ImGui::BeginDragDropTarget())
 		{
-			std::set<std::string> selection;
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
 			{
-				selection = *(decltype(selection)*)payload->Data;
+				std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
-				for (auto& name : selection)
+				for (const auto& name : *selection)
 					plot->addSeries(*vars[name]);
-				selection.clear();
+				selection->clear();
 			}
 			ImGui::EndDragDropTarget();
 		}
