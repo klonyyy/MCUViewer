@@ -54,8 +54,8 @@ class CSVStreamer
 	std::future<void> saveTask{};
 	std::string filePath;
 	std::ofstream csvFile;
-	Buffer buffer1;
-	Buffer buffer2;
+	Buffer buffer1{};
+	Buffer buffer2{};
 	Buffer* currentBuffer;
 	Buffer* processingBuffer;
 };
