@@ -66,26 +66,11 @@ void Gui::drawIndicatorsSwo()
 	drawDescriptionWithNumber("frames total:           ", indicators.framesTotal);
 	drawDescriptionWithNumber("sleep cycles:           ", indicators.sleepCycles);
 	drawDescriptionWithNumber("error frames total:     ", indicators.errorFramesTotal);
-
-	const char* inView = "error frames in view:   ";
-	if (indicators.errorFramesInView > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", inView);
-	else
-		ImGui::Text("%s", inView);
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.errorFramesInView)).c_str());
-
-	drawDescriptionWithNumber("delayed timestamp 1:    ", indicators.delayedTimestamp1);
-	drawDescriptionWithNumber("delayed timestamp 2:    ", indicators.delayedTimestamp2);
+	drawDescriptionWithNumber("error frames in view:   ", indicators.errorFramesInView, "", 5, 0, {1, 0, 0, 1});
+	drawDescriptionWithNumber("delayed timestamp 1:    ", indicators.delayedTimestamp1, "", 5, 0, {1, 1, 0, 1});
+	drawDescriptionWithNumber("delayed timestamp 2:    ", indicators.delayedTimestamp2, "", 5, 0, {1, 1, 0, 1});
 	drawDescriptionWithNumber("delayed timestamp 3:    ", indicators.delayedTimestamp3);
-
-	const char* timestampDelayed3inView = "delayed timestamp 3 in view:    ";
-	if (indicators.delayedTimestamp3InView > 0)
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", timestampDelayed3inView);
-	else
-		ImGui::Text("%s", timestampDelayed3inView);
-	ImGui::SameLine();
-	ImGui::Text("%s", (std::to_string(indicators.delayedTimestamp3InView)).c_str());
+	drawDescriptionWithNumber("delayed timestamp 3 in view:    ", indicators.delayedTimestamp3InView, "", 5, 0, {1, 0, 0, 1});
 }
 
 void Gui::drawPlotsTreeSwo()

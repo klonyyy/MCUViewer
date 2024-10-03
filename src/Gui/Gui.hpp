@@ -94,6 +94,10 @@ class Gui
 	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
+
+	template <typename Settings>
+	void drawLoggingSettings(PlotHandlerBase* handler, Settings& settings);
+
 	void drawAboutWindow();
 	void drawPreferencesWindow();
 	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
@@ -115,6 +119,7 @@ class Gui
 	bool saveProjectAs();
 	void showChangeFormatPopup(const char* text, Plot& plt, const std::string& name);
 	bool openElfFile();
+	bool openLogDirectory(std::string& logDirectory);
 	std::string convertProjectPathToAbsolute(const std::string& projectRelativePath);
 	void checkShortcuts();
 	bool checkElfFileChanged();
@@ -137,9 +142,12 @@ class Gui
 				valueChanged(str);
 	}
 	template <typename T>
-	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5)
+	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5, float threshold = std::nan(""), ImVec4 thresholdExceededColor = {0.0f, 0.0f, 0.0f, 1.0f})
 	{
-		ImGui::Text("%s", description);
+		if (threshold != std::nan("") && number > threshold)
+			ImGui::TextColored(thresholdExceededColor, "%s", description);
+		else
+			ImGui::Text("%s", description);
 		ImGui::SameLine();
 		std::ostringstream formattedNum;
 		formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
@@ -149,6 +157,7 @@ class Gui
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 	std::string intToHexString(uint32_t i);
 	void drawCenteredText(std::string&& text);
+	void drawTextAlignedToSize(std::string&& text, size_t alignTo);
 
 	bool openWebsite(const char* url);
 

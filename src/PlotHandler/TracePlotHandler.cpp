@@ -39,7 +39,7 @@ void TracePlotHandler::initPlots()
 
 TracePlotHandler::Settings TracePlotHandler::getSettings() const
 {
-	return traceSettings;
+	return settings;
 }
 
 void TracePlotHandler::setSettings(const Settings& settings)
@@ -49,7 +49,7 @@ void TracePlotHandler::setSettings(const Settings& settings)
 	traceReader->setTraceShouldReset(settings.shouldReset);
 	traceReader->setTraceTimeout(settings.timeout);
 	setMaxPoints(settings.maxPoints);
-	traceSettings = settings;
+	this->settings = settings;
 }
 
 TraceReader::TraceIndicators TracePlotHandler::getTraceIndicators() const
@@ -78,12 +78,12 @@ std::string TracePlotHandler::getLastReaderError() const
 
 void TracePlotHandler::setTriggerChannel(int32_t triggerChannel)
 {
-	traceSettings.triggerChannel = triggerChannel;
+	settings.triggerChannel = triggerChannel;
 }
 
 int32_t TracePlotHandler::getTriggerChannel() const
 {
-	return traceSettings.triggerChannel;
+	return settings.triggerChannel;
 }
 
 void TracePlotHandler::setDebugProbe(std::shared_ptr<ITraceProbe> probe)
@@ -136,6 +136,8 @@ void TracePlotHandler::dataHandler()
 {
 	uint32_t cnt = 0;
 	double time = 0.0;
+	std::vector<double> csvValues;
+	csvValues.reserve(channels);
 
 	while (!done)
 	{
@@ -149,7 +151,7 @@ void TracePlotHandler::dataHandler()
 			}
 
 			double timestamp;
-			std::array<uint32_t, 10> traces{};
+			std::array<uint32_t, channels> traces{};
 			if (!traceReader->readTrace(timestamp, traces))
 				continue;
 
@@ -161,6 +163,7 @@ void TracePlotHandler::dataHandler()
 			errorFrames.handle(time, oldestTimestamp, indicators.errorFramesTotal);
 			delayed3Frames.handle(time, oldestTimestamp, indicators.delayedTimestamp3);
 
+			csvValues.clear();
 			uint32_t i = 0;
 			for (auto& [key, plot] : plotsMap)
 			{
@@ -173,7 +176,7 @@ void TracePlotHandler::dataHandler()
 				Plot::Series* ser = plot->getSeriesMap().begin()->second.get();
 				double newPoint = getDoubleValue(*plot, traces[i]);
 
-				if (traceTriggered == false && i == static_cast<uint32_t>(traceSettings.triggerChannel) && newPoint > traceSettings.triggerLevel)
+				if (traceTriggered == false && i == static_cast<uint32_t>(settings.triggerChannel) && newPoint > settings.triggerLevel)
 				{
 					logger->info("Trigger!");
 					traceTriggered = true;
@@ -181,13 +184,19 @@ void TracePlotHandler::dataHandler()
 					cnt = 0;
 				}
 
+				csvValues.push_back(newPoint);
+
 				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
 				plot->addPoint(ser->var->getName(), newPoint);
 				plot->addTimePoint(time);
 				i++;
 			}
-			if (traceTriggered && cnt++ >= (traceSettings.maxPoints * 0.9))
+
+			if (settings.shouldLog)
+				csvStreamer->writeLine(time, csvValues);
+
+			if (traceTriggered && cnt++ >= (settings.maxPoints * 0.9))
 			{
 				logger->info("After-trigger trace collcted. Stopping.");
 				viewerState = state::STOP;
@@ -219,13 +228,15 @@ void TracePlotHandler::dataHandler()
 			{
 				std::array<bool, 32> activeChannels{};
 
-				uint32_t i = 0;
+				size_t i = 0;
 				for (auto& [key, plot] : plotsMap)
 					activeChannels[i++] = plot->getVisibility();
 
 				errorFrames.reset();
 				delayed3Frames.reset();
 				lastErrorMsg = "";
+
+				prepareCSVFile();
 
 				if (traceReader->startAcqusition(probeSettings, activeChannels))
 					time = 0;
@@ -235,10 +246,31 @@ void TracePlotHandler::dataHandler()
 			else
 			{
 				traceReader->stopAcqusition();
+				if (settings.shouldLog)
+					csvStreamer->finishLogging();
 				traceTriggered = false;
 			}
 			stateChangeOrdered = false;
 		}
 	}
 	logger->info("Exiting trace plot handler thread");
+}
+
+void TracePlotHandler::prepareCSVFile()
+{
+	if (!settings.shouldLog)
+		return;
+
+	std::vector<std::string> headerNames;
+
+	size_t i = 0;
+	for (auto& [key, plot] : plotsMap)
+	{
+		if (plot->getVisibility())
+			headerNames.push_back(std::string("CH") + std::to_string(i));
+		i++;
+	}
+
+	csvStreamer->prepareFile(settings.logFilePath);
+	csvStreamer->createHeader(headerNames);
 }

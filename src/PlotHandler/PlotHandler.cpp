@@ -61,6 +61,8 @@ void PlotHandler::dataHandler()
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	uint32_t timer = 0;
 	double lastT = 0.0;
+	std::vector<double> csvValues;
+	csvValues.reserve(maxVariablesOnSinglePlot);
 
 	while (!done)
 	{
@@ -68,6 +70,7 @@ void PlotHandler::dataHandler()
 		{
 			auto finish = std::chrono::steady_clock::now();
 			double period = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+			csvValues.clear();
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
@@ -90,9 +93,13 @@ void PlotHandler::dataHandler()
 						double value = varReader->castToProperType(values[ser->var->getAddress()], ser->var->getType());
 						ser->var->setValue(value);
 						plot->addPoint(name, value);
+						csvValues.push_back(ser->var->getValue());
 					}
 					plot->addTimePoint(timestamp);
 				}
+
+				if (settings.shouldLog)
+					csvStreamer->writeLine(period, csvValues);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -119,9 +126,15 @@ void PlotHandler::dataHandler()
 					/* thread-safe part */
 					std::lock_guard<std::mutex> lock(*mtx);
 					for (auto& [name, ser] : plot->getSeriesMap())
+					{
 						plot->addPoint(name, ser->var->getValue());
+						csvValues.push_back(ser->var->getValue());
+					}
 					plot->addTimePoint(period);
 				}
+
+				if (settings.shouldLog)
+					csvStreamer->writeLine(period, csvValues);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -137,6 +150,8 @@ void PlotHandler::dataHandler()
 			{
 				auto addressSizeVector = createAddressSizeVector();
 
+				prepareCSVFile();
+
 				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
 				{
 					timer = 0;
@@ -147,7 +162,11 @@ void PlotHandler::dataHandler()
 					viewerState = state::STOP;
 			}
 			else
+			{
 				varReader->stop();
+				if (settings.shouldLog)
+					csvStreamer->finishLogging();
+			}
 			stateChangeOrdered = false;
 		}
 	}
@@ -167,4 +186,23 @@ std::vector<std::pair<uint32_t, uint8_t>> PlotHandler::createAddressSizeVector()
 	}
 
 	return addressSizeVector;
+}
+
+void PlotHandler::prepareCSVFile()
+{
+	if (!settings.shouldLog)
+		return;
+
+	std::vector<std::string> headerNames;
+
+	for (auto& [key, plot] : plotsMap)
+	{
+		if (!plot->getVisibility())
+			continue;
+
+		for (auto& [name, ser] : plot->getSeriesMap())
+			headerNames.push_back(name);
+	}
+	csvStreamer->prepareFile(settings.logFilePath);
+	csvStreamer->createHeader(headerNames);
 }

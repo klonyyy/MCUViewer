@@ -475,7 +475,9 @@ void Gui::drawVarTable()
 				if (selection.empty())
 					selection.insert(name);
 
-				ImGui::SetDragDropPayload("MY_DND", &selection, sizeof(selection));
+				/* pass a pointer to the selection as we have to call clear() on the original object upon receiving */
+				std::set<std::string>* selectionPtr = &selection;
+				ImGui::SetDragDropPayload("MY_DND", &selectionPtr, sizeof(selectionPtr));
 				ImGui::PushID(name.c_str());
 				ImGui::ColorEdit4("##", &vars[*selection.begin()]->getColor().r, ImGuiColorEditFlags_NoInputs);
 				ImGui::SameLine();
@@ -668,13 +670,13 @@ void Gui::drawPlotsTree()
 	}
 	if (ImGui::BeginDragDropTarget())
 	{
-		std::set<std::string> selection;
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
 		{
-			selection = *(decltype(selection)*)payload->Data;
+			std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
-			for (auto& name : selection)
+			for (const auto& name : *selection)
 				plt->addSeries(*vars[name]);
+			selection->clear();
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -1020,6 +1022,19 @@ bool Gui::openElfFile()
 	return false;
 }
 
+bool Gui::openLogDirectory(std::string& logDirectory)
+{
+	std::string path = fileHandler->openDirectory({"", ""});
+
+	if (path != "")
+	{
+		logDirectory = path;
+		logger->info("Log directory: {}", path);
+		return true;
+	}
+	return false;
+}
+
 std::string Gui::convertProjectPathToAbsolute(const std::string& relativePath)
 {
 	if (relativePath.empty())
@@ -1096,4 +1111,12 @@ void Gui::drawCenteredText(std::string&& text)
 {
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
 	ImGui::Text("%s", text.c_str());
+}
+
+void Gui::drawTextAlignedToSize(std::string&& text, size_t alignTo)
+{
+	size_t currentLength = text.length();
+	size_t spacesToAdd = (currentLength < alignTo) ? (alignTo - currentLength) : 0;
+	std::string alignedText = text + std::string(spacesToAdd, ' ');
+	ImGui::Text("%s", alignedText.c_str());
 }

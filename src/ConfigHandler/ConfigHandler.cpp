@@ -61,6 +61,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	getValue("settings", "probe_mode", debugProbeSettings.mode);
 	getValue("settings", "probe_speed_kHz", debugProbeSettings.speedkHz);
 	debugProbeSettings.serialNumber = ini->get("settings").get("probe_SN");
+	getValue("settings", "should_log", viewerSettings.shouldLog);
+	viewerSettings.logFilePath = ini->get("settings").get("log_directory");
 
 	getValue("trace_settings", "core_frequency", traceSettings.coreFrequency);
 	getValue("trace_settings", "trace_prescaler", traceSettings.tracePrescaler);
@@ -73,6 +75,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	traceProbeSettings.device = ini->get("trace_settings").get("target_name");
 	getValue("trace_settings", "probe_speed_kHz", traceProbeSettings.speedkHz);
 	traceProbeSettings.serialNumber = ini->get("trace_settings").get("probe_SN");
+	getValue("trace_settings", "should_log", traceSettings.shouldLog);
+	traceSettings.logFilePath = ini->get("trace_settings").get("log_directory");
 
 	/* TODO magic numbers (lots of them)! */
 	if (traceSettings.timeout == 0)
@@ -237,6 +241,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["probe_mode"] = std::to_string(debugProbeSettings.mode);
 	(*ini)["settings"]["probe_speed_kHz"] = std::to_string(debugProbeSettings.speedkHz);
 	(*ini)["settings"]["probe_SN"] = debugProbeSettings.serialNumber;
+	(*ini)["settings"]["should_log"] = viewerSettings.shouldLog ? std::string("true") : std::string("false");
+	(*ini)["settings"]["log_directory"] = viewerSettings.logFilePath;
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
@@ -249,6 +255,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["trace_settings"]["target_name"] = traceProbeSettings.device;
 	(*ini)["trace_settings"]["probe_speed_kHz"] = std::to_string(traceProbeSettings.speedkHz);
 	(*ini)["trace_settings"]["probe_SN"] = traceProbeSettings.serialNumber;
+	(*ini)["trace_settings"]["should_log"] = traceSettings.shouldLog ? std::string("true") : std::string("false");
+	(*ini)["trace_settings"]["log_directory"] = traceSettings.logFilePath;
 
 	uint32_t varId = 0;
 	for (auto& [key, var] : vars)

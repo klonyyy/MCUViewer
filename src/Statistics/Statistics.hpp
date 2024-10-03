@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <numeric>
 #include <vector>
 
@@ -122,8 +123,10 @@ class Statistics
 		size_t end = time.size() - 1;
 		size_t i = 1;
 
-		if (data.empty() || time.empty())
+		if (data.empty() || time.empty() || data.size() < 2 || time.size() < 2)
 			return false;
+
+		std::cout << data.size() << std::endl;
 
 		while (data[i] == data[0] && i < data.size())
 			i++;
