@@ -5,23 +5,30 @@
 
 #include "nfd.h"
 
-
 bool NFDFileHandler::init()
 {
 	return NFD_Init() != NFD_ERROR;
 }
+
 bool NFDFileHandler::deinit()
 {
 	NFD_Quit();
 	return true;
 }
+
 std::string NFDFileHandler::openFile(std::pair<std::string, std::string>&& filterFileNameFileExtension)
 {
 	return handleFile(handleType::OPEN, filterFileNameFileExtension);
 }
+
 std::string NFDFileHandler::saveFile(std::pair<std::string, std::string>&& filterFileNameFileExtension)
 {
 	return handleFile(handleType::SAVE, filterFileNameFileExtension);
+}
+
+std::string NFDFileHandler::openDirectory(std::pair<std::string, std::string>&& filterFileNameFileExtension)
+{
+	return handleFile(handleType::OPENDIR, filterFileNameFileExtension);
 }
 
 std::string NFDFileHandler::handleFile(handleType type, std::pair<std::string, std::string>& filterFileNameFileExtension)
@@ -35,6 +42,8 @@ std::string NFDFileHandler::handleFile(handleType type, std::pair<std::string, s
 		result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
 	else if (type == handleType::OPEN)
 		result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+	else if (type == handleType::OPENDIR)
+		result = NFD_PickFolder(&outPath, NULL);
 
 	if (result == NFD_OKAY)
 	{

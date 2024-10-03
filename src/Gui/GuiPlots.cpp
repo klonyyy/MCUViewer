@@ -4,14 +4,13 @@ void Gui::dragAndDropPlot(Plot* plot)
 {
 	if (ImPlot::BeginDragDropTargetPlot())
 	{
-		std::set<std::string> selection;
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
 		{
-			selection = *(decltype(selection)*)payload->Data;
+			std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
-			for (auto& name : selection)
+			for (const auto& name : *selection)
 				plot->addSeries(*vars[name]);
-			selection.clear();
+			selection->clear();
 		}
 		ImPlot::EndDragDropTarget();
 	}
@@ -238,14 +237,13 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 
 		if (ImGui::BeginDragDropTarget())
 		{
-			std::set<std::string> selection;
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MY_DND"))
 			{
-				selection = *(decltype(selection)*)payload->Data;
+				std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
-				for (auto& name : selection)
+				for (const auto& name : *selection)
 					plot->addSeries(*vars[name]);
-				selection.clear();
+				selection->clear();
 			}
 			ImGui::EndDragDropTarget();
 		}

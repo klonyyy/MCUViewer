@@ -8,6 +8,7 @@
 
 PlotHandlerBase::PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : done(done), mtx(mtx), logger(logger)
 {
+	csvStreamer = std::make_unique<CSVStreamer>(logger);
 }
 
 void PlotHandlerBase::addPlot(const std::string& name)

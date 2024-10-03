@@ -18,12 +18,16 @@ endif()
 
 project(MCUViewer)
 
-set(MCUVIEWER_VERSION 1.0.0)
-
-set(CMAKE_BUILD_TYPE Release)
+set(MCUVIEWER_VERSION 1.0.1)
 set(CMAKE_CXX_STANDARD 20)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+if(PRODUCTION)
+    set(CMAKE_BUILD_TYPE Release)
+    message("Building for production!")
+else()
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
 
 if(WIN32 AND "${PLATFORM}" STREQUAL "native")
     set(LLVM_DIR "C:/msys64/mingw64/bin")
@@ -33,8 +37,8 @@ if(WIN32 AND "${PLATFORM}" STREQUAL "native")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g1")
 endif()
 
 add_compile_options(-Wall
@@ -43,6 +47,10 @@ add_compile_options(-Wall
     -Wpedantic
     -Wno-unused-parameter
     -Wno-missing-field-initializers)
+
+if(WIN32)
+    add_compile_options(-Wa,-mbig-obj)
+endif()
 
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
@@ -74,6 +82,9 @@ if(UNIX)
     set(LIB_INSTALL_PATH /usr/local/lib)
     set(DESKTOP_FILE_PATH /usr/share/applications)
 
+    set(LIB_CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.conf)
+    set(LIB_CONF_FILE_PATH /etc/ld.so.conf.d/)
+
     if(APPLE)
         find_package(OpenGL REQUIRED)
         find_package(GLUT REQUIRED)
@@ -87,7 +98,7 @@ endif()
 
 if(WIN32)
     enable_language("RC")
-    set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.rc")
+    set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Windows/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
     set(STLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
     set(JLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/windows/JLink_x64.dll)
@@ -124,7 +135,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JlinkTraceProbe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer/CSVStreamer.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -188,7 +200,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RingBuffer
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
@@ -260,13 +273,16 @@ if(WIN32)
 endif()
 
 if(UNIX)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/icon.png DESTINATION ${INSTALL_PATH})
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/MCUViewer.desktop
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
     install(FILES ${JLINK_LINUX}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${LIB_INSTALL_PATH})
+    install(FILES ${LIB_CONF_FILE}
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${LIB_CONF_FILE_PATH})
     set(CPACK_GENERATOR "DEB;RPM")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
@@ -283,4 +299,5 @@ set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set(CPACK_NSIS_MODIFY_PATH ON)
 set(CPACK_ALL_INSTALL_TYPES Full Developer)
 set(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full)
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/launch/install/Unix/postinst")
 include(CPack)

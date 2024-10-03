@@ -91,6 +91,7 @@ It works similar with other probes such as JLink, so be sure to check the maximu
 Example project with MCUViewer config file is located in test/MCUViewer_test directory.
 
 FAQ and common issues: 
+
 1. Problem: My trace doesn't look like it's supposed to and I get a lot of error frames
 Answer: Try lowering the trace prescaller and check the SWO pin connection - the SWO pin output is high frequency and it shouldn't be too long.
 
@@ -100,6 +101,7 @@ Answer: Try logging fewer channels simultaneously. It could be that you've satur
 3. Problem: My trace looks like it's supposed to but I get the "delayed timestamp 1" indicator
 Answer: This is not a critical error, however, you should be cautious as some of the trace frames may be delayed. To fix try logging fewer channels simultaneously.
 
+Please remember that although SWO is ARM standardized, there might be some differences the setup process. It should work without problems in most cases, but some MCUs might require some additional steps. Please see the [SEGGER's wiki page](https://wiki.segger.com/SWO) for more information. 
 
 ## Building
 

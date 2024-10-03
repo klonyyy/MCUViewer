@@ -9,11 +9,11 @@
 #include <thread>
 
 #include "IDebugProbe.hpp"
+#include "MemoryReader.hpp"
 #include "MovingAverage.hpp"
 #include "Plot.hpp"
 #include "PlotHandlerBase.hpp"
 #include "ScrollingBuffer.hpp"
-#include "MemoryReader.hpp"
 #include "spdlog/spdlog.h"
 
 class PlotHandler : public PlotHandlerBase
@@ -28,6 +28,8 @@ class PlotHandler : public PlotHandlerBase
 		uint32_t maxViewportPoints = 5000;
 		bool refreshAddressesOnElfChange = false;
 		bool stopAcqusitionOnElfChange = false;
+		bool shouldLog = false;
+		std::string logFilePath = "";
 	} Settings;
 
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
@@ -53,8 +55,11 @@ class PlotHandler : public PlotHandlerBase
    private:
 	void dataHandler();
 	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
+	void prepareCSVFile();
 
    private:
+	static constexpr size_t maxVariablesOnSinglePlot = 100;
+
 	std::unique_ptr<MemoryReader> varReader;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	Settings settings{};
