@@ -59,7 +59,7 @@ class VariableEditWindow
 		ImGui::SameLine();
 		if (ImGui::InputText("##name", &name, 0, NULL, NULL))
 		{
-			editedVariable->setName(name);
+			editedVariable->rename(name);
 		}
 
 		GuiHelper::drawTextAlignedToSize("address:", alignment);

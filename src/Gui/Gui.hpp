@@ -107,6 +107,7 @@ class Gui
 	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
 	void drawStatisticsDigital(std::shared_ptr<Plot> plt);
 	void acqusitionSettingsTrace();
+	void renameVariable(const std::string& currentName, const std::string& newName);
 
 	void drawPlots();
 	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);

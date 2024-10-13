@@ -2,6 +2,7 @@
 #define __VARIABLE_HPP
 
 #include <cstdint>
+#include <functional>
 #include <string>
 
 class Variable
@@ -41,7 +42,7 @@ class Variable
 	void setAddress(uint32_t addr);
 	uint32_t getAddress() const;
 	std::string& getName();
-	void setName(const std::string& name_);
+	void rename(const std::string& newName);
 
 	void setColor(float r, float g, float b, float a);
 	void setColor(uint32_t AaBbGgRr);
@@ -56,6 +57,7 @@ class Variable
 
    public:
 	static const char* types[8];
+	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
 	std::string name;

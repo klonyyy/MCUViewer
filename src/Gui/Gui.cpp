@@ -320,6 +320,10 @@ void Gui::addNewVariable(const std::string& newName)
 	std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
 	uint32_t randomColor = dist(gen);
 	newVar->setColor(randomColor);
+	newVar->renameCallback = [&](const std::string& currentName, const std::string& newName)
+	{
+		renameVariable(currentName, newName);
+	};
 	vars.emplace(newName, newVar);
 }
 
@@ -514,20 +518,23 @@ void Gui::drawVarTable()
 
 		if (varNameToRename.has_value())
 		{
-			auto oldName = varNameToRename.value().first;
-			auto newName = varNameToRename.value().second;
-			auto temp = vars.extract(oldName);
-			temp.key() = std::string(newName);
-			vars.insert(std::move(temp));
-			vars[newName]->setName(newName);
-
-			for (std::shared_ptr<Plot> plt : *plotHandler)
-				plt->renameSeries(oldName, newName);
+			auto var = vars[varNameToRename.value().first];
+			var->rename(varNameToRename.value().second);
 		}
 		ImGui::EndTable();
 	}
 
 	ImGui::EndDisabled();
+}
+
+void Gui::renameVariable(const std::string& currentName, const std::string& newName)
+{
+	auto temp = vars.extract(currentName);
+	temp.key() = std::string(newName);
+	vars.insert(std::move(temp));
+
+	for (std::shared_ptr<Plot> plt : *plotHandler)
+		plt->renameSeries(currentName, newName);
 }
 
 void Gui::drawAddPlotButton()
@@ -982,6 +989,14 @@ bool Gui::openProject(std::string externalPath)
 		vars.clear();
 		plotHandler->removeAllPlots();
 		configHandler->readConfigFile(vars, projectElfPath);
+
+		/* attach rename callback so that all references are updated on variable rename */
+		for (auto& [name, var] : vars)
+		{
+			var->renameCallback = [&](const std::string& currentName, const std::string& newName)
+			{ renameVariable(currentName, newName); };
+		}
+
 		logger->info("Project config path: {}", projectConfigPath);
 		/* TODO refactor */
 		devicesList.clear();

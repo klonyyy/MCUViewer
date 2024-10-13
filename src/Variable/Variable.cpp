@@ -66,9 +66,11 @@ std::string& Variable::getName()
 	return name;
 }
 
-void Variable::setName(const std::string& name_)
+void Variable::rename(const std::string& newName)
 {
-	name = name_;
+	if (renameCallback)
+		renameCallback(name, newName);
+	name = newName;
 }
 
 void Variable::setColor(float r, float g, float b, float a)

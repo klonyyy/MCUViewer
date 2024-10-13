@@ -107,9 +107,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	{
 		name = ini->get(varFieldFromID(varId)).get("name");
 
-		std::shared_ptr<Variable> newVar = std::make_shared<Variable>("");
-
-		newVar->setName(name);
+		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(name);
 		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
 		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
 		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
