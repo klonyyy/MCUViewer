@@ -159,6 +159,7 @@ void Gui::mainThread(std::string externalPath)
 			drawVarTable();
 			drawPlotsTree();
 			drawImportVariablesWindow();
+			drawVariableEditWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -451,8 +452,13 @@ void Gui::drawVarTable()
 
 			const bool itemIsSelected = selection.contains(name);
 
-			if (ImGui::SelectableInput(var->getName().c_str(), itemIsSelected, 0, variable, maxVariableNameLength))
+			if (ImGui::Selectable(var->getName().c_str(), itemIsSelected, ImGuiSelectableFlags_AllowDoubleClick))
 			{
+				if (ImGui::IsMouseDoubleClicked(0))
+				{
+					showVariableEditWindow = true;
+				}
+
 				if (ImGui::GetIO().KeyCtrl && var->getIsFound())
 				{
 					if (itemIsSelected)

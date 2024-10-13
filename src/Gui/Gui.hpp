@@ -31,7 +31,7 @@ class Gui
 	~Gui();
 
    private:
-	static constexpr bool showDemoWindow = false;
+	static constexpr bool showDemoWindow = true;
 
 	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
 	static constexpr uint32_t maxVariableNameLength = 100;
@@ -47,6 +47,7 @@ class Gui
 	bool showPreferencesWindow = false;
 	bool showImportVariablesWindow = false;
 	bool performVariablesUpdate = false;
+	bool showVariableEditWindow = false;
 
 	float contentScale = 1.0f;
 
@@ -129,6 +130,7 @@ class Gui
 	void drawPlotsSwo();
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
+	void drawVariableEditWindow();
 
 	void drawImportVariablesWindow();
 	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
