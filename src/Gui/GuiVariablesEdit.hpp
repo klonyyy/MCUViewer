@@ -64,7 +64,11 @@ class VariableEditWindow
 
 		GuiHelper::drawTextAlignedToSize("address:", alignment);
 		ImGui::SameLine();
-		ImGui::InputText("##address", &address, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase, NULL, NULL);
+		if (ImGui::InputText("##address", &address, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase, NULL, NULL))
+		{
+			uint32_t addressDec = GuiHelper::hexStringToDecimal(address);
+			editedVariable->setAddress(addressDec);
+		}
 
 		GuiHelper::drawTextAlignedToSize("type:", alignment);
 		ImGui::SameLine();
@@ -72,6 +76,7 @@ class VariableEditWindow
 
 		if (ImGui::Combo("##varType", &type, Variable::types, IM_ARRAYSIZE(Variable::types)))
 		{
+			editedVariable->setType(static_cast<Variable::type>(type));
 		}
 
 		GuiHelper::drawTextAlignedToSize("size:", alignment);
@@ -79,8 +84,16 @@ class VariableEditWindow
 		ImGui::InputText("##size", &size, 0, NULL, NULL);
 
 		ImGui::Dummy(ImVec2(-1, 5));
-		GuiHelper::drawCenteredText("Interpretation");
+		GuiHelper::drawCenteredText("Postprocessing");
 		ImGui::Separator();
+
+		// GuiHelper::drawTextAlignedToSize("type:", alignment);
+		// ImGui::SameLine();
+		// int32_t type = static_cast<int32_t>(editedVariable->getType());
+
+		// if (ImGui::Combo("##interpteration", &type, Variable::types, IM_ARRAYSIZE(Variable::types)))
+		// {
+		// }
 	}
 
    private:

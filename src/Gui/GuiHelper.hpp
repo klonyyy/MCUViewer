@@ -41,6 +41,14 @@ void drawCenteredText(std::string&& text);
  */
 void drawTextAlignedToSize(std::string&& text, size_t alignTo);
 
+/**
+ * @brief Parse hex string to a decimal number
+ *
+ * @param hexStr
+ * @return uint32_t result
+ */
+uint32_t hexStringToDecimal(const std::string& hexStr);
+
 template <typename T>
 void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
 {
