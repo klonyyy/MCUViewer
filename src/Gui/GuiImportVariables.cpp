@@ -22,7 +22,7 @@ void Gui::drawImportVariablesWindow()
 	}
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 500 * contentScale), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(500 * GuiHelper::contentScale, 500 * GuiHelper::contentScale), ImGuiCond_Once);
 
 	if (ImGui::BeginPopupModal("Import Variables", &showImportVariablesWindow, 0))
 	{
@@ -37,7 +37,7 @@ void Gui::drawImportVariablesWindow()
 			snprintf(buttonText, 30, "Refresh");
 		}
 
-		if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || shouldUpdateOnOpen)
+		if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || shouldUpdateOnOpen)
 		{
 			refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, convertProjectPathToAbsolute(projectElfPath));
 			shouldUpdateOnOpen = false;
@@ -55,7 +55,7 @@ void Gui::drawImportVariablesWindow()
 		std::string importBtnName{"Import ("};
 		importBtnName += std::to_string(selection.size()) + std::string(")");
 
-		if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 25 * contentScale)))
+		if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 25 * GuiHelper::contentScale)))
 		{
 			for (auto& [newName, newAddress] : selection)
 			{
@@ -64,7 +64,7 @@ void Gui::drawImportVariablesWindow()
 			}
 		}
 
-		if (ImGui::Button("Done", ImVec2(-1, 25 * contentScale)))
+		if (ImGui::Button("Done", ImVec2(-1, 25 * GuiHelper::contentScale)))
 		{
 			performVariablesUpdate = true;
 			showImportVariablesWindow = false;
@@ -83,7 +83,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 {
 	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
-	if (ImGui::BeginTable("table_scrolly", 2, flags, ImVec2(0.0f, 350 * contentScale)))
+	if (ImGui::BeginTable("table_scrolly", 2, flags, ImVec2(0.0f, 350 * GuiHelper::contentScale)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Name", 0);
@@ -101,7 +101,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 			const bool item_is_selected = selection.contains(name);
 
 			ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
-			if (ImGui::Selectable(name.c_str(), item_is_selected, selectable_flags, ImVec2(0, 12 * contentScale)))
+			if (ImGui::Selectable(name.c_str(), item_is_selected, selectable_flags, ImVec2(0, 12 * GuiHelper::contentScale)))
 			{
 				if (ImGui::GetIO().KeyCtrl)
 				{
@@ -117,7 +117,7 @@ void Gui::drawImportVariablesTable(const std::map<std::string, GdbParser::Variab
 				}
 			}
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", ("0x" + std::string(intToHexString(varData.address))).c_str());
+			ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(varData.address))).c_str());
 		}
 
 		ImGui::EndTable();

@@ -16,13 +16,13 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("core frequency [kHz]   ");
 	ImGui::SameLine();
 
-	drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
-				  { settings.coreFrequency = std::stoi(str); });
+	GuiHelper::drawInputText("##frequency", settings.coreFrequency, [&](std::string str)
+							 { settings.coreFrequency = std::stoi(str); });
 
 	ImGui::Text("trace prescaler        ");
 	ImGui::SameLine();
-	drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str)
-				  { settings.tracePrescaler = std::stoi(str); });
+	GuiHelper::drawInputText("##prescaler", settings.tracePrescaler, [&](std::string str)
+							 { settings.tracePrescaler = std::stoi(str); });
 
 	const char* triggers[] = {"OFF", "CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9"};
 	int32_t trigerCombo = settings.triggerChannel + 1;
@@ -38,8 +38,8 @@ void Gui::drawSettingsSwo()
 		if (plt->trigger.getState())
 			settings.triggerLevel = plt->trigger.getValue();
 
-	drawInputText("##level", settings.triggerLevel, [&](std::string str)
-				  { settings.triggerLevel = std::stod(str); });
+	GuiHelper::drawInputText("##level", settings.triggerLevel, [&](std::string str)
+							 { settings.triggerLevel = std::stod(str); });
 
 	static bool shouldReset = false;
 	ImGui::Text("should reset           ");
@@ -63,14 +63,14 @@ void Gui::drawIndicatorsSwo()
 
 	auto indicators = tracePlotHandler->getTraceIndicators();
 
-	drawDescriptionWithNumber("frames total:           ", indicators.framesTotal);
-	drawDescriptionWithNumber("sleep cycles:           ", indicators.sleepCycles);
-	drawDescriptionWithNumber("error frames total:     ", indicators.errorFramesTotal);
-	drawDescriptionWithNumber("error frames in view:   ", indicators.errorFramesInView, "", 5, 0, {1, 0, 0, 1});
-	drawDescriptionWithNumber("delayed timestamp 1:    ", indicators.delayedTimestamp1, "", 5, 0, {1, 1, 0, 1});
-	drawDescriptionWithNumber("delayed timestamp 2:    ", indicators.delayedTimestamp2, "", 5, 0, {1, 1, 0, 1});
-	drawDescriptionWithNumber("delayed timestamp 3:    ", indicators.delayedTimestamp3);
-	drawDescriptionWithNumber("delayed timestamp 3 in view:    ", indicators.delayedTimestamp3InView, "", 5, 0, {1, 0, 0, 1});
+	GuiHelper::drawDescriptionWithNumber("frames total:           ", indicators.framesTotal);
+	GuiHelper::drawDescriptionWithNumber("sleep cycles:           ", indicators.sleepCycles);
+	GuiHelper::drawDescriptionWithNumber("error frames total:     ", indicators.errorFramesTotal);
+	GuiHelper::drawDescriptionWithNumber("error frames in view:   ", indicators.errorFramesInView, "", 5, 0, {1, 0, 0, 1});
+	GuiHelper::drawDescriptionWithNumber("delayed timestamp 1:    ", indicators.delayedTimestamp1, "", 5, 0, {1, 1, 0, 1});
+	GuiHelper::drawDescriptionWithNumber("delayed timestamp 2:    ", indicators.delayedTimestamp2, "", 5, 0, {1, 1, 0, 1});
+	GuiHelper::drawDescriptionWithNumber("delayed timestamp 3:    ", indicators.delayedTimestamp3);
+	GuiHelper::drawDescriptionWithNumber("delayed timestamp 3 in view:    ", indicators.delayedTimestamp3InView, "", 5, 0, {1, 0, 0, 1});
 }
 
 void Gui::drawPlotsTreeSwo()
@@ -86,7 +86,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Separator();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-	ImGui::BeginChild("left pane", ImVec2(150 * contentScale, -1), true);
+	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
 	auto state = tracePlotHandler->getViewerState();
 	int32_t iter = 0;
@@ -145,7 +145,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::Checkbox("##mx0", &mx0);
 	plt->markerX0.setState(mx0);
 	plt->markerX1.setState(mx0);
-	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 * contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
+	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 * GuiHelper::contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 	drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();

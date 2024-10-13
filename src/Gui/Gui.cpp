@@ -60,12 +60,12 @@ void Gui::mainThread(std::string externalPath)
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
 
-	contentScale = getContentScale(window);
+	GuiHelper::contentScale = getContentScale(window);
 
 	ImFontConfig cfg;
-	cfg.SizePixels = 13.0f * contentScale;
+	cfg.SizePixels = 13.0f * GuiHelper::contentScale;
 
-	ImGui::GetStyle().ScaleAllSizes(contentScale);
+	ImGui::GetStyle().ScaleAllSizes(GuiHelper::contentScale);
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -159,7 +159,7 @@ void Gui::mainThread(std::string externalPath)
 			drawVarTable();
 			drawPlotsTree();
 			drawImportVariablesWindow();
-			drawVariableEditWindow();
+			variableEditWindow.drawVariableEditWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -243,8 +243,8 @@ void Gui::drawMenu()
 
 	if (activeView == ActiveViewType::VarViewer)
 	{
-		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210 * contentScale));
-		drawDescriptionWithNumber("sampling: ", plotHandler->getAverageSamplingFrequency(), " Hz", 2);
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210 * GuiHelper::contentScale));
+		GuiHelper::drawDescriptionWithNumber("sampling: ", plotHandler->getAverageSamplingFrequency(), " Hz", 2);
 	}
 
 	ImGui::EndMainMenuBar();
@@ -293,7 +293,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 		}
 	}
 
-	if (ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * contentScale)) || (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !shouldDisableButton))
+	if (ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * GuiHelper::contentScale)) || (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !shouldDisableButton))
 	{
 		if (state == PlotHandlerBase::state::STOP)
 		{
@@ -325,7 +325,7 @@ void Gui::addNewVariable(const std::string& newName)
 
 void Gui::drawAddVariableButton()
 {
-	if (ImGui::Button("Add variable", ImVec2(-1, 25 * contentScale)))
+	if (ImGui::Button("Add variable", ImVec2(-1, 25 * GuiHelper::contentScale)))
 	{
 		uint32_t num = 0;
 		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
@@ -336,7 +336,7 @@ void Gui::drawAddVariableButton()
 
 	ImGui::BeginDisabled(projectElfPath.empty());
 
-	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25 * contentScale)))
+	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25 * GuiHelper::contentScale)))
 		showImportVariablesWindow = true;
 
 	ImGui::EndDisabled();
@@ -384,7 +384,7 @@ void Gui::drawUpdateAddressesFromElf()
 		shouldPopStyle = true;
 	}
 
-	if (ImGui::Button(buttonText, ImVec2(-1, 25 * contentScale)) || performVariablesUpdate)
+	if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || performVariablesUpdate)
 	{
 		lastModifiedTime = std::filesystem::file_time_type::clock::now();
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
@@ -407,7 +407,7 @@ void Gui::drawVarTable()
 
 	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
 	ImGui::Dummy(ImVec2(-1, 5));
-	drawCenteredText("Variables");
+	GuiHelper::drawCenteredText("Variables");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Select your *.elf file in the Options->Acqusition Settings to import or update the variables.");
 	ImGui::Separator();
@@ -416,14 +416,14 @@ void Gui::drawVarTable()
 	drawUpdateAddressesFromElf();
 
 	const char* label = "search ";
-	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8 * contentScale);
+	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8 * GuiHelper::contentScale);
 	static std::string search{};
 	ImGui::Text("%s", label);
 	ImGui::SameLine();
 	ImGui::InputText("##search", &search, 0, NULL, NULL);
 	ImGui::PopItemWidth();
 
-	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300 * contentScale)))
+	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300 * GuiHelper::contentScale)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Name", 0);
@@ -456,7 +456,8 @@ void Gui::drawVarTable()
 			{
 				if (ImGui::IsMouseDoubleClicked(0))
 				{
-					showVariableEditWindow = true;
+					variableEditWindow.setVariableToEdit(var);
+					variableEditWindow.setShowVariableEditWindowState(true);
 				}
 
 				if (ImGui::GetIO().KeyCtrl && var->getIsFound())
@@ -497,7 +498,7 @@ void Gui::drawVarTable()
 			}
 			ImGui::TableSetColumnIndex(1);
 			if (var->getIsFound() == true)
-				ImGui::Text("%s", ("0x" + std::string(intToHexString(var->getAddress()))).c_str());
+				ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(var->getAddress()))).c_str());
 			else
 				ImGui::Text("NOT FOUND!");
 			ImGui::TableSetColumnIndex(2);
@@ -531,7 +532,7 @@ void Gui::drawVarTable()
 
 void Gui::drawAddPlotButton()
 {
-	if (ImGui::Button("Add plot", ImVec2(-1, 25 * contentScale)))
+	if (ImGui::Button("Add plot", ImVec2(-1, 25 * GuiHelper::contentScale)))
 	{
 		uint32_t num = 0;
 		while (plotHandler->checkIfPlotExists(std::string("new plot") + std::to_string(num)))
@@ -544,7 +545,7 @@ void Gui::drawAddPlotButton()
 
 void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 {
-	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25 * contentScale)))
+	if (ImGui::Button("Export plot to *.csv", ImVec2(-1, 25 * GuiHelper::contentScale)))
 	{
 		std::string path = fileHandler->saveFile(std::pair<std::string, std::string>("CSV", "csv"));
 		std::ofstream csvFile(path);
@@ -582,13 +583,13 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 
 void Gui::drawPlotsTree()
 {
-	const uint32_t windowHeight = 320 * contentScale;
+	const uint32_t windowHeight = 320 * GuiHelper::contentScale;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selected = "";
 	std::optional<std::string> plotNameToDelete = {};
 
 	ImGui::Dummy(ImVec2(-1, 5));
-	drawCenteredText("Plots");
+	GuiHelper::drawCenteredText("Plots");
 	ImGui::Separator();
 
 	drawAddPlotButton();
@@ -603,7 +604,7 @@ void Gui::drawPlotsTree()
 		selected = plotHandler->begin().operator*()->getName();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-	ImGui::BeginChild("left pane", ImVec2(150 * contentScale, -1), true);
+	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
@@ -653,7 +654,7 @@ void Gui::drawPlotsTree()
 
 	/* Var list within plot*/
 	ImGui::PushID("list");
-	if (ImGui::BeginListBox("##", ImVec2(-1, 175 * contentScale)))
+	if (ImGui::BeginListBox("##", ImVec2(-1, 175 * GuiHelper::contentScale)))
 	{
 		std::optional<std::string> seriesNameToDelete = {};
 		for (auto& [name, ser] : plt->getSeriesMap())
@@ -714,7 +715,7 @@ void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(950 * contentScale, 500 * contentScale));
+	ImGui::SetNextWindowSize(ImVec2(950 * GuiHelper::contentScale, 500 * GuiHelper::contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == ActiveViewType::VarViewer)
@@ -724,7 +725,7 @@ void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 
 		acqusitionErrorPopup.handle();
 
-		const float buttonHeight = 25.0f * contentScale;
+		const float buttonHeight = 25.0f * GuiHelper::contentScale;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
 		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
@@ -743,14 +744,14 @@ void Gui::drawPreferencesWindow()
 		ImGui::OpenPopup("Preferences");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(500 * contentScale, 250 * contentScale));
+	ImGui::SetNextWindowSize(ImVec2(500 * GuiHelper::contentScale, 250 * GuiHelper::contentScale));
 	if (ImGui::BeginPopupModal("Preferences", &showPreferencesWindow, 0))
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
 		ImGui::DragFloat("font size", &io.FontGlobalScale, 0.005f, 0.8f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
-		const float buttonHeight = 25.0f * contentScale;
+		const float buttonHeight = 25.0f * GuiHelper::contentScale;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 		{
@@ -791,13 +792,13 @@ void Gui::drawStatisticsAnalog(std::shared_ptr<Plot> plt)
 		Statistics::AnalogResults results;
 		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
 
-		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
-		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
-		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
-		drawDescriptionWithNumber("min:     ", results.min);
-		drawDescriptionWithNumber("max:     ", results.max);
-		drawDescriptionWithNumber("mean:    ", results.mean);
-		drawDescriptionWithNumber("stddev:  ", results.stddev);
+		GuiHelper::drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		GuiHelper::drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		GuiHelper::drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		GuiHelper::drawDescriptionWithNumber("min:     ", results.min);
+		GuiHelper::drawDescriptionWithNumber("max:     ", results.max);
+		GuiHelper::drawDescriptionWithNumber("mean:    ", results.mean);
+		GuiHelper::drawDescriptionWithNumber("stddev:  ", results.stddev);
 		ImGui::End();
 	}
 	else
@@ -834,15 +835,15 @@ void Gui::drawStatisticsDigital(std::shared_ptr<Plot> plt)
 		Statistics::DigitalResults results;
 		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
 
-		drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
-		drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
-		drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
-		drawDescriptionWithNumber("Lmin:    ", results.Lmin);
-		drawDescriptionWithNumber("Lmax:    ", results.Lmax);
-		drawDescriptionWithNumber("Hmin:    ", results.Hmin);
-		drawDescriptionWithNumber("Hmax:    ", results.Hmax);
-		drawDescriptionWithNumber("fmin:    ", results.fmin);
-		drawDescriptionWithNumber("fmax:    ", results.fmax);
+		GuiHelper::drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
+		GuiHelper::drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
+		GuiHelper::drawDescriptionWithNumber("t1-t0:   ", plt->stats.getValueX1() - plt->stats.getValueX0());
+		GuiHelper::drawDescriptionWithNumber("Lmin:    ", results.Lmin);
+		GuiHelper::drawDescriptionWithNumber("Lmax:    ", results.Lmax);
+		GuiHelper::drawDescriptionWithNumber("Hmin:    ", results.Hmin);
+		GuiHelper::drawDescriptionWithNumber("Hmax:    ", results.Hmax);
+		GuiHelper::drawDescriptionWithNumber("fmin:    ", results.fmin);
+		GuiHelper::drawDescriptionWithNumber("fmax:    ", results.fmax);
 		ImGui::End();
 	}
 	else
@@ -869,7 +870,7 @@ std::optional<std::string> Gui::showDeletePopup(const char* text, const std::str
 
 void Gui::showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel)
 {
-	float buttonWidth = 120.0f * contentScale;
+	float buttonWidth = 120.0f * GuiHelper::contentScale;
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(id, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -1104,25 +1105,4 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 	}
 
 	plt.setSeriesDisplayFormat(name, static_cast<Plot::displayFormat>(format));
-}
-
-std::string Gui::intToHexString(uint32_t var)
-{
-	std::stringstream ss;
-	ss << std::hex << var;
-	return ss.str();
-}
-
-void Gui::drawCenteredText(std::string&& text)
-{
-	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text.c_str()).x) * 0.5f);
-	ImGui::Text("%s", text.c_str());
-}
-
-void Gui::drawTextAlignedToSize(std::string&& text, size_t alignTo)
-{
-	size_t currentLength = text.length();
-	size_t spacesToAdd = (currentLength < alignTo) ? (alignTo - currentLength) : 0;
-	std::string alignedText = text + std::string(spacesToAdd, ' ');
-	ImGui::Text("%s", alignedText.c_str());
 }

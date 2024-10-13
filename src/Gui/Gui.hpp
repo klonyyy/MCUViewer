@@ -12,6 +12,7 @@
 
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
+#include "GuiVariablesEdit.hpp"
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
@@ -47,9 +48,6 @@ class Gui
 	bool showPreferencesWindow = false;
 	bool showImportVariablesWindow = false;
 	bool performVariablesUpdate = false;
-	bool showVariableEditWindow = false;
-
-	float contentScale = 1.0f;
 
 	IFileHandler* fileHandler;
 	TracePlotHandler* tracePlotHandler;
@@ -81,6 +79,11 @@ class Gui
 
 	GdbParser* parser;
 
+	spdlog::logger* logger;
+
+	VariableEditWindow variableEditWindow;
+
+   private:
 	void mainThread(std::string externalPath);
 	void drawMenu();
 	void drawStartButton(PlotHandlerBase* activePlotHandler);
@@ -131,39 +134,14 @@ class Gui
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
 	void drawVariableEditWindow();
+	void drawVariableEditSettings();
 
 	void drawImportVariablesWindow();
 	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
 
-	template <typename T>
-	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
-	{
-		std::string str = std::to_string(variable);
-		if (ImGui::InputText(id, &str, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL) || ImGui::IsMouseClicked(0))
-			if (valueChanged)
-				valueChanged(str);
-	}
-	template <typename T>
-	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5, float threshold = std::nan(""), ImVec4 thresholdExceededColor = {0.0f, 0.0f, 0.0f, 1.0f})
-	{
-		if (threshold != std::nan("") && number > threshold)
-			ImGui::TextColored(thresholdExceededColor, "%s", description);
-		else
-			ImGui::Text("%s", description);
-		ImGui::SameLine();
-		std::ostringstream formattedNum;
-		formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
-		ImGui::Text("%s", (formattedNum.str() + unit).c_str());
-	}
-
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
-	std::string intToHexString(uint32_t i);
-	void drawCenteredText(std::string&& text);
-	void drawTextAlignedToSize(std::string&& text, size_t alignTo);
 
 	bool openWebsite(const char* url);
-
-	spdlog::logger* logger;
 };
 
 #endif

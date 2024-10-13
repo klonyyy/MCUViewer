@@ -86,13 +86,13 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		{
 			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
 			handleMarkers(0, plot->markerX0, plotLimits, [&]()
-						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10 * contentScale, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
+						  { ImPlot::Annotation(plot->markerX0.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(-10 * GuiHelper::contentScale, 0), true, "x0 %.5f", plot->markerX0.getValue()); });
 
 			handleMarkers(1, plot->markerX1, plotLimits, [&]()
 						  {
-			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10*contentScale, 0), true, "x1 %.5f", plot->markerX1.getValue());
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10*GuiHelper::contentScale, 0), true, "x1 %.5f", plot->markerX1.getValue());
 			double dx = plot->markerX1.getValue() - plot->markerX0.getValue();
-			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10*contentScale, 20*contentScale), true, "x1-x0 %.5f", dx); });
+			ImPlot::Annotation(plot->markerX1.getValue(), plotLimits.Y.Max, ImVec4(0, 0, 0, 0), ImVec2(10*GuiHelper::contentScale, 20*GuiHelper::contentScale), true, "x1-x0 %.5f", dx); });
 
 			handleDragRect(0, plot->stats, plotLimits);
 		}
@@ -172,7 +172,7 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 			ImPlot::SetNextLineStyle(ImVec4(series->var->getColor().r, series->var->getColor().g, series->var->getColor().b, 1.0f));
 			ImPlot::SetNextFillStyle(ImVec4(series->var->getColor().r, series->var->getColor().g, series->var->getColor().b, 1.0f));
 			ImPlot::PlotBars(name.c_str(), &xs, &value, 1, barSize);
-			ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5 * contentScale), true, "%.5f", value);
+			ImPlot::Annotation(xs, value / 2.0f, ImVec4(0, 0, 0, 0), ImVec2(0, -5 * GuiHelper::contentScale), true, "%.5f", value);
 			xs += 1.0f;
 		}
 		ImPlot::EndPlot();
@@ -206,11 +206,11 @@ void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 			ImGui::TableSetColumnIndex(0);
 			Variable::Color a = serPtr->var->getColor();
 			ImVec4 col = {a.r, a.g, a.b, a.a};
-			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10 * contentScale, 10 * contentScale));
+			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10 * GuiHelper::contentScale, 10 * GuiHelper::contentScale));
 			ImGui::SameLine();
 			ImGui::Text("%s", key.c_str());
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", ("0x" + std::string(intToHexString(serPtr->var->getAddress()))).c_str());
+			ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(serPtr->var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
 			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
 			showChangeFormatPopup("format", *plot, key);

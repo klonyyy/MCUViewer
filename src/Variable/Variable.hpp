@@ -54,19 +54,14 @@ class Variable
 
 	uint8_t getSize();
 
+   public:
+	static const char* types[8];
+
    private:
 	std::string name;
 	type varType;
 	double value;
 	uint32_t address;
-	const char* types[8] = {"UNKNOWN",
-							"U8",
-							"I8",
-							"U16",
-							"I16",
-							"U32",
-							"I32",
-							"F32"};
 
 	Color color;
 	bool isFound = false;
