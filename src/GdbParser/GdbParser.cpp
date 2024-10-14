@@ -33,6 +33,9 @@ bool GdbParser::updateVariableMap2(const std::string& elfPath, std::map<std::str
 
 	for (auto& [name, var] : vars)
 	{
+		if (var->getShouldUpdateFromElf() == false)
+			continue;
+
 		var->setIsFound(false);
 		var->setType(Variable::type::UNKNOWN);
 

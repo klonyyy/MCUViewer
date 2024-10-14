@@ -501,7 +501,10 @@ void Gui::drawVarTable()
 				ImGui::EndDragDropSource();
 			}
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(var->getAddress()))).c_str());
+			if (var->getIsFound())
+				ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(var->getAddress()))).c_str());
+			else
+				ImGui::Text("NOT FOUND!");
 			ImGui::TableSetColumnIndex(2);
 			ImGui::Text("%s", var->getTypeStr().c_str());
 		}

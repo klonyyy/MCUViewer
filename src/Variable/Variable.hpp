@@ -55,6 +55,9 @@ class Variable
 
 	uint8_t getSize();
 
+	bool getShouldUpdateFromElf() const;
+	void setShouldUpdateFromElf(bool shouldUpdateFromElf);
+
    public:
 	static const char* types[8];
 	std::function<void(const std::string&, const std::string&)> renameCallback;
@@ -67,6 +70,7 @@ class Variable
 
 	Color color;
 	bool isFound = false;
+	bool shouldUpdateFromElf = false;
 };
 
 #endif

@@ -108,7 +108,9 @@ uint32_t Variable::getColorU32() const
 
 bool Variable::getIsFound() const
 {
-	return isFound;
+	if (shouldUpdateFromElf)
+		return isFound;
+	return true;
 }
 
 void Variable::setIsFound(bool found)
@@ -133,4 +135,14 @@ uint8_t Variable::getSize()
 		default:
 			return 1;
 	}
+}
+
+bool Variable::getShouldUpdateFromElf() const
+{
+	return shouldUpdateFromElf;
+}
+
+void Variable::setShouldUpdateFromElf(bool shouldUpdateFromElf)
+{
+	this->shouldUpdateFromElf = shouldUpdateFromElf;
 }

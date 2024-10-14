@@ -50,6 +50,7 @@ class VariableEditWindow
 		std::string name = editedVariable->getName();
 		std::string address = std::string("0x") + std::string(GuiHelper::intToHexString(editedVariable->getAddress()));
 		std::string size = std::to_string(editedVariable->getSize());
+		bool shouldUpdateFromElf = editedVariable->getShouldUpdateFromElf();
 
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Variable");
@@ -61,6 +62,15 @@ class VariableEditWindow
 		{
 			editedVariable->rename(name);
 		}
+
+		GuiHelper::drawTextAlignedToSize("Should update from *.elf:", alignment);
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##shouldUpdateFromElf", &shouldUpdateFromElf))
+		{
+			editedVariable->setShouldUpdateFromElf(shouldUpdateFromElf);
+		}
+
+		ImGui::BeginDisabled(shouldUpdateFromElf);
 
 		GuiHelper::drawTextAlignedToSize("address:", alignment);
 		ImGui::SameLine();
@@ -82,6 +92,8 @@ class VariableEditWindow
 		GuiHelper::drawTextAlignedToSize("size:", alignment);
 		ImGui::SameLine();
 		ImGui::InputText("##size", &size, 0, NULL, NULL);
+
+		ImGui::EndDisabled();
 
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Postprocessing");
