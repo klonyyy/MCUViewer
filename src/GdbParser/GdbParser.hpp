@@ -30,7 +30,7 @@ class GdbParser
 
 	GdbParser(spdlog::logger* logger);
 
-	bool updateVariableMap2(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars);
+	bool updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars);
 	bool parse(const std::string& elfPath);
 	std::map<std::string, VariableData> getParsedData();
 

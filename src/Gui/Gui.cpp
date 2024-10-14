@@ -391,7 +391,7 @@ void Gui::drawUpdateAddressesFromElf()
 	if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || performVariablesUpdate)
 	{
 		lastModifiedTime = std::filesystem::file_time_type::clock::now();
-		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap2, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
+		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
 		performVariablesUpdate = false;
 	}
 

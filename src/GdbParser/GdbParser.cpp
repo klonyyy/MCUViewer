@@ -23,7 +23,7 @@ GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
 	}
 }
 
-bool GdbParser::updateVariableMap2(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars)
+bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars)
 {
 	if (!std::filesystem::exists(elfPath))
 		return false;
