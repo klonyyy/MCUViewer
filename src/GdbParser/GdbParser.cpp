@@ -2,10 +2,20 @@
 
 GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
 {
+	validateGDB();
+}
+
+void GdbParser::changeCurrentGDBCommand(const std::string& command)
+{
+	currentGDBCommand = command;
+}
+
+bool GdbParser::validateGDB()
+{
 	ProcessHandler process;
 	int32_t version = 0;
 
-	version = extractGDBVersionNumber(process.executeCmd("gdb -v", "\n"));
+	version = extractGDBVersionNumber(process.executeCmd(currentGDBCommand + std::string(" -v"), "\n"));
 
 	if (version == 0)
 	{
@@ -14,13 +24,21 @@ GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
 	}
 
 	if (version == 0)
+	{
 		logger->error("Failed to read GDB version! Make sure it's installed and added to your PATH!");
+		return false;
+	}
 	else
 	{
 		logger->info("GDB version: {}", version);
 		if (version < gdbMinimumVersion)
+		{
 			logger->error("Your GDB is too old, please update it to at least 10.3");
+			return false;
+		}
 	}
+
+	return true;
 }
 
 bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars)

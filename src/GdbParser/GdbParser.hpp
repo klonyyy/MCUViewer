@@ -30,9 +30,12 @@ class GdbParser
 
 	GdbParser(spdlog::logger* logger);
 
+	bool validateGDB();
 	bool updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars);
 	bool parse(const std::string& elfPath);
 	std::map<std::string, VariableData> getParsedData();
+
+	void changeCurrentGDBCommand(const std::string& command);
 
    private:
 	void parseVariableChunk(const std::string& chunk);
@@ -43,6 +46,9 @@ class GdbParser
 
    private:
 	static constexpr int32_t gdbMinimumVersion = 102;
+	const char* defaultGDBCommand = "gdb";
+
+	std::string currentGDBCommand = std::string(defaultGDBCommand);
 	spdlog::logger* logger;
 	std::mutex mtx;
 	std::map<std::string, VariableData> parsedData;
