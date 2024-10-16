@@ -390,6 +390,7 @@ void Gui::drawUpdateAddressesFromElf()
 
 	if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || performVariablesUpdate)
 	{
+		parser->changeCurrentGDBCommand(plotHandler->getSettings().gdbCommand);
 		lastModifiedTime = std::filesystem::file_time_type::clock::now();
 		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
 		performVariablesUpdate = false;
@@ -722,7 +723,7 @@ void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 		ImGui::OpenPopup("Acqusition Settings");
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(950 * GuiHelper::contentScale, 500 * GuiHelper::contentScale));
+	ImGui::SetNextWindowSize(ImVec2(950 * GuiHelper::contentScale, 600 * GuiHelper::contentScale));
 	if (ImGui::BeginPopupModal("Acqusition Settings", &showAcqusitionSettingsWindow, 0))
 	{
 		if (type == ActiveViewType::VarViewer)

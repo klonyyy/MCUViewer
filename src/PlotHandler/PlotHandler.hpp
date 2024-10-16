@@ -30,6 +30,7 @@ class PlotHandler : public PlotHandlerBase
 		bool stopAcqusitionOnElfChange = false;
 		bool shouldLog = false;
 		std::string logFilePath = "";
+		std::string gdbCommand = "gdb";
 	} Settings;
 
 	PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);

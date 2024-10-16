@@ -15,12 +15,12 @@ bool GdbParser::validateGDB()
 	ProcessHandler process;
 	int32_t version = 0;
 
-	version = extractGDBVersionNumber(process.executeCmd(currentGDBCommand + std::string(" -v"), "\n"));
+	version = extractGDBVersionNumber(process.executeCmd(currentGDBCommand + std::string(" -v"), "License"));
 
 	if (version == 0)
 	{
 		logger->warn("Failed to read GDB version (from PATH). Retrying on the distributed GDB...");
-		version = extractGDBVersionNumber(process.executeCmd("./gdb -v", "\n"));
+		version = extractGDBVersionNumber(process.executeCmd("./gdb -v", "License"));
 	}
 
 	if (version == 0)
@@ -43,10 +43,13 @@ bool GdbParser::validateGDB()
 
 bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars)
 {
+	if (!validateGDB())
+		return false;
+
 	if (!std::filesystem::exists(elfPath))
 		return false;
 
-	std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
+	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
 
 	for (auto& [name, var] : vars)
@@ -73,6 +76,9 @@ bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::stri
 
 bool GdbParser::parse(const std::string& elfPath)
 {
+	if (!validateGDB())
+		return false;
+
 	if (!std::filesystem::exists(elfPath))
 		return false;
 
@@ -80,7 +86,7 @@ bool GdbParser::parse(const std::string& elfPath)
 	parsedData.clear();
 	lock.unlock();
 
-	std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
+	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
 	auto out = process.executeCmd("info variables\n", "(gdb)");
 

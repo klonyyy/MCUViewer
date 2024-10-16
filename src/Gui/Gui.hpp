@@ -101,6 +101,7 @@ class Gui
 
 	template <typename Settings>
 	void drawLoggingSettings(PlotHandlerBase* handler, Settings& settings);
+	void drawGdbSettings(PlotHandler::Settings& settings);
 
 	void drawAboutWindow();
 	void drawPreferencesWindow();

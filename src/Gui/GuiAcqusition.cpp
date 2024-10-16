@@ -50,6 +50,7 @@ void Gui::acqusitionSettingsViewer()
 
 	drawDebugProbes();
 	drawLoggingSettings(plotHandler, settings);
+	drawGdbSettings(settings);
 	plotHandler->setSettings(settings);
 }
 
@@ -191,6 +192,19 @@ void Gui::drawLoggingSettings(PlotHandlerBase* handler, Settings& settings)
 	ImGui::PopID();
 }
 
+void Gui::drawGdbSettings(PlotHandler::Settings& settings)
+{
+	ImGui::PushID("advanced");
+	ImGui::Dummy(ImVec2(-1, 5));
+	GuiHelper::drawCenteredText("Advanced");
+	ImGui::Separator();
+
+	GuiHelper::drawTextAlignedToSize("GDB command:", alignment);
+	ImGui::SameLine();
+	ImGui::InputText("##gdb", &settings.gdbCommand, 0, NULL, NULL);
+	ImGui::PopID();
+}
+
 void Gui::acqusitionSettingsTrace()
 {
 	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
@@ -275,7 +289,6 @@ void Gui::drawTraceProbes()
 		if (!devicesList.empty())
 		{
 			probeSettings.serialNumber = devicesList[0];
-			std::cout << devicesList.size();
 			modified = true;
 		}
 		shouldListDevices = false;

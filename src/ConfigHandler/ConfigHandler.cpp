@@ -63,6 +63,10 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	debugProbeSettings.serialNumber = ini->get("settings").get("probe_SN");
 	getValue("settings", "should_log", viewerSettings.shouldLog);
 	viewerSettings.logFilePath = ini->get("settings").get("log_directory");
+	viewerSettings.gdbCommand = ini->get("settings").get("gdb_command");
+
+	if (viewerSettings.gdbCommand.empty())
+		viewerSettings.gdbCommand = "gdb";
 
 	getValue("trace_settings", "core_frequency", traceSettings.coreFrequency);
 	getValue("trace_settings", "trace_prescaler", traceSettings.tracePrescaler);
@@ -241,6 +245,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["probe_SN"] = debugProbeSettings.serialNumber;
 	(*ini)["settings"]["should_log"] = viewerSettings.shouldLog ? std::string("true") : std::string("false");
 	(*ini)["settings"]["log_directory"] = viewerSettings.logFilePath;
+	(*ini)["settings"]["log_directory"] = viewerSettings.gdbCommand;
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
