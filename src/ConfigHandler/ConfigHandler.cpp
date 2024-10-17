@@ -245,7 +245,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["settings"]["probe_SN"] = debugProbeSettings.serialNumber;
 	(*ini)["settings"]["should_log"] = viewerSettings.shouldLog ? std::string("true") : std::string("false");
 	(*ini)["settings"]["log_directory"] = viewerSettings.logFilePath;
-	(*ini)["settings"]["log_directory"] = viewerSettings.gdbCommand;
+	(*ini)["settings"]["gdb_command"] = viewerSettings.gdbCommand;
 
 	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
 	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);

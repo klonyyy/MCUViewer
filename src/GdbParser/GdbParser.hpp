@@ -42,12 +42,9 @@ class GdbParser
 	void checkVariableType(std::string& name);
 	Variable::type checkType(const std::string& name, std::string* output);
 	std::optional<uint32_t> checkAddress(const std::string& name);
-	int32_t extractGDBVersionNumber(const std::string&& versionString);
 
    private:
-	static constexpr int32_t gdbMinimumVersion = 102;
 	const char* defaultGDBCommand = "gdb";
-
 	std::string currentGDBCommand = std::string(defaultGDBCommand);
 	spdlog::logger* logger;
 	std::mutex mtx;
