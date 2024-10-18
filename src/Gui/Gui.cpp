@@ -160,6 +160,7 @@ void Gui::mainThread(std::string externalPath)
 			drawPlotsTree();
 			drawImportVariablesWindow();
 			variableEditWindow.drawVariableEditWindow();
+			plotEditWindow.drawPlotEditWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -620,7 +621,14 @@ void Gui::drawPlotsTree()
 		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
 		ImGui::SameLine();
 		if (ImGui::Selectable(name.c_str(), selected == name))
+		{
+			// if (ImGui::IsMouseDoubleClicked(0))
+			// {
+			plotEditWindow.setPlotToEdit(plt);
+			plotEditWindow.setShowPlotEditWindowState(true);
+			// }
 			selected = name;
+		}
 
 		if (!plotNameToDelete.has_value())
 			plotNameToDelete = showDeletePopup("Delete plot", name);

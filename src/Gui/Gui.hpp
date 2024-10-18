@@ -12,6 +12,7 @@
 
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
+#include "GuiPlotEdit.hpp"
 #include "GuiVariablesEdit.hpp"
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
@@ -82,6 +83,7 @@ class Gui
 	spdlog::logger* logger;
 
 	VariableEditWindow variableEditWindow;
+	PlotEditWindow plotEditWindow;
 
    private:
 	void mainThread(std::string externalPath);
@@ -137,6 +139,8 @@ class Gui
 	void drawPlotsTreeSwo();
 	void drawVariableEditWindow();
 	void drawVariableEditSettings();
+	void drawPlotEditWindow();
+	void drawPlotEditSettings();
 
 	void drawImportVariablesWindow();
 	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
