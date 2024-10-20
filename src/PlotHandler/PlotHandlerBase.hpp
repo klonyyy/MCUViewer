@@ -24,7 +24,7 @@ class PlotHandlerBase
 	PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~PlotHandlerBase() = default;
 
-	void addPlot(const std::string& name);
+	std::shared_ptr<Plot> addPlot(const std::string& name);
 	bool removePlot(const std::string& name);
 	bool renamePlot(const std::string& oldName, const std::string& newName);
 	bool removeAllPlots();

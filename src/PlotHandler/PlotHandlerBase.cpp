@@ -11,9 +11,10 @@ PlotHandlerBase::PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlo
 	csvStreamer = std::make_unique<CSVStreamer>(logger);
 }
 
-void PlotHandlerBase::addPlot(const std::string& name)
+std::shared_ptr<Plot> PlotHandlerBase::addPlot(const std::string& name)
 {
 	plotsMap[name] = std::make_shared<Plot>(name);
+	return plotsMap[name];
 }
 
 bool PlotHandlerBase::removePlot(const std::string& name)

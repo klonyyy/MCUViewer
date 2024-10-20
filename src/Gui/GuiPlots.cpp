@@ -19,15 +19,15 @@ void Gui::dragAndDropPlot(Plot* plot)
 void Gui::drawPlots()
 {
 	uint32_t tablePlots = 0;
-
 	ImVec2 initialCursorPos = ImGui::GetCursorPos();
+	auto activeGroup = plotGroupHandler.getActiveGroup();
 
-	for (std::shared_ptr<Plot> plt : *plotHandler)
+	for (auto [name, plot] : *activeGroup)
 	{
-		if (plt->getType() == Plot::Type::TABLE)
+		if (plot->getType() == Plot::Type::TABLE)
 		{
-			drawPlotTable(plt.get(), plt->getTimeSeries(), plt->getSeriesMap());
-			if (plt->getVisibility())
+			drawPlotTable(plot.get(), plot->getTimeSeries(), plot->getSeriesMap());
+			if (plot->getVisibility())
 				tablePlots++;
 		}
 	}
@@ -42,15 +42,17 @@ void Gui::drawPlots()
 
 	if (ImPlot::BeginSubplots("##subplos", row, 1, plotSize, 0))
 	{
-		for (std::shared_ptr<Plot> plt : *plotHandler)
+		auto activeGroup = plotGroupHandler.getActiveGroup();
+
+		for (auto [name, plot] : *activeGroup)
 		{
-			if (!plt->getVisibility())
+			if (!plot->getVisibility())
 				continue;
 
-			if (plt->getType() == Plot::Type::CURVE)
-				drawPlotCurve(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
-			else if (plt->getType() == Plot::Type::BAR)
-				drawPlotBar(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), tablePlots);
+			if (plot->getType() == Plot::Type::CURVE)
+				drawPlotCurve(plot.get(), plot->getTimeSeries(), plot->getSeriesMap(), tablePlots);
+			else if (plot->getType() == Plot::Type::BAR)
+				drawPlotBar(plot.get(), plot->getTimeSeries(), plot->getSeriesMap(), tablePlots);
 		}
 
 		ImPlot::EndSubplots();

@@ -3,6 +3,7 @@
 
 #include "GuiHelper.hpp"
 #include "Plot.hpp"
+#include "PlotGroup.hpp"
 #include "imgui.h"
 
 class PlotEditWindow
@@ -44,15 +45,6 @@ class PlotEditWindow
 
 	void drawPlotEditSettings()
 	{
-		if (ImGui::TreeNode("Advanced, with Selectable nodes"))
-		{
-			for (int i = 0; i < 6; i++)
-			{
-				bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)i, 0, "Selectable Node %d", i);
-			}
-
-			ImGui::TreePop();
-		}
 	}
 
    private:
@@ -65,6 +57,8 @@ class PlotEditWindow
 	bool showPlotEditWindow = false;
 
 	std::shared_ptr<Plot> editedPlot = nullptr;
+
+	PlotGroupHandler plotGroupHandler;
 };
 
 #endif

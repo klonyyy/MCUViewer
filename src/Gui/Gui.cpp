@@ -548,7 +548,18 @@ void Gui::drawAddPlotButton()
 			num++;
 
 		std::string newName = std::string("new plot") + std::to_string(num);
-		plotHandler->addPlot(newName);
+		auto plot = plotHandler->addPlot(newName);
+		plotGroupHandler.getActiveGroup()->addPlot(plot);
+	}
+
+	if (ImGui::Button("Add group", ImVec2(-1, 25 * GuiHelper::contentScale)))
+	{
+		uint32_t num = 0;
+		while (plotGroupHandler.checkIfGroupExists(std::string("new group") + std::to_string(num)))
+			num++;
+
+		std::string newName = std::string("new group") + std::to_string(num);
+		plotGroupHandler.addGroup(newName);
 	}
 }
 
@@ -594,7 +605,8 @@ void Gui::drawPlotsTree()
 {
 	const uint32_t windowHeight = 320 * GuiHelper::contentScale;
 	const char* plotTypes[3] = {"curve", "bar", "table"};
-	static std::string selected = "";
+	static std::string selectedGroup = "";
+	static std::string selectedPlot = "";
 	std::optional<std::string> plotNameToDelete = {};
 
 	ImGui::Dummy(ImVec2(-1, 5));
@@ -605,42 +617,79 @@ void Gui::drawPlotsTree()
 
 	if (plotHandler->getPlotsCount() == 0)
 	{
-		plotHandler->addPlot("new plot0");
-		selected = std::string("new plot0");
+		selectedGroup = "new group0";
+		selectedPlot = "new plot0";
+		auto group = plotGroupHandler.addGroup("new group0");
+		auto plot = plotHandler->addPlot("new plot0");
+		group->addPlot(plot);
 	}
 
-	if (!plotHandler->checkIfPlotExists(std::move(selected)))
-		selected = plotHandler->begin().operator*()->getName();
+	if (!plotHandler->checkIfPlotExists(std::move(selectedPlot)))
+		selectedPlot = plotHandler->begin().operator*()->getName();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
-	for (std::shared_ptr<Plot> plt : *plotHandler)
+	// for (std::shared_ptr<Plot> plt : *plotHandler)
+	// {
+	// 	std::string name = plt->getName();
+	// 	ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
+	// 	ImGui::SameLine();
+	// 	if (ImGui::Selectable(name.c_str(), selected == name))
+	// 	{
+	// 		// if (ImGui::IsMouseDoubleClicked(0))
+	// 		// {
+	// 		plotEditWindow.setPlotToEdit(plt);
+	// 		plotEditWindow.setShowPlotEditWindowState(true);
+	// 		// }
+	// 		selected = name;
+	// 	}
+
+	// 	if (!plotNameToDelete.has_value())
+	// 		plotNameToDelete = showDeletePopup("Delete plot", name);
+
+	// 	if (plt->isHovered() && ImGui::IsMouseClicked(0))
+	// 		selected = plt->getName();
+	// }
+
+	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+	for (auto& [name, group] : plotGroupHandler)
 	{
-		std::string name = plt->getName();
-		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
-		ImGui::SameLine();
-		if (ImGui::Selectable(name.c_str(), selected == name))
+		ImGuiTreeNodeFlags node_flags = base_flags;
+		if (selectedGroup == name)
 		{
-			// if (ImGui::IsMouseDoubleClicked(0))
-			// {
-			plotEditWindow.setPlotToEdit(plt);
-			plotEditWindow.setShowPlotEditWindowState(true);
-			// }
-			selected = name;
+			node_flags |= ImGuiTreeNodeFlags_Selected;
+			plotGroupHandler.setActiveGroup(name);
 		}
 
-		if (!plotNameToDelete.has_value())
-			plotNameToDelete = showDeletePopup("Delete plot", name);
+		if (ImGui::TreeNodeEx(group->getName().c_str(), node_flags))
+		{
+			if (ImGui::IsItemClicked())
+			{
+				selectedGroup = name;
+			}
 
-		if (plt->isHovered() && ImGui::IsMouseClicked(0))
-			selected = plt->getName();
+			for (auto& [name, plot] : *group)
+			{
+				ImGui::Checkbox(std::string("##" + name).c_str(), &plot->getVisibilityVar());
+				ImGui::SameLine();
+				if (ImGui::Selectable(name.c_str(), selectedPlot == name))
+				{
+					selectedPlot = name;
+				}
+
+				if (plot->isHovered() && ImGui::IsMouseClicked(0))
+					selectedPlot = plot->getName();
+			}
+			ImGui::TreePop();
+		}
 	}
 
 	ImGui::EndChild();
 	ImGui::SameLine();
 
-	std::shared_ptr<Plot> plt = plotHandler->getPlot(selected);
+	std::shared_ptr<Plot> plt = plotHandler->getPlot(selectedPlot);
 	std::string newName = plt->getName();
 	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
@@ -716,7 +765,7 @@ void Gui::drawPlotsTree()
 		if (!plotHandler->checkIfPlotExists(std::move(newName)))
 		{
 			plotHandler->renamePlot(plt->getName(), newName);
-			selected = newName;
+			selectedPlot = newName;
 		}
 		else
 			popup.show("Error", "Plot already exists!", 1.5f);

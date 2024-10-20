@@ -21,6 +21,7 @@
 #include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
 #include "PlotHandler.hpp"
+#include "PlotGroup.hpp"
 #include "Popup.hpp"
 #include "TracePlotHandler.hpp"
 #include "imgui.h"
@@ -84,6 +85,8 @@ class Gui
 
 	VariableEditWindow variableEditWindow;
 	PlotEditWindow plotEditWindow;
+
+	PlotGroupHandler plotGroupHandler;
 
    private:
 	void mainThread(std::string externalPath);
