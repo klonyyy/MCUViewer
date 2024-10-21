@@ -20,8 +20,8 @@
 #include "JlinkDebugProbe.hpp"
 #include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
-#include "PlotHandler.hpp"
 #include "PlotGroup.hpp"
+#include "PlotHandler.hpp"
 #include "Popup.hpp"
 #include "TracePlotHandler.hpp"
 #include "imgui.h"
@@ -116,12 +116,12 @@ class Gui
 	void renameVariable(const std::string& currentName, const std::string& newName);
 
 	void drawPlots();
-	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
-	void drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
-	void drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
+	void drawPlotCurve(std::shared_ptr<Plot> plot);
+	void drawPlotBar(std::shared_ptr<Plot> plot);
+	void drawPlotTable(std::shared_ptr<Plot> plot);
 	void handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback);
 	void handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits);
-	void dragAndDropPlot(Plot* plot);
+	void dragAndDropPlot(std::shared_ptr<Plot> plot);
 
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);

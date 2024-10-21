@@ -1,6 +1,6 @@
 #include "Gui.hpp"
 
-void Gui::dragAndDropPlot(Plot* plot)
+void Gui::dragAndDropPlot(std::shared_ptr<Plot> plot)
 {
 	if (ImPlot::BeginDragDropTargetPlot())
 	{
@@ -26,7 +26,7 @@ void Gui::drawPlots()
 	{
 		if (plot->getType() == Plot::Type::TABLE)
 		{
-			drawPlotTable(plot.get(), plot->getTimeSeries(), plot->getSeriesMap());
+			drawPlotTable(plot);
 			if (plot->getVisibility())
 				tablePlots++;
 		}
@@ -50,17 +50,20 @@ void Gui::drawPlots()
 				continue;
 
 			if (plot->getType() == Plot::Type::CURVE)
-				drawPlotCurve(plot.get(), plot->getTimeSeries(), plot->getSeriesMap(), tablePlots);
+				drawPlotCurve(plot);
 			else if (plot->getType() == Plot::Type::BAR)
-				drawPlotBar(plot.get(), plot->getTimeSeries(), plot->getSeriesMap(), tablePlots);
+				drawPlotBar(plot);
 		}
 
 		ImPlot::EndSubplots();
 	}
 }
 
-void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
+void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 {
+	auto& time = plot->getTimeSeries();
+	auto& seriesMap = plot->getSeriesMap();
+
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
 		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
@@ -81,7 +84,6 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		}
 
 		plot->setIsHovered(ImPlot::IsPlotHovered());
-
 		dragAndDropPlot(plot);
 
 		if (plotHandler->getViewerState() == PlotHandler::state::STOP)
@@ -135,8 +137,10 @@ void Gui::drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std:
 		ImPlot::EndPlot();
 	}
 }
-void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots)
+void Gui::drawPlotBar(std::shared_ptr<Plot> plot)
 {
+	auto& seriesMap = plot->getSeriesMap();
+
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
 		std::vector<const char*> glabels;
@@ -181,8 +185,10 @@ void Gui::drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::s
 	}
 }
 
-void Gui::drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap)
+void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 {
+	auto& seriesMap = plot->getSeriesMap();
+
 	if (!plot->getVisibility())
 		return;
 
