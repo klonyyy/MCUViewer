@@ -35,7 +35,7 @@ TraceViewer is not influenced by optimizations, which means it is a great tool t
 All dependencies should be installed and you should be ready to go. 
 
 Stlink users:
-- in case your STLink is not detected, please copy the `/launch/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
+- in case your STLink is not detected, please copy the `launch/install/Unix/udevrules/` folder contents to your `/etc/udev/rules.d/` directory.
 
 ### Windows: 
 1. Download and run the MCUViewer installer from the releases page (right hand side menu of the main repo page).
