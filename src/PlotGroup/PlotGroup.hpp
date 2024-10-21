@@ -58,28 +58,43 @@ class PlotGroupHandler
    public:
 	std::shared_ptr<PlotGroup> addGroup(const std::string& name)
 	{
-		project[name] = std::make_shared<PlotGroup>(name);
-		return project[name];
+		groupMap[name] = std::make_shared<PlotGroup>(name);
+		return groupMap[name];
 	}
 
 	void removeGroup(const std::string& name)
 	{
-		project.erase(name);
+		groupMap.erase(name);
+
+		if (groupMap.size() == 0)
+			addGroup("new group0");
+
+		activeGroup = groupMap.begin()->first;
+	}
+
+	void removeAllGroups()
+	{
+		groupMap.clear();
+	}
+
+	size_t getGroupCount()
+	{
+		return groupMap.size();
 	}
 
 	std::shared_ptr<PlotGroup> getGroup(const std::string& name)
 	{
-		return project.at(name);
+		return groupMap.at(name);
 	}
 
 	std::map<std::string, std::shared_ptr<PlotGroup>>::const_iterator begin() const
 	{
-		return project.cbegin();
+		return groupMap.cbegin();
 	}
 
 	std::map<std::string, std::shared_ptr<PlotGroup>>::const_iterator end() const
 	{
-		return project.cend();
+		return groupMap.cend();
 	}
 
 	void setActiveGroup(const std::string& name)
@@ -89,15 +104,15 @@ class PlotGroupHandler
 
 	std::shared_ptr<PlotGroup> getActiveGroup()
 	{
-		return project.at(activeGroup);
+		return groupMap.at(activeGroup);
 	}
 
 	bool checkIfGroupExists(const std::string&& name) const
 	{
-		return project.find(name) != project.end();
+		return groupMap.find(name) != groupMap.end();
 	}
 
    private:
 	std::string activeGroup = "";
-	std::map<std::string, std::shared_ptr<PlotGroup>> project;
+	std::map<std::string, std::shared_ptr<PlotGroup>> groupMap;
 };

@@ -630,7 +630,8 @@ void Gui::drawPlotsTree()
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
-	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnArrow;
+	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	std::optional<std::string> groupNameToDelete;
 
 	for (auto& [name, group] : plotGroupHandler)
 	{
@@ -647,6 +648,9 @@ void Gui::drawPlotsTree()
 			{
 				selectedGroup = name;
 			}
+
+			if (!groupNameToDelete.has_value())
+				groupNameToDelete = showDeletePopup("Delete group", name);
 
 			/* Drag n Drop target for plots within groups */
 			if (ImGui::BeginDragDropTarget())
@@ -679,9 +683,13 @@ void Gui::drawPlotsTree()
 				if (plot->isHovered() && ImGui::IsMouseClicked(0))
 					selectedPlot = plot->getName();
 			}
-
 			ImGui::TreePop();
 		}
+	}
+
+	if (groupNameToDelete.has_value())
+	{
+		plotGroupHandler.removeGroup(groupNameToDelete.value());
 	}
 
 	ImGui::EndChild();
@@ -990,6 +998,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 		vars.clear();
 		plotHandler->removeAllPlots();
 		tracePlotHandler->initPlots();
+		plotGroupHandler.removeAllGroups();
 		projectElfPath = "";
 		projectConfigPath = "";
 	};
