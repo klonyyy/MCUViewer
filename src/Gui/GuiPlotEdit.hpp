@@ -9,6 +9,10 @@
 class PlotEditWindow
 {
    public:
+	PlotEditWindow(PlotHandler* plotHandler) : plotHandler(plotHandler)
+	{
+	}
+
 	void drawPlotEditWindow()
 	{
 		if (showPlotEditWindow)
@@ -33,9 +37,9 @@ class PlotEditWindow
 		}
 	}
 
-	void setPlotToEdit(std::shared_ptr<Plot> variable)
+	void setPlotToEdit(std::shared_ptr<Plot> plot)
 	{
-		editedPlot = variable;
+		editedPlot = plot;
 	}
 
 	void setShowPlotEditWindowState(bool state)
@@ -45,6 +49,21 @@ class PlotEditWindow
 
 	void drawPlotEditSettings()
 	{
+		if (editedPlot == nullptr)
+			return;
+
+		std::string name = editedPlot->getName();
+
+		ImGui::Dummy(ImVec2(-1, 5));
+		GuiHelper::drawCenteredText("Plot");
+		ImGui::Separator();
+
+		GuiHelper::drawTextAlignedToSize("name:", alignment);
+		ImGui::SameLine();
+		if (ImGui::InputText("##name", &name, 0, NULL, NULL))
+		{
+			plotHandler->renamePlot(editedPlot->getName(), name);
+		}
 	}
 
    private:
@@ -58,7 +77,7 @@ class PlotEditWindow
 
 	std::shared_ptr<Plot> editedPlot = nullptr;
 
-	PlotGroupHandler plotGroupHandler;
+	PlotHandler* plotHandler;
 };
 
 #endif

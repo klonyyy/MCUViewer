@@ -84,7 +84,7 @@ class Gui
 	spdlog::logger* logger;
 
 	VariableEditWindow variableEditWindow;
-	PlotEditWindow plotEditWindow;
+	std::shared_ptr<PlotEditWindow> plotEditWindow;
 
 	PlotGroupHandler plotGroupHandler;
 

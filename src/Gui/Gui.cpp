@@ -23,6 +23,7 @@
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
+	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler);
 }
 
 Gui::~Gui()
@@ -160,7 +161,7 @@ void Gui::mainThread(std::string externalPath)
 			drawPlotsTree();
 			drawImportVariablesWindow();
 			variableEditWindow.drawVariableEditWindow();
-			plotEditWindow.drawPlotEditWindow();
+			plotEditWindow->drawPlotEditWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -667,9 +668,15 @@ void Gui::drawPlotsTree()
 			{
 				ImGui::Checkbox(std::string("##" + name).c_str(), &plot->getVisibilityVar());
 				ImGui::SameLine();
-				if (ImGui::Selectable(name.c_str(), selectedPlot == name))
+				if (ImGui::Selectable(name.c_str(), selectedPlot == name, ImGuiSelectableFlags_AllowDoubleClick))
 				{
 					selectedPlot = name;
+
+					if (ImGui::IsMouseDoubleClicked(0))
+					{
+						plotEditWindow->setPlotToEdit(plot);
+						plotEditWindow->setShowPlotEditWindowState(true);
+					}
 				}
 
 				/* Drag n Drop source for plots within groups */
