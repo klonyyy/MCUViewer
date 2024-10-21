@@ -32,7 +32,7 @@ void Gui::drawPlots()
 		}
 	}
 
-	uint32_t curveBarPlotsCnt = plotHandler->getVisiblePlotsCount() - tablePlots;
+	uint32_t curveBarPlotsCnt = activeGroup->getVisiblePlotsCount() - tablePlots;
 	uint32_t row = curveBarPlotsCnt > 0 ? curveBarPlotsCnt : 1;
 
 	const float remainingSpace = (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) - (ImGui::GetCursorPos().y + initialCursorPos.y);

@@ -78,6 +78,7 @@ uint32_t PlotHandlerBase::getVisiblePlotsCount() const
 	return std::count_if(plotsMap.begin(), plotsMap.end(), [](const auto& pair)
 						 { return pair.second->getVisibility(); });
 }
+
 uint32_t PlotHandlerBase::getPlotsCount() const
 {
 	return plotsMap.size();

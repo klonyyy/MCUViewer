@@ -630,29 +630,7 @@ void Gui::drawPlotsTree()
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
-	// for (std::shared_ptr<Plot> plt : *plotHandler)
-	// {
-	// 	std::string name = plt->getName();
-	// 	ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
-	// 	ImGui::SameLine();
-	// 	if (ImGui::Selectable(name.c_str(), selected == name))
-	// 	{
-	// 		// if (ImGui::IsMouseDoubleClicked(0))
-	// 		// {
-	// 		plotEditWindow.setPlotToEdit(plt);
-	// 		plotEditWindow.setShowPlotEditWindowState(true);
-	// 		// }
-	// 		selected = name;
-	// 	}
-
-	// 	if (!plotNameToDelete.has_value())
-	// 		plotNameToDelete = showDeletePopup("Delete plot", name);
-
-	// 	if (plt->isHovered() && ImGui::IsMouseClicked(0))
-	// 		selected = plt->getName();
-	// }
-
-	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnArrow;
 
 	for (auto& [name, group] : plotGroupHandler)
 	{
@@ -670,6 +648,17 @@ void Gui::drawPlotsTree()
 				selectedGroup = name;
 			}
 
+			/* Drag n Drop target for plots within groups */
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PLOT"))
+				{
+					std::string selection = *(std::string*)payload->Data;
+					group->addPlot(plotHandler->getPlot(selection));
+				}
+				ImGui::EndDragDropTarget();
+			}
+
 			for (auto& [name, plot] : *group)
 			{
 				ImGui::Checkbox(std::string("##" + name).c_str(), &plot->getVisibilityVar());
@@ -679,9 +668,18 @@ void Gui::drawPlotsTree()
 					selectedPlot = name;
 				}
 
+				/* Drag n Drop source for plots within groups */
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+				{
+					ImGui::SetDragDropPayload("PLOT", &name, sizeof(name));
+					ImGui::TextUnformatted(name.c_str());
+					ImGui::EndDragDropSource();
+				}
+
 				if (plot->isHovered() && ImGui::IsMouseClicked(0))
 					selectedPlot = plot->getName();
 			}
+
 			ImGui::TreePop();
 		}
 	}

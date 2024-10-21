@@ -42,6 +42,12 @@ class PlotGroup
 		return group.cend();
 	}
 
+	uint32_t getVisiblePlotsCount() const
+	{
+		return std::count_if(group.begin(), group.end(), [](const auto& pair)
+							 { return pair.second->getVisibility(); });
+	}
+
    private:
 	std::string name;
 	std::map<std::string, std::shared_ptr<Plot>> group;
