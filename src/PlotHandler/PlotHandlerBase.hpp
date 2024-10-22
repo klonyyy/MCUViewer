@@ -6,11 +6,11 @@
 #include <mutex>
 #include <thread>
 
+#include "CSVStreamer.hpp"
 #include "Plot.hpp"
 #include "ScrollingBuffer.hpp"
 #include "StlinkDebugProbe.hpp"
 #include "spdlog/spdlog.h"
-#include "CSVStreamer.hpp"
 
 class PlotHandlerBase
 {
@@ -35,7 +35,7 @@ class PlotHandlerBase
 	state getViewerState() const;
 	uint32_t getVisiblePlotsCount() const;
 	uint32_t getPlotsCount() const;
-	bool checkIfPlotExists(const std::string&& name) const;
+	bool checkIfPlotExists(const std::string& name) const;
 	void setMaxPoints(uint32_t maxPoints);
 
 	class iterator

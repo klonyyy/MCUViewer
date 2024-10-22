@@ -4,12 +4,13 @@
 #include "GuiHelper.hpp"
 #include "Plot.hpp"
 #include "PlotGroup.hpp"
+#include "Popup.hpp"
 #include "imgui.h"
 
 class PlotEditWindow
 {
    public:
-	PlotEditWindow(PlotHandler* plotHandler) : plotHandler(plotHandler)
+	PlotEditWindow(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler)
 	{
 	}
 
@@ -32,6 +33,8 @@ class PlotEditWindow
 				showPlotEditWindow = false;
 				ImGui::CloseCurrentPopup();
 			}
+
+			popup.handle();
 
 			ImGui::EndPopup();
 		}
@@ -60,9 +63,16 @@ class PlotEditWindow
 
 		GuiHelper::drawTextAlignedToSize("name:", alignment);
 		ImGui::SameLine();
-		if (ImGui::InputText("##name", &name, 0, NULL, NULL))
+		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
 		{
-			plotHandler->renamePlot(editedPlot->getName(), name);
+			if (!plotHandler->checkIfPlotExists(name))
+			{
+				std::string oldName = editedPlot->getName();
+				plotHandler->renamePlot(oldName, name);
+				plotGroupHandler->renamePlotInAllGroups(oldName, name);
+			}
+			else
+				popup.show("Error!", "Plot already exists!", 1.5f);
 		}
 	}
 
@@ -78,6 +88,9 @@ class PlotEditWindow
 	std::shared_ptr<Plot> editedPlot = nullptr;
 
 	PlotHandler* plotHandler;
+	PlotGroupHandler* plotGroupHandler;
+
+	Popup popup;
 };
 
 #endif

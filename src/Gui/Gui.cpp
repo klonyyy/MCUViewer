@@ -23,7 +23,7 @@
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
-	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler);
+	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, &plotGroupHandler);
 }
 
 Gui::~Gui()
@@ -703,13 +703,9 @@ void Gui::drawPlotsTree()
 	ImGui::SameLine();
 
 	std::shared_ptr<Plot> plt = plotHandler->getPlot(selectedPlot);
-	std::string newName = plt->getName();
 	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
-	ImGui::Text("name       ");
-	ImGui::SameLine();
 	ImGui::PushID(plt->getName().c_str());
-	ImGui::InputText("##input", &newName, 0, NULL, NULL);
 	ImGui::Text("type       ");
 	ImGui::SameLine();
 	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
@@ -773,16 +769,6 @@ void Gui::drawPlotsTree()
 	if (typeCombo != (int32_t)plt->getType())
 		plt->setType(static_cast<Plot::Type>(typeCombo));
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsMouseClicked(0)) && newName != plt->getName())
-	{
-		if (!plotHandler->checkIfPlotExists(std::move(newName)))
-		{
-			plotHandler->renamePlot(plt->getName(), newName);
-			selectedPlot = newName;
-		}
-		else
-			popup.show("Error", "Plot already exists!", 1.5f);
-	}
 	if (plotNameToDelete.has_value())
 		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }

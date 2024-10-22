@@ -32,6 +32,17 @@ class PlotGroup
 		return name;
 	}
 
+	bool renamePlot(const std::string& oldName, const std::string& newName)
+	{
+		if (!group.contains(oldName))
+			return false;
+
+		auto plot = group.extract(oldName);
+		plot.key() = newName;
+		group.insert(std::move(plot));
+		return true;
+	}
+
 	std::map<std::string, std::shared_ptr<Plot>>::const_iterator begin() const
 	{
 		return group.cbegin();
@@ -75,6 +86,15 @@ class PlotGroupHandler
 	void removeAllGroups()
 	{
 		groupMap.clear();
+	}
+
+	bool renamePlotInAllGroups(const std::string& oldName, const std::string& newName)
+	{
+		for (auto& [name, group] : groupMap)
+		{
+			group->renamePlot(oldName, newName);
+		}
+		return true;
 	}
 
 	size_t getGroupCount()

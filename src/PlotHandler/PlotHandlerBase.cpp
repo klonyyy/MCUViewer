@@ -84,7 +84,7 @@ uint32_t PlotHandlerBase::getPlotsCount() const
 	return plotsMap.size();
 }
 
-bool PlotHandlerBase::checkIfPlotExists(const std::string&& name) const
+bool PlotHandlerBase::checkIfPlotExists(const std::string& name) const
 {
 	return plotsMap.find(name) != plotsMap.end();
 }
