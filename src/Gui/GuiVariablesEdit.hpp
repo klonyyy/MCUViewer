@@ -2,12 +2,17 @@
 #define _GUI_VARIABLESEDIT_HPP
 
 #include "GuiHelper.hpp"
+#include "Popup.hpp"
 #include "Variable.hpp"
 #include "imgui.h"
 
 class VariableEditWindow
 {
    public:
+	VariableEditWindow(std::map<std::string, std::shared_ptr<Variable>>* vars) : vars(vars)
+	{
+	}
+
 	void drawVariableEditWindow()
 	{
 		if (showVariableEditWindow)
@@ -27,6 +32,8 @@ class VariableEditWindow
 				showVariableEditWindow = false;
 				ImGui::CloseCurrentPopup();
 			}
+
+			popup.handle();
 
 			ImGui::EndPopup();
 		}
@@ -58,9 +65,12 @@ class VariableEditWindow
 
 		GuiHelper::drawTextAlignedToSize("name:", alignment);
 		ImGui::SameLine();
-		if (ImGui::InputText("##name", &name, 0, NULL, NULL))
+		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
 		{
-			editedVariable->rename(name);
+			if (!vars->contains(name))
+				editedVariable->rename(name);
+			else
+				popup.show("Error!", "Variable already exists!", 1.5f);
 		}
 
 		GuiHelper::drawTextAlignedToSize("Should update from *.elf:", alignment);
@@ -118,6 +128,10 @@ class VariableEditWindow
 	bool showVariableEditWindow = false;
 
 	std::shared_ptr<Variable> editedVariable = nullptr;
+
+	std::map<std::string, std::shared_ptr<Variable>>* vars;
+
+	Popup popup;
 };
 
 #endif

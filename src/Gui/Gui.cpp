@@ -24,6 +24,7 @@ Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* f
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
 	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, &plotGroupHandler);
+	variableEditWindow = std::make_shared<VariableEditWindow>(&vars);
 }
 
 Gui::~Gui()
@@ -160,7 +161,7 @@ void Gui::mainThread(std::string externalPath)
 			drawVarTable();
 			drawPlotsTree();
 			drawImportVariablesWindow();
-			variableEditWindow.drawVariableEditWindow();
+			variableEditWindow->drawVariableEditWindow();
 			plotEditWindow->drawPlotEditWindow();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
@@ -439,8 +440,6 @@ void Gui::drawVarTable()
 		ImGui::TableHeadersRow();
 
 		std::optional<std::string> varNameToDelete;
-		std::optional<std::pair<std::string, std::string>> varNameToRename;
-
 		std::string currentName{};
 
 		for (auto& [name, var] : vars)
@@ -463,8 +462,8 @@ void Gui::drawVarTable()
 			{
 				if (ImGui::IsMouseDoubleClicked(0))
 				{
-					variableEditWindow.setVariableToEdit(var);
-					variableEditWindow.setShowVariableEditWindowState(true);
+					variableEditWindow->setVariableToEdit(var);
+					variableEditWindow->setShowVariableEditWindowState(true);
 				}
 
 				if (ImGui::GetIO().KeyCtrl && var->getIsFound())
@@ -476,9 +475,6 @@ void Gui::drawVarTable()
 				}
 				else
 					selection.clear();
-
-				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
-					varNameToRename = {name, std::string(variable)};
 			}
 
 			if (!varNameToDelete.has_value())
@@ -517,12 +513,6 @@ void Gui::drawVarTable()
 			for (std::shared_ptr<Plot> plt : *plotHandler)
 				plt->removeSeries(varNameToDelete.value_or(""));
 			vars.erase(varNameToDelete.value_or(""));
-		}
-
-		if (varNameToRename.has_value())
-		{
-			auto var = vars[varNameToRename.value().first];
-			var->rename(varNameToRename.value().second);
 		}
 		ImGui::EndTable();
 	}
