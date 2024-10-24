@@ -58,9 +58,9 @@ std::map<std::string, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
 	return seriesMap;
 }
 
-ScrollingBuffer<double>& Plot::getTimeSeries()
+ScrollingBuffer<double>* Plot::getXAxisSeries()
 {
-	return time;
+	return &time;
 }
 
 bool Plot::removeSeries(const std::string& name)

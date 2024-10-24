@@ -157,7 +157,7 @@ void TracePlotHandler::dataHandler()
 
 			time += timestamp;
 
-			double oldestTimestamp = plotsMap.begin()->second->getTimeSeries().getOldestValue();
+			double oldestTimestamp = plotsMap.begin()->second->getXAxisSeries()->getOldestValue();
 			auto indicators = traceReader->getTraceIndicators();
 
 			errorFrames.handle(time, oldestTimestamp, indicators.errorFramesTotal);

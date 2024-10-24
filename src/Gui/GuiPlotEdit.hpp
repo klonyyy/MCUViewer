@@ -74,6 +74,26 @@ class PlotEditWindow
 			else
 				popup.show("Error!", "Plot already exists!", 1.5f);
 		}
+
+		ImGui::Dummy(ImVec2(-1, 5));
+		GuiHelper::drawCenteredText("Plot Type");
+		ImGui::Separator();
+
+		static int plotType = 0;
+		const char* plotTypes[] = {"Time Plot", "XY Plot"};
+		ImGui::RadioButton("Time Plot", &plotType, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("XY Plot", &plotType, 1);
+
+		// You can use the plotType variable to determine which type of plot to display
+		if (plotType == 0)
+		{
+			// Time plot code
+		}
+		else if (plotType == 1)
+		{
+			
+		}
 	}
 
    private:

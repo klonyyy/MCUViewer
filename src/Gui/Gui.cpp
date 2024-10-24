@@ -567,7 +567,7 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 			return;
 		}
 
-		uint32_t dataSize = plt->getTimeSeries().getSize();
+		uint32_t dataSize = plt->getXAxisSeries()->getSize();
 
 		csvFile << "time [s],";
 
@@ -578,9 +578,9 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 
 		for (size_t i = 0; i < dataSize; ++i)
 		{
-			uint32_t offset = plt->getTimeSeries().getOffset();
+			uint32_t offset = plt->getXAxisSeries()->getOffset();
 			uint32_t index = (offset + i < dataSize) ? offset + i : i - (dataSize - offset);
-			csvFile << plt->getTimeSeries().getFirstElementCopy()[index] << ",";
+			csvFile << plt->getXAxisSeries()->getFirstElementCopy()[index] << ",";
 
 			for (auto& [name, ser] : plt->getSeriesMap())
 				csvFile << ser->buffer->getFirstElementCopy()[index] << ",";
@@ -844,7 +844,7 @@ void Gui::drawStatisticsAnalog(std::shared_ptr<Plot> plt)
 		plt->stats.setState(selectRange);
 
 		Statistics::AnalogResults results;
-		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+		Statistics::calculateResults(ser.get(), plt->getXAxisSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
 
 		GuiHelper::drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
 		GuiHelper::drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());
@@ -887,7 +887,7 @@ void Gui::drawStatisticsDigital(std::shared_ptr<Plot> plt)
 		plt->stats.setState(selectRange);
 
 		Statistics::DigitalResults results;
-		Statistics::calculateResults(ser.get(), &plt->getTimeSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
+		Statistics::calculateResults(ser.get(), plt->getXAxisSeries(), plt->stats.getValueX0(), plt->stats.getValueX1(), results);
 
 		GuiHelper::drawDescriptionWithNumber("t0:      ", plt->stats.getValueX0());
 		GuiHelper::drawDescriptionWithNumber("t1:      ", plt->stats.getValueX1());

@@ -61,7 +61,7 @@ void Gui::drawPlots()
 
 void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 {
-	auto& time = plot->getTimeSeries();
+	auto& time = *plot->getXAxisSeries();
 	auto& seriesMap = plot->getSeriesMap();
 
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))

@@ -16,7 +16,7 @@ void Gui::drawPlotsSwo()
 			if (!plt->getVisibility())
 				continue;
 
-			drawPlotCurveSwo(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), first);
+			drawPlotCurveSwo(plt.get(), *plt->getXAxisSeries(), plt->getSeriesMap(), first);
 			first = false;
 		}
 		ImPlot::EndSubplots();

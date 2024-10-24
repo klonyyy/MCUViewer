@@ -108,7 +108,7 @@ class Plot
 	bool addSeries(Variable& var);
 	std::shared_ptr<Plot::Series> getSeries(const std::string& name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
-	ScrollingBuffer<double>& getTimeSeries();
+	ScrollingBuffer<double>* getXAxisSeries();
 	bool removeSeries(const std::string& name);
 	bool removeAllVariables();
 	void renameSeries(const std::string& oldName, const std::string newName);
