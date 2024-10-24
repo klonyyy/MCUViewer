@@ -12,6 +12,7 @@
 
 Plot::Plot(const std::string& name) : name(name)
 {
+	xAxisSeries.buffer = std::make_unique<ScrollingBuffer<double>>();
 }
 
 void Plot::setName(const std::string& newName)
@@ -241,4 +242,19 @@ void Plot::setIsHovered(bool isHovered)
 bool Plot::isHovered() const
 {
 	return isHoveredOver;
+}
+
+void Plot::setIsXYPlot(bool isXYPlot)
+{
+	isXYPlot_ = isXYPlot;
+}
+
+bool Plot::isXYPlot() const
+{
+	return isXYPlot_;
+}
+
+void Plot::setXAxisVariable(Variable& var)
+{
+	xAxisSeries.var = &var;
 }

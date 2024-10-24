@@ -134,6 +134,10 @@ class Plot
 	void setIsHovered(bool isHovered);
 	bool isHovered() const;
 
+	void setIsXYPlot(bool isXYPlot);
+	bool isXYPlot() const;
+	void setXAxisVariable(Variable& var);
+
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
 	std::string getSeriesValueString(const std::string& name, double value);
@@ -145,6 +149,8 @@ class Plot
 	std::string alias;
 	std::map<std::string, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<double> time;
+	Series xAxisSeries;
+	bool isXYPlot_ = false;
 	bool visibility = true;
 	Type type = Type::CURVE;
 	Domain domain = Domain::ANALOG;
