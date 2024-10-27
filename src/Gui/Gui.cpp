@@ -20,10 +20,10 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
-	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, &plotGroupHandler, &vars);
+	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, &vars);
 	variableEditWindow = std::make_shared<VariableEditWindow>(&vars);
 }
 
@@ -540,17 +540,17 @@ void Gui::drawAddPlotButton()
 
 		std::string newName = std::string("new plot") + std::to_string(num);
 		auto plot = plotHandler->addPlot(newName);
-		plotGroupHandler.getActiveGroup()->addPlot(plot);
+		plotGroupHandler->getActiveGroup()->addPlot(plot);
 	}
 
 	if (ImGui::Button("Add group", ImVec2(-1, 25 * GuiHelper::contentScale)))
 	{
 		uint32_t num = 0;
-		while (plotGroupHandler.checkIfGroupExists(std::string("new group") + std::to_string(num)))
+		while (plotGroupHandler->checkIfGroupExists(std::string("new group") + std::to_string(num)))
 			num++;
 
 		std::string newName = std::string("new group") + std::to_string(num);
-		plotGroupHandler.addGroup(newName);
+		plotGroupHandler->addGroup(newName);
 	}
 }
 
@@ -610,7 +610,7 @@ void Gui::drawPlotsTree()
 	{
 		selectedGroup = "new group0";
 		selectedPlot = "new plot0";
-		auto group = plotGroupHandler.addGroup("new group0");
+		auto group = plotGroupHandler->addGroup("new group0");
 		auto plot = plotHandler->addPlot("new plot0");
 		group->addPlot(plot);
 	}
@@ -624,13 +624,13 @@ void Gui::drawPlotsTree()
 	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 	std::optional<std::string> groupNameToDelete;
 
-	for (auto& [name, group] : plotGroupHandler)
+	for (auto& [name, group] : *plotGroupHandler)
 	{
 		ImGuiTreeNodeFlags node_flags = base_flags;
 		if (selectedGroup == name)
 		{
 			node_flags |= ImGuiTreeNodeFlags_Selected;
-			plotGroupHandler.setActiveGroup(name);
+			plotGroupHandler->setActiveGroup(name);
 		}
 
 		if (ImGui::TreeNodeEx(group->getName().c_str(), node_flags))
@@ -683,7 +683,7 @@ void Gui::drawPlotsTree()
 
 	if (groupNameToDelete.has_value())
 	{
-		plotGroupHandler.removeGroup(groupNameToDelete.value());
+		plotGroupHandler->removeGroup(groupNameToDelete.value());
 	}
 
 	ImGui::EndChild();
@@ -978,7 +978,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 		vars.clear();
 		plotHandler->removeAllPlots();
 		tracePlotHandler->initPlots();
-		plotGroupHandler.removeAllGroups();
+		plotGroupHandler->removeAllGroups();
 		projectElfPath = "";
 		projectConfigPath = "";
 	};

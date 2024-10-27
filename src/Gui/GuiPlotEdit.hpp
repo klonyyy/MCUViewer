@@ -4,7 +4,7 @@
 #include "GuiHelper.hpp"
 #include "GuiSelectVariable.hpp"
 #include "Plot.hpp"
-#include "PlotGroup.hpp"
+#include "PlotGroupHandler.hpp"
 #include "Popup.hpp"
 #include "imgui.h"
 

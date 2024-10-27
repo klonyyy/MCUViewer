@@ -5,7 +5,12 @@
 #include <variant>
 
 /* TODO refactor whole config and persistent storage handling */
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, spdlog::logger* logger) : configFilePath(configFilePath), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), logger(logger)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, spdlog::logger* logger)
+	: configFilePath(configFilePath),
+	  plotHandler(plotHandler),
+	  tracePlotHandler(tracePlotHandler),
+	  plotGroupHandler(plotGroupHandler),
+	  logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
 	file = std::make_unique<mINI::INIFile>(configFilePath);
@@ -19,6 +24,161 @@ bool ConfigHandler::changeConfigFile(const std::string& newConfigFilePath)
 	return true;
 }
 
+void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable>>& vars)
+{
+	uint32_t varId = 0;
+	std::string name = "xxx";
+
+	auto varFieldFromID = [](uint32_t id)
+	{ return std::string("var" + std::to_string(id)); };
+
+	while (!name.empty())
+	{
+		name = ini->get(varFieldFromID(varId)).get("name");
+
+		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(name);
+		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
+		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
+		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
+		varId++;
+
+		if (newVar->getAddress() % 4 != 0)
+			logger->warn("--------- Unaligned variable address! ----------");
+
+		if (!newVar->getName().empty())
+		{
+			vars[newVar->getName()] = newVar;
+			newVar->setIsFound(true);
+			logger->info("Adding variable: {}", newVar->getName());
+		}
+	}
+}
+
+void ConfigHandler::loadPlots(std::map<std::string, std::shared_ptr<Variable>>& vars)
+{
+	uint32_t plotNumber = 0;
+	std::string plotName("xxx");
+
+	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId)
+	{ return std::string("plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
+
+	while (!plotName.empty())
+	{
+		std::string sectionName("plot" + std::to_string(plotNumber));
+		plotName = ini->get(sectionName).get("name");
+		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
+		Plot::Type type = static_cast<Plot::Type>(atoi(ini->get(sectionName).get("type").c_str()));
+
+		if (!plotName.empty())
+		{
+			plotHandler->addPlot(plotName);
+			auto plot = plotHandler->getPlot(plotName);
+			plot->setVisibility(visibility);
+			plot->setType(type);
+			logger->info("Adding plot: {}", plotName);
+			uint32_t seriesNumber = 0;
+			std::string varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
+
+			while (varName != "")
+			{
+				plot->addSeries(*vars[varName]);
+				bool visible = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("visibility") == "true" ? true : false;
+				plot->getSeries(varName)->visible = visible;
+				std::string displayFormat = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("format");
+				if (displayFormat == "")
+					displayFormat = "DEC";
+				plot->getSeries(varName)->format = displayFormatMap.at(displayFormat);
+				logger->info("Adding series: {}", varName);
+				seriesNumber++;
+				varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
+			}
+		}
+		plotNumber++;
+	}
+}
+void ConfigHandler::loadTracePlots()
+{
+	std::string plotName = "xxx";
+	uint32_t plotNumber = 0;
+	const uint32_t colors[] = {4294967040, 4294960666, 4294954035, 4294947661, 4294941030, 4294934656, 4294928025, 4294921651, 4294915020, 4294908646, 4294902015};
+	const uint32_t colormapSize = sizeof(colors) / sizeof(colors[0]);
+
+	while (!plotName.empty())
+	{
+		std::string sectionName("trace_plot" + std::to_string(plotNumber));
+		plotName = ini->get(sectionName).get("name");
+		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
+		Plot::Domain domain = static_cast<Plot::Domain>(atoi(ini->get(sectionName).get("domain").c_str()));
+		Plot::TraceVarType traceVarType = static_cast<Plot::TraceVarType>(atoi(ini->get(sectionName).get("type").c_str()));
+		std::string alias = ini->get(sectionName).get("alias");
+
+		if (!plotName.empty())
+		{
+			tracePlotHandler->addPlot(plotName);
+			auto plot = tracePlotHandler->getPlot(plotName);
+			plot->setVisibility(visibility);
+			plot->setDomain(domain);
+			if (domain == Plot::Domain::ANALOG)
+				plot->setTraceVarType(traceVarType);
+			plot->setAlias(alias);
+			logger->info("Adding trace plot: {}", plotName);
+
+			auto newVar = std::make_shared<Variable>(plotName);
+			newVar->setColor(colors[(colormapSize - 1) - (plotNumber % colormapSize)]);
+			tracePlotHandler->traceVars[plotName] = newVar;
+			plot->addSeries(*newVar);
+			plot->getSeries(plotName)->visible = true;
+		}
+		plotNumber++;
+	}
+}
+
+void ConfigHandler::loadPlotGroups()
+{
+	uint32_t groupNumber = 0;
+	std::string groupName("xxx");
+
+	auto plotGroupFieldFromID = [](uint32_t groupId, uint32_t plotId, const std::string& prefix = "")
+	{ return std::string(prefix + "group" + std::to_string(groupId) + "-" + "plot" + std::to_string(plotId)); };
+
+	plotGroupHandler->removeAllGroups();
+
+	while (!groupName.empty())
+	{
+		std::string sectionName("group" + std::to_string(groupNumber));
+		groupName = ini->get(sectionName).get("name");
+
+		if (!groupName.empty())
+		{
+			auto group = plotGroupHandler->addGroup(groupName);
+			logger->info("Adding group: {}", groupName);
+			uint32_t plotNumber = 0;
+			std::string plotName = ini->get(plotGroupFieldFromID(groupNumber, plotNumber)).get("name");
+
+			while (plotName != "")
+			{
+				group->addPlot(plotHandler->getPlot(plotName));
+				logger->info("Adding plot {} to group {}", plotName, groupName);
+
+				plotNumber++;
+				plotName = ini->get(plotGroupFieldFromID(groupNumber, plotNumber)).get("name");
+			}
+		}
+		groupNumber++;
+	}
+	/* Add all plots to the first group if there are no groups */
+	if (plotGroupHandler->getGroupCount() == 0)
+	{
+		std::string groupName = "default group";
+		auto group = plotGroupHandler->addGroup(groupName);
+		plotGroupHandler->setActiveGroup(groupName);
+		logger->info("Adding group: {}", groupName);
+
+		for (std::shared_ptr<Plot> plot : *plotHandler)
+			group->addPlot(plot);
+	}
+}
+
 bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath)
 {
 	PlotHandler::Settings viewerSettings{};
@@ -28,14 +188,6 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 	if (!file->read(*ini))
 		return false;
-
-	uint32_t varId = 0;
-	std::string name = "xxx";
-
-	elfPath = ini->get("elf").get("file_path");
-
-	auto varFieldFromID = [](uint32_t id)
-	{ return std::string("var" + std::to_string(id)); };
 
 	auto getValue = [&](std::string&& category, std::string&& field, auto&& result)
 	{
@@ -49,6 +201,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 			logger->error("config parsing exception {}", ex.what());
 		}
 	};
+
+	elfPath = ini->get("elf").get("file_path");
 
 	getValue("settings", "version", globalSettings.version);
 	getValue("settings", "sample_frequency_Hz", viewerSettings.sampleFrequencyHz);
@@ -107,100 +261,10 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	if (debugProbeSettings.speedkHz == 0)
 		debugProbeSettings.speedkHz = 100;
 
-	while (!name.empty())
-	{
-		name = ini->get(varFieldFromID(varId)).get("name");
-
-		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(name);
-		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
-		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
-		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
-		varId++;
-
-		if (newVar->getAddress() % 4 != 0)
-			logger->warn("--------- Unaligned variable address! ----------");
-
-		if (!newVar->getName().empty())
-		{
-			vars[newVar->getName()] = newVar;
-			newVar->setIsFound(true);
-			logger->info("Adding variable: {}", newVar->getName());
-		}
-	}
-
-	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId)
-	{ return std::string("plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
-
-	std::string plotName("xxx");
-	uint32_t plotNumber = 0;
-
-	while (!plotName.empty())
-	{
-		std::string sectionName("plot" + std::to_string(plotNumber));
-		plotName = ini->get(sectionName).get("name");
-		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
-		Plot::Type type = static_cast<Plot::Type>(atoi(ini->get(sectionName).get("type").c_str()));
-
-		if (!plotName.empty())
-		{
-			plotHandler->addPlot(plotName);
-			auto plot = plotHandler->getPlot(plotName);
-			plot->setVisibility(visibility);
-			plot->setType(type);
-			logger->info("Adding plot: {}", plotName);
-			uint32_t seriesNumber = 0;
-			std::string varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
-
-			while (varName != "")
-			{
-				plot->addSeries(*vars[varName]);
-				bool visible = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("visibility") == "true" ? true : false;
-				plot->getSeries(varName)->visible = visible;
-				std::string displayFormat = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("format");
-				if (displayFormat == "")
-					displayFormat = "DEC";
-				plot->getSeries(varName)->format = displayFormatMap.at(displayFormat);
-				logger->info("Adding series: {}", varName);
-				seriesNumber++;
-				varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
-			}
-		}
-		plotNumber++;
-	}
-
-	plotName = "xxx";
-	plotNumber = 0;
-	const uint32_t colors[] = {4294967040, 4294960666, 4294954035, 4294947661, 4294941030, 4294934656, 4294928025, 4294921651, 4294915020, 4294908646, 4294902015};
-	const uint32_t colormapSize = sizeof(colors) / sizeof(colors[0]);
-
-	while (!plotName.empty())
-	{
-		std::string sectionName("trace_plot" + std::to_string(plotNumber));
-		plotName = ini->get(sectionName).get("name");
-		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
-		Plot::Domain domain = static_cast<Plot::Domain>(atoi(ini->get(sectionName).get("domain").c_str()));
-		Plot::TraceVarType traceVarType = static_cast<Plot::TraceVarType>(atoi(ini->get(sectionName).get("type").c_str()));
-		std::string alias = ini->get(sectionName).get("alias");
-
-		if (!plotName.empty())
-		{
-			tracePlotHandler->addPlot(plotName);
-			auto plot = tracePlotHandler->getPlot(plotName);
-			plot->setVisibility(visibility);
-			plot->setDomain(domain);
-			if (domain == Plot::Domain::ANALOG)
-				plot->setTraceVarType(traceVarType);
-			plot->setAlias(alias);
-			logger->info("Adding trace plot: {}", plotName);
-
-			auto newVar = std::make_shared<Variable>(plotName);
-			newVar->setColor(colors[(colormapSize - 1) - (plotNumber % colormapSize)]);
-			tracePlotHandler->traceVars[plotName] = newVar;
-			plot->addSeries(*newVar);
-			plot->getSeries(plotName)->visible = true;
-		}
-		plotNumber++;
-	}
+	loadVariables(vars);
+	loadPlots(vars);
+	loadTracePlots();
+	loadPlotGroups();
 
 	plotHandler->setSettings(viewerSettings);
 	plotHandler->setProbeSettings(debugProbeSettings);
@@ -227,6 +291,12 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 
 	auto plotFieldFromID = [](uint32_t id, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(id)); };
+
+	auto groupFieldFromID = [](uint32_t id, const std::string& prefix = "")
+	{ return std::string(prefix + "group" + std::to_string(id)); };
+
+	auto plotGroupFieldFromID = [](uint32_t groupId, uint32_t plotId, const std::string& prefix = "")
+	{ return std::string(prefix + "group" + std::to_string(groupId) + "-" + "plot" + std::to_string(plotId)); };
 
 	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
@@ -301,6 +371,20 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		}
 
 		plotId++;
+	}
+
+	uint32_t groupId = 0;
+	for (auto& [name, group] : *plotGroupHandler)
+	{
+		(*ini)[groupFieldFromID(groupId)]["name"] = group->getName();
+
+		uint32_t plotId = 0;
+		for (auto& [name, plot] : *group)
+		{
+			(*ini)[plotGroupFieldFromID(groupId, plotId)]["name"] = plot->getName();
+			plotId++;
+		}
+		groupId++;
 	}
 
 	plotId = 0;

@@ -20,7 +20,7 @@ void Gui::drawPlots()
 {
 	uint32_t tablePlots = 0;
 	ImVec2 initialCursorPos = ImGui::GetCursorPos();
-	auto activeGroup = plotGroupHandler.getActiveGroup();
+	auto activeGroup = plotGroupHandler->getActiveGroup();
 
 	for (auto [name, plot] : *activeGroup)
 	{
@@ -42,7 +42,7 @@ void Gui::drawPlots()
 
 	if (ImPlot::BeginSubplots("##subplos", row, 1, plotSize, 0))
 	{
-		auto activeGroup = plotGroupHandler.getActiveGroup();
+		auto activeGroup = plotGroupHandler->getActiveGroup();
 
 		for (auto [name, plot] : *activeGroup)
 		{

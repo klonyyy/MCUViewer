@@ -42,14 +42,14 @@ int main(int argc, char** argv)
 
 	auto loggerPtr = logger.get();
 
+	PlotGroupHandler plotGroupHandler;
 	PlotHandler plotHandler(done, &mtx, loggerPtr);
 	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
-	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, loggerPtr);
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, &plotGroupHandler, loggerPtr);
 	NFDFileHandler fileHandler;
 	GdbParser parser(loggerPtr);
 
-	Gui gui(&plotHandler, &configHandler, &fileHandler, &tracePlotHandler, done, &mtx, &parser, loggerPtr, projectPath);
-
+	Gui gui(&plotHandler, &configHandler, &plotGroupHandler, &fileHandler, &tracePlotHandler, done, &mtx, &parser, loggerPtr, projectPath);
 
 	while (!done)
 	{

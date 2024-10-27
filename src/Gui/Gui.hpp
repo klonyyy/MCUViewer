@@ -20,7 +20,7 @@
 #include "JlinkDebugProbe.hpp"
 #include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
-#include "PlotGroup.hpp"
+#include "PlotGroupHandler.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
 #include "TracePlotHandler.hpp"
@@ -30,7 +30,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath);
+	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
@@ -42,6 +42,7 @@ class Gui
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
 	ConfigHandler* configHandler;
+	PlotGroupHandler* plotGroupHandler;
 	std::string projectConfigPath;
 	std::string projectElfPath;
 	std::filesystem::file_time_type lastModifiedTime = std::filesystem::file_time_type::clock::now();
@@ -86,8 +87,6 @@ class Gui
 
 	std::shared_ptr<VariableEditWindow> variableEditWindow;
 	std::shared_ptr<PlotEditWindow> plotEditWindow;
-
-	PlotGroupHandler plotGroupHandler;
 
    private:
 	void mainThread(std::string externalPath);
@@ -148,7 +147,7 @@ class Gui
 
 	void drawImportVariablesWindow();
 	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
-	
+
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 
 	bool openWebsite(const char* url);
