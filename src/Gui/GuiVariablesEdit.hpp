@@ -19,7 +19,7 @@ class VariableEditWindow
 			ImGui::OpenPopup("Variable Edit");
 
 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(950 * GuiHelper::contentScale, 500 * GuiHelper::contentScale));
+		ImGui::SetNextWindowSize(ImVec2(700 * GuiHelper::contentScale, 500 * GuiHelper::contentScale));
 		if (ImGui::BeginPopupModal("Variable Edit", &showVariableEditWindow, 0))
 		{
 			drawVariableEditSettings();
@@ -108,14 +108,6 @@ class VariableEditWindow
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Postprocessing");
 		ImGui::Separator();
-
-		// GuiHelper::drawTextAlignedToSize("type:", alignment);
-		// ImGui::SameLine();
-		// int32_t type = static_cast<int32_t>(editedVariable->getType());
-
-		// if (ImGui::Combo("##interpteration", &type, Variable::types, IM_ARRAYSIZE(Variable::types)))
-		// {
-		// }
 	}
 
    private:
@@ -123,7 +115,7 @@ class VariableEditWindow
 	 * @brief Text alignemnt in front of the input fields
 	 *
 	 */
-	static constexpr size_t alignment = 30;
+	static constexpr size_t alignment = 15;
 
 	bool showVariableEditWindow = false;
 

@@ -50,6 +50,7 @@ class Gui
 	bool showPreferencesWindow = false;
 	bool showImportVariablesWindow = false;
 	bool performVariablesUpdate = false;
+	bool showSelectVariablesWindow = false;
 
 	IFileHandler* fileHandler;
 	TracePlotHandler* tracePlotHandler;
@@ -147,7 +148,7 @@ class Gui
 
 	void drawImportVariablesWindow();
 	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
-
+	
 	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 
 	bool openWebsite(const char* url);

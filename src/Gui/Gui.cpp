@@ -23,7 +23,7 @@
 Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
-	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, &plotGroupHandler);
+	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, &plotGroupHandler, &vars);
 	variableEditWindow = std::make_shared<VariableEditWindow>(&vars);
 }
 
