@@ -78,8 +78,6 @@ class PlotEditWindow
 		}
 
 		ImGui::Dummy(ImVec2(-1, 5));
-		GuiHelper::drawCenteredText("Plot Type");
-		ImGui::Separator();
 
 		static int plotType = 0;
 		ImGui::RadioButton("Time Plot", &plotType, 0);
@@ -107,7 +105,7 @@ class PlotEditWindow
 	 * @brief Text alignemnt in front of the input fields
 	 *
 	 */
-	static constexpr size_t alignment = 15;
+	static constexpr size_t alignment = 18;
 
 	bool showPlotEditWindow = false;
 
