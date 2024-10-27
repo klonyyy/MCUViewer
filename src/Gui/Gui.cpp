@@ -635,11 +635,6 @@ void Gui::drawPlotsTree()
 
 		if (ImGui::TreeNodeEx(group->getName().c_str(), node_flags))
 		{
-			if (ImGui::IsItemClicked())
-			{
-				selectedGroup = name;
-			}
-
 			if (!groupNameToDelete.has_value())
 				groupNameToDelete = showDeletePopup("Delete group", name);
 
@@ -682,6 +677,8 @@ void Gui::drawPlotsTree()
 			}
 			ImGui::TreePop();
 		}
+		if (ImGui::IsItemClicked())
+			selectedGroup = name;
 	}
 
 	if (groupNameToDelete.has_value())
