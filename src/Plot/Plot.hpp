@@ -34,6 +34,7 @@ class Plot
 		CURVE = 0,
 		BAR = 1,
 		TABLE = 2,
+		XY = 3
 	};
 
 	enum class Domain : uint8_t
@@ -134,8 +135,6 @@ class Plot
 	void setIsHovered(bool isHovered);
 	bool isHovered() const;
 
-	void setIsXYPlot(bool isXYPlot);
-	bool isXYPlot() const;
 	void setXAxisVariable(Variable& var);
 
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
@@ -150,7 +149,6 @@ class Plot
 	std::map<std::string, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<double> time;
 	Series xAxisSeries;
-	bool isXYPlot_ = false;
 	bool visibility = true;
 	Type type = Type::CURVE;
 	Domain domain = Domain::ANALOG;

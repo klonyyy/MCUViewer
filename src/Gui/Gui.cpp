@@ -595,7 +595,6 @@ void Gui::drawExportPlotToCSVButton(std::shared_ptr<Plot> plt)
 void Gui::drawPlotsTree()
 {
 	const uint32_t windowHeight = 320 * GuiHelper::contentScale;
-	const char* plotTypes[3] = {"curve", "bar", "table"};
 	static std::string selectedGroup = "";
 	static std::string selectedPlot = "";
 	std::optional<std::string> plotNameToDelete = {};
@@ -690,14 +689,11 @@ void Gui::drawPlotsTree()
 	ImGui::SameLine();
 
 	std::shared_ptr<Plot> plt = plotHandler->getPlot(selectedPlot);
-	int32_t typeCombo = (int32_t)plt->getType();
 	ImGui::BeginGroup();
 	ImGui::PushID(plt->getName().c_str());
-	ImGui::Text("type       ");
-	ImGui::SameLine();
-	ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes));
+
 	/* Staticstics */
-	if (typeCombo == 0)
+	if (plt->getType() == Plot::Type::CURVE)
 	{
 		bool mx0 = plt->markerX0.getState();
 		bool mx1 = plt->markerX1.getState();
@@ -752,9 +748,6 @@ void Gui::drawPlotsTree()
 	ImGui::PopID();
 	ImGui::EndGroup();
 	ImGui::EndChild();
-
-	if (typeCombo != (int32_t)plt->getType())
-		plt->setType(static_cast<Plot::Type>(typeCombo));
 
 	if (plotNameToDelete.has_value())
 		plotHandler->removePlot(plotNameToDelete.value_or(""));

@@ -77,19 +77,15 @@ class PlotEditWindow
 				popup.show("Error!", "Plot already exists!", 1.5f);
 		}
 
-		ImGui::Dummy(ImVec2(-1, 5));
-
-		static int plotType = 0;
-		ImGui::RadioButton("Time Plot", &plotType, 0);
+		const char* plotTypes[] = {"curve", "bar", "table", "XY"};
+		int32_t typeCombo = (int32_t)editedPlot->getType();
+		GuiHelper::drawTextAlignedToSize("type:", alignment);
 		ImGui::SameLine();
-		ImGui::RadioButton("XY Plot", &plotType, 1);
+		if (ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes)))
+			editedPlot->setType((Plot::Type)typeCombo);
 
-		if (plotType == 0)
+		if (editedPlot->getType() == Plot::Type::XY)
 		{
-		}
-		else if (plotType == 1)
-		{
-			ImGui::Dummy(ImVec2(-1, 5));
 			GuiHelper::drawTextAlignedToSize("X-axis variable:", alignment);
 			ImGui::SameLine();
 			std::string selectedVariable = selection.empty() ? "" : *selection.begin();
