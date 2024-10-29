@@ -652,6 +652,7 @@ void Gui::drawPlotsTree()
 			{
 				ImGui::Checkbox(std::string("##" + name).c_str(), &plot->getVisibilityVar());
 				ImGui::SameLine();
+
 				if (ImGui::Selectable(name.c_str(), selectedPlot == name, ImGuiSelectableFlags_AllowDoubleClick))
 				{
 					selectedPlot = name;
@@ -662,6 +663,9 @@ void Gui::drawPlotsTree()
 						plotEditWindow->setShowPlotEditWindowState(true);
 					}
 				}
+
+				if (!plotNameToDelete.has_value())
+					plotNameToDelete = showDeletePopup("Delete", name);
 
 				/* Drag n Drop source for plots within groups */
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
@@ -678,6 +682,9 @@ void Gui::drawPlotsTree()
 		}
 		if (ImGui::IsItemClicked())
 			selectedGroup = name;
+
+		if (plotNameToDelete.has_value())
+			group->removePlot(plotNameToDelete.value_or(""));
 	}
 
 	if (groupNameToDelete.has_value())
@@ -748,9 +755,6 @@ void Gui::drawPlotsTree()
 	ImGui::PopID();
 	ImGui::EndGroup();
 	ImGui::EndChild();
-
-	if (plotNameToDelete.has_value())
-		plotHandler->removePlot(plotNameToDelete.value_or(""));
 }
 
 void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
