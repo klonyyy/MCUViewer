@@ -146,3 +146,13 @@ void Variable::setShouldUpdateFromElf(bool shouldUpdateFromElf)
 {
 	this->shouldUpdateFromElf = shouldUpdateFromElf;
 }
+
+std::string Variable::getTrackedName() const
+{
+	return trackedName;
+}
+
+void Variable::setTrackedName(const std::string& trackedName)
+{
+	this->trackedName = trackedName;
+}

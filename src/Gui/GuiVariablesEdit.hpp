@@ -11,6 +11,7 @@ class VariableEditWindow
    public:
 	VariableEditWindow(std::map<std::string, std::shared_ptr<Variable>>* vars) : vars(vars)
 	{
+		selectVariableWindow = std::make_unique<SelectVariableWindow>(vars, &selection);
 	}
 
 	void drawVariableEditWindow()
@@ -34,7 +35,7 @@ class VariableEditWindow
 			}
 
 			popup.handle();
-
+			selectVariableWindow->draw();
 			ImGui::EndPopup();
 		}
 	}
@@ -58,6 +59,7 @@ class VariableEditWindow
 		std::string address = std::string("0x") + std::string(GuiHelper::intToHexString(editedVariable->getAddress()));
 		std::string size = std::to_string(editedVariable->getSize());
 		bool shouldUpdateFromElf = editedVariable->getShouldUpdateFromElf();
+		static bool selectNameManually = false;
 
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Variable");
@@ -73,7 +75,27 @@ class VariableEditWindow
 				popup.show("Error!", "Variable already exists!", 1.5f);
 		}
 
-		GuiHelper::drawTextAlignedToSize("Should update from *.elf:", alignment);
+		GuiHelper::drawTextAlignedToSize("specify tracked name:", alignment);
+		ImGui::SameLine();
+		ImGui::Checkbox("##selectNameManually", &selectNameManually);
+
+		if (selectNameManually)
+		{
+			GuiHelper::drawTextAlignedToSize("tracked variable:", alignment);
+			ImGui::SameLine();
+			std::string trackedVarName = selection.empty() ? editedVariable->getTrackedName() : *selection.begin();
+			if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
+			{
+				editedVariable->setTrackedName(trackedVarName);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
+				selectVariableWindow->setShowState(true);
+		}
+		else
+			editedVariable->setTrackedName(name);
+
+		GuiHelper::drawTextAlignedToSize("update from *.elf:", alignment);
 		ImGui::SameLine();
 		if (ImGui::Checkbox("##shouldUpdateFromElf", &shouldUpdateFromElf))
 		{
@@ -115,7 +137,7 @@ class VariableEditWindow
 	 * @brief Text alignemnt in front of the input fields
 	 *
 	 */
-	static constexpr size_t alignment = 15;
+	static constexpr size_t alignment = 20;
 
 	bool showVariableEditWindow = false;
 
@@ -124,6 +146,9 @@ class VariableEditWindow
 	std::map<std::string, std::shared_ptr<Variable>>* vars;
 
 	Popup popup;
+
+	std::set<std::string> selection;
+	std::unique_ptr<SelectVariableWindow> selectVariableWindow;
 };
 
 #endif

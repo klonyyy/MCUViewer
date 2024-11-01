@@ -58,19 +58,23 @@ class Variable
 	bool getShouldUpdateFromElf() const;
 	void setShouldUpdateFromElf(bool shouldUpdateFromElf);
 
+	std::string getTrackedName() const;
+	void setTrackedName(const std::string& trackedName);
+
    public:
 	static const char* types[8];
 	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
 	std::string name;
+	std::string trackedName;
 	type varType;
 	double value;
 	uint32_t address;
 
 	Color color;
 	bool isFound = false;
-	bool shouldUpdateFromElf = false;
+	bool shouldUpdateFromElf = true;
 };
 
 #endif

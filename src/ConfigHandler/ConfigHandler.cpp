@@ -37,9 +37,18 @@ void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable
 		name = ini->get(varFieldFromID(varId)).get("name");
 
 		std::shared_ptr<Variable> newVar = std::make_shared<Variable>(name);
+		std::string trackedName = ini->get(varFieldFromID(varId)).get("tracked_name");
+		if (trackedName.empty())
+			trackedName = name;
+		newVar->setTrackedName(trackedName);
 		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
 		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
 		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
+
+		std::string shouldUpdateFromElf = ini->get(varFieldFromID(varId)).get("should_update_from_elf");
+		if (shouldUpdateFromElf.empty())
+			shouldUpdateFromElf = "true";
+		newVar->setShouldUpdateFromElf(shouldUpdateFromElf == "true" ? true : false);
 		varId++;
 
 		if (newVar->getAddress() % 4 != 0)
@@ -335,9 +344,11 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	for (auto& [key, var] : vars)
 	{
 		(*ini)[varFieldFromID(varId)]["name"] = var->getName();
+		(*ini)[varFieldFromID(varId)]["tracked_name"] = var->getTrackedName();
 		(*ini)[varFieldFromID(varId)]["address"] = std::to_string(var->getAddress());
 		(*ini)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var->getType()));
 		(*ini)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var->getColorU32()));
+		(*ini)[varFieldFromID(varId)]["should_update_from_elf"] = var->getShouldUpdateFromElf() ? "true" : "false";
 
 		varId++;
 	}

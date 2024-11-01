@@ -47,13 +47,13 @@ bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::stri
 		var->setIsFound(false);
 		var->setType(Variable::type::UNKNOWN);
 
-		auto maybeAddress = checkAddress(name);
+		auto maybeAddress = checkAddress(var->getTrackedName());
 		if (!maybeAddress.has_value())
 			continue;
 
 		var->setIsFound(true);
 		var->setAddress(maybeAddress.value());
-		var->setType(checkType(name, nullptr));
+		var->setType(checkType(var->getTrackedName(), nullptr));
 	}
 
 	process.closePipes();
