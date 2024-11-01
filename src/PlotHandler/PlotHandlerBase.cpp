@@ -102,6 +102,36 @@ void PlotHandlerBase::setMaxPoints(uint32_t maxPoints)
 	}
 }
 
+double PlotHandlerBase::castToProperType(uint32_t value, Variable::type type)
+{
+	switch (type)
+	{
+		case Variable::type::U8:
+			return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
+		case Variable::type::I8:
+			return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
+		case Variable::type::U16:
+			return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
+		case Variable::type::I16:
+			return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
+		case Variable::type::U32:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+		case Variable::type::I32:
+			return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
+		case Variable::type::F32:
+			return static_cast<double>(*reinterpret_cast<float*>(&value));
+		default:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
+	}
+
+	return 0.0f;
+}
+
+uint32_t PlotHandlerBase::applyTransformations(uint32_t value, uint32_t shift, uint32_t mask)
+{
+	return (value >> shift) & mask;
+}
+
 PlotHandlerBase::iterator::iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)
 	: m_iter(iter)
 {

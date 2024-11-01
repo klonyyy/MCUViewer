@@ -44,6 +44,12 @@ void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable
 		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
 		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
 		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
+		newVar->setShift(atoi(ini->get(varFieldFromID(varId)).get("shift").c_str()));
+
+		uint32_t mask = atoi(ini->get(varFieldFromID(varId)).get("mask").c_str());
+		if (mask == 0)
+			mask = 0xFFFFFFFF;
+		newVar->setMask(mask);
 
 		std::string shouldUpdateFromElf = ini->get(varFieldFromID(varId)).get("should_update_from_elf");
 		if (shouldUpdateFromElf.empty())
@@ -349,7 +355,8 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		(*ini)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var->getType()));
 		(*ini)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var->getColorU32()));
 		(*ini)[varFieldFromID(varId)]["should_update_from_elf"] = var->getShouldUpdateFromElf() ? "true" : "false";
-
+		(*ini)[varFieldFromID(varId)]["shift"] = std::to_string(var->getShift());
+		(*ini)[varFieldFromID(varId)]["mask"] = std::to_string(var->getMask());
 		varId++;
 	}
 

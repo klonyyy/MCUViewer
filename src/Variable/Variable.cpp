@@ -156,3 +156,23 @@ void Variable::setTrackedName(const std::string& trackedName)
 {
 	this->trackedName = trackedName;
 }
+
+void Variable::setShift(uint32_t shift)
+{
+	this->shift = shift;
+}
+
+uint32_t Variable::getShift() const
+{
+	return shift;
+}
+
+void Variable::setMask(uint32_t mask)
+{
+	this->mask = mask;
+}
+
+uint32_t Variable::getMask() const
+{
+	return mask;
+}

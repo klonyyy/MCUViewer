@@ -22,20 +22,19 @@ std::optional<IDebugProbe::varEntryType> MemoryReader::readSingleEntry()
 	return probe->readSingleEntry();
 }
 
-double MemoryReader::getValue(uint32_t address, Variable::type type, bool& result)
+uint32_t MemoryReader::getValue(uint32_t address, Variable::type type, bool& result)
 {
 	uint32_t value = 0;
-	uint8_t shouldShift = address % 4;
-
 	std::lock_guard<std::mutex> lock(mtx);
 
-	result = probe->readMemory(address, reinterpret_cast<uint32_t*>(&value));
+	result = probe->readMemory(address, &value);
 
 	if (!result)
-		return 0.0;
+		return 0;
 
 	if (probe->requiresAlignedAccessOnRead())
 	{
+		uint8_t shouldShift = address % 4;
 		if (type == Variable::type::I8 || type == Variable::type::U8)
 		{
 			if (shouldShift == 0)
@@ -69,30 +68,7 @@ double MemoryReader::getValue(uint32_t address, Variable::type type, bool& resul
 		}
 	}
 
-	return castToProperType(value, type);
-}
-
-double MemoryReader::castToProperType(uint32_t value, Variable::type type)
-{
-	switch (type)
-	{
-		case Variable::type::U8:
-			return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
-		case Variable::type::I8:
-			return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
-		case Variable::type::U16:
-			return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
-		case Variable::type::I16:
-			return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
-		case Variable::type::U32:
-			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
-		case Variable::type::I32:
-			return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
-		case Variable::type::F32:
-			return static_cast<double>(*reinterpret_cast<float*>(&value));
-		default:
-			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
-	}
+	return value;
 }
 
 bool MemoryReader::setValue(const Variable& var, double value)

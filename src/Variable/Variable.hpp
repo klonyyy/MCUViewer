@@ -61,16 +61,25 @@ class Variable
 	std::string getTrackedName() const;
 	void setTrackedName(const std::string& trackedName);
 
+	void setShift(uint32_t shift);
+	uint32_t getShift() const;
+
+	void setMask(uint32_t mask);
+	uint32_t getMask() const;
+
    public:
 	static const char* types[8];
 	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
 	std::string name;
-	std::string trackedName;
+	std::string trackedName = "";
 	type varType;
 	double value;
 	uint32_t address;
+
+	uint32_t shift = 0;
+	uint32_t mask = 0xffffffff;
 
 	Color color;
 	bool isFound = false;

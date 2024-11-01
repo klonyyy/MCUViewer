@@ -18,8 +18,7 @@ class MemoryReader
 
 	std::optional<IDebugProbe::varEntryType> readSingleEntry();
 
-	double getValue(uint32_t address, Variable::type type, bool& result);
-	double castToProperType(uint32_t value, Variable::type type);
+	uint32_t getValue(uint32_t address, Variable::type type, bool& result);
 
 	bool setValue(const Variable& var, double value);
 	std::string getLastErrorMsg() const;

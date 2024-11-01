@@ -37,7 +37,10 @@ class PlotHandlerBase
 	uint32_t getPlotsCount() const;
 	bool checkIfPlotExists(const std::string& name) const;
 	void setMaxPoints(uint32_t maxPoints);
-
+	
+	/* TODO these functions do not belong here */
+	double castToProperType(uint32_t value, Variable::type type);
+	uint32_t applyTransformations(uint32_t value, uint32_t shift, uint32_t mask);
 	class iterator
 	{
 	   public:

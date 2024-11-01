@@ -291,7 +291,7 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 			ImVec4 orangeLightDim = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.82f);
 
 			ImGui::PushStyleColor(ImGuiCol_Button, orange);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orange);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orangeLight);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, orangeLightDim);
 		}
 	}

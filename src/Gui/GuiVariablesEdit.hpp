@@ -58,6 +58,8 @@ class VariableEditWindow
 		std::string name = editedVariable->getName();
 		std::string address = std::string("0x") + std::string(GuiHelper::intToHexString(editedVariable->getAddress()));
 		std::string size = std::to_string(editedVariable->getSize());
+		std::string shift = std::to_string(editedVariable->getShift());
+		std::string mask = std::string("0x") + std::string(GuiHelper::intToHexString(editedVariable->getMask()));
 		bool shouldUpdateFromElf = editedVariable->getShouldUpdateFromElf();
 		static bool selectNameManually = false;
 
@@ -127,8 +129,30 @@ class VariableEditWindow
 
 		ImGui::EndDisabled();
 
+		/* POSTPROCESSING */
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Postprocessing");
+		ImGui::Separator();
+
+		GuiHelper::drawTextAlignedToSize("shift right:", alignment);
+		ImGui::SameLine();
+		if (ImGui::InputText("##shift", &shift, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
+		{
+			uint32_t shiftDec = std::stoi(shift);
+			editedVariable->setShift(shiftDec);
+		}
+
+		GuiHelper::drawTextAlignedToSize("mask:", alignment);
+		ImGui::SameLine();
+		if (ImGui::InputText("##mask", &mask, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
+		{
+			uint32_t maskDec = GuiHelper::hexStringToDecimal(mask);
+			editedVariable->setMask(maskDec);
+		}
+
+		/* INTERPRETATION */
+		ImGui::Dummy(ImVec2(-1, 5));
+		GuiHelper::drawCenteredText("Interpretation");
 		ImGui::Separator();
 	}
 
@@ -137,7 +161,7 @@ class VariableEditWindow
 	 * @brief Text alignemnt in front of the input fields
 	 *
 	 */
-	static constexpr size_t alignment = 20;
+	static constexpr size_t alignment = 22;
 
 	bool showVariableEditWindow = false;
 
