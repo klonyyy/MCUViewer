@@ -614,13 +614,13 @@ void Gui::drawPlotsTree()
 		group->addPlot(plot);
 	}
 
-	if (!plotHandler->checkIfPlotExists(std::move(selectedPlot)))
+	if (!plotHandler->checkIfPlotExists(selectedPlot))
 		selectedPlot = plotHandler->begin().operator*()->getName();
 
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
-	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
 	std::optional<std::string> groupNameToDelete;
 
 	for (auto& [name, group] : *plotGroupHandler)
@@ -632,7 +632,12 @@ void Gui::drawPlotsTree()
 			plotGroupHandler->setActiveGroup(name);
 		}
 
-		if (ImGui::TreeNodeEx(group->getName().c_str(), node_flags))
+		bool state = ImGui::TreeNodeEx(group->getName().c_str(), node_flags);
+
+		if (ImGui::IsItemClicked())
+			selectedGroup = name;
+
+		if (state)
 		{
 			if (!groupNameToDelete.has_value())
 				groupNameToDelete = showDeletePopup("Delete group", name);
@@ -680,8 +685,6 @@ void Gui::drawPlotsTree()
 			}
 			ImGui::TreePop();
 		}
-		if (ImGui::IsItemClicked())
-			selectedGroup = name;
 
 		if (plotNameToDelete.has_value())
 			group->removePlot(plotNameToDelete.value_or(""));
