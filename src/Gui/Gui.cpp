@@ -634,14 +634,14 @@ void Gui::drawPlotsTree()
 
 		bool state = ImGui::TreeNodeEx(group->getName().c_str(), node_flags);
 
-		if (ImGui::IsItemClicked())
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
 			selectedGroup = name;
+
+		if (!groupNameToDelete.has_value())
+			groupNameToDelete = showDeletePopup("Delete group", name);
 
 		if (state)
 		{
-			if (!groupNameToDelete.has_value())
-				groupNameToDelete = showDeletePopup("Delete group", name);
-
 			/* Drag n Drop target for plots within groups */
 			if (ImGui::BeginDragDropTarget())
 			{
