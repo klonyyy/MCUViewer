@@ -176,3 +176,23 @@ uint32_t Variable::getMask() const
 {
 	return mask;
 }
+
+void Variable::setIsFractional(bool isFractional)
+{
+	this->isFractional = isFractional;
+}
+
+bool Variable::getIsFractional() const
+{
+	return isFractional;
+}
+
+void Variable::setFractional(Fractional fractional)
+{
+	this->fractional = fractional;
+}
+
+Variable::Fractional Variable::getFractional() const
+{
+	return fractional;
+}

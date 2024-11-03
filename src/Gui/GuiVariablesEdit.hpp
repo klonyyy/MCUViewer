@@ -61,6 +61,7 @@ class VariableEditWindow
 		std::string shift = std::to_string(editedVariable->getShift());
 		std::string mask = std::string("0x") + std::string(GuiHelper::intToHexString(editedVariable->getMask()));
 		bool shouldUpdateFromElf = editedVariable->getShouldUpdateFromElf();
+		bool fractional = editedVariable->getIsFractional();
 		static bool selectNameManually = false;
 
 		ImGui::Dummy(ImVec2(-1, 5));
@@ -136,15 +137,15 @@ class VariableEditWindow
 
 		GuiHelper::drawTextAlignedToSize("shift right:", alignment);
 		ImGui::SameLine();
-		if (ImGui::InputText("##shift", &shift, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
+		if (ImGui::InputText("##shift", &shift, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
 		{
-			uint32_t shiftDec = std::stoi(shift);
+			uint32_t shiftDec = GuiHelper::convertStringToNumber<uint32_t>(shift);
 			editedVariable->setShift(shiftDec);
 		}
 
 		GuiHelper::drawTextAlignedToSize("mask:", alignment);
 		ImGui::SameLine();
-		if (ImGui::InputText("##mask", &mask, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
+		if (ImGui::InputText("##mask", &mask, ImGuiInputTextFlags_None, NULL, NULL))
 		{
 			uint32_t maskDec = GuiHelper::hexStringToDecimal(mask);
 			editedVariable->setMask(maskDec);
@@ -154,6 +155,43 @@ class VariableEditWindow
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Interpretation");
 		ImGui::Separator();
+
+		GuiHelper::drawTextAlignedToSize("fractional:", alignment);
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##isfractional", &fractional))
+		{
+			editedVariable->setIsFractional(fractional);
+		}
+
+		if (fractional)
+		{
+			bool shouldUpdate = false;
+			Variable::Fractional fractional = editedVariable->getFractional();
+			std::string decimalBits = std::to_string(fractional.decimalBits);
+			std::string fractionalBits = std::to_string(fractional.fractionalBits);
+
+			GuiHelper::drawTextAlignedToSize("sign:", alignment);
+			ImGui::SameLine();
+			if (ImGui::Checkbox("##sign", &fractional.sign))
+				shouldUpdate = true;
+
+			GuiHelper::drawTextAlignedToSize("decimal bits:", alignment);
+			ImGui::SameLine();
+			if (ImGui::InputText("##decimal", &decimalBits, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
+				shouldUpdate = true;
+
+			GuiHelper::drawTextAlignedToSize("fractional bits:", alignment);
+			ImGui::SameLine();
+			if (ImGui::InputText("##fractional", &fractionalBits, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
+				shouldUpdate = true;
+
+			if (shouldUpdate)
+			{
+				fractional.decimalBits = GuiHelper::convertStringToNumber<uint32_t>(decimalBits);
+				fractional.fractionalBits = GuiHelper::convertStringToNumber<uint32_t>(fractionalBits);
+				editedVariable->setFractional(fractional);
+			}
+		}
 	}
 
    private:

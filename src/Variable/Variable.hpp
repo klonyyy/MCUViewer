@@ -29,6 +29,13 @@ class Variable
 		float a;
 	};
 
+	struct Fractional
+	{
+		bool sign;
+		uint32_t decimalBits;
+		uint32_t fractionalBits;
+	};
+
 	explicit Variable(std::string name);
 	Variable(std::string name, type type, double value);
 
@@ -67,6 +74,12 @@ class Variable
 	void setMask(uint32_t mask);
 	uint32_t getMask() const;
 
+	void setIsFractional(bool isFractional);
+	bool getIsFractional() const;
+
+	void setFractional(Fractional fractional);
+	Variable::Fractional getFractional() const;
+
    public:
 	static const char* types[8];
 	std::function<void(const std::string&, const std::string&)> renameCallback;
@@ -77,6 +90,7 @@ class Variable
 	type varType;
 	double value;
 	uint32_t address;
+	Fractional fractional{};
 
 	uint32_t shift = 0;
 	uint32_t mask = 0xffffffff;
@@ -84,6 +98,7 @@ class Variable
 	Color color;
 	bool isFound = false;
 	bool shouldUpdateFromElf = true;
+	bool isFractional = false;
 };
 
 #endif

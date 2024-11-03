@@ -70,6 +70,16 @@ void drawDescriptionWithNumber(const char* description, T number, std::string un
 	formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
 	ImGui::Text("%s", (formattedNum.str() + unit).c_str());
 }
+
+template <typename T>
+T convertStringToNumber(std::string& str)
+{
+	T result;
+	std::istringstream ss(str);
+	ss >> result;
+	return result;
+}
+
 }  // namespace GuiHelper
 
 #endif
