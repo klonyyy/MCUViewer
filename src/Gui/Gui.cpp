@@ -1150,7 +1150,7 @@ void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& 
 {
 	int format = static_cast<int>(plt.getSeriesDisplayFormat(name));
 
-	if (plt.getSeries(name)->var->getType() == Variable::type::F32)
+	if (plt.getSeries(name)->var->getType() == Variable::Type::F32)
 		return;
 
 	if (ImGui::BeginPopupContextItem(name.c_str()))

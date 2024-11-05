@@ -8,7 +8,7 @@
 class Variable
 {
    public:
-	enum class type
+	enum class Type
 	{
 		UNKNOWN = 0,
 		U8 = 1,
@@ -18,7 +18,13 @@ class Variable
 		U32 = 5,
 		I32 = 6,
 		F32 = 7
+	};
 
+	enum class HighLevelType
+	{
+		NONE = 0,
+		SIGNEDFRAC = 1,
+		UNSIGNEDFRAC = 2,
 	};
 
 	struct Color
@@ -31,16 +37,15 @@ class Variable
 
 	struct Fractional
 	{
-		bool sign;
-		uint32_t decimalBits;
 		uint32_t fractionalBits;
+		double base;
 	};
 
 	explicit Variable(std::string name);
-	Variable(std::string name, type type, double value);
+	Variable(std::string name, Type type, double value);
 
-	void setType(type varType);
-	type getType() const;
+	void setType(Type varType);
+	Type getType() const;
 	std::string getTypeStr() const;
 
 	void setValue(double val);
@@ -74,31 +79,32 @@ class Variable
 	void setMask(uint32_t mask);
 	uint32_t getMask() const;
 
-	void setIsFractional(bool isFractional);
-	bool getIsFractional() const;
+	void setHighLevelType(HighLevelType varType);
+	HighLevelType getHighLevelType() const;
 
 	void setFractional(Fractional fractional);
 	Variable::Fractional getFractional() const;
 
    public:
 	static const char* types[8];
+	static const char* highLevelTypes[3];
 	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
-	std::string name;
+	std::string name = "";
 	std::string trackedName = "";
-	type varType;
-	double value;
-	uint32_t address;
+	Type varType = Type::UNKNOWN;
+	HighLevelType highLevelType = HighLevelType::NONE;
+	double value = 0.0;
+	uint32_t address = 0x20000000;
 	Fractional fractional{};
 
 	uint32_t shift = 0;
 	uint32_t mask = 0xffffffff;
 
-	Color color;
+	Color color{};
 	bool isFound = false;
 	bool shouldUpdateFromElf = true;
-	bool isFractional = false;
 };
 
 #endif

@@ -114,7 +114,7 @@ class Plot
 	bool removeAllVariables();
 	void renameSeries(const std::string& oldName, const std::string newName);
 	std::vector<uint32_t> getVariableAddesses() const;
-	std::vector<Variable::type> getVariableTypes() const;
+	std::vector<Variable::Type> getVariableTypes() const;
 	bool addPoint(const std::string& varName, double value);
 	bool addTimePoint(double t);
 	void erase();

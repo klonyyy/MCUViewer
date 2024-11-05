@@ -2,37 +2,35 @@
 
 #include <limits>
 
-const char* Variable::types[8] = {"UNKNOWN",
-								  "U8",
-								  "I8",
-								  "U16",
-								  "I16",
-								  "U32",
-								  "I32",
-								  "F32"};
+const char* Variable::types[8] = {"unknown",
+								  "uint8_t",
+								  "int8_t",
+								  "uint16_t",
+								  "int16_t",
+								  "uint32_t",
+								  "int32_t",
+								  "float"};
+
+const char* Variable::highLevelTypes[3] = {"-",
+										   "signed fixed point",
+										   "unsigned fixed point"};
 
 Variable::Variable(std::string name) : name(name)
 {
 	name.reserve(100);
-	value = 0.0;
-	address = 0x20000000;
-	varType = type::UNKNOWN;
-	color = {0.0, 0.0, 0.0, 0.0};
 }
 
-Variable::Variable(std::string name, Variable::type type, double value) : name(name), varType(type), value(value)
+Variable::Variable(std::string name, Variable::Type type, double value) : name(name), varType(type), value(value)
 {
 	name.reserve(100);
-	address = 0x20000000;
-	color = {0.0, 0.0, 0.0, 0.0};
 }
 
-void Variable::setType(type varType)
+void Variable::setType(Type varType)
 {
 	this->varType = varType;
 }
 
-Variable::type Variable::getType() const
+Variable::Type Variable::getType() const
 {
 	return varType;
 }
@@ -122,15 +120,15 @@ uint8_t Variable::getSize()
 {
 	switch (varType)
 	{
-		case type::U8:
-		case type::I8:
+		case Type::U8:
+		case Type::I8:
 			return 1;
-		case type::U16:
-		case type::I16:
+		case Type::U16:
+		case Type::I16:
 			return 2;
-		case type::U32:
-		case type::I32:
-		case type::F32:
+		case Type::U32:
+		case Type::I32:
+		case Type::F32:
 			return 4;
 		default:
 			return 1;
@@ -177,14 +175,14 @@ uint32_t Variable::getMask() const
 	return mask;
 }
 
-void Variable::setIsFractional(bool isFractional)
+void Variable::setHighLevelType(HighLevelType varType)
 {
-	this->isFractional = isFractional;
+	highLevelType = varType;
 }
 
-bool Variable::getIsFractional() const
+Variable::HighLevelType Variable::getHighLevelType() const
 {
-	return isFractional;
+	return highLevelType;
 }
 
 void Variable::setFractional(Fractional fractional)

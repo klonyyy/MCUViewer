@@ -102,23 +102,23 @@ void PlotHandlerBase::setMaxPoints(uint32_t maxPoints)
 	}
 }
 
-double PlotHandlerBase::castToProperType(uint32_t value, Variable::type type)
+double PlotHandlerBase::castToProperType(uint32_t value, Variable::Type type)
 {
 	switch (type)
 	{
-		case Variable::type::U8:
+		case Variable::Type::U8:
 			return static_cast<double>(*reinterpret_cast<uint8_t*>(&value));
-		case Variable::type::I8:
+		case Variable::Type::I8:
 			return static_cast<double>(*reinterpret_cast<int8_t*>(&value));
-		case Variable::type::U16:
+		case Variable::Type::U16:
 			return static_cast<double>(*reinterpret_cast<uint16_t*>(&value));
-		case Variable::type::I16:
+		case Variable::Type::I16:
 			return static_cast<double>(*reinterpret_cast<int16_t*>(&value));
-		case Variable::type::U32:
+		case Variable::Type::U32:
 			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));
-		case Variable::type::I32:
+		case Variable::Type::I32:
 			return static_cast<double>(*reinterpret_cast<int32_t*>(&value));
-		case Variable::type::F32:
+		case Variable::Type::F32:
 			return static_cast<double>(*reinterpret_cast<float*>(&value));
 		default:
 			return static_cast<double>(*reinterpret_cast<uint32_t*>(&value));

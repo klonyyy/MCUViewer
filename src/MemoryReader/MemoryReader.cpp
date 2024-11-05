@@ -22,7 +22,7 @@ std::optional<IDebugProbe::varEntryType> MemoryReader::readSingleEntry()
 	return probe->readSingleEntry();
 }
 
-uint32_t MemoryReader::getValue(uint32_t address, Variable::type type, bool& result)
+uint32_t MemoryReader::getValue(uint32_t address, Variable::Type type, bool& result)
 {
 	uint32_t value = 0;
 	std::lock_guard<std::mutex> lock(mtx);
@@ -35,7 +35,7 @@ uint32_t MemoryReader::getValue(uint32_t address, Variable::type type, bool& res
 	if (probe->requiresAlignedAccessOnRead())
 	{
 		uint8_t shouldShift = address % 4;
-		if (type == Variable::type::I8 || type == Variable::type::U8)
+		if (type == Variable::Type::I8 || type == Variable::Type::U8)
 		{
 			if (shouldShift == 0)
 				value = (value & 0x000000ff);
@@ -46,7 +46,7 @@ uint32_t MemoryReader::getValue(uint32_t address, Variable::type type, bool& res
 			else if (shouldShift == 3)
 				value = (value & 0xff000000) >> 24;
 		}
-		else if (type == Variable::type::I16 || type == Variable::type::U16)
+		else if (type == Variable::Type::I16 || type == Variable::Type::U16)
 		{
 			if (shouldShift == 0)
 				value = (value & 0x0000ffff);
@@ -57,7 +57,7 @@ uint32_t MemoryReader::getValue(uint32_t address, Variable::type type, bool& res
 			else if (shouldShift == 3)
 				value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
 		}
-		else if (type == Variable::type::I32 || type == Variable::type::U32 || type == Variable::type::F32)
+		else if (type == Variable::Type::I32 || type == Variable::Type::U32 || type == Variable::Type::F32)
 		{
 			if (shouldShift == 1)
 				value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;
@@ -89,19 +89,19 @@ bool MemoryReader::setValue(const Variable& var, double value)
 
 	switch (var.getType())
 	{
-		case Variable::type::U8:
+		case Variable::Type::U8:
 			return prepareBufferAndWrite(static_cast<uint8_t>(value), buf);
-		case Variable::type::I8:
+		case Variable::Type::I8:
 			return prepareBufferAndWrite(static_cast<int8_t>(value), buf);
-		case Variable::type::U16:
+		case Variable::Type::U16:
 			return prepareBufferAndWrite(static_cast<uint16_t>(value), buf);
-		case Variable::type::I16:
+		case Variable::Type::I16:
 			return prepareBufferAndWrite(static_cast<int16_t>(value), buf);
-		case Variable::type::U32:
+		case Variable::Type::U32:
 			return prepareBufferAndWrite(static_cast<uint32_t>(value), buf);
-		case Variable::type::I32:
+		case Variable::Type::I32:
 			return prepareBufferAndWrite(static_cast<int32_t>(value), buf);
-		case Variable::type::F32:
+		case Variable::Type::F32:
 		{
 			float valf = static_cast<float>(value);
 			uint32_t val = *reinterpret_cast<uint32_t*>(&valf);

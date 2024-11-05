@@ -42,7 +42,7 @@ void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable
 			trackedName = name;
 		newVar->setTrackedName(trackedName);
 		newVar->setAddress(atoi(ini->get(varFieldFromID(varId)).get("address").c_str()));
-		newVar->setType(static_cast<Variable::type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
+		newVar->setType(static_cast<Variable::Type>(atoi(ini->get(varFieldFromID(varId)).get("type").c_str())));
 		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
 		newVar->setShift(atoi(ini->get(varFieldFromID(varId)).get("shift").c_str()));
 

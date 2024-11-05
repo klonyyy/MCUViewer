@@ -103,9 +103,9 @@ std::vector<uint32_t> Plot::getVariableAddesses() const
 	return addresses;
 }
 
-std::vector<Variable::type> Plot::getVariableTypes() const
+std::vector<Variable::Type> Plot::getVariableTypes() const
 {
-	std::vector<Variable::type> types;
+	std::vector<Variable::Type> types;
 	for (auto& [name, ser] : seriesMap)
 		types.push_back(ser->var->getType());
 
@@ -186,9 +186,9 @@ void Plot::setSeriesDisplayFormat(const std::string& name, displayFormat format)
 
 std::string Plot::getSeriesValueString(const std::string& name, double value)
 {
-	Variable::type type = seriesMap.at(name)->var->getType();
+	Variable::Type type = seriesMap.at(name)->var->getType();
 
-	if (type == Variable::type::F32)
+	if (type == Variable::Type::F32)
 		return std::to_string(value);
 
 	switch (seriesMap.at(name)->format)
@@ -205,20 +205,20 @@ std::string Plot::getSeriesValueString(const std::string& name, double value)
 		{
 			switch (type)
 			{
-				case Variable::type::I8:
-				case Variable::type::U8:
+				case Variable::Type::I8:
+				case Variable::Type::U8:
 				{
 					std::bitset<8> binaryValue(value);
 					return std::string("0b") + binaryValue.to_string();
 				}
-				case Variable::type::I16:
-				case Variable::type::U16:
+				case Variable::Type::I16:
+				case Variable::Type::U16:
 				{
 					std::bitset<16> binaryValue(value);
 					return std::string("0b") + binaryValue.to_string();
 				}
-				case Variable::type::I32:
-				case Variable::type::U32:
+				case Variable::Type::I32:
+				case Variable::Type::U32:
 				{
 					std::bitset<32> binaryValue(value);
 					return std::string("0b") + binaryValue.to_string();

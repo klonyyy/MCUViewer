@@ -45,7 +45,7 @@ bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::stri
 			continue;
 
 		var->setIsFound(false);
-		var->setType(Variable::type::UNKNOWN);
+		var->setType(Variable::Type::UNKNOWN);
 
 		auto maybeAddress = checkAddress(var->getTrackedName());
 		if (!maybeAddress.has_value())
@@ -143,7 +143,7 @@ void GdbParser::checkVariableType(std::string& name)
 
 	std::string out;
 
-	if (checkType(name, &out) != Variable::type::UNKNOWN)
+	if (checkType(name, &out) != Variable::Type::UNKNOWN)
 	{
 		/* trivial type */
 		std::lock_guard<std::mutex> lock(mtx);
@@ -200,7 +200,7 @@ void GdbParser::checkVariableType(std::string& name)
 	}
 }
 
-Variable::type GdbParser::checkType(const std::string& name, std::string* output)
+Variable::Type GdbParser::checkType(const std::string& name, std::string* output)
 {
 	auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"), "(gdb)");
 	if (output != nullptr)
@@ -219,7 +219,7 @@ Variable::type GdbParser::checkType(const std::string& name, std::string* output
 		line.erase(0, 13);
 
 	if (!isTrivial.contains(line))
-		return Variable::type::UNKNOWN;
+		return Variable::Type::UNKNOWN;
 
 	return isTrivial.at(line);
 }
