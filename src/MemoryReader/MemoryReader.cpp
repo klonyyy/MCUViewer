@@ -22,7 +22,7 @@ std::optional<IDebugProbe::varEntryType> MemoryReader::readSingleEntry()
 	return probe->readSingleEntry();
 }
 
-uint32_t MemoryReader::getValue(uint32_t address, Variable::Type type, bool& result)
+uint32_t MemoryReader::getValue(uint32_t address, uint32_t size, bool& result)
 {
 	uint32_t value = 0;
 	std::lock_guard<std::mutex> lock(mtx);
@@ -35,7 +35,7 @@ uint32_t MemoryReader::getValue(uint32_t address, Variable::Type type, bool& res
 	if (probe->requiresAlignedAccessOnRead())
 	{
 		uint8_t shouldShift = address % 4;
-		if (type == Variable::Type::I8 || type == Variable::Type::U8)
+		if (size == 1)
 		{
 			if (shouldShift == 0)
 				value = (value & 0x000000ff);
@@ -46,7 +46,7 @@ uint32_t MemoryReader::getValue(uint32_t address, Variable::Type type, bool& res
 			else if (shouldShift == 3)
 				value = (value & 0xff000000) >> 24;
 		}
-		else if (type == Variable::Type::I16 || type == Variable::Type::U16)
+		else if (size == 2)
 		{
 			if (shouldShift == 0)
 				value = (value & 0x0000ffff);
@@ -57,7 +57,7 @@ uint32_t MemoryReader::getValue(uint32_t address, Variable::Type type, bool& res
 			else if (shouldShift == 3)
 				value = (value & 0x000000ff) << 8 | (value & 0xff000000) >> 24;
 		}
-		else if (type == Variable::Type::I32 || type == Variable::Type::U32 || type == Variable::Type::F32)
+		else if (size == 4)
 		{
 			if (shouldShift == 1)
 				value = (value & 0x000000ff) << 24 | (value & 0xffffff00) >> 8;

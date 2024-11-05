@@ -20,24 +20,31 @@ Variable::Variable(std::string name) : name(name)
 	name.reserve(100);
 }
 
-Variable::Variable(std::string name, Variable::Type type, double value) : name(name), varType(type), value(value)
+Variable::Variable(std::string name, Variable::Type type, double value) : name(name), type(type), value(value)
 {
 	name.reserve(100);
 }
 
-void Variable::setType(Type varType)
+void Variable::setType(Type type)
 {
-	this->varType = varType;
+	this->type = type;
 }
 
 Variable::Type Variable::getType() const
 {
-	return varType;
+	return type;
 }
 
 std::string Variable::getTypeStr() const
 {
-	return std::string(types[static_cast<uint8_t>(varType)]);
+	return std::string(types[static_cast<uint8_t>(type)]);
+}
+
+void Variable::setRawValueAndTransform(uint32_t rawValue)
+{
+	/* TODO I dont like this solution */
+	this->rawValue = rawValue;
+	value = getDoubleFromRaw();
 }
 
 void Variable::setValue(double val)
@@ -118,7 +125,7 @@ void Variable::setIsFound(bool found)
 
 uint8_t Variable::getSize()
 {
-	switch (varType)
+	switch (type)
 	{
 		case Type::U8:
 		case Type::I8:
@@ -132,6 +139,41 @@ uint8_t Variable::getSize()
 			return 4;
 		default:
 			return 1;
+	}
+}
+
+double Variable::getDoubleFromRaw()
+{
+	rawValue = (rawValue >> shift) & mask;
+
+	if (HighLevelType::SIGNEDFRAC == highLevelType)
+	{
+		int32_t signedValue = *reinterpret_cast<int32_t*>(&rawValue);
+		return static_cast<double>(signedValue) / static_cast<double>(1 << fractional.fractionalBits);
+	}
+	else if (HighLevelType::UNSIGNEDFRAC == highLevelType)
+	{
+		return static_cast<double>(rawValue) / static_cast<double>(1 << fractional.fractionalBits);
+	}
+
+	switch (type)
+	{
+		case Variable::Type::U8:
+			return static_cast<double>(*reinterpret_cast<uint8_t*>(&rawValue));
+		case Variable::Type::I8:
+			return static_cast<double>(*reinterpret_cast<int8_t*>(&rawValue));
+		case Variable::Type::U16:
+			return static_cast<double>(*reinterpret_cast<uint16_t*>(&rawValue));
+		case Variable::Type::I16:
+			return static_cast<double>(*reinterpret_cast<int16_t*>(&rawValue));
+		case Variable::Type::U32:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&rawValue));
+		case Variable::Type::I32:
+			return static_cast<double>(*reinterpret_cast<int32_t*>(&rawValue));
+		case Variable::Type::F32:
+			return static_cast<double>(*reinterpret_cast<float*>(&rawValue));
+		default:
+			return static_cast<double>(*reinterpret_cast<uint32_t*>(&rawValue));
 	}
 }
 

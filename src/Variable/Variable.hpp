@@ -37,17 +37,18 @@ class Variable
 
 	struct Fractional
 	{
-		uint32_t fractionalBits;
-		double base;
+		uint32_t fractionalBits = 15;
+		double base = 1.0;
 	};
 
 	explicit Variable(std::string name);
 	Variable(std::string name, Type type, double value);
 
-	void setType(Type varType);
+	void setType(Type type);
 	Type getType() const;
 	std::string getTypeStr() const;
 
+	void setRawValueAndTransform(uint32_t value);
 	void setValue(double val);
 	double getValue() const;
 
@@ -79,11 +80,14 @@ class Variable
 	void setMask(uint32_t mask);
 	uint32_t getMask() const;
 
-	void setHighLevelType(HighLevelType varType);
+	void setHighLevelType(HighLevelType type);
 	HighLevelType getHighLevelType() const;
 
 	void setFractional(Fractional fractional);
 	Variable::Fractional getFractional() const;
+
+   private:
+	double getDoubleFromRaw();
 
    public:
 	static const char* types[8];
@@ -91,11 +95,15 @@ class Variable
 	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
+
 	std::string name = "";
 	std::string trackedName = "";
-	Type varType = Type::UNKNOWN;
+	Type type = Type::UNKNOWN;
 	HighLevelType highLevelType = HighLevelType::NONE;
+
 	double value = 0.0;
+	uint32_t rawValue = 0;
+
 	uint32_t address = 0x20000000;
 	Fractional fractional{};
 

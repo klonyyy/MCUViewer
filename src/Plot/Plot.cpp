@@ -187,8 +187,9 @@ void Plot::setSeriesDisplayFormat(const std::string& name, displayFormat format)
 std::string Plot::getSeriesValueString(const std::string& name, double value)
 {
 	Variable::Type type = seriesMap.at(name)->var->getType();
+	Variable::HighLevelType highLevelType = seriesMap.at(name)->var->getHighLevelType();
 
-	if (type == Variable::Type::F32)
+	if (type == Variable::Type::F32 || highLevelType == Variable::HighLevelType::SIGNEDFRAC || highLevelType == Variable::HighLevelType::UNSIGNEDFRAC)
 		return std::to_string(value);
 
 	switch (seriesMap.at(name)->format)

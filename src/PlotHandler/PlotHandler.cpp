@@ -91,11 +91,8 @@ void PlotHandler::dataHandler()
 					for (auto& [name, ser] : plot->getSeriesMap())
 					{
 						auto var = ser->var;
-						uint32_t valueRaw = values[var->getAddress()];
-						valueRaw = applyTransformations(valueRaw, var->getShift(), var->getMask());
-						double value = castToProperType(valueRaw, var->getType());
-						var->setValue(value);
-						plot->addPoint(name, value);
+						var->setRawValueAndTransform(values[var->getAddress()]);
+						plot->addPoint(name, var->getValue());
 						csvValues.push_back(var->getValue());
 					}
 					plot->addTimePoint(timestamp);
@@ -119,14 +116,10 @@ void PlotHandler::dataHandler()
 					/* this part consumes most of the thread time */
 					for (auto& [name, ser] : plot->getSeriesMap())
 					{
-						auto var = ser->var;
 						bool result = false;
-						uint32_t valueRaw = varReader->getValue(var->getAddress(), var->getType(), result);
-						valueRaw = applyTransformations(valueRaw, var->getShift(), var->getMask());
-						double value = castToProperType(valueRaw, var->getType());
-
+						uint32_t valueRaw = varReader->getValue(ser->var->getAddress(), ser->var->getSize(), result);
 						if (result)
-							var->setValue(value);
+							ser->var->setRawValueAndTransform(valueRaw);
 					}
 
 					/* thread-safe part */
