@@ -46,6 +46,16 @@ void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable
 		newVar->setColor(static_cast<uint32_t>(atol(ini->get(varFieldFromID(varId)).get("color").c_str())));
 		newVar->setShift(atoi(ini->get(varFieldFromID(varId)).get("shift").c_str()));
 
+		Variable::HighLevelType highLevelType = static_cast<Variable::HighLevelType>(atoi(ini->get(varFieldFromID(varId)).get("high_level_type").c_str()));
+		newVar->setHighLevelType(highLevelType);
+
+		if (highLevelType != Variable::HighLevelType::NONE)
+		{
+			Variable::Fractional frac = {.fractionalBits = atoi(ini->get(varFieldFromID(varId)).get("frac").c_str()),
+										 .base = atof(ini->get(varFieldFromID(varId)).get("base").c_str())};
+			newVar->setFractional(frac);
+		}
+
 		uint32_t mask = atoi(ini->get(varFieldFromID(varId)).get("mask").c_str());
 		if (mask == 0)
 			mask = 0xFFFFFFFF;
@@ -357,6 +367,15 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 		(*ini)[varFieldFromID(varId)]["should_update_from_elf"] = var->getShouldUpdateFromElf() ? "true" : "false";
 		(*ini)[varFieldFromID(varId)]["shift"] = std::to_string(var->getShift());
 		(*ini)[varFieldFromID(varId)]["mask"] = std::to_string(var->getMask());
+		(*ini)[varFieldFromID(varId)]["high_level_type"] = std::to_string(static_cast<uint8_t>(var->getHighLevelType()));
+
+		if (var->getHighLevelType() != Variable::HighLevelType::NONE)
+		{
+			auto fractional = var->getFractional();
+			(*ini)[varFieldFromID(varId)]["frac"] = std::to_string(fractional.fractionalBits);
+			(*ini)[varFieldFromID(varId)]["base"] = std::to_string(fractional.base);
+		}
+
 		varId++;
 	}
 
