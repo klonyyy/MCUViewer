@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <map>
 #include <string>
 
@@ -124,6 +125,8 @@ class PlotGroupHandler
 
 	std::shared_ptr<PlotGroup> getActiveGroup()
 	{
+		if (!groupMap.contains(activeGroup))
+			activeGroup = groupMap.begin()->first;
 		return groupMap.at(activeGroup);
 	}
 
