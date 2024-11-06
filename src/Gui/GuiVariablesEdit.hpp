@@ -69,7 +69,7 @@ class VariableEditWindow
 
 		GuiHelper::drawTextAlignedToSize("name:", alignment);
 		ImGui::SameLine();
-		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
+		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL))
 		{
 			if (!vars->contains(name))
 				editedVariable->rename(name);
