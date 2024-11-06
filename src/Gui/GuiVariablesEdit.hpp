@@ -85,10 +85,14 @@ class VariableEditWindow
 		{
 			GuiHelper::drawTextAlignedToSize("tracked variable:", alignment);
 			ImGui::SameLine();
+
 			std::string trackedVarName = selection.empty() ? editedVariable->getTrackedName() : *selection.begin();
-			if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
+
+			if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_None, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
 			{
 				editedVariable->setTrackedName(trackedVarName);
+				editedVariable->setAddress(vars->at(trackedVarName)->getAddress());
+				editedVariable->setType(vars->at(trackedVarName)->getType());
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
