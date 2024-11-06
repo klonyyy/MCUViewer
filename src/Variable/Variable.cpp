@@ -146,14 +146,53 @@ double Variable::getDoubleFromRaw()
 {
 	rawValue = (rawValue >> shift) & mask;
 
+	uint32_t size = getSize();
+
 	if (HighLevelType::SIGNEDFRAC == highLevelType)
 	{
-		int32_t signedValue = *reinterpret_cast<int32_t*>(&rawValue);
-		return static_cast<double>(signedValue) / static_cast<double>(1 << fractional.fractionalBits);
+		switch (size)
+		{
+			case 1:
+			{
+				rawValue &= 0xff;
+				int8_t value = *reinterpret_cast<int8_t*>(&rawValue);
+				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
+			}
+			case 2:
+			{
+				rawValue &= 0xffff;
+				int16_t value = *reinterpret_cast<int16_t*>(&rawValue);
+				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
+			}
+			case 4:
+			{
+				int32_t value = *reinterpret_cast<int32_t*>(&rawValue);
+				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
+			}
+		}
 	}
 	else if (HighLevelType::UNSIGNEDFRAC == highLevelType)
 	{
-		return static_cast<double>(rawValue) / static_cast<double>(1 << fractional.fractionalBits);
+		switch (size)
+		{
+			case 1:
+			{
+				rawValue &= 0xff;
+				uint8_t value = *reinterpret_cast<uint8_t*>(&rawValue);
+				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
+			}
+			case 2:
+			{
+				rawValue &= 0xffff;
+				uint16_t value = *reinterpret_cast<uint16_t*>(&rawValue);
+				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
+			}
+			case 4:
+			{
+				uint32_t value = *reinterpret_cast<uint32_t*>(&rawValue);
+				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
+			}
+		}
 	}
 
 	switch (type)
