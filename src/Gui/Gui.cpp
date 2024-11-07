@@ -327,6 +327,7 @@ void Gui::addNewVariable(const std::string& newName)
 	{
 		renameVariable(currentName, newName);
 	};
+	newVar->setTrackedName(newName);
 	vars.emplace(newName, newVar);
 }
 
