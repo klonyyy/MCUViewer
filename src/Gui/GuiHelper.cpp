@@ -35,3 +35,50 @@ uint32_t GuiHelper::hexStringToDecimal(const std::string& hexStr)
 
 	return decimalValue;
 }
+
+std::optional<std::string> GuiHelper::showDeletePopup(const char* text, const std::string& name)
+{
+	ImGui::PushID(name.c_str());
+	if (ImGui::BeginPopupContextItem(text))
+	{
+		if (ImGui::Button(text))
+		{
+			ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+			ImGui::PopID();
+			return name;
+		}
+		ImGui::EndPopup();
+	}
+	ImGui::PopID();
+	return std::nullopt;
+}
+
+void GuiHelper::showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel)
+{
+	float buttonWidth = 120.0f * GuiHelper::contentScale;
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal(id, NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("%s", question);
+		ImGui::Separator();
+		if (ImGui::Button("Yes", ImVec2(buttonWidth, 0)))
+		{
+			onYes();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("No", ImVec2(buttonWidth, 0)))
+		{
+			onNo();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(buttonWidth, 0)))
+		{
+			onCancel();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+}

@@ -1,4 +1,5 @@
 #include "Gui.hpp"
+#include "GuiStatisticsWindow.hpp"
 
 void Gui::drawSettingsSwo()
 {
@@ -75,6 +76,7 @@ void Gui::drawIndicatorsSwo()
 
 void Gui::drawPlotsTreeSwo()
 {
+	static StatisticsWindow statisticsWindow{};
 	const uint32_t windowHeight = 320;
 	static std::string selected = tracePlotHandler->begin().operator*()->getName();
 
@@ -134,10 +136,10 @@ void Gui::drawPlotsTreeSwo()
 		ImGui::Text("type       ");
 		ImGui::SameLine();
 		ImGui::Combo("##combo2", &traceVarTypeCombo, traceVarTypes, IM_ARRAYSIZE(traceVarTypes));
-		drawStatisticsAnalog(plt);
+		statisticsWindow.drawAnalog(plt);
 	}
 	else
-		drawStatisticsDigital(plt);
+		statisticsWindow.drawDigital(plt);
 
 	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->markerX0.getState();
 	ImGui::Text("markers    ");
@@ -146,7 +148,7 @@ void Gui::drawPlotsTreeSwo()
 	plt->markerX0.setState(mx0);
 	plt->markerX1.setState(mx0);
 	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetWindowSize().y - 25 * GuiHelper::contentScale / 2.0f - ImGui::GetFrameHeightWithSpacing()));
-	drawExportPlotToCSVButton(plt);
+	// drawExportPlotToCSVButton(plt);
 	ImGui::PopID();
 	ImGui::EndGroup();
 	ImGui::EndChild();

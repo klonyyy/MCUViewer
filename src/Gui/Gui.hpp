@@ -13,6 +13,7 @@
 #include "ConfigHandler.hpp"
 #include "GdbParser.hpp"
 #include "GuiPlotEdit.hpp"
+#include "GuiPlotsTree.hpp"
 #include "GuiVariablesEdit.hpp"
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
@@ -88,6 +89,8 @@ class Gui
 	std::shared_ptr<VariableEditWindow> variableEditWindow;
 	std::shared_ptr<PlotEditWindow> plotEditWindow;
 
+	std::shared_ptr<PlotsTree> plotsTree;
+
    private:
 	void mainThread(std::string externalPath);
 	void drawMenu();
@@ -98,9 +101,6 @@ class Gui
 	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
 	void drawVarTable();
-	void drawAddPlotButton();
-	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
-	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
 
@@ -110,8 +110,6 @@ class Gui
 
 	void drawAboutWindow();
 	void drawPreferencesWindow();
-	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
-	void drawStatisticsDigital(std::shared_ptr<Plot> plt);
 	void acqusitionSettingsTrace();
 	void renameVariable(const std::string& currentName, const std::string& newName);
 
@@ -142,13 +140,10 @@ class Gui
 	void drawPlotsTreeSwo();
 	void drawVariableEditWindow();
 	void drawVariableEditSettings();
-	void drawPlotEditWindow();
 	void drawPlotEditSettings();
 
 	void drawImportVariablesWindow();
 	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
-
-	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 
 	bool openWebsite(const char* url);
 };

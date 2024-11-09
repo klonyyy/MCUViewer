@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <iomanip>
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -48,6 +49,17 @@ void drawTextAlignedToSize(std::string&& text, size_t alignTo);
  * @return uint32_t result
  */
 uint32_t hexStringToDecimal(const std::string& hexStr);
+
+/**
+ * @brief Show delete popup
+ *
+ * @param text text to be shown on the button
+ * @param name name of the item to be deleted
+ * @return std::optional<std::string> if button clicked returns name, otherwise std::nullopt
+ */
+std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
+
+void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 
 template <typename T>
 void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
