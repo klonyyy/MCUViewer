@@ -76,6 +76,9 @@ void Variable::rename(const std::string& newName)
 	if (renameCallback)
 		renameCallback(name, newName);
 	name = newName;
+
+	if (!isTrackedNameDifferent)
+		trackedName = newName;
 }
 
 void Variable::setColor(float r, float g, float b, float a)
@@ -224,6 +227,16 @@ bool Variable::getShouldUpdateFromElf() const
 void Variable::setShouldUpdateFromElf(bool shouldUpdateFromElf)
 {
 	this->shouldUpdateFromElf = shouldUpdateFromElf;
+}
+
+bool Variable::getIsTrackedNameDifferent() const
+{
+	return isTrackedNameDifferent;
+}
+
+void Variable::setIsTrackedNameDifferent(bool isDifferent)
+{
+	this->isTrackedNameDifferent = isDifferent;
 }
 
 std::string Variable::getTrackedName() const

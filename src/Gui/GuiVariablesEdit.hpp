@@ -31,6 +31,7 @@ class VariableEditWindow
 			if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
 			{
 				showVariableEditWindow = false;
+				selection.clear();
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -61,7 +62,7 @@ class VariableEditWindow
 		std::string shift = std::to_string(editedVariable->getShift());
 		std::string mask = std::string("0x") + std::string(GuiHelper::intToHexString(editedVariable->getMask()));
 		bool shouldUpdateFromElf = editedVariable->getShouldUpdateFromElf();
-		static bool selectNameManually = false;
+		bool selectNameManually = editedVariable->getIsTrackedNameDifferent();
 
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Variable");
@@ -79,27 +80,28 @@ class VariableEditWindow
 
 		GuiHelper::drawTextAlignedToSize("specify tracked name:", alignment);
 		ImGui::SameLine();
-		ImGui::Checkbox("##selectNameManually", &selectNameManually);
+		if (ImGui::Checkbox("##selectNameManually", &selectNameManually))
+			editedVariable->setIsTrackedNameDifferent(selectNameManually);
 
-		if (selectNameManually)
+		ImGui::BeginDisabled(!selectNameManually);
+
+		GuiHelper::drawTextAlignedToSize("tracked variable:", alignment);
+		ImGui::SameLine();
+
+		std::string trackedVarName = selection.empty() ? editedVariable->getTrackedName() : *selection.begin();
+
+		if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_None, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
 		{
-			GuiHelper::drawTextAlignedToSize("tracked variable:", alignment);
-			ImGui::SameLine();
-
-			std::string trackedVarName = selection.empty() ? editedVariable->getTrackedName() : *selection.begin();
-
-			if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_None, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
-			{
-				editedVariable->setTrackedName(trackedVarName);
-				editedVariable->setAddress(vars->at(trackedVarName)->getAddress());
-				editedVariable->setType(vars->at(trackedVarName)->getType());
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
-				selectVariableWindow->setShowState(true);
+			editedVariable->setTrackedName(trackedVarName);
+			editedVariable->setAddress(vars->at(trackedVarName)->getAddress());
+			editedVariable->setType(vars->at(trackedVarName)->getType());
+			selection.clear();
 		}
-		else
-			editedVariable->setTrackedName(name);
+		ImGui::SameLine();
+		if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
+			selectVariableWindow->setShowState(true);
+
+		ImGui::EndDisabled();
 
 		GuiHelper::drawTextAlignedToSize("update from *.elf:", alignment);
 		ImGui::SameLine();

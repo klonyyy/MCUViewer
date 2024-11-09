@@ -71,6 +71,9 @@ class Variable
 	bool getShouldUpdateFromElf() const;
 	void setShouldUpdateFromElf(bool shouldUpdateFromElf);
 
+	bool getIsTrackedNameDifferent() const;
+	void setIsTrackedNameDifferent(bool isDifferent);
+
 	std::string getTrackedName() const;
 	void setTrackedName(const std::string& trackedName);
 
@@ -95,7 +98,6 @@ class Variable
 	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
-
 	std::string name = "";
 	std::string trackedName = "";
 	Type type = Type::UNKNOWN;
@@ -113,6 +115,7 @@ class Variable
 	Color color{};
 	bool isFound = false;
 	bool shouldUpdateFromElf = true;
+	bool isTrackedNameDifferent = false;
 };
 
 #endif
