@@ -74,6 +74,14 @@ class PlotGroupHandler
 		return groupMap[name];
 	}
 
+	void renameGroup(const std::string& oldName, const std::string& newName)
+	{
+		auto group = groupMap.extract(oldName);
+		group.key() = newName;
+		groupMap.insert(std::move(group));
+		groupMap[newName]->setName(newName);
+	}
+
 	void removeGroup(const std::string& name)
 	{
 		groupMap.erase(name);
@@ -130,7 +138,7 @@ class PlotGroupHandler
 		return groupMap.at(activeGroup);
 	}
 
-	bool checkIfGroupExists(const std::string&& name) const
+	bool checkIfGroupExists(const std::string& name) const
 	{
 		return groupMap.find(name) != groupMap.end();
 	}

@@ -49,6 +49,8 @@ class PlotEditWindow
 
 	void setShowPlotEditWindowState(bool state)
 	{
+		if (showPlotEditWindow != state)
+			stateChanged = true;
 		showPlotEditWindow = state;
 	}
 
@@ -65,6 +67,13 @@ class PlotEditWindow
 
 		GuiHelper::drawTextAlignedToSize("name:", alignment);
 		ImGui::SameLine();
+
+		if (stateChanged)
+		{
+			ImGui::SetKeyboardFocusHere(0);
+			stateChanged = false;
+		}
+
 		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
 		{
 			if (!plotHandler->checkIfPlotExists(name))
@@ -104,6 +113,7 @@ class PlotEditWindow
 	static constexpr size_t alignment = 18;
 
 	bool showPlotEditWindow = false;
+	bool stateChanged = false;
 
 	std::shared_ptr<Plot> editedPlot = nullptr;
 

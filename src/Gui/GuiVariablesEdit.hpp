@@ -48,6 +48,8 @@ class VariableEditWindow
 
 	void setShowVariableEditWindowState(bool state)
 	{
+		if (showVariableEditWindow != state)
+			stateChanged = true;
 		showVariableEditWindow = state;
 	}
 
@@ -67,6 +69,12 @@ class VariableEditWindow
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Variable");
 		ImGui::Separator();
+
+		if (stateChanged)
+		{
+			ImGui::SetKeyboardFocusHere(0);
+			stateChanged = false;
+		}
 
 		GuiHelper::drawTextAlignedToSize("name:", alignment);
 		ImGui::SameLine();
@@ -200,6 +208,7 @@ class VariableEditWindow
 	static constexpr size_t alignment = 22;
 
 	bool showVariableEditWindow = false;
+	bool stateChanged = false;
 
 	std::shared_ptr<Variable> editedVariable = nullptr;
 
