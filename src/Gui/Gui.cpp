@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include <future>
-#include <random>
 #include <set>
 #include <sstream>
 #include <string>
@@ -20,12 +19,12 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), parser(parser), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
-	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, &vars);
-	variableEditWindow = std::make_shared<VariableEditWindow>(&vars);
-	plotsTree = std::make_shared<PlotsTree>(plotHandler, plotGroupHandler, vars, plotEditWindow, fileHandler, logger);
+	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, variableHandler);
+	plotsTree = std::make_shared<PlotsTree>(plotHandler, plotGroupHandler, variableHandler, plotEditWindow, fileHandler, logger);
+	variableTable = std::make_shared<VariableTableWindow>(plotHandler, variableHandler, &projectElfPath, &projectConfigPath, logger);
 }
 
 Gui::~Gui()
@@ -159,11 +158,9 @@ void Gui::mainThread(std::string externalPath)
 			activeView = ActiveViewType::VarViewer;
 			drawAcqusitionSettingsWindow(activeView);
 			drawStartButton(plotHandler);
-			drawVarTable();
+			variableTable->draw();
 			plotsTree->draw();
-			drawImportVariablesWindow();
-			variableEditWindow->drawVariableEditWindow();
-			plotEditWindow->drawPlotEditWindow();
+			plotEditWindow->draw();
 			ImGui::SetNextWindowClass(&window_class);
 			if (ImGui::Begin("Plots"))
 				drawPlots();
@@ -316,222 +313,6 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 	ImGui::EndDisabled();
 }
 
-void Gui::addNewVariable(const std::string& newName)
-{
-	std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
-	std::random_device rd{};
-	std::mt19937 gen{rd()};
-	std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
-	uint32_t randomColor = dist(gen);
-	newVar->setColor(randomColor);
-	newVar->renameCallback = [&](const std::string& currentName, const std::string& newName)
-	{
-		renameVariable(currentName, newName);
-	};
-	newVar->setTrackedName(newName);
-	vars.emplace(newName, newVar);
-}
-
-void Gui::drawAddVariableButton()
-{
-	if (ImGui::Button("Add variable", ImVec2(-1, 25 * GuiHelper::contentScale)))
-	{
-		uint32_t num = 0;
-		while (vars.find(std::string("-new") + std::to_string(num)) != vars.end())
-			num++;
-
-		addNewVariable(std::string("-new") + std::to_string(num));
-	}
-
-	ImGui::BeginDisabled(projectElfPath.empty());
-
-	if (ImGui::Button("Import variables from *.elf", ImVec2(-1, 25 * GuiHelper::contentScale)))
-		showImportVariablesWindow = true;
-
-	ImGui::EndDisabled();
-}
-
-void Gui::drawUpdateAddressesFromElf()
-{
-	static std::future<bool> refreshThread{};
-	static bool shouldPopStyle = false;
-
-	static constexpr size_t textSize = 40;
-	char buttonText[textSize]{};
-
-	if (refreshThread.valid() && refreshThread.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
-		snprintf(buttonText, textSize, "Update variable addresses %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
-	else
-	{
-		snprintf(buttonText, textSize, "Update variable addresses");
-		if (refreshThread.valid() && !refreshThread.get())
-			popup.show("Error!", "Update error. Please check the *.elf file path!", 2.0f);
-	}
-
-	ImGui::BeginDisabled(projectElfPath.empty());
-
-	bool elfChanged = checkElfFileChanged();
-
-	if (elfChanged)
-	{
-		ImVec4 color = ImColor::HSV(0.1f, 0.97f, 0.72f);
-		snprintf(buttonText, textSize, "Click to reload *.elf changes!");
-		ImGui::PushStyleColor(ImGuiCol_Button, color);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-
-		if (plotHandler->getSettings().stopAcqusitionOnElfChange)
-			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
-
-		if (plotHandler->getSettings().refreshAddressesOnElfChange)
-		{
-			performVariablesUpdate = true;
-			/* TODO: examine why elf is not ready to be parsed without the delay */
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
-
-		shouldPopStyle = true;
-	}
-
-	if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || performVariablesUpdate)
-	{
-		parser->changeCurrentGDBCommand(plotHandler->getSettings().gdbCommand);
-		lastModifiedTime = std::filesystem::file_time_type::clock::now();
-		refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap, parser, this->convertProjectPathToAbsolute(projectElfPath), std::ref(vars));
-		performVariablesUpdate = false;
-	}
-
-	/* TODO fix this ugly solution */
-	if (shouldPopStyle)
-	{
-		ImGui::PopStyleColor(3);
-		shouldPopStyle = false;
-	}
-	ImGui::EndDisabled();
-}
-
-void Gui::drawVarTable()
-{
-	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
-	static std::set<std::string> selection;
-
-	ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
-	ImGui::Dummy(ImVec2(-1, 5));
-	GuiHelper::drawCenteredText("Variables");
-	ImGui::SameLine();
-	ImGui::HelpMarker("Select your *.elf file in the Options->Acqusition Settings to import or update the variables.");
-	ImGui::Separator();
-
-	drawAddVariableButton();
-	drawUpdateAddressesFromElf();
-
-	const char* label = "search ";
-	ImGui::PushItemWidth(ImGui::GetItemRectSize().x - ImGui::CalcTextSize(label).x - 8 * GuiHelper::contentScale);
-	static std::string search{};
-	ImGui::Text("%s", label);
-	ImGui::SameLine();
-	ImGui::InputText("##search", &search, 0, NULL, NULL);
-	ImGui::PopItemWidth();
-
-	if (ImGui::BeginTable("table_scrolly", 3, flags, ImVec2(0.0f, 300 * GuiHelper::contentScale)))
-	{
-		ImGui::TableSetupScrollFreeze(0, 1);
-		ImGui::TableSetupColumn("Name", 0);
-		ImGui::TableSetupColumn("Address", 0);
-		ImGui::TableSetupColumn("Type", 0);
-		ImGui::TableHeadersRow();
-
-		std::optional<std::string> varNameToDelete;
-		std::string currentName{};
-
-		for (auto& [name, var] : vars)
-		{
-			if (toLower(name).find(toLower(search)) == std::string::npos)
-				continue;
-
-			ImGui::TableNextRow();
-			ImGui::TableSetColumnIndex(0);
-			ImGui::PushID(name.c_str());
-			ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
-			ImGui::SameLine();
-			ImGui::PopID();
-			char variable[maxVariableNameLength] = {0};
-			std::memcpy(variable, var->getName().data(), var->getName().length());
-
-			const bool itemIsSelected = selection.contains(name);
-
-			if (ImGui::Selectable(var->getName().c_str(), itemIsSelected, ImGuiSelectableFlags_AllowDoubleClick))
-			{
-				if (ImGui::IsMouseDoubleClicked(0))
-				{
-					variableEditWindow->setVariableToEdit(var);
-					variableEditWindow->setShowVariableEditWindowState(true);
-				}
-
-				if (ImGui::GetIO().KeyCtrl && var->getIsFound())
-				{
-					if (itemIsSelected)
-						selection.erase(name);
-					else
-						selection.insert(name);
-				}
-				else
-					selection.clear();
-			}
-
-			if (!varNameToDelete.has_value())
-				varNameToDelete = GuiHelper::showDeletePopup("Delete", name);
-
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-			{
-				if (selection.empty())
-					selection.insert(name);
-
-				/* pass a pointer to the selection as we have to call clear() on the original object upon receiving */
-				std::set<std::string>* selectionPtr = &selection;
-				ImGui::SetDragDropPayload("MY_DND", &selectionPtr, sizeof(selectionPtr));
-				ImGui::PushID(name.c_str());
-				ImGui::ColorEdit4("##", &vars[*selection.begin()]->getColor().r, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				ImGui::PopID();
-
-				if (selection.size() > 1)
-					ImGui::TextUnformatted("<multiple vars>");
-				else
-					ImGui::TextUnformatted(selection.begin()->c_str());
-				ImGui::EndDragDropSource();
-			}
-			ImGui::TableSetColumnIndex(1);
-			if (var->getIsFound())
-				ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(var->getAddress()))).c_str());
-			else
-				ImGui::Text("NOT FOUND!");
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%s", var->getTypeStr().c_str());
-		}
-
-		if (varNameToDelete.has_value())
-		{
-			for (std::shared_ptr<Plot> plt : *plotHandler)
-				plt->removeSeries(varNameToDelete.value_or(""));
-			vars.erase(varNameToDelete.value_or(""));
-		}
-		ImGui::EndTable();
-	}
-
-	ImGui::EndDisabled();
-}
-
-void Gui::renameVariable(const std::string& currentName, const std::string& newName)
-{
-	auto temp = vars.extract(currentName);
-	temp.key() = std::string(newName);
-	vars.insert(std::move(temp));
-
-	for (std::shared_ptr<Plot> plt : *plotHandler)
-		plt->renameSeries(currentName, newName);
-}
-
 void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 {
 	if (showAcqusitionSettingsWindow)
@@ -602,7 +383,7 @@ void Gui::askShouldSaveOnExit(bool shouldOpenPopup)
 	auto onCancel = [&]()
 	{ done = false; };
 
-	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+	if (variableHandler->isEmpty() && projectElfPath.empty() && shouldOpenPopup)
 		done = true;
 
 	GuiHelper::showQuestionBox("Save?", "Do you want to save the current config?\n", onYes, onNo, onCancel);
@@ -612,7 +393,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 {
 	auto onNo = [&]()
 	{
-		vars.clear();
+		variableHandler->clear();
 		plotHandler->removeAllPlots();
 		tracePlotHandler->initPlots();
 		plotGroupHandler->removeAllGroups();
@@ -620,7 +401,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 		projectConfigPath = "";
 	};
 
-	if (vars.empty() && projectElfPath.empty() && shouldOpenPopup)
+	if (variableHandler->isEmpty() && projectElfPath.empty() && shouldOpenPopup)
 		onNo();
 	else if (shouldOpenPopup)
 		ImGui::OpenPopup("SaveOnNew?");
@@ -638,7 +419,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 bool Gui::saveProject()
 {
 	if (!projectConfigPath.empty())
-		return configHandler->saveConfigFile(vars, projectElfPath, "");
+		return configHandler->saveConfigFile(projectElfPath, "");
 	return false;
 }
 
@@ -648,7 +429,7 @@ bool Gui::saveProjectAs()
 	if (path != "")
 	{
 		projectConfigPath = path;
-		configHandler->saveConfigFile(vars, projectElfPath, projectConfigPath);
+		configHandler->saveConfigFile(projectElfPath, projectConfigPath);
 		logger->info("Project config path: {}", projectConfigPath);
 		return true;
 	}
@@ -668,15 +449,15 @@ bool Gui::openProject(std::string externalPath)
 	{
 		projectConfigPath = path;
 		configHandler->changeConfigFile(projectConfigPath);
-		vars.clear();
+		variableHandler->clear();
 		plotHandler->removeAllPlots();
-		configHandler->readConfigFile(vars, projectElfPath);
+		configHandler->readConfigFile(projectElfPath);
 
 		/* attach rename callback so that all references are updated on variable rename */
-		for (auto& [name, var] : vars)
+		for (std::shared_ptr<Variable> var : *variableHandler)
 		{
 			var->renameCallback = [&](const std::string& currentName, const std::string& newName)
-			{ renameVariable(currentName, newName); };
+			{ variableHandler->renameVariable(currentName, newName); };
 		}
 
 		logger->info("Project config path: {}", projectConfigPath);
@@ -739,24 +520,6 @@ bool Gui::openLogDirectory(std::string& logDirectory)
 	return false;
 }
 
-std::string Gui::convertProjectPathToAbsolute(const std::string& relativePath)
-{
-	if (relativePath.empty())
-		return "";
-
-	try
-	{
-		// Convert relative path to absolute path based on project file location
-		std::filesystem::path absPath = std::filesystem::absolute(std::filesystem::path(projectConfigPath).parent_path() / relativePath);
-		return absPath.string();
-	}
-	catch (std::filesystem::filesystem_error& e)
-	{
-		logger->error("Failed to convert path to absolute: {}", e.what());
-		return "";
-	}
-}
-
 void Gui::checkShortcuts()
 {
 	const ImGuiIO& io = ImGui::GetIO();
@@ -772,15 +535,6 @@ void Gui::checkShortcuts()
 
 		popup.show("Info", "Saving successful!", 0.65f);
 	}
-}
-
-bool Gui::checkElfFileChanged()
-{
-	if (!std::filesystem::exists(convertProjectPathToAbsolute(projectElfPath)))
-		return false;
-
-	auto writeTime = std::filesystem::last_write_time(convertProjectPathToAbsolute(projectElfPath));
-	return writeTime > lastModifiedTime;
 }
 
 void Gui::showChangeFormatPopup(const char* text, Plot& plt, const std::string& name)

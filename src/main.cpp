@@ -9,6 +9,7 @@
 #include "Gui.hpp"
 #include "NFDFileHandler.hpp"
 #include "PlotHandler.hpp"
+#include "VariableHandler.hpp"
 #include "gitversion.hpp"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/spdlog.h"
@@ -16,7 +17,7 @@
 std::atomic<bool> done = false;
 std::mutex mtx;
 std::shared_ptr<spdlog::logger> logger;
-CLI::App app{"MDtool"};
+CLI::App app{"MCUViewer"};
 
 void prepareLogger();
 void prepareCLIParser(bool& debug, std::string& projectPath);
@@ -43,13 +44,13 @@ int main(int argc, char** argv)
 	auto loggerPtr = logger.get();
 
 	PlotGroupHandler plotGroupHandler;
+	VariableHandler variableHandler;
 	PlotHandler plotHandler(done, &mtx, loggerPtr);
 	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
-	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, &plotGroupHandler, loggerPtr);
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, &plotGroupHandler, &variableHandler, loggerPtr);
 	NFDFileHandler fileHandler;
-	GdbParser parser(loggerPtr);
 
-	Gui gui(&plotHandler, &configHandler, &plotGroupHandler, &fileHandler, &tracePlotHandler, done, &mtx, &parser, loggerPtr, projectPath);
+	Gui gui(&plotHandler, &variableHandler, &configHandler, &plotGroupHandler, &fileHandler, &tracePlotHandler, done, &mtx, loggerPtr, projectPath);
 
 	while (!done)
 	{

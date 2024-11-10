@@ -9,11 +9,12 @@
 #include "GuiHelper.hpp"
 #include "ImguiPlugins.hpp"
 #include "Variable.hpp"
+#include "VariableHandler.hpp"
 
 class SelectVariableWindow
 {
    public:
-	SelectVariableWindow(std::map<std::string, std::shared_ptr<Variable>>* vars, std::set<std::string>* selection) : vars(vars), selection(selection)
+	SelectVariableWindow(VariableHandler* variableHandler, std::set<std::string>* selection) : variableHandler(variableHandler), selection(selection)
 	{
 	}
 
@@ -71,8 +72,9 @@ class SelectVariableWindow
 			ImGui::TableSetupColumn("Address", 0);
 			ImGui::TableHeadersRow();
 
-			for (auto& [name, var] : *vars)
+			for (std::shared_ptr<Variable> var : *variableHandler)
 			{
+				std::string name = var->getName();
 				if (toLower(name).find(toLower(substring)) == std::string::npos)
 					continue;
 
@@ -114,7 +116,7 @@ class SelectVariableWindow
 	}
 
    private:
-	std::map<std::string, std::shared_ptr<Variable>>* vars;
+	VariableHandler* variableHandler;
 
 	std::set<std::string>* selection;
 

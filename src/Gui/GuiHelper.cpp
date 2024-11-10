@@ -1,5 +1,7 @@
 #include "GuiHelper.hpp"
 
+#include <filesystem>
+
 std::string GuiHelper::intToHexString(uint32_t var)
 {
 	std::stringstream ss;
@@ -34,6 +36,25 @@ uint32_t GuiHelper::hexStringToDecimal(const std::string& hexStr)
 	ss >> decimalValue;
 
 	return decimalValue;
+}
+
+
+std::string GuiHelper::convertProjectPathToAbsolute(const std::string* relativePath, std::string* projectConfigPath)
+{
+	if (relativePath->empty())
+		return "";
+
+	try
+	{
+		// Convert relative path to absolute path based on project file location
+		std::filesystem::path absPath = std::filesystem::absolute(std::filesystem::path(*projectConfigPath).parent_path() / (*relativePath));
+		return absPath.string();
+	}
+	catch (std::filesystem::filesystem_error& e)
+	{
+		// logger->error("Failed to convert path to absolute: {}", e.what()); // TODO
+		return "";
+	}
 }
 
 std::optional<std::string> GuiHelper::showDeletePopup(const char* text, const std::string& name)

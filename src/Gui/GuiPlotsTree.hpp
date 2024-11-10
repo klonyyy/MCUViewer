@@ -15,7 +15,7 @@
 class PlotsTree
 {
    public:
-	PlotsTree(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, std::map<std::string, std::shared_ptr<Variable>>& vars, std::shared_ptr<PlotEditWindow> plotEditWindow, IFileHandler* fileHandler, spdlog::logger* logger) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), vars(vars), plotEditWindow(plotEditWindow), fileHandler(fileHandler), logger(logger)
+	PlotsTree(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, std::shared_ptr<PlotEditWindow> plotEditWindow, IFileHandler* fileHandler, spdlog::logger* logger) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), variableHandler(variableHandler), plotEditWindow(plotEditWindow), fileHandler(fileHandler), logger(logger)
 	{
 		groupEditWindow = std::make_unique<GroupEditWindow>(plotGroupHandler);
 	}
@@ -67,10 +67,10 @@ class PlotsTree
 			drawMenuGroupPopup(name, [&]()
 							   { addNewGroup(); }, [&]()
 							   { addNewPlot(); }, [&](std::string name)
+							   { groupNameToDelete = name; }, [&](std::string name)
 							   {
 								   groupEditWindow->setGroupToEdit(plotGroupHandler->getGroup(name));
-								   groupEditWindow->setShowGroupEditWindowState(true); }, [&](std::string name)
-							   { groupNameToDelete = name; });
+								   groupEditWindow->setShowGroupEditWindowState(true); });
 
 			if (state)
 			{
@@ -101,8 +101,11 @@ class PlotsTree
 						}
 					}
 
-					if (!plotNameToDelete.has_value())
-						plotNameToDelete = GuiHelper::showDeletePopup("Delete", name);
+					drawMenuPlotPopup(name, [&]()
+									  { addNewPlot(); }, [&](std::string name)
+									  { plotNameToDelete = name; }, [&](std::string name)
+									  {plotEditWindow->setPlotToEdit(plot);
+							           plotEditWindow->setShowPlotEditWindowState(true); });
 
 					/* Drag n Drop source for plots within groups */
 					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
@@ -181,7 +184,7 @@ class PlotsTree
 				std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
 				for (const auto& name : *selection)
-					plt->addSeries(*vars[name]);
+					plt->addSeries(variableHandler->getVariable(name).get());
 				selection->clear();
 			}
 			ImGui::EndDragDropTarget();
@@ -265,9 +268,61 @@ class PlotsTree
 	}
 
    private:
+	void drawMenuGroupPopup(const std::string& name, std::function<void()> onNewGroup, std::function<void()> onNewPlot, std::function<void(const std::string&)> onDelete, std::function<void(const std::string&)> onProperties)
+	{
+		ImGui::PushID(name.c_str());
+		if (ImGui::BeginPopupContextItem(name.c_str()))
+		{
+			if (ImGui::BeginMenu("New"))
+			{
+				if (ImGui::MenuItem("Group"))
+					onNewGroup();
+
+				if (ImGui::MenuItem("Plot"))
+					onNewPlot();
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::MenuItem("Delete group"))
+				onDelete(name);
+
+			if (ImGui::MenuItem("Properties"))
+				onProperties(name);
+
+			ImGui::EndPopup();
+		}
+		ImGui::PopID();
+	}
+
+	void drawMenuPlotPopup(const std::string& name, std::function<void()> onNewPlot, std::function<void(const std::string&)> onDelete, std::function<void(const std::string&)> onProperties)
+	{
+		ImGui::PushID(name.c_str());
+		if (ImGui::BeginPopupContextItem(name.c_str()))
+		{
+			if (ImGui::BeginMenu("New"))
+			{
+				if (ImGui::MenuItem("Plot"))
+					onNewPlot();
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::MenuItem("Delete plot"))
+				onDelete(name);
+
+			if (ImGui::MenuItem("Properties"))
+				onProperties(name);
+
+			ImGui::EndPopup();
+		}
+		ImGui::PopID();
+	}
+
+   private:
 	PlotHandler* plotHandler;
 	PlotGroupHandler* plotGroupHandler;
-	std::map<std::string, std::shared_ptr<Variable>>& vars;
+    VariableHandler* variableHandler;
 	std::shared_ptr<PlotEditWindow> plotEditWindow;
 
 	std::unique_ptr<GroupEditWindow> groupEditWindow;
@@ -275,30 +330,4 @@ class PlotsTree
 	StatisticsWindow statisticsWindow;
 	IFileHandler* fileHandler;
 	spdlog::logger* logger;
-
-	void drawMenuGroupPopup(const std::string& name, std::function<void()> onNewGroup, std::function<void()> onNewPlot, std::function<void(const std::string&)> onRename, std::function<void(const std::string&)> onDelete)
-	{
-		ImGui::PushID(name.c_str());
-		if (ImGui::BeginPopupContextItem(name.c_str()))
-		{
-			if (ImGui::BeginMenu("new"))
-			{
-				if (ImGui::MenuItem("group"))
-					onNewGroup();
-
-				if (ImGui::MenuItem("plot"))
-					onNewPlot();
-
-				ImGui::EndMenu();
-			}
-			if (ImGui::MenuItem("rename"))
-				onRename(name);
-
-			if (ImGui::MenuItem("delete"))
-				onDelete(name);
-
-			ImGui::EndPopup();
-		}
-		ImGui::PopID();
-	}
 };

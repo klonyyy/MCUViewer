@@ -17,6 +17,7 @@
 
 #include "ProcessHandler.hpp"
 #include "Variable.hpp"
+#include "VariableHandler.hpp"
 #include "spdlog/spdlog.h"
 
 class GdbParser
@@ -28,10 +29,10 @@ class GdbParser
 		bool isTrivial = false;
 	};
 
-	GdbParser(spdlog::logger* logger);
+	GdbParser(VariableHandler* variableHandler, spdlog::logger* logger);
 
 	bool validateGDB();
-	bool updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars);
+	bool updateVariableMap(const std::string& elfPath);
 	bool parse(const std::string& elfPath);
 	std::map<std::string, VariableData> getParsedData();
 
@@ -46,6 +47,7 @@ class GdbParser
    private:
 	const char* defaultGDBCommand = "gdb";
 	std::string currentGDBCommand = std::string(defaultGDBCommand);
+	VariableHandler* variableHandler;
 	spdlog::logger* logger;
 	std::mutex mtx;
 	std::map<std::string, VariableData> parsedData;

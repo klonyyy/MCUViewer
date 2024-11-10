@@ -57,6 +57,8 @@ uint32_t hexStringToDecimal(const std::string& hexStr);
  * @param name name of the item to be deleted
  * @return std::optional<std::string> if button clicked returns name, otherwise std::nullopt
  */
+std::string convertProjectPathToAbsolute(const std::string* relativePath, std::string* projectConfigPath);
+
 std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
 
 void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);

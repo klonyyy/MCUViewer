@@ -31,7 +31,7 @@ void TracePlotHandler::initPlots()
 		newVar->setColor(colors[i]);
 		traceVars[name] = newVar;
 
-		plotsMap[name]->addSeries(*newVar);
+		plotsMap[name]->addSeries(newVar.get());
 		plotsMap[name]->setDomain(Plot::Domain::DIGITAL);
 		plotsMap[name]->setAlias("CH" + std::to_string(i));
 	}

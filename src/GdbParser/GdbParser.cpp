@@ -1,6 +1,6 @@
 #include "GdbParser.hpp"
 
-GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
+GdbParser::GdbParser(VariableHandler* variableHandler, spdlog::logger* logger) : variableHandler(variableHandler), logger(logger)
 {
 	validateGDB();
 }
@@ -28,7 +28,7 @@ bool GdbParser::validateGDB()
 	}
 }
 
-bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars)
+bool GdbParser::updateVariableMap(const std::string& elfPath)
 {
 	if (!validateGDB())
 		return false;
@@ -39,8 +39,9 @@ bool GdbParser::updateVariableMap(const std::string& elfPath, std::map<std::stri
 	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
 
-	for (auto& [name, var] : vars)
+	for (std::shared_ptr<Variable> var : *variableHandler)
 	{
+		std::string name = var->getName();
 		if (var->getShouldUpdateFromElf() == false)
 			continue;
 

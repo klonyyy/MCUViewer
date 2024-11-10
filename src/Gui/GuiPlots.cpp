@@ -9,7 +9,7 @@ void Gui::dragAndDropPlot(std::shared_ptr<Plot> plot)
 			std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
 			for (const auto& name : *selection)
-				plot->addSeries(*vars[name]);
+				plot->addSeries(variableHandler->getVariable(name).get());
 			selection->clear();
 		}
 		ImPlot::EndDragDropTarget();
@@ -220,12 +220,12 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 			ImGui::TableSetColumnIndex(1);
 			ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(serPtr->var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
-			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), maxVariableNameLength);
+			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), Variable::maxVariableNameLength);
 			showChangeFormatPopup("format", *plot, key);
 			ImGui::TableSetColumnIndex(3);
 			ImGui::PushID("input");
-			char newValue[maxVariableNameLength] = {0};
-			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, maxVariableNameLength))
+			char newValue[Variable::maxVariableNameLength] = {0};
+			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, Variable::maxVariableNameLength))
 			{
 				if (plotHandler->getViewerState() == PlotHandler::state::STOP)
 				{
@@ -250,7 +250,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 				std::set<std::string>* selection = *(std::set<std::string>**)payload->Data;
 
 				for (const auto& name : *selection)
-					plot->addSeries(*vars[name]);
+					plot->addSeries(variableHandler->getVariable(name).get());
 				selection->clear();
 			}
 			ImGui::EndDragDropTarget();

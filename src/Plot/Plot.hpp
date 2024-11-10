@@ -106,7 +106,7 @@ class Plot
 	std::string& getNameVar();
 	void setAlias(const std::string& newAlias);
 	std::string getAlias() const;
-	bool addSeries(Variable& var);
+	bool addSeries(Variable* var);
 	std::shared_ptr<Plot::Series> getSeries(const std::string& name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
 	ScrollingBuffer<double>* getXAxisSeries();

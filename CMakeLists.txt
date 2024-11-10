@@ -117,7 +117,6 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiImportVariables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAcqusition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiHelper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/MemoryReader.cpp
@@ -137,7 +136,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JlinkTraceProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer/CSVStreamer.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer/CSVStreamer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler/VariableHandler.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -203,7 +203,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Statistics
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotGroupHandler
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

@@ -11,9 +11,9 @@
 #include <unordered_set>
 
 #include "ConfigHandler.hpp"
-#include "GdbParser.hpp"
 #include "GuiPlotEdit.hpp"
 #include "GuiPlotsTree.hpp"
+#include "GuiVarTable.hpp"
 #include "GuiVariablesEdit.hpp"
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
@@ -25,33 +25,32 @@
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
 #include "TracePlotHandler.hpp"
+#include "VariableHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
 
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath);
+	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
 	static constexpr bool showDemoWindow = true;
 
 	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
-	static constexpr uint32_t maxVariableNameLength = 100;
-	std::map<std::string, std::shared_ptr<Variable>> vars;
+
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
+	VariableHandler* variableHandler;
 	ConfigHandler* configHandler;
 	PlotGroupHandler* plotGroupHandler;
+	
 	std::string projectConfigPath;
 	std::string projectElfPath;
-	std::filesystem::file_time_type lastModifiedTime = std::filesystem::file_time_type::clock::now();
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
-	bool showImportVariablesWindow = false;
-	bool performVariablesUpdate = false;
 	bool showSelectVariablesWindow = false;
 
 	IFileHandler* fileHandler;
@@ -82,13 +81,10 @@ class Gui
 
 	std::mutex* mtx;
 
-	GdbParser* parser;
-
 	spdlog::logger* logger;
 
-	std::shared_ptr<VariableEditWindow> variableEditWindow;
 	std::shared_ptr<PlotEditWindow> plotEditWindow;
-
+	std::shared_ptr<VariableTableWindow> variableTable;
 	std::shared_ptr<PlotsTree> plotsTree;
 
    private:
@@ -97,10 +93,7 @@ class Gui
 	void drawStartButton(PlotHandlerBase* activePlotHandler);
 	void drawDebugProbes();
 	void drawTraceProbes();
-	void addNewVariable(const std::string& newName);
-	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
-	void drawVarTable();
 	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
 
@@ -111,7 +104,6 @@ class Gui
 	void drawAboutWindow();
 	void drawPreferencesWindow();
 	void acqusitionSettingsTrace();
-	void renameVariable(const std::string& currentName, const std::string& newName);
 
 	void drawPlots();
 	void drawPlotCurve(std::shared_ptr<Plot> plot);
@@ -138,12 +130,6 @@ class Gui
 	void drawPlotsSwo();
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
-	void drawVariableEditWindow();
-	void drawVariableEditSettings();
-	void drawPlotEditSettings();
-
-	void drawImportVariablesWindow();
-	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
 
 	bool openWebsite(const char* url);
 };

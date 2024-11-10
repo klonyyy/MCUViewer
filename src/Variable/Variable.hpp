@@ -93,6 +93,8 @@ class Variable
 	double getDoubleFromRaw();
 
    public:
+	static constexpr uint32_t maxVariableNameLength = 100;
+
 	static const char* types[8];
 	static const char* highLevelTypes[3];
 	std::function<void(const std::string&, const std::string&)> renameCallback;

@@ -40,12 +40,12 @@ std::string Plot::getAlias() const
 	return alias;
 }
 
-bool Plot::addSeries(Variable& var)
+bool Plot::addSeries(Variable* var)
 {
-	std::string name = var.getName();
+	std::string name = var->getName();
 	seriesMap[name] = std::make_shared<Series>();
 	seriesMap[name]->buffer = std::make_unique<ScrollingBuffer<double>>();
-	seriesMap[name]->var = &var;
+	seriesMap[name]->var = var;
 	return true;
 }
 

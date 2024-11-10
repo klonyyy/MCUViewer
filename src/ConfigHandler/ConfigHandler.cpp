@@ -5,11 +5,12 @@
 #include <variant>
 
 /* TODO refactor whole config and persistent storage handling */
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, spdlog::logger* logger)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, spdlog::logger* logger)
 	: configFilePath(configFilePath),
 	  plotHandler(plotHandler),
 	  tracePlotHandler(tracePlotHandler),
 	  plotGroupHandler(plotGroupHandler),
+	  variableHandler(variableHandler),
 	  logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
@@ -24,7 +25,7 @@ bool ConfigHandler::changeConfigFile(const std::string& newConfigFilePath)
 	return true;
 }
 
-void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable>>& vars)
+void ConfigHandler::loadVariables()
 {
 	uint32_t varId = 0;
 	std::string name = "xxx";
@@ -76,14 +77,14 @@ void ConfigHandler::loadVariables(std::map<std::string, std::shared_ptr<Variable
 
 		if (!newVar->getName().empty())
 		{
-			vars[newVar->getName()] = newVar;
+			variableHandler->addVariable(newVar);
 			newVar->setIsFound(true);
 			logger->info("Adding variable: {}", newVar->getName());
 		}
 	}
 }
 
-void ConfigHandler::loadPlots(std::map<std::string, std::shared_ptr<Variable>>& vars)
+void ConfigHandler::loadPlots()
 {
 	uint32_t plotNumber = 0;
 	std::string plotName("xxx");
@@ -110,7 +111,7 @@ void ConfigHandler::loadPlots(std::map<std::string, std::shared_ptr<Variable>>& 
 
 			while (varName != "")
 			{
-				plot->addSeries(*vars[varName]);
+				plot->addSeries(variableHandler->getVariable(varName).get());
 				bool visible = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("visibility") == "true" ? true : false;
 				plot->getSeries(varName)->visible = visible;
 				std::string displayFormat = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("format");
@@ -155,7 +156,7 @@ void ConfigHandler::loadTracePlots()
 			auto newVar = std::make_shared<Variable>(plotName);
 			newVar->setColor(colors[(colormapSize - 1) - (plotNumber % colormapSize)]);
 			tracePlotHandler->traceVars[plotName] = newVar;
-			plot->addSeries(*newVar);
+			plot->addSeries(newVar.get());
 			plot->getSeries(plotName)->visible = true;
 		}
 		plotNumber++;
@@ -208,7 +209,7 @@ void ConfigHandler::loadPlotGroups()
 	}
 }
 
-bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath)
+bool ConfigHandler::readConfigFile(std::string& elfPath)
 {
 	PlotHandler::Settings viewerSettings{};
 	TracePlotHandler::Settings traceSettings{};
@@ -290,8 +291,8 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	if (debugProbeSettings.speedkHz == 0)
 		debugProbeSettings.speedkHz = 100;
 
-	loadVariables(vars);
-	loadPlots(vars);
+	loadVariables();
+	loadPlots();
 	loadTracePlots();
 	loadPlotGroups();
 
@@ -304,7 +305,7 @@ bool ConfigHandler::readConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	return true;
 }
 
-bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string& newSavePath)
+bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string& newSavePath)
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
@@ -361,7 +362,7 @@ bool ConfigHandler::saveConfigFile(std::map<std::string, std::shared_ptr<Variabl
 	(*ini)["trace_settings"]["log_directory"] = traceSettings.logFilePath;
 
 	uint32_t varId = 0;
-	for (auto& [key, var] : vars)
+	for (std::shared_ptr<Variable> var : *variableHandler)
 	{
 		(*ini)[varFieldFromID(varId)]["name"] = var->getName();
 		(*ini)[varFieldFromID(varId)]["tracked_name"] = var->getTrackedName();

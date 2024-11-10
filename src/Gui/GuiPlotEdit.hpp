@@ -11,12 +11,12 @@
 class PlotEditWindow
 {
    public:
-	PlotEditWindow(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, std::map<std::string, std::shared_ptr<Variable>>* vars) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), vars(vars)
+	PlotEditWindow(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), variableHandler(variableHandler)
 	{
-		selectVariableWindow = std::make_unique<SelectVariableWindow>(vars, &selection);
+		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection);
 	}
 
-	void drawPlotEditWindow()
+	void draw()
 	{
 		if (showPlotEditWindow)
 			ImGui::OpenPopup("Plot Edit");
@@ -119,7 +119,7 @@ class PlotEditWindow
 
 	PlotHandler* plotHandler;
 	PlotGroupHandler* plotGroupHandler;
-	std::map<std::string, std::shared_ptr<Variable>>* vars;
+	VariableHandler* variableHandler;
 
 	Popup popup;
 

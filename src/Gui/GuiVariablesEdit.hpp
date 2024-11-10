@@ -4,17 +4,18 @@
 #include "GuiHelper.hpp"
 #include "Popup.hpp"
 #include "Variable.hpp"
+#include "VariableHandler.hpp"
 #include "imgui.h"
 
 class VariableEditWindow
 {
    public:
-	VariableEditWindow(std::map<std::string, std::shared_ptr<Variable>>* vars) : vars(vars)
+	VariableEditWindow(VariableHandler* variableHandler) : variableHandler(variableHandler)
 	{
-		selectVariableWindow = std::make_unique<SelectVariableWindow>(vars, &selection);
+		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection);
 	}
 
-	void drawVariableEditWindow()
+	void draw()
 	{
 		if (showVariableEditWindow)
 			ImGui::OpenPopup("Variable Edit");
@@ -80,7 +81,7 @@ class VariableEditWindow
 		ImGui::SameLine();
 		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL))
 		{
-			if (!vars->contains(name))
+			if (!variableHandler->contains(name))
 				editedVariable->rename(name);
 			else
 				popup.show("Error!", "Variable already exists!", 1.5f);
@@ -101,8 +102,8 @@ class VariableEditWindow
 		if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_None, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
 		{
 			editedVariable->setTrackedName(trackedVarName);
-			editedVariable->setAddress(vars->at(trackedVarName)->getAddress());
-			editedVariable->setType(vars->at(trackedVarName)->getType());
+			editedVariable->setAddress(variableHandler->getVariable(trackedVarName)->getAddress());
+			editedVariable->setType(variableHandler->getVariable(trackedVarName)->getType());
 			selection.clear();
 		}
 		ImGui::SameLine();
@@ -212,7 +213,7 @@ class VariableEditWindow
 
 	std::shared_ptr<Variable> editedVariable = nullptr;
 
-	std::map<std::string, std::shared_ptr<Variable>>* vars;
+	VariableHandler* variableHandler;
 
 	Popup popup;
 
