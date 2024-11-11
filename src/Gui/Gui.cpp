@@ -25,6 +25,12 @@ Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandl
 	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, variableHandler);
 	plotsTree = std::make_shared<PlotsTree>(plotHandler, plotGroupHandler, variableHandler, plotEditWindow, fileHandler, logger);
 	variableTable = std::make_shared<VariableTableWindow>(plotHandler, variableHandler, &projectElfPath, &projectConfigPath, logger);
+
+	variableHandler->renameCallback = [&](std::string oldName, std::string newName)
+	{
+		for (std::shared_ptr<Plot> plt : *this->plotHandler)
+			plt->renameSeries(oldName, newName);
+	};
 }
 
 Gui::~Gui()
@@ -452,13 +458,6 @@ bool Gui::openProject(std::string externalPath)
 		variableHandler->clear();
 		plotHandler->removeAllPlots();
 		configHandler->readConfigFile(projectElfPath);
-
-		/* attach rename callback so that all references are updated on variable rename */
-		for (std::shared_ptr<Variable> var : *variableHandler)
-		{
-			var->renameCallback = [&](const std::string& currentName, const std::string& newName)
-			{ variableHandler->renameVariable(currentName, newName); };
-		}
 
 		logger->info("Project config path: {}", projectConfigPath);
 		/* TODO refactor */

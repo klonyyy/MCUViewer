@@ -47,10 +47,6 @@ void VariableHandler::addNewVariable(std::string newName)
 	std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
 	uint32_t randomColor = dist(gen);
 	newVar->setColor(randomColor);
-	newVar->renameCallback = [&](const std::string& currentName, const std::string& newName)
-	{
-		renameVariable(currentName, newName);
-	};
 	newVar->setTrackedName(newName);
 	variableMap.emplace(newName, newVar);
 }
@@ -60,6 +56,11 @@ void VariableHandler::renameVariable(const std::string& currentName, const std::
 	auto temp = variableMap.extract(currentName);
 	temp.key() = std::string(newName);
 	variableMap.insert(std::move(temp));
+
+	variableMap[newName]->rename(newName);
+
+	if (renameCallback)
+		renameCallback(currentName, newName);
 }
 
 VariableHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Variable>>::iterator iter)

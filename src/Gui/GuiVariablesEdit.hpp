@@ -82,7 +82,9 @@ class VariableEditWindow
 		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL))
 		{
 			if (!variableHandler->contains(name))
-				editedVariable->rename(name);
+			{
+				variableHandler->renameVariable(editedVariable->getName(), name);
+			}
 			else
 				popup.show("Error!", "Variable already exists!", 1.5f);
 		}

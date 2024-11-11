@@ -54,7 +54,7 @@ class Variable
 
 	void setAddress(uint32_t addr);
 	uint32_t getAddress() const;
-	std::string& getName();
+	std::string getName();
 	void rename(const std::string& newName);
 
 	void setColor(float r, float g, float b, float a);
@@ -97,7 +97,6 @@ class Variable
 
 	static const char* types[8];
 	static const char* highLevelTypes[3];
-	std::function<void(const std::string&, const std::string&)> renameCallback;
 
    private:
 	std::string name = "";

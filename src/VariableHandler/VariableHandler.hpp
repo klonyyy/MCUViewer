@@ -46,6 +46,9 @@ class VariableHandler
 	iterator begin();
 	iterator end();
 
+   public:
+	std::function<void(const std::string&, const std::string&)> renameCallback;
+
    private:
 	VariableMap variableMap;
 };

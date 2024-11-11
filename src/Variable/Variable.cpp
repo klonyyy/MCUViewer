@@ -66,15 +66,13 @@ uint32_t Variable::getAddress() const
 	return address;
 }
 
-std::string& Variable::getName()
+std::string Variable::getName()
 {
 	return name;
 }
 
 void Variable::rename(const std::string& newName)
 {
-	if (renameCallback)
-		renameCallback(name, newName);
 	name = newName;
 
 	if (!isTrackedNameDifferent)
