@@ -28,7 +28,8 @@ include_directories(${EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/src/TraceReader
     ${CMAKE_SOURCE_DIR}/src/Statistics
     ${CMAKE_SOURCE_DIR}/src/GdbParser
-    ${CMAKE_SOURCE_DIR}/src/Variable)
+    ${CMAKE_SOURCE_DIR}/src/Variable
+    ${CMAKE_SOURCE_DIR}/src/VariableHandler)
 
 include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/spdlog/inc)
