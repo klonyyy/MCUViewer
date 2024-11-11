@@ -26,8 +26,12 @@ class ImportVariablesWindow
 		if (showImportVariablesWindow)
 		{
 			ImGui::OpenPopup("Import Variables");
+
 			if (!wasPreviouslyOpened)
+			{
+				selection.clear();
 				shouldUpdateOnOpen = true;
+			}
 		}
 
 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -75,7 +79,7 @@ class ImportVariablesWindow
 
 			if (ImGui::Button("Done", ImVec2(-1, 25 * GuiHelper::contentScale)))
 			{
-				// performVariablesUpdate = true; TODO: WARNING
+				shouldUpdate = true;
 				showImportVariablesWindow = false;
 				ImGui::CloseCurrentPopup();
 			}
@@ -91,6 +95,13 @@ class ImportVariablesWindow
 	void setShowImportVariablesWindow(bool show)
 	{
 		showImportVariablesWindow = show;
+	}
+
+	bool shouldPerformVariableUpdate()
+	{
+		bool temp = shouldUpdate;
+		shouldUpdate = false;
+		return temp;
 	}
 
    private:
@@ -149,4 +160,5 @@ class ImportVariablesWindow
 	Popup acqusitionErrorPopup;
 
 	bool showImportVariablesWindow = false;
+	bool shouldUpdate = false;
 };

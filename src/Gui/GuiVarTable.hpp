@@ -175,6 +175,8 @@ class VariableTableWindow
 
 		bool elfChanged = checkElfFileChanged();
 
+		performVariablesUpdate = importVariablesWindow->shouldPerformVariableUpdate();
+
 		if (elfChanged)
 		{
 			ImVec4 color = ImColor::HSV(0.1f, 0.97f, 0.72f);
