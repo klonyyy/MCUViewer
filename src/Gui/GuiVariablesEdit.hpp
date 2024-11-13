@@ -103,10 +103,13 @@ class VariableEditWindow
 
 		if (ImGui::InputText("##trackedVarName", &trackedVarName, ImGuiInputTextFlags_None, NULL, NULL) || editedVariable->getTrackedName() != trackedVarName)
 		{
-			editedVariable->setTrackedName(trackedVarName);
-			editedVariable->setAddress(variableHandler->getVariable(trackedVarName)->getAddress());
-			editedVariable->setType(variableHandler->getVariable(trackedVarName)->getType());
-			selection.clear();
+			if (variableHandler->contains(trackedVarName))
+			{
+				editedVariable->setTrackedName(trackedVarName);
+				editedVariable->setAddress(variableHandler->getVariable(trackedVarName)->getAddress());
+				editedVariable->setType(variableHandler->getVariable(trackedVarName)->getType());
+				selection.clear();
+			}
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
