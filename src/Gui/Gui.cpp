@@ -340,7 +340,7 @@ void Gui::drawAcqusitionSettingsWindow(ActiveViewType type)
 		const float buttonHeight = 25.0f * GuiHelper::contentScale;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
 
-		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)) || ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			showAcqusitionSettingsWindow = false;
 			ImGui::CloseCurrentPopup();
@@ -365,7 +365,7 @@ void Gui::drawPreferencesWindow()
 
 		const float buttonHeight = 25.0f * GuiHelper::contentScale;
 		ImGui::SetCursorPos(ImVec2(0, ImGui::GetWindowSize().y - buttonHeight / 2.0f - ImGui::GetFrameHeightWithSpacing()));
-		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)))
+		if (ImGui::Button("Done", ImVec2(-1, buttonHeight)) || ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			showPreferencesWindow = false;
 			ImGui::CloseCurrentPopup();
