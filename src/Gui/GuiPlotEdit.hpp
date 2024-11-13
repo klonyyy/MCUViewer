@@ -74,7 +74,9 @@ class PlotEditWindow
 			stateChanged = false;
 		}
 
-		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
+		ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL);
+
+		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			if (!plotHandler->checkIfPlotExists(name))
 			{

@@ -70,13 +70,16 @@ class GroupEditWindow
 			stateChanged = false;
 		}
 
-		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL))
+		ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL);
+
+		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			if (!plotGroupHandler->checkIfGroupExists(name))
 			{
 				std::string oldName = editedGroup->getName();
 				plotGroupHandler->renameGroup(oldName, name);
 			}
+
 			else
 				popup.show("Error!", "Group already exists!", 1.5f);
 		}
