@@ -45,7 +45,7 @@ class PlotsTree
 			selectedPlot = plotHandler->begin().operator*()->getName();
 
 		ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
-		ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
+		ImGui::BeginChild("left pane", ImVec2(200 * GuiHelper::contentScale, -1), true);
 
 		ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
 		std::optional<std::string> groupNameToDelete;
@@ -141,6 +141,8 @@ class PlotsTree
 		ImGui::BeginGroup();
 		ImGui::PushID(plt->getName().c_str());
 
+		int32_t listBoxHeight = windowHeight - 30 * GuiHelper::contentScale;
+
 		/* Staticstics */
 		if (plt->getType() == Plot::Type::CURVE)
 		{
@@ -155,12 +157,14 @@ class PlotsTree
 			ImGui::Checkbox("##mx1", &mx1);
 			plt->markerX1.setState(mx1);
 			statisticsWindow.drawAnalog(plt);
+
+			listBoxHeight -= 70 * GuiHelper::contentScale;
 		}
 		ImGui::PopID();
 
 		/* Var list within plot*/
 		ImGui::PushID("list");
-		if (ImGui::BeginListBox("##", ImVec2(-1, 175 * GuiHelper::contentScale)))
+		if (ImGui::BeginListBox("##", ImVec2(-1, listBoxHeight)))
 		{
 			std::optional<std::string> seriesNameToDelete = {};
 			for (auto& [name, ser] : plt->getSeriesMap())
