@@ -87,6 +87,8 @@ class PlotsTree
 
 				for (auto& [name, plot] : *group)
 				{
+					ImGui::PushID("plot");
+
 					ImGui::Checkbox(std::string("##" + name).c_str(), &plot->getVisibilityVar());
 					ImGui::SameLine();
 
@@ -117,6 +119,8 @@ class PlotsTree
 
 					if (plot->isHovered() && ImGui::IsMouseClicked(0))
 						selectedPlot = plot->getName();
+
+					ImGui::PopID();
 				}
 				ImGui::TreePop();
 			}
@@ -322,7 +326,7 @@ class PlotsTree
    private:
 	PlotHandler* plotHandler;
 	PlotGroupHandler* plotGroupHandler;
-    VariableHandler* variableHandler;
+	VariableHandler* variableHandler;
 	std::shared_ptr<PlotEditWindow> plotEditWindow;
 
 	std::unique_ptr<GroupEditWindow> groupEditWindow;
