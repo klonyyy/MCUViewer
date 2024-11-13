@@ -111,6 +111,13 @@ class VariableEditWindow
 				selection.clear();
 			}
 		}
+
+		if (ImGui::IsItemDeactivatedAfterEdit())
+		{
+			if (!variableHandler->contains(trackedVarName))
+				popup.show("Error!", "Tracked variable doesn't exist!", 1.5f);
+		}
+
 		ImGui::SameLine();
 		if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
 			selectVariableWindow->setShowState(true);
