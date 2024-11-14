@@ -32,13 +32,30 @@ bool VariableHandler::contains(const std::string& name)
 
 void VariableHandler::addNewVariable(std::string newName)
 {
-	if (newName.empty())
+	bool copy = false;
+	std::string originalName = newName;
+
+	auto incrementName = [&](std::string name) -> std::string
 	{
 		uint32_t num = 0;
-		while (variableMap.find(std::string("-new") + std::to_string(num)) != variableMap.end())
+		if (name.find("_copy_") != std::string::npos)
+			name = name.substr(0, name.find("_copy_"));
+
+		while (variableMap.find(name + "_copy_" + std::to_string(num)) != variableMap.end())
 			num++;
 
-		newName = std::string("-new") + std::to_string(num);
+		if (name == "-new")
+			return name + std::to_string(num);
+		else
+			return name + "_copy_" + std::to_string(num);
+	};
+
+	if (newName.empty())
+		newName = incrementName("-new");
+	else if (variableMap.find(newName) != variableMap.end())
+	{
+		copy = true;
+		newName = incrementName(newName);
 	}
 
 	std::shared_ptr<Variable> newVar = std::make_shared<Variable>(newName);
@@ -46,8 +63,21 @@ void VariableHandler::addNewVariable(std::string newName)
 	std::mt19937 gen{rd()};
 	std::uniform_int_distribution<uint32_t> dist{0, UINT32_MAX};
 	uint32_t randomColor = dist(gen);
+
+	if (copy)
+	{
+		std::shared_ptr<Variable> copiedVar = variableMap.at(originalName);
+		newVar->setTrackedName(copiedVar->getTrackedName());
+		newVar->setAddress(copiedVar->getAddress());
+		newVar->setType(copiedVar->getType());
+		newVar->setShift(copiedVar->getShift());
+		newVar->setHighLevelType(copiedVar->getHighLevelType());
+		newVar->setIsFound(copiedVar->getIsFound());
+	}
+	else
+		newVar->setTrackedName(newName);
+
 	newVar->setColor(randomColor);
-	newVar->setTrackedName(newName);
 	variableMap.emplace(newName, newVar);
 }
 

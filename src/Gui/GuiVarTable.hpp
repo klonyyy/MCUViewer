@@ -92,8 +92,12 @@ class VariableTableWindow
 						selection.clear();
 				}
 
-				if (!varNameToDelete.has_value())
-					varNameToDelete = GuiHelper::showDeletePopup("Delete", name);
+				drawMenuVariablePopup(name, [&]()
+									  { variableHandler->addNewVariable(""); }, [&](std::string name)
+									  { variableHandler->addNewVariable(name); }, [&](std::string name)
+									  { varNameToDelete = name; }, [&](std::string name)
+									  {	variableEditWindow->setVariableToEdit(var);
+                                                                    variableEditWindow->setShowVariableEditWindowState(true); });
 
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
@@ -223,6 +227,28 @@ class VariableTableWindow
 
 		auto writeTime = std::filesystem::last_write_time(path);
 		return writeTime > lastModifiedTime;
+	}
+
+	void drawMenuVariablePopup(const std::string& name, std::function<void()> onNew, std::function<void(const std::string&)> onCopy, std::function<void(const std::string&)> onDelete, std::function<void(const std::string&)> onProperties)
+	{
+		ImGui::PushID(name.c_str());
+		if (ImGui::BeginPopupContextItem(name.c_str()))
+		{
+			if (ImGui::MenuItem("New"))
+				onNew();
+
+			if (ImGui::MenuItem("Copy"))
+				onCopy(name);
+
+			if (ImGui::MenuItem("Delete"))
+				onDelete(name);
+
+			if (ImGui::MenuItem("Properties"))
+				onProperties(name);
+
+			ImGui::EndPopup();
+		}
+		ImGui::PopID();
 	}
 
    private:
