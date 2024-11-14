@@ -44,6 +44,9 @@ void VariableHandler::addNewVariable(std::string newName)
 		while (variableMap.find(name + "_copy_" + std::to_string(num)) != variableMap.end())
 			num++;
 
+		while (variableMap.find(name + std::to_string(num)) != variableMap.end())
+			num++;
+
 		if (name == "-new")
 			return name + std::to_string(num);
 		else
