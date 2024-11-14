@@ -135,7 +135,7 @@ class Plot
 	void setIsHovered(bool isHovered);
 	bool isHovered() const;
 
-	void setXAxisVariable(Variable& var);
+	void setXAxisVariable(Variable* var);
 
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);

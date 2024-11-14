@@ -45,7 +45,7 @@ class Gui
 	VariableHandler* variableHandler;
 	ConfigHandler* configHandler;
 	PlotGroupHandler* plotGroupHandler;
-	
+
 	std::string projectConfigPath;
 	std::string projectElfPath;
 	bool showAcqusitionSettingsWindow = false;
@@ -109,6 +109,7 @@ class Gui
 	void drawPlotCurve(std::shared_ptr<Plot> plot);
 	void drawPlotBar(std::shared_ptr<Plot> plot);
 	void drawPlotTable(std::shared_ptr<Plot> plot);
+	void drawPlotXY(std::shared_ptr<Plot> plot);
 	void handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback);
 	void handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits);
 	void dragAndDropPlot(std::shared_ptr<Plot> plot);

@@ -53,9 +53,60 @@ void Gui::drawPlots()
 				drawPlotCurve(plot);
 			else if (plot->getType() == Plot::Type::BAR)
 				drawPlotBar(plot);
+			else if (plot->getType() == Plot::Type::XY)
+				drawPlotXY(plot);
 		}
 
 		ImPlot::EndSubplots();
+	}
+}
+
+void Gui::drawPlotXY(std::shared_ptr<Plot> plot)
+{
+	auto& time = *plot->getXAxisSeries();
+	auto& seriesMap = plot->getSeriesMap();
+
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	{
+		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
+		{
+			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
+			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
+		}
+		else
+		{
+			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
+		}
+
+		plot->setIsHovered(ImPlot::IsPlotHovered());
+		dragAndDropPlot(plot);
+
+		/* make thread safe copies of buffers - TODO refactor */
+		mtx->lock();
+		time.copyData();
+		for (auto& [key, serPtr] : seriesMap)
+		{
+			if (!serPtr->visible)
+				continue;
+			serPtr->buffer->copyData();
+		}
+		uint32_t offset = time.getOffset();
+		uint32_t size = time.getSize();
+		mtx->unlock();
+
+		for (auto& [key, serPtr] : seriesMap)
+		{
+			if (!serPtr->visible)
+				continue;
+
+			ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
+			ImPlot::PlotLine(key.c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
+		}
+
+		ImPlot::EndPlot();
 	}
 }
 

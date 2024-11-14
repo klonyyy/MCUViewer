@@ -61,6 +61,11 @@ std::map<std::string, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
 
 ScrollingBuffer<double>* Plot::getXAxisSeries()
 {
+	if (type == Type::XY)
+	{
+		if (xAxisSeries.var != nullptr && seriesMap.contains(xAxisSeries.var->getName()))
+			return seriesMap[xAxisSeries.var->getName()]->buffer.get();
+	}
 	return &time;
 }
 
@@ -128,6 +133,7 @@ bool Plot::addTimePoint(double t)
 void Plot::erase()
 {
 	time.erase();
+	xAxisSeries.buffer->erase();
 
 	for (auto& [name, ser] : seriesMap)
 		ser->buffer->erase();
@@ -245,7 +251,7 @@ bool Plot::isHovered() const
 	return isHoveredOver;
 }
 
-void Plot::setXAxisVariable(Variable& var)
+void Plot::setXAxisVariable(Variable* var)
 {
-	xAxisSeries.var = &var;
+	xAxisSeries.var = var;
 }

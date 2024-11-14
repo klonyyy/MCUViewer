@@ -101,6 +101,8 @@ class PlotEditWindow
 			ImGui::SameLine();
 			std::string selectedVariable = selection.empty() ? "" : *selection.begin();
 			ImGui::InputText("##", &selectedVariable, 0, NULL, NULL);
+			if (variableHandler->contains(selectedVariable))
+				editedPlot->setXAxisVariable(variableHandler->getVariable(selectedVariable).get());
 			ImGui::SameLine();
 			if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
 				selectVariableWindow->setShowState(true);
