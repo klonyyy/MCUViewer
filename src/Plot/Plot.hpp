@@ -27,6 +27,8 @@ class Plot
 		displayFormat format = displayFormat::DEC;
 		std::unique_ptr<ScrollingBuffer<double>> buffer;
 		bool visible = true;
+
+		void addPointFromVar() { buffer->addPoint(var->getValue()); }
 	};
 
 	enum class Type : uint8_t
@@ -116,6 +118,7 @@ class Plot
 	std::vector<uint32_t> getVariableAddesses() const;
 	std::vector<Variable::Type> getVariableTypes() const;
 	bool addPoint(const std::string& varName, double value);
+	void updateSeries();
 	bool addTimePoint(double t);
 	void erase();
 	void setVisibility(bool state);

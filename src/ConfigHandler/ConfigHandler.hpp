@@ -6,9 +6,11 @@
 
 #include "PlotGroupHandler.hpp"
 #include "PlotHandler.hpp"
+#include "TraceDataHandler.hpp"
 #include "TracePlotHandler.hpp"
 #include "Variable.hpp"
 #include "VariableHandler.hpp"
+#include "ViewerDataHandler.hpp"
 #include "ini.h"
 #include "spdlog/spdlog.h"
 
@@ -20,7 +22,7 @@ class ConfigHandler
 		uint32_t version = 1;
 	} GlobalSettings;
 
-	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, spdlog::logger* logger);
+	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger);
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
@@ -64,6 +66,8 @@ class ConfigHandler
 	TracePlotHandler* tracePlotHandler;
 	PlotGroupHandler* plotGroupHandler;
 	VariableHandler* variableHandler;
+	ViewerDataHandler* viewerDataHandler;
+	TraceDataHandler* traceDataHandler;
 	spdlog::logger* logger;
 
 	std::map<std::string, Plot::displayFormat> displayFormatMap{{"DEC", Plot::displayFormat::DEC}, {"HEX", Plot::displayFormat::HEX}, {"BIN", Plot::displayFormat::BIN}};

@@ -11,11 +11,12 @@
 #include "Popup.hpp"
 #include "Variable.hpp"
 #include "VariableHandler.hpp"
+#include "ViewerDataHandler.hpp"
 
 class VariableTableWindow
 {
    public:
-	VariableTableWindow(PlotHandler* plotHandler, VariableHandler* variableHandler, std::string* projectElfPath, std::string* projectConfigPath, spdlog::logger* logger) : plotHandler(plotHandler), variableHandler(variableHandler), projectElfPath(projectElfPath), projectConfigPath(projectConfigPath), logger(logger)
+	VariableTableWindow(ViewerDataHandler* viewerDataHandler, PlotHandler* plotHandler, VariableHandler* variableHandler, std::string* projectElfPath, std::string* projectConfigPath, spdlog::logger* logger) : viewerDataHandler(viewerDataHandler), plotHandler(plotHandler), variableHandler(variableHandler), projectElfPath(projectElfPath), projectConfigPath(projectConfigPath), logger(logger)
 	{
 		parser = std::make_shared<GdbParser>(variableHandler, logger);
 		variableEditWindow = std::make_shared<VariableEditWindow>(variableHandler);
@@ -27,7 +28,7 @@ class VariableTableWindow
 		static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 		static std::set<std::string> selection;
 
-		ImGui::BeginDisabled(plotHandler->getViewerState() == PlotHandlerBase::state::RUN);
+		ImGui::BeginDisabled(viewerDataHandler->getState() == DataHandlerBase::state::RUN);
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Variables");
 		ImGui::SameLine();
@@ -190,7 +191,7 @@ class VariableTableWindow
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 
 			if (plotHandler->getSettings().stopAcqusitionOnElfChange)
-				plotHandler->setViewerState(PlotHandlerBase::state::STOP);
+				viewerDataHandler->setState(DataHandlerBase::state::STOP);
 
 			if (plotHandler->getSettings().refreshAddressesOnElfChange)
 			{
@@ -252,6 +253,7 @@ class VariableTableWindow
 	}
 
    private:
+	ViewerDataHandler* viewerDataHandler;
 	PlotHandler* plotHandler;
 	VariableHandler* variableHandler;
 	std::string* projectElfPath;

@@ -45,12 +45,16 @@ int main(int argc, char** argv)
 
 	PlotGroupHandler plotGroupHandler;
 	VariableHandler variableHandler;
-	PlotHandler plotHandler(done, &mtx, loggerPtr);
-	TracePlotHandler tracePlotHandler(done, &mtx, loggerPtr);
-	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, &plotGroupHandler, &variableHandler, loggerPtr);
+	PlotHandler plotHandler;
+	TracePlotHandler tracePlotHandler;
+
+	ViewerDataHandler viewerDataHandler(&plotGroupHandler, &variableHandler, &plotHandler, &tracePlotHandler, done, &mtx, loggerPtr);
+	TraceDataHandler traceDataHandler(&plotGroupHandler, &variableHandler, &plotHandler, &tracePlotHandler, done, &mtx, loggerPtr);
+
+	ConfigHandler configHandler("", &plotHandler, &tracePlotHandler, &plotGroupHandler, &variableHandler, &viewerDataHandler, &traceDataHandler, loggerPtr);
 	NFDFileHandler fileHandler;
 
-	Gui gui(&plotHandler, &variableHandler, &configHandler, &plotGroupHandler, &fileHandler, &tracePlotHandler, done, &mtx, loggerPtr, projectPath);
+	Gui gui(&plotHandler, &variableHandler, &configHandler, &plotGroupHandler, &fileHandler, &tracePlotHandler, &viewerDataHandler, &traceDataHandler, done, &mtx, loggerPtr, projectPath);
 
 	while (!done)
 	{

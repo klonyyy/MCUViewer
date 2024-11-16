@@ -68,7 +68,7 @@ void Gui::drawPlotXY(std::shared_ptr<Plot> plot)
 
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
-		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
+		if (viewerDataHandler->getState() == DataHandlerBase::state::RUN)
 		{
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
@@ -117,12 +117,12 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
-		if (plotHandler->getViewerState() == PlotHandler::state::RUN)
+		if (viewerDataHandler->getState() == DataHandlerBase::state::RUN)
 		{
 			PlotHandler::Settings settings = plotHandler->getSettings();
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
-			const double viewportWidth = (1.0 / plotHandler->getAverageSamplingFrequency()) * settings.maxViewportPoints;
+			const double viewportWidth = (1.0 / viewerDataHandler->getAverageSamplingFrequency()) * settings.maxViewportPoints;
 			const double min = *time.getLastElement() < viewportWidth ? 0.0f : *time.getLastElement() - viewportWidth;
 			const double max = min == 0.0f ? *time.getLastElement() : min + viewportWidth;
 			ImPlot::SetupAxisLimits(ImAxis_X1, min, max, ImPlotCond_Always);
@@ -137,7 +137,7 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 		dragAndDropPlot(plot);
 
-		if (plotHandler->getViewerState() == PlotHandler::state::STOP)
+		if (viewerDataHandler->getState() == DataHandlerBase::state::STOP)
 		{
 			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
 			handleMarkers(0, plot->markerX0, plotLimits, [&]()
@@ -278,7 +278,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 			char newValue[Variable::maxVariableNameLength] = {0};
 			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, Variable::maxVariableNameLength))
 			{
-				if (plotHandler->getViewerState() == PlotHandler::state::STOP)
+				if (viewerDataHandler->getState() == DataHandlerBase::state::STOP)
 				{
 					ImGui::PopID();
 					continue;
@@ -286,7 +286,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
 					logger->info("New value to be written: {}", newValue);
-					if (!plotHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
+					if (!viewerDataHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
 						logger->error("Error while writing new value!");
 				}
 			}

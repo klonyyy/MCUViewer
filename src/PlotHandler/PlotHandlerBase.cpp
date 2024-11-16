@@ -6,11 +6,6 @@
 #include <string>
 #include <utility>
 
-PlotHandlerBase::PlotHandlerBase(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : done(done), mtx(mtx), logger(logger)
-{
-	csvStreamer = std::make_unique<CSVStreamer>(logger);
-}
-
 std::shared_ptr<Plot> PlotHandlerBase::addPlot(const std::string& name)
 {
 	plotsMap[name] = std::make_shared<Plot>(name);
@@ -53,24 +48,6 @@ bool PlotHandlerBase::eraseAllPlotData()
 			plot.second->erase();
 
 	return true;
-}
-
-void PlotHandlerBase::setViewerState(state state)
-{
-	if (state == viewerState)
-		return;
-
-	viewerState = state;
-	stateChangeOrdered = true;
-}
-
-PlotHandlerBase::state PlotHandlerBase::getViewerState() const
-{
-	/* TODO possible deadlock */
-	while (stateChangeOrdered)
-	{
-	}
-	return viewerState;
 }
 
 uint32_t PlotHandlerBase::getVisiblePlotsCount() const

@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "PlotHandlerBase.hpp"
+#include "StLinkDebugProbe.hpp"
 #include "Statistics.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
@@ -19,18 +20,20 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), viewerDataHandler(viewerDataHandler), traceDataHandler(traceDataHandler), done(done), mtx(mtx), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
 	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, variableHandler);
 	plotsTree = std::make_shared<PlotsTree>(plotHandler, plotGroupHandler, variableHandler, plotEditWindow, fileHandler, logger);
-	variableTable = std::make_shared<VariableTableWindow>(plotHandler, variableHandler, &projectElfPath, &projectConfigPath, logger);
+	variableTable = std::make_shared<VariableTableWindow>(viewerDataHandler, plotHandler, variableHandler, &projectElfPath, &projectConfigPath, logger);
 
 	variableHandler->renameCallback = [&](std::string oldName, std::string newName)
 	{
 		for (std::shared_ptr<Plot> plt : *this->plotHandler)
 			plt->renameSeries(oldName, newName);
 	};
+
+	tracePlotHandler->initPlots();
 }
 
 Gui::~Gui()
@@ -97,12 +100,12 @@ void Gui::mainThread(std::string externalPath)
 	jlinkProbe = std::make_shared<JlinkDebugProbe>(logger);
 	stlinkProbe = std::make_shared<StlinkDebugProbe>(logger);
 	debugProbeDevice = stlinkProbe;
-	plotHandler->setDebugProbe(debugProbeDevice);
+	viewerDataHandler->setDebugProbe(debugProbeDevice);
 
 	jlinkTraceProbe = std::make_shared<JlinkTraceProbe>(logger);
 	stlinkTraceProbe = std::make_shared<StlinkTraceProbe>(logger);
 	traceProbeDevice = stlinkTraceProbe;
-	tracePlotHandler->setDebugProbe(traceProbeDevice);
+	traceDataHandler->setDebugProbe(traceProbeDevice);
 
 	if (!externalPath.empty())
 		openProject(externalPath);
@@ -115,7 +118,7 @@ void Gui::mainThread(std::string externalPath)
 			continue;
 		}
 
-		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) || (plotHandler->getViewerState() == PlotHandlerBase::state::RUN))
+		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (traceDataHandler->getState() == DataHandlerBase::state::RUN) || (viewerDataHandler->getState() == DataHandlerBase::state::RUN))
 			glfwSwapInterval(1);
 		else
 			glfwSwapInterval(4);
@@ -133,8 +136,8 @@ void Gui::mainThread(std::string externalPath)
 
 		if (glfwWindowShouldClose(window))
 		{
-			plotHandler->setViewerState(PlotHandlerBase::state::STOP);
-			tracePlotHandler->setViewerState(PlotHandlerBase::state::STOP);
+			viewerDataHandler->setState(DataHandlerBase::state::STOP);
+			traceDataHandler->setState(DataHandlerBase::state::STOP);
 			askShouldSaveOnExit(glfwWindowShouldClose(window));
 		}
 		glfwSetWindowShouldClose(window, done);
@@ -152,7 +155,7 @@ void Gui::mainThread(std::string externalPath)
 			if (ImGui::Begin("Trace Plots"))
 				drawPlotsSwo();
 			ImGui::End();
-			drawStartButton(tracePlotHandler);
+			drawStartButton(traceDataHandler);
 			drawSettingsSwo();
 			drawIndicatorsSwo();
 			drawPlotsTreeSwo();
@@ -163,7 +166,7 @@ void Gui::mainThread(std::string externalPath)
 		{
 			activeView = ActiveViewType::VarViewer;
 			drawAcqusitionSettingsWindow(activeView);
-			drawStartButton(plotHandler);
+			drawStartButton(viewerDataHandler);
 			variableTable->draw();
 			plotsTree->draw();
 			plotEditWindow->draw();
@@ -211,7 +214,7 @@ void Gui::drawMenu()
 	bool shouldSaveOnNew = false;
 	ImGui::BeginMainMenuBar();
 
-	bool active = !(plotHandler->getViewerState() == PlotHandlerBase::state::RUN || tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN);
+	bool active = !(viewerDataHandler->getState() == DataHandlerBase::state::RUN || traceDataHandler->getState() == DataHandlerBase::state::RUN);
 
 	if (ImGui::BeginMenu("File"))
 	{
@@ -251,7 +254,7 @@ void Gui::drawMenu()
 	if (activeView == ActiveViewType::VarViewer)
 	{
 		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 210 * GuiHelper::contentScale));
-		GuiHelper::drawDescriptionWithNumber("sampling: ", plotHandler->getAverageSamplingFrequency(), " Hz", 2);
+		GuiHelper::drawDescriptionWithNumber("sampling: ", viewerDataHandler->getAverageSamplingFrequency(), " Hz", 2);
 	}
 
 	ImGui::EndMainMenuBar();
@@ -259,14 +262,14 @@ void Gui::drawMenu()
 	askShouldSaveOnNew(shouldSaveOnNew);
 }
 
-void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
+void Gui::drawStartButton(DataHandlerBase* activeDataHandler)
 {
 	bool shouldDisableButton = (!devicesList.empty() && devicesList.front() == noDevices);
 	ImGui::BeginDisabled(shouldDisableButton);
 
-	PlotHandlerBase::state state = activePlotHandler->getViewerState();
+	DataHandlerBase::state state = activeDataHandler->getState();
 
-	if (state == PlotHandlerBase::state::RUN)
+	if (state == DataHandlerBase::state::RUN)
 	{
 		ImVec4 green = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
 		ImVec4 greenLight = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.57f);
@@ -276,9 +279,9 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, greenLight);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, greenLightDim);
 	}
-	else if (state == PlotHandlerBase::state::STOP)
+	else if (state == DataHandlerBase::state::STOP)
 	{
-		if (activePlotHandler->getLastReaderError() != "")
+		if (activeDataHandler->getLastReaderError() != "")
 		{
 			ImVec4 red = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.72f);
 			ImVec4 redLight = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.92f);
@@ -300,20 +303,21 @@ void Gui::drawStartButton(PlotHandlerBase* activePlotHandler)
 		}
 	}
 
-	if ((ImGui::Button((viewerStateMap.at(state) + " " + activePlotHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * GuiHelper::contentScale)) ||
+	if ((ImGui::Button((viewerStateMap.at(state) + " " + activeDataHandler->getLastReaderError()).c_str(), ImVec2(-1, 50 * GuiHelper::contentScale)) ||
 		 (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopup))) &&
 		!shouldDisableButton)
 	{
-		if (state == PlotHandlerBase::state::STOP)
+		if (state == DataHandlerBase::state::STOP)
 		{
 			logger->info("Start clicked!");
-			activePlotHandler->eraseAllPlotData();
-			activePlotHandler->setViewerState(PlotHandlerBase::state::RUN);
+			plotHandler->eraseAllPlotData();
+			tracePlotHandler->eraseAllPlotData();
+			activeDataHandler->setState(DataHandlerBase::state::RUN);
 		}
 		else
 		{
 			logger->info("Stop clicked!");
-			activePlotHandler->setViewerState(PlotHandlerBase::state::STOP);
+			activeDataHandler->setState(DataHandlerBase::state::STOP);
 		}
 	}
 
@@ -464,19 +468,19 @@ bool Gui::openProject(std::string externalPath)
 		logger->info("Project config path: {}", projectConfigPath);
 		/* TODO refactor */
 		devicesList.clear();
-		if (plotHandler->getProbeSettings().debugProbe == 1)
+		if (viewerDataHandler->getProbeSettings().debugProbe == 1)
 			debugProbeDevice = jlinkProbe;
 		else
 			debugProbeDevice = stlinkProbe;
 
-		plotHandler->setDebugProbe(debugProbeDevice);
+		viewerDataHandler->setDebugProbe(debugProbeDevice);
 
-		if (tracePlotHandler->getProbeSettings().debugProbe == 1)
+		if (traceDataHandler->getProbeSettings().debugProbe == 1)
 			traceProbeDevice = jlinkTraceProbe;
 		else
 			traceProbeDevice = stlinkTraceProbe;
 
-		tracePlotHandler->setDebugProbe(traceProbeDevice);
+		traceDataHandler->setDebugProbe(traceProbeDevice);
 
 		return true;
 	}

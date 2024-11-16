@@ -24,21 +24,23 @@
 #include "PlotGroupHandler.hpp"
 #include "PlotHandler.hpp"
 #include "Popup.hpp"
+#include "TraceDataHandler.hpp"
 #include "TracePlotHandler.hpp"
 #include "VariableHandler.hpp"
+#include "ViewerDataHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
 
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
+	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
 	static constexpr bool showDemoWindow = true;
 
-	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
+	const std::map<DataHandlerBase::state, std::string> viewerStateMap{{DataHandlerBase::state::RUN, "RUNNING"}, {DataHandlerBase::state::STOP, "STOPPED"}};
 
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
@@ -55,6 +57,8 @@ class Gui
 
 	IFileHandler* fileHandler;
 	TracePlotHandler* tracePlotHandler;
+	ViewerDataHandler* viewerDataHandler;
+	TraceDataHandler* traceDataHandler;
 
 	std::shared_ptr<IDebugProbe> stlinkProbe;
 	std::shared_ptr<IDebugProbe> jlinkProbe;
@@ -90,7 +94,7 @@ class Gui
    private:
 	void mainThread(std::string externalPath);
 	void drawMenu();
-	void drawStartButton(PlotHandlerBase* activePlotHandler);
+	void drawStartButton(DataHandlerBase* activeDataHandler);
 	void drawDebugProbes();
 	void drawTraceProbes();
 	void drawUpdateAddressesFromElf();

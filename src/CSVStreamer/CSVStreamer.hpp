@@ -27,7 +27,7 @@ class CSVStreamer
 	/// @brief Creates file in given directory with a fixed name
 	/// @param directory directory string
 	/// @return
-	bool prepareFile(std::string& directory);
+	bool prepareFile(const std::string& directory);
 
 	/// @brief create csv file header from given argument, first column - time - is added internally
 	/// @param values table headers

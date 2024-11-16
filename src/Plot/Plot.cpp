@@ -124,6 +124,12 @@ bool Plot::addPoint(const std::string& varName, double value)
 	return true;
 }
 
+void Plot::updateSeries()
+{
+	for (auto& [name, ser] : seriesMap)
+		ser->addPointFromVar();
+}
+
 bool Plot::addTimePoint(double t)
 {
 	time.addPoint(t);

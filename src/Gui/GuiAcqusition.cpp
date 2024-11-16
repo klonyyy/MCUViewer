@@ -30,7 +30,7 @@ void Gui::acqusitionSettingsViewer()
 	ImGui::InputScalar("##sample", ImGuiDataType_U32, &settings.sampleFrequencyHz, NULL, NULL, "%u");
 	ImGui::SameLine();
 	ImGui::HelpMarker("Maximum sampling frequency. Depending on the used debug probe it can be reached or not.");
-	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, PlotHandler::minSamplinFrequencyHz, PlotHandler::maxSamplinFrequencyHz);
+	settings.sampleFrequencyHz = std::clamp(settings.sampleFrequencyHz, ViewerDataHandler::minSamplinFrequencyHz, ViewerDataHandler::maxSamplinFrequencyHz);
 
 	const uint32_t minPoints = 100;
 	const uint32_t maxPoints = 20000;
@@ -71,7 +71,7 @@ void Gui::drawDebugProbes()
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
-	IDebugProbe::DebugProbeSettings probeSettings = plotHandler->getProbeSettings();
+	IDebugProbe::DebugProbeSettings probeSettings = viewerDataHandler->getProbeSettings();
 	int32_t debugProbe = probeSettings.debugProbe;
 
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
@@ -158,8 +158,8 @@ void Gui::drawDebugProbes()
 
 	if (modified)
 	{
-		plotHandler->setProbeSettings(probeSettings);
-		plotHandler->setDebugProbe(debugProbeDevice);
+		viewerDataHandler->setProbeSettings(probeSettings);
+		viewerDataHandler->setDebugProbe(debugProbeDevice);
 	}
 	ImGui::PopID();
 }
@@ -252,7 +252,7 @@ void Gui::drawTraceProbes()
 	ImGui::SameLine();
 
 	const char* debugProbes[] = {"STLINK", "JLINK"};
-	ITraceProbe::TraceProbeSettings probeSettings = tracePlotHandler->getProbeSettings();
+	ITraceProbe::TraceProbeSettings probeSettings = traceDataHandler->getProbeSettings();
 	int32_t debugProbe = probeSettings.debugProbe;
 
 	if (ImGui::Combo("##debugProbe", &debugProbe, debugProbes, IM_ARRAYSIZE(debugProbes)))
@@ -321,8 +321,8 @@ void Gui::drawTraceProbes()
 
 	if (modified)
 	{
-		tracePlotHandler->setProbeSettings(probeSettings);
-		tracePlotHandler->setDebugProbe(traceProbeDevice);
+		traceDataHandler->setProbeSettings(probeSettings);
+		traceDataHandler->setDebugProbe(traceProbeDevice);
 	}
 	ImGui::PopID();
 }

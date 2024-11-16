@@ -137,7 +137,9 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JlinkTraceProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer/CSVStreamer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler/VariableHandler.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler/VariableHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/ViewerDataHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/TraceDataHandler.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -204,7 +206,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotGroupHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

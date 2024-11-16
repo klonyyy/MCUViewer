@@ -4,13 +4,18 @@
 #include <random>
 #include <variant>
 
+#include "IDebugProbe.hpp"
+#include "ITraceProbe.hpp"
+
 /* TODO refactor whole config and persistent storage handling */
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, spdlog::logger* logger)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger)
 	: configFilePath(configFilePath),
 	  plotHandler(plotHandler),
 	  tracePlotHandler(tracePlotHandler),
 	  plotGroupHandler(plotGroupHandler),
 	  variableHandler(variableHandler),
+	  viewerDataHandler(viewerDataHandler),
+	  traceDataHandler(traceDataHandler),
 	  logger(logger)
 {
 	ini = std::make_unique<mINI::INIStructure>();
@@ -297,10 +302,10 @@ bool ConfigHandler::readConfigFile(std::string& elfPath)
 	loadPlotGroups();
 
 	plotHandler->setSettings(viewerSettings);
-	plotHandler->setProbeSettings(debugProbeSettings);
+	viewerDataHandler->setProbeSettings(debugProbeSettings);
 
 	tracePlotHandler->setSettings(traceSettings);
-	tracePlotHandler->setProbeSettings(traceProbeSettings);
+	traceDataHandler->setProbeSettings(traceProbeSettings);
 
 	return true;
 }
@@ -309,8 +314,8 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 {
 	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
 	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
-	IDebugProbe::DebugProbeSettings debugProbeSettings = plotHandler->getProbeSettings();
-	ITraceProbe::TraceProbeSettings traceProbeSettings = tracePlotHandler->getProbeSettings();
+	IDebugProbe::DebugProbeSettings debugProbeSettings = viewerDataHandler->getProbeSettings();
+	ITraceProbe::TraceProbeSettings traceProbeSettings = traceDataHandler->getProbeSettings();
 
 	(*ini).clear();
 

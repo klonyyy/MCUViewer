@@ -9,9 +9,9 @@ void Gui::drawSettingsSwo()
 	ImGui::Separator();
 
 	auto settings = tracePlotHandler->getSettings();
-	auto state = tracePlotHandler->getViewerState();
+	auto state = traceDataHandler->getState();
 
-	if (state == PlotHandlerBase::state::RUN)
+	if (state == DataHandlerBase::state::RUN)
 		ImGui::BeginDisabled();
 
 	ImGui::Text("core frequency [kHz]   ");
@@ -48,7 +48,7 @@ void Gui::drawSettingsSwo()
 	ImGui::Checkbox("##rst", &shouldReset);
 	settings.shouldReset = shouldReset;
 
-	if (state != PlotHandlerBase::state::STOP)
+	if (state != DataHandlerBase::state::STOP)
 		ImGui::EndDisabled();
 	else
 		tracePlotHandler->setSettings(settings);
@@ -62,7 +62,7 @@ void Gui::drawIndicatorsSwo()
 	ImGui::HelpMarker("Indicators help to ascess the quality of trace waveforms. Look out for red indicators that tell you a frame might be misinterpreted. In such cases try to increase the trace prescaler or limit the number of active trace channels.");
 	ImGui::Separator();
 
-	auto indicators = tracePlotHandler->getTraceIndicators();
+	auto indicators = traceDataHandler->getTraceIndicators();
 
 	GuiHelper::drawDescriptionWithNumber("frames total:           ", indicators.framesTotal);
 	GuiHelper::drawDescriptionWithNumber("sleep cycles:           ", indicators.sleepCycles);
@@ -90,7 +90,7 @@ void Gui::drawPlotsTreeSwo()
 	ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 	ImGui::BeginChild("left pane", ImVec2(150 * GuiHelper::contentScale, -1), true);
 
-	auto state = tracePlotHandler->getViewerState();
+	auto state = traceDataHandler->getState();
 	int32_t iter = 0;
 
 	for (std::shared_ptr<Plot> plt : *tracePlotHandler)
@@ -100,10 +100,10 @@ void Gui::drawPlotsTreeSwo()
 
 		plt->trigger.setState(tracePlotHandler->getSettings().triggerChannel == iter++);
 
-		if (state == PlotHandlerBase::state::RUN)
+		if (state == DataHandlerBase::state::RUN)
 			ImGui::BeginDisabled();
 		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
-		if (state == PlotHandlerBase::state::RUN)
+		if (state == DataHandlerBase::state::RUN)
 			ImGui::EndDisabled();
 
 		ImGui::SameLine();
@@ -141,7 +141,7 @@ void Gui::drawPlotsTreeSwo()
 	else
 		statisticsWindow.drawDigital(plt);
 
-	bool mx0 = (tracePlotHandler->getViewerState() == PlotHandlerBase::state::RUN) ? false : plt->markerX0.getState();
+	bool mx0 = (traceDataHandler->getState() == DataHandlerBase::state::RUN) ? false : plt->markerX0.getState();
 	ImGui::Text("markers    ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);

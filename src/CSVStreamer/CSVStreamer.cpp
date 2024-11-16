@@ -32,7 +32,7 @@ CSVStreamer::~CSVStreamer()
 	finishLogging();
 }
 
-bool CSVStreamer::prepareFile(std::string& directory)
+bool CSVStreamer::prepareFile(const std::string& directory)
 {
 	filePath = directory + logFileName;
 	csvFile.open(filePath, std::ios::out);
