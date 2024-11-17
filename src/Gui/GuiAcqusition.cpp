@@ -5,7 +5,7 @@ static constexpr size_t alignment = 30;
 void Gui::acqusitionSettingsViewer()
 {
 	ImGui::Dummy(ImVec2(-1, 5));
-	GuiHelper::drawCenteredText("Project");
+	GuiHelper::drawCenteredText("General");
 	ImGui::Separator();
 
 	GuiHelper::drawTextAlignedToSize("*.elf file:", alignment);
@@ -207,6 +207,10 @@ void Gui::drawGdbSettings(ViewerDataHandler::Settings& settings)
 void Gui::acqusitionSettingsTrace()
 {
 	TraceDataHandler::Settings settings = traceDataHandler->getSettings();
+
+	ImGui::Dummy(ImVec2(-1, 5));
+	GuiHelper::drawCenteredText("General");
+	ImGui::Separator();
 
 	GuiHelper::drawTextAlignedToSize("Max points:", alignment);
 	ImGui::SameLine();
