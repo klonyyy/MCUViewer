@@ -108,7 +108,6 @@ void Gui::drawDebugProbes()
 		if (!devicesList.empty())
 		{
 			probeSettings.serialNumber = devicesList[0];
-			std::cout << devicesList.size();
 			modified = true;
 		}
 		shouldListDevices = false;
