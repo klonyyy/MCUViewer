@@ -13,6 +13,7 @@ class VariableEditWindow
 	VariableEditWindow(VariableHandler* variableHandler) : variableHandler(variableHandler)
 	{
 		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection);
+		// selectVariableWindowBase = std::make_unique<SelectVariableWindow>(variableHandler, &selectionBase);
 	}
 
 	void draw()
@@ -33,11 +34,13 @@ class VariableEditWindow
 			{
 				showVariableEditWindow = false;
 				selection.clear();
+				// selectionBase.clear();
 				ImGui::CloseCurrentPopup();
 			}
 
 			popup.handle();
 			selectVariableWindow->draw();
+			// selectVariableWindowBase->draw();
 			ImGui::EndPopup();
 		}
 	}
@@ -187,10 +190,18 @@ class VariableEditWindow
 			editedVariable->setHighLevelType(static_cast<Variable::HighLevelType>(highLeveltype));
 		}
 
-		if (editedVariable->getHighLevelType() == Variable::HighLevelType::SIGNEDFRAC || editedVariable->getHighLevelType() == Variable::HighLevelType::UNSIGNEDFRAC)
+		if (editedVariable->isFractional())
 		{
 			Variable::Fractional fractional = editedVariable->getFractional();
-			std::string base = std::to_string(fractional.base);
+			std::string base = "";
+
+			if (!selectionBase.empty())
+				base = *selectionBase.begin();
+			else if (fractional.baseVariable != nullptr)
+				base = fractional.baseVariable->getName();
+			else
+				base = std::to_string(fractional.base);
+
 			std::string fractionalBits = std::to_string(fractional.fractionalBits);
 			bool shouldUpdate = false;
 
@@ -201,13 +212,27 @@ class VariableEditWindow
 
 			GuiHelper::drawTextAlignedToSize("base:", alignment);
 			ImGui::SameLine();
-			if (ImGui::InputText("##base", &base, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
+			if (ImGui::InputText("##base", &base, ImGuiInputTextFlags_None, NULL, NULL))
 				shouldUpdate = true;
+
+			// ImGui::SameLine();
+			// ImGui::PushID("fractional");
+			// if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
+			// 	selectVariableWindowBase->setShowState(true);
+			// ImGui::PopID();
 
 			if (shouldUpdate)
 			{
 				fractional.fractionalBits = GuiHelper::convertStringToNumber<uint32_t>(fractionalBits);
-				fractional.base = GuiHelper::convertStringToNumber<double>(base);
+				if (variableHandler->contains(base))
+					fractional.baseVariable = variableHandler->getVariable(base).get();
+				else
+				{
+					fractional.base = GuiHelper::convertStringToNumber<double>(base);
+					fractional.baseVariable = nullptr;
+				}
+				selectionBase.clear();
+				// TODO check if not zero or negative and set to 1 in such cases and show a popup
 				editedVariable->setFractional(fractional);
 			}
 		}
@@ -229,8 +254,11 @@ class VariableEditWindow
 
 	Popup popup;
 
-	std::set<std::string> selection;
+	std::set<std::string> selection{};
 	std::unique_ptr<SelectVariableWindow> selectVariableWindow;
+
+	std::set<std::string> selectionBase{};
+	std::unique_ptr<SelectVariableWindow> selectVariableWindowBase;
 };
 
 #endif

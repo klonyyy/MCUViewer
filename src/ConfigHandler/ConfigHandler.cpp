@@ -35,6 +35,9 @@ void ConfigHandler::loadVariables()
 	uint32_t varId = 0;
 	std::string name = "xxx";
 
+	/* needed for fractional varaibles postprocessing */
+	std::unordered_map<std::string, std::string> fractionalBaseVariableNames;
+
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
 
@@ -58,14 +61,15 @@ void ConfigHandler::loadVariables()
 
 		Variable::HighLevelType highLevelType = static_cast<Variable::HighLevelType>(atoi(ini->get(varFieldFromID(varId)).get("high_level_type").c_str()));
 		newVar->setHighLevelType(highLevelType);
-
-		if (highLevelType != Variable::HighLevelType::NONE)
+		if (newVar->isFractional())
 		{
+			fractionalBaseVariableNames[name] = ini->get(varFieldFromID(varId)).get("base_variable");
+
 			Variable::Fractional frac = {.fractionalBits = atoi(ini->get(varFieldFromID(varId)).get("frac").c_str()),
-										 .base = atof(ini->get(varFieldFromID(varId)).get("base").c_str())};
+										 .base = atof(ini->get(varFieldFromID(varId)).get("base").c_str()),
+										 .baseVariable = nullptr};
 			newVar->setFractional(frac);
 		}
-
 		uint32_t mask = atoi(ini->get(varFieldFromID(varId)).get("mask").c_str());
 		if (mask == 0)
 			mask = 0xFFFFFFFF;
@@ -86,6 +90,22 @@ void ConfigHandler::loadVariables()
 			newVar->setIsFound(true);
 			logger->info("Adding variable: {}", newVar->getName());
 		}
+	}
+
+	/* varaible bases have to be handled after all variables are loaded */
+	for (auto& [varName, baseVarName] : fractionalBaseVariableNames)
+	{
+		Variable* baseVariable = nullptr;
+		auto variable = variableHandler->getVariable(varName);
+
+		if (variableHandler->contains(baseVarName))
+			baseVariable = variableHandler->getVariable(baseVarName).get();
+		else
+			logger->error("Fractional variable {} has no base variable {}", varName, baseVarName);
+
+		Variable::Fractional frac = variable->getFractional();
+		frac.baseVariable = baseVariable;
+		variable->setFractional(frac);
 	}
 }
 
@@ -379,11 +399,12 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 		(*ini)[varFieldFromID(varId)]["mask"] = std::to_string(var->getMask());
 		(*ini)[varFieldFromID(varId)]["high_level_type"] = std::to_string(static_cast<uint8_t>(var->getHighLevelType()));
 
-		if (var->getHighLevelType() != Variable::HighLevelType::NONE)
+		if (var->isFractional())
 		{
 			auto fractional = var->getFractional();
 			(*ini)[varFieldFromID(varId)]["frac"] = std::to_string(fractional.fractionalBits);
 			(*ini)[varFieldFromID(varId)]["base"] = std::to_string(fractional.base);
+			(*ini)[varFieldFromID(varId)]["base_variable"] = fractional.baseVariable->getName();
 		}
 
 		varId++;

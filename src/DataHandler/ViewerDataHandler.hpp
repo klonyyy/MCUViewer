@@ -58,7 +58,7 @@ class ViewerDataHandler : public DataHandlerBase
 	void updateVariables(double timestamp, const std::unordered_map<uint32_t, double>& values);
 	void dataHandler();
 	void prepareCSVFile();
-	SampleListType createSampleList();
+	void createSampleList();
 
    private:
 	static constexpr size_t maxVariablesOnSinglePlot = 100;

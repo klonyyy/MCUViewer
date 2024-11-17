@@ -65,8 +65,17 @@ void ViewerDataHandler::updateVariables(double timestamp, const std::unordered_m
 		uint32_t address = var->getAddress();
 		if (values.contains(address))
 		{
-			var->setRawValueAndTransform(values.at(address));
-			csvEntry[var->getName()] = var->getValue();
+			var->setRawValue(values.at(address));
+		}
+	}
+
+	for (std::shared_ptr<Variable> var : *variableHandler)
+	{
+		uint32_t address = var->getAddress();
+		if (values.contains(address))
+		{
+			
+			csvEntry[var->getName()] = var->transformToDouble();
 		}
 	}
 
@@ -143,8 +152,7 @@ void ViewerDataHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				sampleList = createSampleList();
-
+				createSampleList();
 				prepareCSVFile();
 
 				if (varReader->start(probeSettings, sampleList, settings.sampleFrequencyHz))
@@ -167,9 +175,15 @@ void ViewerDataHandler::dataHandler()
 	}
 }
 
-ViewerDataHandler::SampleListType ViewerDataHandler::createSampleList()
+void ViewerDataHandler::createSampleList()
 {
-	SampleListType addressSizeVector;
+	sampleList.clear();
+
+	auto checkIfElementExists = [&](std::pair<uint32_t, uint8_t> newElement)
+	{
+		return std::find_if(sampleList.begin(), sampleList.end(), [&newElement](const std::pair<uint32_t, uint8_t>& element)
+							{ return element == newElement; }) != sampleList.end();
+	};
 
 	for (auto& [name, plot] : *plotGroupHandler->getActiveGroup())
 	{
@@ -180,29 +194,25 @@ ViewerDataHandler::SampleListType ViewerDataHandler::createSampleList()
 		{
 			if (!ser->visible)
 				continue;
-			// Get the address and size
-			uint32_t address = ser->var->getAddress();
-			uint8_t size = ser->var->getSize();
-			std::pair<uint32_t, uint8_t> newElement = {address, size};
 
-			// Check if the element already exists
-			auto it = std::find_if(
-				addressSizeVector.begin(),
-				addressSizeVector.end(),
-				[&newElement](const std::pair<uint32_t, uint8_t>& element)
-				{
-					return element == newElement;
-				});
+			std::pair<uint32_t, uint8_t> newElement = {ser->var->getAddress(), ser->var->getSize()};
 
-			if (it == addressSizeVector.end())
-			{
-				// Only add if the element is not already in the vector
-				addressSizeVector.push_back(newElement);
-			}
+			if (!checkIfElementExists(newElement))
+				sampleList.push_back(newElement);
 		}
 	}
+	/* additionally scan for eventual bases of fractional variables that should be sampled */
+	for (auto variable : *variableHandler)
+	{
+		if (variable->getFractional().baseVariable != nullptr)
+		{
+			auto var = variable->getFractional().baseVariable;
+			std::pair<uint32_t, uint8_t> newElement = {var->getAddress(), var->getSize()};
 
-	return addressSizeVector;
+			if (!checkIfElementExists(newElement))
+				sampleList.push_back(newElement);
+		}
+	}
 }
 
 void ViewerDataHandler::prepareCSVFile()

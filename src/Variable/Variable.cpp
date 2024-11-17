@@ -40,11 +40,9 @@ std::string Variable::getTypeStr() const
 	return std::string(types[static_cast<uint8_t>(type)]);
 }
 
-void Variable::setRawValueAndTransform(uint32_t rawValue)
+void Variable::setRawValue(uint32_t rawValue)
 {
-	/* TODO I dont like this solution */
-	this->rawValue = rawValue;
-	value = getDoubleFromRaw();
+	this->rawValue = (rawValue >> shift) & mask;
 }
 
 void Variable::setValue(double val)
@@ -143,74 +141,96 @@ uint8_t Variable::getSize()
 	}
 }
 
-double Variable::getDoubleFromRaw()
+double Variable::transformToDouble()
 {
-	rawValue = (rawValue >> shift) & mask;
-
 	uint32_t size = getSize();
 
 	if (HighLevelType::SIGNEDFRAC == highLevelType)
 	{
+		if (fractional.baseVariable != nullptr)
+			fractional.base = fractional.baseVariable->getValue();
+
 		switch (size)
 		{
 			case 1:
 			{
-				int8_t value = rawValue & 0xff;
-				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
+				int8_t temp = rawValue & 0xff;
+				value = (static_cast<double>(temp) / (1 << (fractional.fractionalBits))) * fractional.base;
+				break;
 			}
 			case 2:
 			{
-				int16_t value = rawValue & 0xffff;
-				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
+				int16_t temp = rawValue & 0xffff;
+				value = (static_cast<double>(temp) / (1 << (fractional.fractionalBits))) * fractional.base;
+				break;
 			}
 			case 4:
 			{
-				int32_t value = rawValue;
-				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
+				int32_t temp = rawValue;
+				value = (static_cast<double>(temp) / (1 << (fractional.fractionalBits))) * fractional.base;
+				break;
 			}
 		}
+		return value;
 	}
 	else if (HighLevelType::UNSIGNEDFRAC == highLevelType)
 	{
+		if (fractional.baseVariable != nullptr)
+			fractional.base = fractional.baseVariable->getValue();
+
 		switch (size)
 		{
 			case 1:
 			{
-				uint8_t value = rawValue & 0xff;
-				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
+				uint8_t temp = rawValue & 0xff;
+				value = (static_cast<double>(temp) / (1 << fractional.fractionalBits)) * fractional.base;
+				break;
 			}
 			case 2:
 			{
-				uint16_t value = rawValue & 0xffff;
-				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
+				uint16_t temp = rawValue & 0xffff;
+				value = (static_cast<double>(temp) / (1 << fractional.fractionalBits)) * fractional.base;
+				break;
 			}
 			case 4:
 			{
-				uint32_t value = rawValue;
-				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
+				uint32_t temp = rawValue;
+				value = (static_cast<double>(temp) / (1 << fractional.fractionalBits)) * fractional.base;
+				break;
 			}
 		}
+		return value;
 	}
 
 	switch (type)
 	{
 		case Variable::Type::U8:
-			return static_cast<double>(*reinterpret_cast<uint8_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<uint8_t*>(&rawValue));
+			break;
 		case Variable::Type::I8:
-			return static_cast<double>(*reinterpret_cast<int8_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<int8_t*>(&rawValue));
+			break;
 		case Variable::Type::U16:
-			return static_cast<double>(*reinterpret_cast<uint16_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<uint16_t*>(&rawValue));
+			break;
 		case Variable::Type::I16:
-			return static_cast<double>(*reinterpret_cast<int16_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<int16_t*>(&rawValue));
+			break;
 		case Variable::Type::U32:
-			return static_cast<double>(*reinterpret_cast<uint32_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<uint32_t*>(&rawValue));
+			break;
 		case Variable::Type::I32:
-			return static_cast<double>(*reinterpret_cast<int32_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<int32_t*>(&rawValue));
+			break;
 		case Variable::Type::F32:
-			return static_cast<double>(*reinterpret_cast<float*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<float*>(&rawValue));
+			break;
 		default:
-			return static_cast<double>(*reinterpret_cast<uint32_t*>(&rawValue));
+			value = static_cast<double>(*reinterpret_cast<uint32_t*>(&rawValue));
+			break;
 	}
+
+	return value;
 }
 
 uint32_t Variable::getRawFromDouble(double value)
@@ -323,4 +343,9 @@ void Variable::setFractional(Fractional fractional)
 Variable::Fractional Variable::getFractional() const
 {
 	return fractional;
+}
+
+bool Variable::isFractional() const
+{
+	return highLevelType == HighLevelType::SIGNEDFRAC || highLevelType == HighLevelType::UNSIGNEDFRAC;
 }

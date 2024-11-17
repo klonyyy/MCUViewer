@@ -39,6 +39,7 @@ class Variable
 	{
 		uint32_t fractionalBits = 15;
 		double base = 1.0;
+		Variable* baseVariable = nullptr;
 	};
 
 	explicit Variable(std::string name);
@@ -48,7 +49,7 @@ class Variable
 	Type getType() const;
 	std::string getTypeStr() const;
 
-	void setRawValueAndTransform(uint32_t value);
+	void setRawValue(uint32_t value);
 	void setValue(double val);
 	double getValue() const;
 
@@ -88,11 +89,10 @@ class Variable
 
 	void setFractional(Fractional fractional);
 	Variable::Fractional getFractional() const;
+	bool isFractional() const;
 
 	uint32_t getRawFromDouble(double value);
-
-   private:
-	double getDoubleFromRaw();
+	double transformToDouble();
 
    public:
 	static constexpr uint32_t maxVariableNameLength = 100;
