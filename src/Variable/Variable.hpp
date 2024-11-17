@@ -89,6 +89,8 @@ class Variable
 	void setFractional(Fractional fractional);
 	Variable::Fractional getFractional() const;
 
+	uint32_t getRawFromDouble(double value);
+
    private:
 	double getDoubleFromRaw();
 

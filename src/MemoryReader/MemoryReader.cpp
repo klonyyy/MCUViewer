@@ -1,10 +1,5 @@
 #include "MemoryReader.hpp"
 
-#include <map>
-#include <memory>
-
-#include "iostream"
-
 bool MemoryReader::start(const IDebugProbe::DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency) const
 {
 	std::lock_guard<std::mutex> lock(mtx);
@@ -71,45 +66,10 @@ uint32_t MemoryReader::getValue(uint32_t address, uint32_t size, bool& result)
 	return value;
 }
 
-bool MemoryReader::setValue(const Variable& var, double value)
+bool MemoryReader::setValue(uint32_t address, uint32_t size, uint8_t* buf)
 {
-	uint32_t address = var.getAddress();
-	uint8_t buf[4] = {};
-
-	if (!probe->isValid())
-		return false;
-
-	auto prepareBufferAndWrite = [&](auto var, uint8_t* buf) -> int
-	{
-		for (size_t i = 0; i < sizeof(var); i++)
-			buf[i] = var >> 8 * i;
-		std::lock_guard<std::mutex> lock(mtx);
-		return probe->writeMemory(address, buf, sizeof(var));
-	};
-
-	switch (var.getType())
-	{
-		case Variable::Type::U8:
-			return prepareBufferAndWrite(static_cast<uint8_t>(value), buf);
-		case Variable::Type::I8:
-			return prepareBufferAndWrite(static_cast<int8_t>(value), buf);
-		case Variable::Type::U16:
-			return prepareBufferAndWrite(static_cast<uint16_t>(value), buf);
-		case Variable::Type::I16:
-			return prepareBufferAndWrite(static_cast<int16_t>(value), buf);
-		case Variable::Type::U32:
-			return prepareBufferAndWrite(static_cast<uint32_t>(value), buf);
-		case Variable::Type::I32:
-			return prepareBufferAndWrite(static_cast<int32_t>(value), buf);
-		case Variable::Type::F32:
-		{
-			float valf = static_cast<float>(value);
-			uint32_t val = *reinterpret_cast<uint32_t*>(&valf);
-			return prepareBufferAndWrite(val, buf);
-		}
-		default:
-			return false;
-	}
+	std::lock_guard<std::mutex> lock(mtx);
+	return probe->writeMemory(address, buf, size);
 }
 
 std::string MemoryReader::getLastErrorMsg() const

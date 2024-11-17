@@ -1,5 +1,4 @@
-#ifndef _MEMORYREADER_HPP
-#define _MEMORYREADER_HPP
+#pragma once
 
 #include <map>
 #include <memory>
@@ -8,7 +7,6 @@
 #include <thread>
 
 #include "IDebugProbe.hpp"
-#include "Variable.hpp"
 
 class MemoryReader
 {
@@ -20,7 +18,7 @@ class MemoryReader
 
 	uint32_t getValue(uint32_t address, uint32_t size, bool& result);
 
-	bool setValue(const Variable& var, double value);
+	bool setValue(uint32_t address, uint32_t size, uint8_t* buf);
 	std::string getLastErrorMsg() const;
 
 	std::vector<std::string> getConnectedDevices() const;
@@ -31,5 +29,3 @@ class MemoryReader
 	mutable std::mutex mtx;
 	std::shared_ptr<IDebugProbe> probe;
 };
-
-#endif

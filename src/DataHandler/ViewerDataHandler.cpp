@@ -22,7 +22,8 @@ ViewerDataHandler::~ViewerDataHandler()
 bool ViewerDataHandler::writeSeriesValue(Variable& var, double value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
-	return varReader->setValue(var, value);
+	uint32_t rawValue = var.getRawFromDouble(value);
+	return varReader->setValue(var.getAddress(), var.getSize(), (uint8_t*)&rawValue);
 }
 
 std::string ViewerDataHandler::getLastReaderError() const
