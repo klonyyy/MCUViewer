@@ -47,4 +47,6 @@ class ViewerDataHandler : public DataHandlerBase
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	MovingAverage samplingPeriodFilter{1000};
 	double averageSamplingPeriod = 0.0;
+
+	std::unordered_map<std::string, double> csvEntry;
 };

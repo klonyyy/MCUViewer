@@ -99,4 +99,6 @@ class TraceDataHandler : public DataHandlerBase
 	bool traceTriggered = false;
 	static constexpr uint32_t channels = 10;
 	static constexpr size_t maxAllowedViewportErrors = 100;
+
+	std::unordered_map<std::string, double> csvEntry;
 };

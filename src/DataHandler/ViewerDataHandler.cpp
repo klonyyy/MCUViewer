@@ -50,8 +50,6 @@ void ViewerDataHandler::dataHandler()
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	uint32_t timer = 0;
 	double lastT = 0.0;
-	std::vector<double> csvValues;
-	csvValues.reserve(maxVariablesOnSinglePlot);
 
 	while (!done)
 	{
@@ -59,7 +57,6 @@ void ViewerDataHandler::dataHandler()
 		{
 			auto finish = std::chrono::steady_clock::now();
 			double period = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
-			csvValues.clear();
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
@@ -73,7 +70,10 @@ void ViewerDataHandler::dataHandler()
 				for (std::shared_ptr<Variable> var : *variableHandler)
 				{
 					if (values.contains(var->getAddress()))
+					{
 						var->setRawValueAndTransform(values.at(var->getAddress()));
+						csvEntry[var->getName()] = var->getValue();
+					}
 				}
 
 				for (auto plot : *plotHandler)
@@ -88,7 +88,7 @@ void ViewerDataHandler::dataHandler()
 				}
 
 				if (plotHandler->getSettings().shouldLog)
-					csvStreamer->writeLine(period, csvValues);
+					csvStreamer->writeLine(period, csvEntry);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -101,8 +101,12 @@ void ViewerDataHandler::dataHandler()
 				{
 					bool result = false;
 					uint32_t value = varReader->getValue(var->getAddress(), var->getSize(), result);
+
 					if (result)
+					{
 						var->setRawValueAndTransform(value);
+						csvEntry[var->getName()] = var->getValue();
+					}
 				}
 
 				for (auto plot : *plotHandler)
@@ -115,8 +119,8 @@ void ViewerDataHandler::dataHandler()
 					plot->addTimePoint(period);
 				}
 
-				// if (settings.shouldLog)
-				// 	csvStreamer->writeLine(period, csvValues);
+				if (plotHandler->getSettings().shouldLog)
+					csvStreamer->writeLine(period, csvEntry);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -197,7 +201,7 @@ void ViewerDataHandler::prepareCSVFile()
 
 	std::vector<std::string> headerNames;
 
-	for (auto plot : *plotHandler)
+	for (auto& [name, plot] : *plotGroupHandler->getActiveGroup())
 	{
 		if (!plot->getVisibility())
 			continue;

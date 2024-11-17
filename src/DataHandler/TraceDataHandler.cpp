@@ -101,8 +101,6 @@ void TraceDataHandler::dataHandler()
 {
 	uint32_t cnt = 0;
 	double time = 0.0;
-	std::vector<double> csvValues;
-	csvValues.reserve(channels);
 
 	while (!done)
 	{
@@ -128,7 +126,6 @@ void TraceDataHandler::dataHandler()
 			errorFrames.handle(time, oldestTimestamp, indicators.errorFramesTotal);
 			delayed3Frames.handle(time, oldestTimestamp, indicators.delayedTimestamp3);
 
-			csvValues.clear();
 			uint32_t i = 0;
 			for (auto plot : *tracePlotHandler)
 			{
@@ -149,7 +146,7 @@ void TraceDataHandler::dataHandler()
 					cnt = 0;
 				}
 
-				csvValues.push_back(newPoint);
+				csvEntry[ser->var->getName()] = newPoint;
 
 				/* thread-safe part */
 				std::lock_guard<std::mutex> lock(*mtx);
@@ -159,7 +156,7 @@ void TraceDataHandler::dataHandler()
 			}
 
 			if (settings.shouldLog)
-				csvStreamer->writeLine(time, csvValues);
+				csvStreamer->writeLine(time, csvEntry);
 
 			if (traceTriggered && cnt++ >= (settings.maxPoints * 0.9))
 			{
