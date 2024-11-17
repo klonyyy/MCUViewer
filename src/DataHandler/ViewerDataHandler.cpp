@@ -83,8 +83,7 @@ void ViewerDataHandler::dataHandler()
 	{
 		if (viewerState == state::RUN)
 		{
-			auto finish = std::chrono::steady_clock::now();
-			double period = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+			double period = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start).count();
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
@@ -167,6 +166,8 @@ ViewerDataHandler::SampleListType ViewerDataHandler::createSampleList()
 
 		for (auto& [name, ser] : plot->getSeriesMap())
 		{
+			if (!ser->visible)
+				continue;
 			// Get the address and size
 			uint32_t address = ser->var->getAddress();
 			uint8_t size = ser->var->getSize();
