@@ -7,7 +7,7 @@
 #include "GuiHelper.hpp"
 #include "GuiImportVariables.hpp"
 #include "GuiVariablesEdit.hpp"
-#include "PlotHandlerBase.hpp"
+#include "PlotHandler.hpp"
 #include "Popup.hpp"
 #include "Variable.hpp"
 #include "VariableHandler.hpp"
@@ -190,10 +190,10 @@ class VariableTableWindow
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 
-			if (plotHandler->getSettings().stopAcqusitionOnElfChange)
+			if (viewerDataHandler->getSettings().stopAcqusitionOnElfChange)
 				viewerDataHandler->setState(DataHandlerBase::state::STOP);
 
-			if (plotHandler->getSettings().refreshAddressesOnElfChange)
+			if (viewerDataHandler->getSettings().refreshAddressesOnElfChange)
 			{
 				performVariablesUpdate = true;
 				/* TODO: examine why elf is not ready to be parsed without the delay */
@@ -205,7 +205,7 @@ class VariableTableWindow
 
 		if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || performVariablesUpdate)
 		{
-			parser->changeCurrentGDBCommand(plotHandler->getSettings().gdbCommand);
+			parser->changeCurrentGDBCommand(viewerDataHandler->getSettings().gdbCommand);
 			lastModifiedTime = std::filesystem::file_time_type::clock::now();
 			refreshThread = std::async(std::launch::async, &GdbParser::updateVariableMap, parser, GuiHelper::convertProjectPathToAbsolute(projectElfPath, projectConfigPath));
 			performVariablesUpdate = false;

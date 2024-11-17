@@ -19,7 +19,19 @@ class ViewerDataHandler : public DataHandlerBase
 	static constexpr uint32_t minSamplinFrequencyHz = 1;
 	static constexpr uint32_t maxSamplinFrequencyHz = 1000000;
 
-	ViewerDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
+	typedef struct Settings
+	{
+		uint32_t sampleFrequencyHz = 100;
+		uint32_t maxPoints = 10000;
+		uint32_t maxViewportPoints = 5000;
+		bool refreshAddressesOnElfChange = false;
+		bool stopAcqusitionOnElfChange = false;
+		bool shouldLog = false;
+		std::string logFilePath = "";
+		std::string gdbCommand = "gdb";
+	} Settings;
+
+	ViewerDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	virtual ~ViewerDataHandler();
 
 	std::string getLastReaderError() const;
@@ -29,6 +41,10 @@ class ViewerDataHandler : public DataHandlerBase
 	void setProbeSettings(const IDebugProbe::DebugProbeSettings& settings);
 
 	void setDebugProbe(std::shared_ptr<IDebugProbe> probe);
+
+	Settings getSettings() const;
+	void setSettings(const Settings& newSettings);
+
 	double getAverageSamplingFrequency() const
 	{
 		if (averageSamplingPeriod > 0.0)
@@ -50,7 +66,7 @@ class ViewerDataHandler : public DataHandlerBase
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	MovingAverage samplingPeriodFilter{1000};
 	double averageSamplingPeriod = 0.0;
-
+	Settings settings{};
 	std::unordered_map<std::string, double> csvEntry;
 
 	SampleListType sampleList;

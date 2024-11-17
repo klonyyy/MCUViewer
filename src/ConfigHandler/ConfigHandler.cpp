@@ -8,7 +8,7 @@
 #include "ITraceProbe.hpp"
 
 /* TODO refactor whole config and persistent storage handling */
-ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger)
+ConfigHandler::ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger)
 	: configFilePath(configFilePath),
 	  plotHandler(plotHandler),
 	  tracePlotHandler(tracePlotHandler),
@@ -160,7 +160,7 @@ void ConfigHandler::loadTracePlots()
 
 			auto newVar = std::make_shared<Variable>(plotName);
 			newVar->setColor(colors[(colormapSize - 1) - (plotNumber % colormapSize)]);
-			tracePlotHandler->traceVars[plotName] = newVar;
+			traceDataHandler->traceVars[plotName] = newVar;
 			plot->addSeries(newVar.get());
 			plot->getSeries(plotName)->visible = true;
 		}
@@ -216,8 +216,8 @@ void ConfigHandler::loadPlotGroups()
 
 bool ConfigHandler::readConfigFile(std::string& elfPath)
 {
-	PlotHandler::Settings viewerSettings{};
-	TracePlotHandler::Settings traceSettings{};
+	ViewerDataHandler::Settings viewerSettings{};
+	TraceDataHandler::Settings traceSettings{};
 	IDebugProbe::DebugProbeSettings debugProbeSettings{};
 	ITraceProbe::TraceProbeSettings traceProbeSettings{};
 
@@ -301,10 +301,10 @@ bool ConfigHandler::readConfigFile(std::string& elfPath)
 	loadTracePlots();
 	loadPlotGroups();
 
-	plotHandler->setSettings(viewerSettings);
+	viewerDataHandler->setSettings(viewerSettings);
 	viewerDataHandler->setProbeSettings(debugProbeSettings);
 
-	tracePlotHandler->setSettings(traceSettings);
+	traceDataHandler->setSettings(traceSettings);
 	traceDataHandler->setProbeSettings(traceProbeSettings);
 
 	return true;
@@ -312,8 +312,8 @@ bool ConfigHandler::readConfigFile(std::string& elfPath)
 
 bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string& newSavePath)
 {
-	PlotHandler::Settings viewerSettings = plotHandler->getSettings();
-	TracePlotHandler::Settings traceSettings = tracePlotHandler->getSettings();
+	ViewerDataHandler::Settings viewerSettings = viewerDataHandler->getSettings();
+	TraceDataHandler::Settings traceSettings = traceDataHandler->getSettings();
 	IDebugProbe::DebugProbeSettings debugProbeSettings = viewerDataHandler->getProbeSettings();
 	ITraceProbe::TraceProbeSettings traceProbeSettings = traceDataHandler->getProbeSettings();
 

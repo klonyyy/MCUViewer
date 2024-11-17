@@ -8,7 +8,6 @@
 #include "ConfigHandler.hpp"
 #include "Gui.hpp"
 #include "NFDFileHandler.hpp"
-#include "PlotHandler.hpp"
 #include "VariableHandler.hpp"
 #include "gitversion.hpp"
 #include "spdlog/sinks/rotating_file_sink.h"
@@ -46,7 +45,7 @@ int main(int argc, char** argv)
 	PlotGroupHandler plotGroupHandler;
 	VariableHandler variableHandler;
 	PlotHandler plotHandler;
-	TracePlotHandler tracePlotHandler;
+	PlotHandler tracePlotHandler;
 
 	ViewerDataHandler viewerDataHandler(&plotGroupHandler, &variableHandler, &plotHandler, &tracePlotHandler, done, &mtx, loggerPtr);
 	TraceDataHandler traceDataHandler(&plotGroupHandler, &variableHandler, &plotHandler, &tracePlotHandler, done, &mtx, loggerPtr);

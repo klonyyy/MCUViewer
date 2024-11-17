@@ -8,7 +8,7 @@ void Gui::drawSettingsSwo()
 	ImGui::Text("Settings");
 	ImGui::Separator();
 
-	auto settings = tracePlotHandler->getSettings();
+	auto settings = traceDataHandler->getSettings();
 	auto state = traceDataHandler->getState();
 
 	if (state == DataHandlerBase::state::RUN)
@@ -51,7 +51,7 @@ void Gui::drawSettingsSwo()
 	if (state != DataHandlerBase::state::STOP)
 		ImGui::EndDisabled();
 	else
-		tracePlotHandler->setSettings(settings);
+		traceDataHandler->setSettings(settings);
 }
 void Gui::drawIndicatorsSwo()
 {
@@ -98,7 +98,7 @@ void Gui::drawPlotsTreeSwo()
 		std::string name = plt->getName();
 		std::string alias = plt->getAlias();
 
-		plt->trigger.setState(tracePlotHandler->getSettings().triggerChannel == iter++);
+		plt->trigger.setState(traceDataHandler->getSettings().triggerChannel == iter++);
 
 		if (state == DataHandlerBase::state::RUN)
 			ImGui::BeginDisabled();

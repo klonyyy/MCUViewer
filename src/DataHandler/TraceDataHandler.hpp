@@ -29,7 +29,7 @@ class TraceDataHandler : public DataHandlerBase
 		std::string logFilePath = "";
 	} Settings;
 
-	TraceDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
+	TraceDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	~TraceDataHandler();
 
 	TraceReader::TraceIndicators getTraceIndicators() const;
@@ -44,7 +44,12 @@ class TraceDataHandler : public DataHandlerBase
 	ITraceProbe::TraceProbeSettings getProbeSettings() const;
 	void setProbeSettings(const ITraceProbe::TraceProbeSettings& settings);
 
+	Settings getSettings() const;
+	void setSettings(const Settings& settings);
+
+	/* TODO refactor so these are not here: (ideally using traceVeriableHandler)*/
 	double getDoubleValue(const Plot& plot, uint32_t value);
+	void initPlots();
 	std::map<std::string, std::shared_ptr<Variable>> traceVars;
 
    private:

@@ -5,9 +5,7 @@
 #include <string>
 
 #include "PlotGroupHandler.hpp"
-#include "PlotHandler.hpp"
 #include "TraceDataHandler.hpp"
-#include "TracePlotHandler.hpp"
 #include "Variable.hpp"
 #include "VariableHandler.hpp"
 #include "ViewerDataHandler.hpp"
@@ -22,7 +20,7 @@ class ConfigHandler
 		uint32_t version = 1;
 	} GlobalSettings;
 
-	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger);
+	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger);
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
@@ -63,7 +61,7 @@ class ConfigHandler
 	GlobalSettings globalSettings;
 	std::string configFilePath;
 	PlotHandler* plotHandler;
-	TracePlotHandler* tracePlotHandler;
+	PlotHandler* tracePlotHandler;
 	PlotGroupHandler* plotGroupHandler;
 	VariableHandler* variableHandler;
 	ViewerDataHandler* viewerDataHandler;

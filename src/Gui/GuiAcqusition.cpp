@@ -15,7 +15,7 @@ void Gui::acqusitionSettingsViewer()
 	if (ImGui::Button("...", ImVec2(35 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
 		openElfFile();
 
-	PlotHandler::Settings settings = plotHandler->getSettings();
+	ViewerDataHandler::Settings settings = viewerDataHandler->getSettings();
 
 	GuiHelper::drawTextAlignedToSize("Refresh vars on *.elf change:", alignment);
 	ImGui::SameLine();
@@ -51,7 +51,7 @@ void Gui::acqusitionSettingsViewer()
 	drawDebugProbes();
 	drawLoggingSettings(plotHandler, settings);
 	drawGdbSettings(settings);
-	plotHandler->setSettings(settings);
+	viewerDataHandler->setSettings(settings);
 }
 
 void Gui::drawDebugProbes()
@@ -165,7 +165,7 @@ void Gui::drawDebugProbes()
 }
 
 template <typename Settings>
-void Gui::drawLoggingSettings(PlotHandlerBase* handler, Settings& settings)
+void Gui::drawLoggingSettings(PlotHandler* handler, Settings& settings)
 {
 	ImGui::PushID("logging");
 	ImGui::Dummy(ImVec2(-1, 5));
@@ -192,7 +192,7 @@ void Gui::drawLoggingSettings(PlotHandlerBase* handler, Settings& settings)
 	ImGui::PopID();
 }
 
-void Gui::drawGdbSettings(PlotHandler::Settings& settings)
+void Gui::drawGdbSettings(ViewerDataHandler::Settings& settings)
 {
 	ImGui::PushID("advanced");
 	ImGui::Dummy(ImVec2(-1, 5));
@@ -207,7 +207,7 @@ void Gui::drawGdbSettings(PlotHandler::Settings& settings)
 
 void Gui::acqusitionSettingsTrace()
 {
-	TracePlotHandler::Settings settings = tracePlotHandler->getSettings();
+	TraceDataHandler::Settings settings = traceDataHandler->getSettings();
 
 	GuiHelper::drawTextAlignedToSize("Max points:", alignment);
 	ImGui::SameLine();
@@ -232,7 +232,7 @@ void Gui::acqusitionSettingsTrace()
 
 	drawTraceProbes();
 	drawLoggingSettings(tracePlotHandler, settings);
-	tracePlotHandler->setSettings(settings);
+	traceDataHandler->setSettings(settings);
 }
 
 void Gui::drawTraceProbes()

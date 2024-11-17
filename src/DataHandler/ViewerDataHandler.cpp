@@ -8,7 +8,7 @@
 #include "JlinkDebugProbe.hpp"
 #include "StlinkDebugProbe.hpp"
 
-ViewerDataHandler::ViewerDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : DataHandlerBase(plotGroupHandler, variableHandler, plotHandler, tracePlotHandler, done, mtx, logger)
+ViewerDataHandler::ViewerDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : DataHandlerBase(plotGroupHandler, variableHandler, plotHandler, tracePlotHandler, done, mtx, logger)
 {
 	dataHandle = std::thread(&ViewerDataHandler::dataHandler, this);
 	varReader = std::make_unique<MemoryReader>();
@@ -45,6 +45,17 @@ void ViewerDataHandler::setProbeSettings(const IDebugProbe::DebugProbeSettings& 
 	probeSettings = settings;
 }
 
+ViewerDataHandler::Settings ViewerDataHandler::getSettings() const
+{
+	return settings;
+}
+
+void ViewerDataHandler::setSettings(const Settings& newSettings)
+{
+	settings = newSettings;
+	plotHandler->setMaxPoints(settings.maxPoints);
+}
+
 void ViewerDataHandler::updateVariables(double timestamp, const std::unordered_map<uint32_t, double>& values)
 {
 	/* get raw values and put them into variables based on addresses */
@@ -69,7 +80,7 @@ void ViewerDataHandler::updateVariables(double timestamp, const std::unordered_m
 		plot->addTimePoint(timestamp);
 	}
 
-	if (plotHandler->getSettings().shouldLog)
+	if (settings.shouldLog)
 		csvStreamer->writeLine(timestamp, csvEntry);
 }
 
@@ -102,7 +113,7 @@ void ViewerDataHandler::dataHandler()
 				timer++;
 			}
 
-			else if (period > ((1.0 / plotHandler->getSettings().sampleFrequencyHz) * timer))
+			else if (period > ((1.0 / settings.sampleFrequencyHz) * timer))
 			{
 				std::unordered_map<uint32_t, double> rawValues;
 
@@ -135,7 +146,7 @@ void ViewerDataHandler::dataHandler()
 
 				prepareCSVFile();
 
-				if (varReader->start(probeSettings, sampleList, plotHandler->getSettings().sampleFrequencyHz))
+				if (varReader->start(probeSettings, sampleList, settings.sampleFrequencyHz))
 				{
 					timer = 0;
 					lastT = 0.0;
@@ -147,7 +158,7 @@ void ViewerDataHandler::dataHandler()
 			else
 			{
 				varReader->stop();
-				if (plotHandler->getSettings().shouldLog)
+				if (settings.shouldLog)
 					csvStreamer->finishLogging();
 			}
 			stateChangeOrdered = false;
@@ -195,7 +206,7 @@ ViewerDataHandler::SampleListType ViewerDataHandler::createSampleList()
 
 void ViewerDataHandler::prepareCSVFile()
 {
-	if (!plotHandler->getSettings().shouldLog)
+	if (!settings.shouldLog)
 		return;
 
 	std::vector<std::string> headerNames;
@@ -208,6 +219,6 @@ void ViewerDataHandler::prepareCSVFile()
 		for (auto& [name, ser] : plot->getSeriesMap())
 			headerNames.push_back(name);
 	}
-	csvStreamer->prepareFile(plotHandler->getSettings().logFilePath);
+	csvStreamer->prepareFile(settings.logFilePath);
 	csvStreamer->createHeader(headerNames);
 }

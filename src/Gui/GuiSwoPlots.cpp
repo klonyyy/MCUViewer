@@ -34,7 +34,7 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 
 		if (traceDataHandler->getState() == DataHandlerBase::state::RUN)
 		{
-			auto settings = tracePlotHandler->getSettings();
+			auto settings = traceDataHandler->getSettings();
 			const double min = time.getOldestValue();
 			const double max = time.getNewestValue();
 			const double viewportWidth = (max - min) * (settings.maxViewportPointsPercent / 100.0);

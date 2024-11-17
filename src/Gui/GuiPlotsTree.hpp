@@ -10,7 +10,6 @@
 #include "IFileHandler.hpp"
 #include "Plot.hpp"
 #include "PlotGroupHandler.hpp"
-#include "PlotHandler.hpp"
 
 class PlotsTree
 {

@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-#include "PlotHandlerBase.hpp"
+#include "PlotHandler.hpp"
 #include "StLinkDebugProbe.hpp"
 #include "Statistics.hpp"
 #include "glfw3.h"
@@ -20,7 +20,7 @@
 #include <windows.h>
 #endif
 
-Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), viewerDataHandler(viewerDataHandler), traceDataHandler(traceDataHandler), done(done), mtx(mtx), logger(logger)
+Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), viewerDataHandler(viewerDataHandler), traceDataHandler(traceDataHandler), done(done), mtx(mtx), logger(logger)
 {
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
 	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, variableHandler);
@@ -32,8 +32,6 @@ Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandl
 		for (std::shared_ptr<Plot> plt : *this->plotHandler)
 			plt->renameSeries(oldName, newName);
 	};
-
-	tracePlotHandler->initPlots();
 }
 
 Gui::~Gui()
@@ -407,7 +405,7 @@ void Gui::askShouldSaveOnNew(bool shouldOpenPopup)
 	{
 		variableHandler->clear();
 		plotHandler->removeAllPlots();
-		tracePlotHandler->initPlots();
+		traceDataHandler->initPlots();
 		plotGroupHandler->removeAllGroups();
 		projectElfPath = "";
 		projectConfigPath = "";

@@ -22,10 +22,8 @@
 #include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
 #include "PlotGroupHandler.hpp"
-#include "PlotHandler.hpp"
 #include "Popup.hpp"
 #include "TraceDataHandler.hpp"
-#include "TracePlotHandler.hpp"
 #include "VariableHandler.hpp"
 #include "ViewerDataHandler.hpp"
 #include "imgui.h"
@@ -34,7 +32,7 @@
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
+	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
@@ -56,7 +54,7 @@ class Gui
 	bool showSelectVariablesWindow = false;
 
 	IFileHandler* fileHandler;
-	TracePlotHandler* tracePlotHandler;
+	PlotHandler* tracePlotHandler;
 	ViewerDataHandler* viewerDataHandler;
 	TraceDataHandler* traceDataHandler;
 
@@ -102,8 +100,8 @@ class Gui
 	void acqusitionSettingsViewer();
 
 	template <typename Settings>
-	void drawLoggingSettings(PlotHandlerBase* handler, Settings& settings);
-	void drawGdbSettings(PlotHandler::Settings& settings);
+	void drawLoggingSettings(PlotHandler* handler, Settings& settings);
+	void drawGdbSettings(ViewerDataHandler::Settings& settings);
 
 	void drawAboutWindow();
 	void drawPreferencesWindow();

@@ -6,9 +6,10 @@
 
 #include "TraceReader.hpp"
 
-TraceDataHandler::TraceDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : DataHandlerBase(plotGroupHandler, variableHandler, plotHandler, tracePlotHandler, done, mtx, logger)
+TraceDataHandler::TraceDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : DataHandlerBase(plotGroupHandler, variableHandler, plotHandler, tracePlotHandler, done, mtx, logger)
 {
 	traceReader = std::make_unique<TraceReader>(logger);
+	initPlots();
 	dataHandle = std::thread(&TraceDataHandler::dataHandler, this);
 }
 TraceDataHandler::~TraceDataHandler()
@@ -64,6 +65,21 @@ ITraceProbe::TraceProbeSettings TraceDataHandler::getProbeSettings() const
 void TraceDataHandler::setProbeSettings(const ITraceProbe::TraceProbeSettings& settings)
 {
 	probeSettings = settings;
+}
+
+TraceDataHandler::Settings TraceDataHandler::getSettings() const
+{
+	return settings;
+}
+
+void TraceDataHandler::setSettings(const Settings& settings)
+{
+	traceReader->setCoreClockFrequency(settings.coreFrequency);
+	traceReader->setTraceFrequency(settings.tracePrescaler);
+	traceReader->setTraceShouldReset(settings.shouldReset);
+	traceReader->setTraceTimeout(settings.timeout);
+	tracePlotHandler->setMaxPoints(settings.maxPoints);
+	this->settings = settings;
 }
 
 double TraceDataHandler::getDoubleValue(const Plot& plot, uint32_t value)
@@ -235,4 +251,23 @@ void TraceDataHandler::prepareCSVFile()
 
 	csvStreamer->prepareFile(settings.logFilePath);
 	csvStreamer->createHeader(headerNames);
+}
+
+void TraceDataHandler::initPlots()
+{
+	const uint32_t colors[] = {4294967040, 4294960666, 4294954035, 4294947661, 4294941030, 4294934656, 4294928025, 4294921651, 4294915020, 4294908646, 4294902015};
+
+	for (uint32_t i = 0; i < channels; i++)
+	{
+		std::string name = std::string("CH" + std::to_string(i));
+		auto plot = tracePlotHandler->addPlot(name);
+
+		auto newVar = std::make_shared<Variable>(name);
+		newVar->setColor(colors[i]);
+		traceVars[name] = newVar;
+
+		plot->addSeries(newVar.get());
+		plot->setDomain(Plot::Domain::DIGITAL);
+		plot->setAlias("CH" + std::to_string(i));
+	}
 }

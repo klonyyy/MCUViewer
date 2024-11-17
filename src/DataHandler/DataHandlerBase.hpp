@@ -5,11 +5,10 @@
 #include <thread>
 
 #include "CSVStreamer.hpp"
+#include "PlotGroupHandler.hpp"
 #include "PlotHandler.hpp"
-#include "TracePlotHandler.hpp"
 #include "VariableHandler.hpp"
 #include "spdlog/spdlog.h"
-#include "PlotGroupHandler.hpp"
 
 class DataHandlerBase
 {
@@ -20,7 +19,7 @@ class DataHandlerBase
 		RUN = 1,
 	};
 
-	DataHandlerBase(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : plotGroupHandler(plotGroupHandler), variableHandler(variableHandler), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
+	DataHandlerBase(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : plotGroupHandler(plotGroupHandler), variableHandler(variableHandler), plotHandler(plotHandler), tracePlotHandler(tracePlotHandler), done(done), mtx(mtx), logger(logger)
 	{
 		csvStreamer = std::make_unique<CSVStreamer>(logger);
 	}
@@ -44,10 +43,10 @@ class DataHandlerBase
 	}
 
    protected:
-   PlotGroupHandler* plotGroupHandler;
+	PlotGroupHandler* plotGroupHandler;
 	VariableHandler* variableHandler;
 	PlotHandler* plotHandler;
-	TracePlotHandler* tracePlotHandler;
+	PlotHandler* tracePlotHandler;
 	std::atomic<bool>& done;
 	std::atomic<state> viewerState = state::STOP;
 	std::mutex* mtx;

@@ -119,7 +119,7 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 	{
 		if (viewerDataHandler->getState() == DataHandlerBase::state::RUN)
 		{
-			PlotHandler::Settings settings = plotHandler->getSettings();
+			ViewerDataHandler::Settings settings = viewerDataHandler->getSettings();
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
 			const double viewportWidth = (1.0 / viewerDataHandler->getAverageSamplingFrequency()) * settings.maxViewportPoints;
