@@ -155,19 +155,17 @@ double Variable::getDoubleFromRaw()
 		{
 			case 1:
 			{
-				rawValue &= 0xff;
-				int8_t value = *reinterpret_cast<int8_t*>(&rawValue);
+				int8_t value = rawValue & 0xff;
 				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
 			}
 			case 2:
 			{
-				rawValue &= 0xffff;
-				int16_t value = *reinterpret_cast<int16_t*>(&rawValue);
+				int16_t value = rawValue & 0xffff;
 				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
 			}
 			case 4:
 			{
-				int32_t value = *reinterpret_cast<int32_t*>(&rawValue);
+				int32_t value = rawValue;
 				return (static_cast<double>(value) / (1 << (fractional.fractionalBits))) * fractional.base;
 			}
 		}
@@ -178,19 +176,17 @@ double Variable::getDoubleFromRaw()
 		{
 			case 1:
 			{
-				rawValue &= 0xff;
-				uint8_t value = *reinterpret_cast<uint8_t*>(&rawValue);
+				uint8_t value = rawValue & 0xff;
 				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
 			}
 			case 2:
 			{
-				rawValue &= 0xffff;
-				uint16_t value = *reinterpret_cast<uint16_t*>(&rawValue);
+				uint16_t value = rawValue & 0xffff;
 				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
 			}
 			case 4:
 			{
-				uint32_t value = *reinterpret_cast<uint32_t*>(&rawValue);
+				uint32_t value = rawValue;
 				return (static_cast<double>(value) / (1 << fractional.fractionalBits)) * fractional.base;
 			}
 		}
