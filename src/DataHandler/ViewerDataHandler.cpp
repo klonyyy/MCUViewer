@@ -45,6 +45,34 @@ void ViewerDataHandler::setProbeSettings(const IDebugProbe::DebugProbeSettings& 
 	probeSettings = settings;
 }
 
+void ViewerDataHandler::updateVariables(double timestamp, const std::unordered_map<uint32_t, double>& values)
+{
+	/* get raw values and put them into variables based on addresses */
+	for (std::shared_ptr<Variable> var : *variableHandler)
+	{
+		uint32_t address = var->getAddress();
+		if (values.contains(address))
+		{
+			var->setRawValueAndTransform(values.at(address));
+			csvEntry[var->getName()] = var->getValue();
+		}
+	}
+
+	for (auto plot : *plotHandler)
+	{
+		if (!plot->getVisibility())
+			continue;
+
+		std::lock_guard<std::mutex> lock(*mtx);
+		/* thread-safe part */
+		plot->updateSeries();
+		plot->addTimePoint(timestamp);
+	}
+
+	if (plotHandler->getSettings().shouldLog)
+		csvStreamer->writeLine(timestamp, csvEntry);
+}
+
 void ViewerDataHandler::dataHandler()
 {
 	std::chrono::time_point<std::chrono::steady_clock> start;
@@ -65,30 +93,10 @@ void ViewerDataHandler::dataHandler()
 				if (!maybeEntry.has_value())
 					continue;
 
-				auto [timestamp, values] = maybeEntry.value();
+				auto [timestamp, rawValues] = maybeEntry.value();
 
-				for (std::shared_ptr<Variable> var : *variableHandler)
-				{
-					if (values.contains(var->getAddress()))
-					{
-						var->setRawValueAndTransform(values.at(var->getAddress()));
-						csvEntry[var->getName()] = var->getValue();
-					}
-				}
+				updateVariables(timestamp, rawValues);
 
-				for (auto plot : *plotHandler)
-				{
-					if (!plot->getVisibility())
-						continue;
-
-					std::lock_guard<std::mutex> lock(*mtx);
-					/* thread-safe part */
-					plot->updateSeries();
-					plot->addTimePoint(timestamp);
-				}
-
-				if (plotHandler->getSettings().shouldLog)
-					csvStreamer->writeLine(period, csvEntry);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -97,30 +105,20 @@ void ViewerDataHandler::dataHandler()
 
 			else if (period > ((1.0 / plotHandler->getSettings().sampleFrequencyHz) * timer))
 			{
-				for (std::shared_ptr<Variable> var : *variableHandler)
+				std::unordered_map<uint32_t, double> rawValues;
+
+				/* sample by address */
+				for (auto& [address, size] : sampleList)
 				{
 					bool result = false;
-					uint32_t value = varReader->getValue(var->getAddress(), var->getSize(), result);
+					uint32_t value = varReader->getValue(address, size, result);
 
 					if (result)
-					{
-						var->setRawValueAndTransform(value);
-						csvEntry[var->getName()] = var->getValue();
-					}
+						rawValues[address] = value;
 				}
 
-				for (auto plot : *plotHandler)
-				{
-					if (!plot->getVisibility())
-						continue;
+				updateVariables(period, rawValues);
 
-					std::lock_guard<std::mutex> lock(*mtx);
-					plot->updateSeries();
-					plot->addTimePoint(period);
-				}
-
-				if (plotHandler->getSettings().shouldLog)
-					csvStreamer->writeLine(period, csvEntry);
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
 				lastT = period;
@@ -134,11 +132,11 @@ void ViewerDataHandler::dataHandler()
 		{
 			if (viewerState == state::RUN)
 			{
-				auto addressSizeVector = createAddressSizeVector();
+				sampleList = createSampleList();
 
 				prepareCSVFile();
 
-				if (varReader->start(probeSettings, addressSizeVector, plotHandler->getSettings().sampleFrequencyHz))
+				if (varReader->start(probeSettings, sampleList, plotHandler->getSettings().sampleFrequencyHz))
 				{
 					timer = 0;
 					lastT = 0.0;
@@ -158,9 +156,9 @@ void ViewerDataHandler::dataHandler()
 	}
 }
 
-std::vector<std::pair<uint32_t, uint8_t>> ViewerDataHandler::createAddressSizeVector()
+ViewerDataHandler::SampleListType ViewerDataHandler::createSampleList()
 {
-	std::vector<std::pair<uint32_t, uint8_t>> addressSizeVector;
+	SampleListType addressSizeVector;
 
 	for (auto& [name, plot] : *plotGroupHandler->getActiveGroup())
 	{

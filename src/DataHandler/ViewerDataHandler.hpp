@@ -37,9 +37,12 @@ class ViewerDataHandler : public DataHandlerBase
 	}
 
    private:
+	using SampleListType = std::vector<std::pair<uint32_t, uint8_t>>;
+
+	void updateVariables(double timestamp, const std::unordered_map<uint32_t, double>& values);
 	void dataHandler();
 	void prepareCSVFile();
-	std::vector<std::pair<uint32_t, uint8_t>> createAddressSizeVector();
+	SampleListType createSampleList();
 
    private:
 	static constexpr size_t maxVariablesOnSinglePlot = 100;
@@ -49,4 +52,6 @@ class ViewerDataHandler : public DataHandlerBase
 	double averageSamplingPeriod = 0.0;
 
 	std::unordered_map<std::string, double> csvEntry;
+
+	SampleListType sampleList;
 };
