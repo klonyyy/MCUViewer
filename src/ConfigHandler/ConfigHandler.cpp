@@ -404,7 +404,7 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 			auto fractional = var->getFractional();
 			(*ini)[varFieldFromID(varId)]["frac"] = std::to_string(fractional.fractionalBits);
 			(*ini)[varFieldFromID(varId)]["base"] = std::to_string(fractional.base);
-			(*ini)[varFieldFromID(varId)]["base_variable"] = fractional.baseVariable->getName();
+			(*ini)[varFieldFromID(varId)]["base_variable"] = fractional.baseVariable != nullptr ? fractional.baseVariable->getName() : "";
 		}
 
 		varId++;
