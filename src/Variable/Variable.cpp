@@ -235,43 +235,30 @@ double Variable::transformToDouble()
 
 uint32_t Variable::getRawFromDouble(double value)
 {
-	uint32_t result = 0;
-
-	if (HighLevelType::SIGNEDFRAC == highLevelType || HighLevelType::UNSIGNEDFRAC == highLevelType)
-	{
+	if (isFractional())
 		return static_cast<uint32_t>((value / fractional.base) * (1 << fractional.fractionalBits));
-	}
-
-	auto getResult = [](auto var)
-	{
-		uint32_t result = 0;
-		for (size_t i = 0; i < sizeof(var); i++)
-			result |= var >> 8 * i;
-		return result;
-	};
 
 	switch (getType())
 	{
 		case Variable::Type::U8:
-			return getResult(static_cast<uint8_t>(value));
+			return static_cast<uint8_t>(value);
 		case Variable::Type::I8:
-			return getResult(static_cast<int8_t>(value));
+			return static_cast<int8_t>(value);
 		case Variable::Type::U16:
-			return getResult(static_cast<uint16_t>(value));
+			return static_cast<uint16_t>(value);
 		case Variable::Type::I16:
-			return getResult(static_cast<int16_t>(value));
+			return static_cast<int16_t>(value);
 		case Variable::Type::U32:
-			return getResult(static_cast<uint32_t>(value));
+			return static_cast<uint32_t>(value);
 		case Variable::Type::I32:
-			return getResult(static_cast<int32_t>(value));
+			return static_cast<int32_t>(value);
 		case Variable::Type::F32:
 		{
 			float valf = static_cast<float>(value);
-			uint32_t val = *reinterpret_cast<uint32_t*>(&valf);
-			return getResult(val);
+			return *reinterpret_cast<uint32_t*>(&valf);
 		}
 		default:
-			return false;
+			return 0;
 	}
 }
 
