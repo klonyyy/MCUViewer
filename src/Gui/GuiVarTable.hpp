@@ -74,7 +74,7 @@ class VariableTableWindow
 
 				const bool itemIsSelected = selection.contains(name);
 
-				if (ImGui::Selectable(var->getName().c_str(), itemIsSelected, ImGuiSelectableFlags_AllowDoubleClick))
+				if (ImGui::Selectable(var->getName().c_str(), itemIsSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap | ImGuiSelectableFlags_AllowDoubleClick))
 				{
 					if (ImGui::IsMouseDoubleClicked(0))
 					{
