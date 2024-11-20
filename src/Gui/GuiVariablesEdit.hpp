@@ -12,8 +12,8 @@ class VariableEditWindow
    public:
 	VariableEditWindow(VariableHandler* variableHandler) : variableHandler(variableHandler)
 	{
-		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection);
-		// selectVariableWindowBase = std::make_unique<SelectVariableWindow>(variableHandler, &selectionBase);
+		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection, 1);
+		selectVariableWindowBase = std::make_unique<SelectVariableWindow>(variableHandler, &selectionBase, 2);
 	}
 
 	void draw()
@@ -34,13 +34,13 @@ class VariableEditWindow
 			{
 				showVariableEditWindow = false;
 				selection.clear();
-				// selectionBase.clear();
+				selectionBase.clear();
 				ImGui::CloseCurrentPopup();
 			}
 
 			popup.handle();
 			selectVariableWindow->draw();
-			// selectVariableWindowBase->draw();
+			selectVariableWindowBase->draw();
 			ImGui::EndPopup();
 		}
 	}
@@ -220,11 +220,11 @@ class VariableEditWindow
 			if (ImGui::InputText("##base", &base, ImGuiInputTextFlags_None, NULL, NULL))
 				shouldUpdate = true;
 
-			// ImGui::SameLine();
-			// ImGui::PushID("fractional");
-			// if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
-			// 	selectVariableWindowBase->setShowState(true);
-			// ImGui::PopID();
+			ImGui::SameLine();
+			ImGui::PushID("fractional");
+			if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
+				selectVariableWindowBase->setShowState(true);
+			ImGui::PopID();
 
 			if (shouldUpdate)
 			{

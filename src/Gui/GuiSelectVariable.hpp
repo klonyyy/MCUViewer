@@ -14,19 +14,24 @@
 class SelectVariableWindow
 {
    public:
-	SelectVariableWindow(VariableHandler* variableHandler, std::set<std::string>* selection) : variableHandler(variableHandler), selection(selection)
+	SelectVariableWindow(VariableHandler* variableHandler, std::set<std::string>* selection, int id)
+		: variableHandler(variableHandler), selection(selection), id(id)
 	{
 	}
 
 	void draw()
 	{
 		if (show)
-			ImGui::OpenPopup("Select Variables");
+		{
+			std::string popupName = "Select Variables##" + std::to_string(id);	// Unique name
+			ImGui::OpenPopup(popupName.c_str());
+		}
 
 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 		ImGui::SetNextWindowSize(ImVec2(500 * GuiHelper::contentScale, -1), ImGuiCond_Once);
 
-		if (ImGui::BeginPopupModal("Select Variables", &show, 0))
+		std::string popupName = "Select Variables##" + std::to_string(id);	// Unique name
+		if (ImGui::BeginPopupModal(popupName.c_str(), &show, 0))
 		{
 			const char* searchLabel = "search ";
 			uint32_t dupa = ImGui::GetItemRectSize().x - 25 * GuiHelper::contentScale;
@@ -68,8 +73,8 @@ class SelectVariableWindow
 		if (ImGui::BeginTable("table_scrolly", 2, flags, ImVec2(0.0f, 400 * GuiHelper::contentScale)))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("Name", 0);
-			ImGui::TableSetupColumn("Address", 0);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
+			ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
 			ImGui::TableHeadersRow();
 
 			for (std::shared_ptr<Variable> var : *variableHandler)
@@ -117,8 +122,7 @@ class SelectVariableWindow
 
    private:
 	VariableHandler* variableHandler;
-
 	std::set<std::string>* selection;
-
 	bool show = false;
+	int id;
 };

@@ -13,7 +13,7 @@ class PlotEditWindow
    public:
 	PlotEditWindow(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), variableHandler(variableHandler)
 	{
-		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection);
+		selectVariableWindow = std::make_unique<SelectVariableWindow>(variableHandler, &selection, 1);
 	}
 
 	void draw()
