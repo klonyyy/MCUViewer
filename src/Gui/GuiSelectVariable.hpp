@@ -41,6 +41,14 @@ class SelectVariableWindow
 			static std::string search{};
 			ImGui::Text("%s", searchLabel);
 			ImGui::SameLine();
+
+			static bool focusSet = false;
+			if (!focusSet)
+			{
+				ImGui::SetKeyboardFocusHere();
+				focusSet = true;
+			}
+
 			ImGui::InputText("##search", &search, 0, NULL, NULL);
 			ImGui::PopItemWidth();
 			ImGui::Dummy(ImVec2(-1, 5));
