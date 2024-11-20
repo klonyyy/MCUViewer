@@ -92,10 +92,14 @@ class VariableEditWindow
 				popup.show("Error!", "Variable already exists!", 1.5f);
 		}
 
+		ImGui::BeginDisabled(!shouldUpdateFromElf);
+
 		GuiHelper::drawTextAlignedToSize("specify tracked name:", alignment);
 		ImGui::SameLine();
 		if (ImGui::Checkbox("##selectNameManually", &selectNameManually))
 			editedVariable->setIsTrackedNameDifferent(selectNameManually);
+
+		ImGui::EndDisabled();
 
 		ImGui::BeginDisabled(!selectNameManually);
 
@@ -132,6 +136,7 @@ class VariableEditWindow
 		if (ImGui::Checkbox("##shouldUpdateFromElf", &shouldUpdateFromElf))
 		{
 			editedVariable->setShouldUpdateFromElf(shouldUpdateFromElf);
+			editedVariable->setIsTrackedNameDifferent(false);
 		}
 
 		ImGui::BeginDisabled(shouldUpdateFromElf);
