@@ -70,21 +70,43 @@ class ImportVariablesWindow
 
 			if (ImGui::Button(importBtnName.c_str(), ImVec2(-1, 25 * GuiHelper::contentScale)))
 			{
+				std::vector<std::string> namesAlreadyImported;
 				for (auto& [newName, newAddress] : selection)
 				{
-					variableHandler->addNewVariable(newName);
-					variableHandler->getVariable(newName)->setAddress(newAddress);
+					if (!variableHandler->contains(newName))
+					{
+						variableHandler->addNewVariable(newName);
+						variableHandler->getVariable(newName)->setAddress(newAddress);
+					}
+					else
+						namesAlreadyImported.push_back(newName);
 				}
+
+				if (namesAlreadyImported.size() > 0)
+				{
+					std::string message = "The following variables were already imported: \n";
+
+					for (auto& name : namesAlreadyImported)
+					{
+						message += "-" + name;
+						if (name != namesAlreadyImported.back())
+							message += ", ";
+						message += "\n";
+					}
+
+					importWarningPopup.show("Warning!", message.c_str(), 2.0f);
+				}
+				shouldUpdate = true;
 			}
 
 			if (ImGui::Button("Done", ImVec2(-1, 25 * GuiHelper::contentScale)))
 			{
-				shouldUpdate = true;
 				showImportVariablesWindow = false;
 				ImGui::CloseCurrentPopup();
 			}
 
 			acqusitionErrorPopup.handle();
+			importWarningPopup.handle();
 
 			ImGui::EndPopup();
 		}
@@ -158,6 +180,7 @@ class ImportVariablesWindow
 	VariableHandler* variableHandler;
 
 	Popup acqusitionErrorPopup;
+	Popup importWarningPopup;
 
 	bool showImportVariablesWindow = false;
 	bool shouldUpdate = false;
