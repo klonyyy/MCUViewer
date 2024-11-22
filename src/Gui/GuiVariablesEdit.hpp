@@ -198,14 +198,6 @@ class VariableEditWindow
 		if (editedVariable->isFractional())
 		{
 			Variable::Fractional fractional = editedVariable->getFractional();
-			std::string base = "";
-
-			if (!selectionBase.empty())
-				base = *selectionBase.begin();
-			else if (fractional.baseVariable != nullptr)
-				base = fractional.baseVariable->getName();
-			else
-				base = std::to_string(fractional.base);
 
 			std::string fractionalBits = std::to_string(fractional.fractionalBits);
 			bool shouldUpdate = false;
@@ -215,9 +207,24 @@ class VariableEditWindow
 			if (ImGui::InputText("##fractional", &fractionalBits, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
 				shouldUpdate = true;
 
+			/* BASE */
+
+			std::string base = "";
+
+			if (!selectionBase.empty())
+				base = *selectionBase.begin();
+			else if (fractional.baseVariable != nullptr)
+				base = fractional.baseVariable->getName();
+			else
+				base = std::to_string(fractional.base);
+
 			GuiHelper::drawTextAlignedToSize("base:", alignment);
 			ImGui::SameLine();
+
 			if (ImGui::InputText("##base", &base, ImGuiInputTextFlags_None, NULL, NULL))
+				shouldUpdate = true;
+
+			if (fractional.baseVariable != nullptr && base != fractional.baseVariable->getName())
 				shouldUpdate = true;
 
 			ImGui::SameLine();
