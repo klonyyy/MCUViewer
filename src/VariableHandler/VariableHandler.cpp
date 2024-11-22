@@ -94,6 +94,16 @@ void VariableHandler::renameVariable(const std::string& currentName, const std::
 
 	if (renameCallback)
 		renameCallback(currentName, newName);
+
+	/* update tracked vars references */
+	for (auto& [name, var] : variableMap)
+	{
+		if (var->getTrackedName() == currentName)
+			var->setTrackedName(newName);
+
+		if (var->isFractional() && var->getFractional().baseVariable != nullptr && var->getFractional().baseVariable->getTrackedName() == currentName)
+			var->getFractional().baseVariable->setTrackedName(newName);
+	}
 }
 
 VariableHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Variable>>::iterator iter)
