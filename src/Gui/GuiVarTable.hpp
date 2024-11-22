@@ -120,10 +120,12 @@ class VariableTableWindow
 					ImGui::EndDragDropSource();
 				}
 				ImGui::TableSetColumnIndex(1);
+
 				if (var->getIsFound())
 					ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(var->getAddress()))).c_str());
 				else
-					ImGui::Text("NOT FOUND!");
+					ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "NOT FOUND!");
+
 				ImGui::TableSetColumnIndex(2);
 				ImGui::Text("%s", var->getTypeStr().c_str());
 			}
