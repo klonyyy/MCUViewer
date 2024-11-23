@@ -79,10 +79,11 @@ class VariableEditWindow
 			ImGui::SetKeyboardFocusHere(0);
 			stateChanged = false;
 		}
-
+		/* NAME */
 		GuiHelper::drawTextAlignedToSize("name:", alignment);
 		ImGui::SameLine();
-		if (ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL))
+		ImGui::InputText("##name", &name, ImGuiInputTextFlags_None, NULL, NULL);
+		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			if (!variableHandler->contains(name))
 			{
@@ -92,6 +93,7 @@ class VariableEditWindow
 				popup.show("Error!", "Variable already exists!", 1.5f);
 		}
 
+		/* TRACKED NAME */
 		ImGui::BeginDisabled(!shouldUpdateFromElf);
 
 		GuiHelper::drawTextAlignedToSize("specify tracked name:", alignment);
@@ -131,6 +133,7 @@ class VariableEditWindow
 
 		ImGui::EndDisabled();
 
+		/* SHOULD UPDATE FROM ELF */
 		GuiHelper::drawTextAlignedToSize("update from *.elf:", alignment);
 		ImGui::SameLine();
 		if (ImGui::Checkbox("##shouldUpdateFromElf", &shouldUpdateFromElf))
@@ -138,6 +141,8 @@ class VariableEditWindow
 			editedVariable->setShouldUpdateFromElf(shouldUpdateFromElf);
 			editedVariable->setIsTrackedNameDifferent(false);
 		}
+
+		/* ADDRESS */
 
 		ImGui::BeginDisabled(shouldUpdateFromElf);
 
@@ -148,7 +153,7 @@ class VariableEditWindow
 			uint32_t addressDec = GuiHelper::hexStringToDecimal(address);
 			editedVariable->setAddress(addressDec);
 		}
-
+		/* BASE TYPE*/
 		GuiHelper::drawTextAlignedToSize("base type:", alignment);
 		ImGui::SameLine();
 		int32_t type = static_cast<int32_t>(editedVariable->getType());
