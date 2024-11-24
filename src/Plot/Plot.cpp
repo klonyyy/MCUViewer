@@ -63,8 +63,8 @@ ScrollingBuffer<double>* Plot::getXAxisSeries()
 {
 	if (type == Type::XY)
 	{
-		if (xAxisSeries.var != nullptr && seriesMap.contains(xAxisSeries.var->getName()))
-			return seriesMap[xAxisSeries.var->getName()]->buffer.get();
+		if (xAxisSeries.var != nullptr)
+			return xAxisSeries.buffer.get();
 	}
 	return &time;
 }
@@ -128,6 +128,9 @@ void Plot::updateSeries()
 {
 	for (auto& [name, ser] : seriesMap)
 		ser->addPointFromVar();
+
+	if (xAxisSeries.var != nullptr)
+		xAxisSeries.addPointFromVar();
 }
 
 bool Plot::addTimePoint(double t)
@@ -255,6 +258,11 @@ void Plot::setIsHovered(bool isHovered)
 bool Plot::isHovered() const
 {
 	return isHoveredOver;
+}
+
+Variable* Plot::getXAxisVariable()
+{
+	return xAxisSeries.var;
 }
 
 void Plot::setXAxisVariable(Variable* var)

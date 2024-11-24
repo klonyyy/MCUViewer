@@ -64,19 +64,14 @@ void ViewerDataHandler::updateVariables(double timestamp, const std::unordered_m
 	{
 		uint32_t address = var->getAddress();
 		if (values.contains(address))
-		{
 			var->setRawValue(values.at(address));
-		}
 	}
 
 	for (std::shared_ptr<Variable> var : *variableHandler)
 	{
 		uint32_t address = var->getAddress();
 		if (values.contains(address))
-		{
-			
 			csvEntry[var->getName()] = var->transformToDouble();
-		}
 	}
 
 	for (auto plot : *plotHandler)
@@ -199,6 +194,14 @@ void ViewerDataHandler::createSampleList()
 
 			if (!checkIfElementExists(newElement))
 				sampleList.push_back(newElement);
+
+			Variable* maybeXAxisVariable = plot->getXAxisVariable();
+			if (plot->getType() == Plot::Type::XY && maybeXAxisVariable != nullptr)
+			{
+				newElement = {maybeXAxisVariable->getAddress(), maybeXAxisVariable->getSize()};
+				if (!checkIfElementExists(newElement))
+					sampleList.push_back(newElement);
+			}
 		}
 	}
 	/* additionally scan for eventual bases of fractional variables that should be sampled */
