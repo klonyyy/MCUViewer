@@ -65,7 +65,7 @@ void ConfigHandler::loadVariables()
 		{
 			fractionalBaseVariableNames[name] = ini->get(varFieldFromID(varId)).get("base_variable");
 
-			Variable::Fractional frac = {.fractionalBits = atoi(ini->get(varFieldFromID(varId)).get("frac").c_str()),
+			Variable::Fractional frac = {.fractionalBits = static_cast<uint32_t>(atoi(ini->get(varFieldFromID(varId)).get("frac").c_str())),
 										 .base = atof(ini->get(varFieldFromID(varId)).get("base").c_str()),
 										 .baseVariable = nullptr};
 			newVar->setFractional(frac);
