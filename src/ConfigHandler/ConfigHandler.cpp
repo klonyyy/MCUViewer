@@ -130,6 +130,13 @@ void ConfigHandler::loadPlots()
 			auto plot = plotHandler->getPlot(plotName);
 			plot->setVisibility(visibility);
 			plot->setType(type);
+			if (type == Plot::Type::XY)
+			{
+				std::string xAxisVariable = ini->get(sectionName).get("x_axis_variable");
+				if (variableHandler->contains(xAxisVariable))
+					plot->setXAxisVariable(variableHandler->getVariable(xAxisVariable).get());
+			}
+
 			logger->info("Adding plot: {}", plotName);
 			uint32_t seriesNumber = 0;
 			std::string varName = ini->get(plotSeriesFieldFromID(plotNumber, seriesNumber)).get("name");
@@ -431,6 +438,9 @@ mINI::INIStructure ConfigHandler::prepareSaveConfigFile(const std::string& elfPa
 		(configIni)[plotFieldFromID(plotId)]["name"] = plt->getName();
 		(configIni)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
 		(configIni)[plotFieldFromID(plotId)]["type"] = std::to_string(static_cast<uint8_t>(plt->getType()));
+
+		if (plt->getType() == Plot::Type::XY)
+			(configIni)[plotFieldFromID(plotId)]["x_axis_variable"] = plt->getXAxisVariable() != nullptr ? plt->getXAxisVariable()->getName() : "";
 
 		uint32_t serId = 0;
 
