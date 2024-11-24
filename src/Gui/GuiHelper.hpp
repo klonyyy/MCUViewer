@@ -19,6 +19,20 @@ namespace GuiHelper
  */
 static float contentScale = 1.0f;
 
+static ImVec4 white = (ImVec4)ImColor::HSV(0.0f, 0.0f, 1.0f);
+
+static ImVec4 green = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
+static ImVec4 greenLight = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.57f);
+static ImVec4 greenLightDim = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.47f);
+
+static ImVec4 red = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.72f);
+static ImVec4 redLight = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.92f);
+static ImVec4 redLightDim = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.82f);
+
+static ImVec4 orange = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.72f);
+static ImVec4 orangeLight = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.92f);
+static ImVec4 orangeLightDim = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.82f);
+
 /**
  * @brief Convert int32_t to hexadecilam string
  *

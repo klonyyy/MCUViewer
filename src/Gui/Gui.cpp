@@ -269,35 +269,23 @@ void Gui::drawStartButton(DataHandlerBase* activeDataHandler)
 
 	if (state == DataHandlerBase::state::RUN)
 	{
-		ImVec4 green = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.37f);
-		ImVec4 greenLight = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.57f);
-		ImVec4 greenLightDim = (ImVec4)ImColor::HSV(0.365f, 0.94f, 0.47f);
-
-		ImGui::PushStyleColor(ImGuiCol_Button, green);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, greenLight);
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, greenLightDim);
+		ImGui::PushStyleColor(ImGuiCol_Button, GuiHelper::green);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GuiHelper::greenLight);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, GuiHelper::greenLightDim);
 	}
 	else if (state == DataHandlerBase::state::STOP)
 	{
 		if (activeDataHandler->getLastReaderError() != "")
 		{
-			ImVec4 red = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.72f);
-			ImVec4 redLight = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.92f);
-			ImVec4 redLightDim = (ImVec4)ImColor::HSV(0.0f, 0.95f, 0.82f);
-
-			ImGui::PushStyleColor(ImGuiCol_Button, red);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, redLight);
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, redLightDim);
+			ImGui::PushStyleColor(ImGuiCol_Button, GuiHelper::red);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GuiHelper::redLight);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, GuiHelper::redLightDim);
 		}
 		else
 		{
-			ImVec4 orange = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.72f);
-			ImVec4 orangeLight = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.92f);
-			ImVec4 orangeLightDim = (ImVec4)ImColor::HSV(0.116f, 0.97f, 0.82f);
-
-			ImGui::PushStyleColor(ImGuiCol_Button, orange);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, orangeLight);
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, orangeLightDim);
+			ImGui::PushStyleColor(ImGuiCol_Button, GuiHelper::orange);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GuiHelper::orangeLight);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, GuiHelper::orangeLightDim);
 		}
 	}
 
