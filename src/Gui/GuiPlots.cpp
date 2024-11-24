@@ -68,14 +68,17 @@ void Gui::drawPlotXY(std::shared_ptr<Plot> plot)
 
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
+		Variable* xAxisVariable = plot->getXAxisVariable();
+		std::string xLabel = xAxisVariable ? xAxisVariable->getName() : "";
+
 		if (viewerDataHandler->getState() == DataHandlerBase::state::RUN)
 		{
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
-			ImPlot::SetupAxis(ImAxis_X1, "time[s]", 0);
+			ImPlot::SetupAxis(ImAxis_X1, xLabel.c_str(), ImPlotAxisFlags_AutoFit);
 		}
 		else
 		{
-			ImPlot::SetupAxes("time[s]", NULL, 0, 0);
+			ImPlot::SetupAxes(xLabel.c_str(), NULL, 0, 0);
 			ImPlot::SetupAxisLimits(ImAxis_X1, -1, 10, ImPlotCond_Once);
 			ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1, 0.1, ImPlotCond_Once);
 		}
