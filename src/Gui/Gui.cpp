@@ -136,7 +136,11 @@ void Gui::mainThread(std::string externalPath)
 		{
 			viewerDataHandler->setState(DataHandlerBase::state::STOP);
 			traceDataHandler->setState(DataHandlerBase::state::STOP);
-			askShouldSaveOnExit(glfwWindowShouldClose(window));
+
+			if (configHandler->isSavingRequired(projectElfPath))
+				askShouldSaveOnExit(glfwWindowShouldClose(window));
+			else
+				done = true;
 		}
 		glfwSetWindowShouldClose(window, done);
 		checkShortcuts();

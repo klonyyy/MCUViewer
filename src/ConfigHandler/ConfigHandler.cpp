@@ -332,14 +332,29 @@ bool ConfigHandler::readConfigFile(std::string& elfPath)
 
 bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string& newSavePath)
 {
+	*ini = prepareSaveConfigFile(elfPath);
+
+	if (newSavePath != "")
+	{
+		file.reset();
+		file = std::make_unique<mINI::INIFile>(newSavePath);
+	}
+
+	return file->generate(*ini, true);
+}
+
+mINI::INIStructure ConfigHandler::prepareSaveConfigFile(const std::string& elfPath)
+{
+	mINI::INIStructure configIni;
+
 	ViewerDataHandler::Settings viewerSettings = viewerDataHandler->getSettings();
 	TraceDataHandler::Settings traceSettings = traceDataHandler->getSettings();
 	IDebugProbe::DebugProbeSettings debugProbeSettings = viewerDataHandler->getProbeSettings();
 	ITraceProbe::TraceProbeSettings traceProbeSettings = traceDataHandler->getProbeSettings();
 
-	(*ini).clear();
+	(configIni).clear();
 
-	(*ini)["elf"]["file_path"] = elfPath;
+	(configIni)["elf"]["file_path"] = elfPath;
 
 	auto varFieldFromID = [](uint32_t id)
 	{ return std::string("var" + std::to_string(id)); };
@@ -356,55 +371,55 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 	auto plotSeriesFieldFromID = [](uint32_t plotId, uint32_t seriesId, const std::string& prefix = "")
 	{ return std::string(prefix + "plot" + std::to_string(plotId) + "-" + "series" + std::to_string(seriesId)); };
 
-	(*ini)["settings"]["version"] = std::to_string(globalSettings.version);
+	(configIni)["settings"]["version"] = std::to_string(globalSettings.version);
 
-	(*ini)["settings"]["sample_frequency_hz"] = std::to_string(viewerSettings.sampleFrequencyHz);
-	(*ini)["settings"]["max_points"] = std::to_string(viewerSettings.maxPoints);
-	(*ini)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
-	(*ini)["settings"]["refresh_on_elf_change"] = viewerSettings.refreshAddressesOnElfChange ? std::string("true") : std::string("false");
-	(*ini)["settings"]["stop_acq_on_elf_change"] = viewerSettings.stopAcqusitionOnElfChange ? std::string("true") : std::string("false");
-	(*ini)["settings"]["probe_type"] = std::to_string(debugProbeSettings.debugProbe);
-	(*ini)["settings"]["target_name"] = debugProbeSettings.device;
-	(*ini)["settings"]["probe_mode"] = std::to_string(debugProbeSettings.mode);
-	(*ini)["settings"]["probe_speed_kHz"] = std::to_string(debugProbeSettings.speedkHz);
-	(*ini)["settings"]["probe_SN"] = debugProbeSettings.serialNumber;
-	(*ini)["settings"]["should_log"] = viewerSettings.shouldLog ? std::string("true") : std::string("false");
-	(*ini)["settings"]["log_directory"] = viewerSettings.logFilePath;
-	(*ini)["settings"]["gdb_command"] = viewerSettings.gdbCommand;
+	(configIni)["settings"]["sample_frequency_hz"] = std::to_string(viewerSettings.sampleFrequencyHz);
+	(configIni)["settings"]["max_points"] = std::to_string(viewerSettings.maxPoints);
+	(configIni)["settings"]["max_viewport_points"] = std::to_string(viewerSettings.maxViewportPoints);
+	(configIni)["settings"]["refresh_on_elf_change"] = viewerSettings.refreshAddressesOnElfChange ? std::string("true") : std::string("false");
+	(configIni)["settings"]["stop_acq_on_elf_change"] = viewerSettings.stopAcqusitionOnElfChange ? std::string("true") : std::string("false");
+	(configIni)["settings"]["probe_type"] = std::to_string(debugProbeSettings.debugProbe);
+	(configIni)["settings"]["target_name"] = debugProbeSettings.device;
+	(configIni)["settings"]["probe_mode"] = std::to_string(debugProbeSettings.mode);
+	(configIni)["settings"]["probe_speed_kHz"] = std::to_string(debugProbeSettings.speedkHz);
+	(configIni)["settings"]["probe_SN"] = debugProbeSettings.serialNumber;
+	(configIni)["settings"]["should_log"] = viewerSettings.shouldLog ? std::string("true") : std::string("false");
+	(configIni)["settings"]["log_directory"] = viewerSettings.logFilePath;
+	(configIni)["settings"]["gdb_command"] = viewerSettings.gdbCommand;
 
-	(*ini)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
-	(*ini)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
-	(*ini)["trace_settings"]["max_points"] = std::to_string(traceSettings.maxPoints);
-	(*ini)["trace_settings"]["max_viewport_points_percent"] = std::to_string(traceSettings.maxViewportPointsPercent);
-	(*ini)["trace_settings"]["trigger_channel"] = std::to_string(traceSettings.triggerChannel);
-	(*ini)["trace_settings"]["trigger_level"] = std::to_string(traceSettings.triggerLevel);
-	(*ini)["trace_settings"]["timeout"] = std::to_string(traceSettings.timeout);
-	(*ini)["trace_settings"]["probe_type"] = std::to_string(traceProbeSettings.debugProbe);
-	(*ini)["trace_settings"]["target_name"] = traceProbeSettings.device;
-	(*ini)["trace_settings"]["probe_speed_kHz"] = std::to_string(traceProbeSettings.speedkHz);
-	(*ini)["trace_settings"]["probe_SN"] = traceProbeSettings.serialNumber;
-	(*ini)["trace_settings"]["should_log"] = traceSettings.shouldLog ? std::string("true") : std::string("false");
-	(*ini)["trace_settings"]["log_directory"] = traceSettings.logFilePath;
+	(configIni)["trace_settings"]["core_frequency"] = std::to_string(traceSettings.coreFrequency);
+	(configIni)["trace_settings"]["trace_prescaler"] = std::to_string(traceSettings.tracePrescaler);
+	(configIni)["trace_settings"]["max_points"] = std::to_string(traceSettings.maxPoints);
+	(configIni)["trace_settings"]["max_viewport_points_percent"] = std::to_string(traceSettings.maxViewportPointsPercent);
+	(configIni)["trace_settings"]["trigger_channel"] = std::to_string(traceSettings.triggerChannel);
+	(configIni)["trace_settings"]["trigger_level"] = std::to_string(traceSettings.triggerLevel);
+	(configIni)["trace_settings"]["timeout"] = std::to_string(traceSettings.timeout);
+	(configIni)["trace_settings"]["probe_type"] = std::to_string(traceProbeSettings.debugProbe);
+	(configIni)["trace_settings"]["target_name"] = traceProbeSettings.device;
+	(configIni)["trace_settings"]["probe_speed_kHz"] = std::to_string(traceProbeSettings.speedkHz);
+	(configIni)["trace_settings"]["probe_SN"] = traceProbeSettings.serialNumber;
+	(configIni)["trace_settings"]["should_log"] = traceSettings.shouldLog ? std::string("true") : std::string("false");
+	(configIni)["trace_settings"]["log_directory"] = traceSettings.logFilePath;
 
 	uint32_t varId = 0;
 	for (std::shared_ptr<Variable> var : *variableHandler)
 	{
-		(*ini)[varFieldFromID(varId)]["name"] = var->getName();
-		(*ini)[varFieldFromID(varId)]["tracked_name"] = var->getTrackedName();
-		(*ini)[varFieldFromID(varId)]["address"] = std::to_string(var->getAddress());
-		(*ini)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var->getType()));
-		(*ini)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var->getColorU32()));
-		(*ini)[varFieldFromID(varId)]["should_update_from_elf"] = var->getShouldUpdateFromElf() ? "true" : "false";
-		(*ini)[varFieldFromID(varId)]["shift"] = std::to_string(var->getShift());
-		(*ini)[varFieldFromID(varId)]["mask"] = std::to_string(var->getMask());
-		(*ini)[varFieldFromID(varId)]["high_level_type"] = std::to_string(static_cast<uint8_t>(var->getHighLevelType()));
+		(configIni)[varFieldFromID(varId)]["name"] = var->getName();
+		(configIni)[varFieldFromID(varId)]["tracked_name"] = var->getTrackedName();
+		(configIni)[varFieldFromID(varId)]["address"] = std::to_string(var->getAddress());
+		(configIni)[varFieldFromID(varId)]["type"] = std::to_string(static_cast<uint8_t>(var->getType()));
+		(configIni)[varFieldFromID(varId)]["color"] = std::to_string(static_cast<uint32_t>(var->getColorU32()));
+		(configIni)[varFieldFromID(varId)]["should_update_from_elf"] = var->getShouldUpdateFromElf() ? "true" : "false";
+		(configIni)[varFieldFromID(varId)]["shift"] = std::to_string(var->getShift());
+		(configIni)[varFieldFromID(varId)]["mask"] = std::to_string(var->getMask());
+		(configIni)[varFieldFromID(varId)]["high_level_type"] = std::to_string(static_cast<uint8_t>(var->getHighLevelType()));
 
 		if (var->isFractional())
 		{
 			auto fractional = var->getFractional();
-			(*ini)[varFieldFromID(varId)]["frac"] = std::to_string(fractional.fractionalBits);
-			(*ini)[varFieldFromID(varId)]["base"] = std::to_string(fractional.base);
-			(*ini)[varFieldFromID(varId)]["base_variable"] = fractional.baseVariable != nullptr ? fractional.baseVariable->getName() : "";
+			(configIni)[varFieldFromID(varId)]["frac"] = std::to_string(fractional.fractionalBits);
+			(configIni)[varFieldFromID(varId)]["base"] = std::to_string(fractional.base);
+			(configIni)[varFieldFromID(varId)]["base_variable"] = fractional.baseVariable != nullptr ? fractional.baseVariable->getName() : "";
 		}
 
 		varId++;
@@ -413,16 +428,16 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 	uint32_t plotId = 0;
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
-		(*ini)[plotFieldFromID(plotId)]["name"] = plt->getName();
-		(*ini)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
-		(*ini)[plotFieldFromID(plotId)]["type"] = std::to_string(static_cast<uint8_t>(plt->getType()));
+		(configIni)[plotFieldFromID(plotId)]["name"] = plt->getName();
+		(configIni)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
+		(configIni)[plotFieldFromID(plotId)]["type"] = std::to_string(static_cast<uint8_t>(plt->getType()));
 
 		uint32_t serId = 0;
 
 		for (auto& [key, ser] : plt->getSeriesMap())
 		{
-			(*ini)[plotSeriesFieldFromID(plotId, serId)]["name"] = ser->var->getName();
-			(*ini)[plotSeriesFieldFromID(plotId, serId)]["visibility"] = ser->visible ? "true" : "false";
+			(configIni)[plotSeriesFieldFromID(plotId, serId)]["name"] = ser->var->getName();
+			(configIni)[plotSeriesFieldFromID(plotId, serId)]["visibility"] = ser->visible ? "true" : "false";
 
 			std::string displayFormat = "DEC";
 			for (auto [format, value] : displayFormatMap)
@@ -434,7 +449,7 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 				}
 			}
 
-			(*ini)[plotSeriesFieldFromID(plotId, serId)]["format"] = displayFormat;
+			(configIni)[plotSeriesFieldFromID(plotId, serId)]["format"] = displayFormat;
 			serId++;
 		}
 
@@ -444,12 +459,12 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 	uint32_t groupId = 0;
 	for (auto& [name, group] : *plotGroupHandler)
 	{
-		(*ini)[groupFieldFromID(groupId)]["name"] = group->getName();
+		(configIni)[groupFieldFromID(groupId)]["name"] = group->getName();
 
 		uint32_t plotId = 0;
 		for (auto& [name, plot] : *group)
 		{
-			(*ini)[plotGroupFieldFromID(groupId, plotId)]["name"] = plot->getName();
+			(configIni)[plotGroupFieldFromID(groupId, plotId)]["name"] = plot->getName();
 			plotId++;
 		}
 		groupId++;
@@ -460,20 +475,25 @@ bool ConfigHandler::saveConfigFile(const std::string& elfPath, const std::string
 	{
 		const std::string plotName = plotFieldFromID(plotId, "trace_");
 
-		(*ini)[plotName]["name"] = plt->getName();
-		(*ini)[plotName]["alias"] = plt->getAlias();
-		(*ini)[plotName]["visibility"] = plt->getVisibility() ? "true" : "false";
-		(*ini)[plotName]["domain"] = std::to_string(static_cast<uint8_t>(plt->getDomain()));
+		(configIni)[plotName]["name"] = plt->getName();
+		(configIni)[plotName]["alias"] = plt->getAlias();
+		(configIni)[plotName]["visibility"] = plt->getVisibility() ? "true" : "false";
+		(configIni)[plotName]["domain"] = std::to_string(static_cast<uint8_t>(plt->getDomain()));
 		if (plt->getDomain() == Plot::Domain::ANALOG)
-			(*ini)[plotName]["type"] = std::to_string(static_cast<uint8_t>(plt->getTraceVarType()));
+			(configIni)[plotName]["type"] = std::to_string(static_cast<uint8_t>(plt->getTraceVarType()));
 		plotId++;
 	}
 
-	if (newSavePath != "")
-	{
-		file.reset();
-		file = std::make_unique<mINI::INIFile>(newSavePath);
-	}
+	return configIni;
+}
 
-	return file->generate(*ini, true);
+bool ConfigHandler::isSavingRequired(const std::string& elfPath)
+{
+	mINI::INIStructure configIniFromApp = prepareSaveConfigFile(elfPath);
+	mINI::INIStructure configIniFromFile{};
+
+	if (!file->read(configIniFromFile))
+		return true;
+
+	return !(configIniFromApp == configIniFromFile);
 }

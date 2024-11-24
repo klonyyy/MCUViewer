@@ -26,6 +26,7 @@ class ConfigHandler
 	bool changeConfigFile(const std::string& newConfigFilePath);
 	bool readConfigFile(std::string& elfPath);
 	bool saveConfigFile(const std::string& elfPath, const std::string& newSavePath);
+	bool isSavingRequired(const std::string& elfPath);
 
 	template <typename T>
 	void parseValue(const std::string& value, T& result)
@@ -56,6 +57,8 @@ class ConfigHandler
 	void loadPlots();
 	void loadTracePlots();
 	void loadPlotGroups();
+
+	mINI::INIStructure prepareSaveConfigFile(const std::string& elfPath);
 
    private:
 	GlobalSettings globalSettings;
