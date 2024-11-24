@@ -20,9 +20,27 @@ bool VariableHandler::isEmpty()
 	return variableMap.empty();
 }
 
-void VariableHandler::erase(const std::string& name)
+void VariableHandler::erase(const std::string& nameToDelete)
 {
-	variableMap.erase(name);
+	variableMap.erase(nameToDelete);
+
+	/* update tracked vars references */
+	for (auto& [name, var] : variableMap)
+	{
+		if (var->getTrackedName() == nameToDelete)
+		{
+			var->setTrackedName(name);
+			var->setIsTrackedNameDifferent(false);
+		}
+
+		if (var->isFractional() && var->getFractional().baseVariable != nullptr && var->getFractional().baseVariable->getName() == nameToDelete)
+		{
+			auto fractional = var->getFractional();
+			fractional.base = 1.0;
+			fractional.baseVariable = nullptr;
+			var->setFractional(fractional);
+		}
+	}
 }
 
 bool VariableHandler::contains(const std::string& name)
@@ -101,8 +119,12 @@ void VariableHandler::renameVariable(const std::string& currentName, const std::
 		if (var->getTrackedName() == currentName)
 			var->setTrackedName(newName);
 
-		if (var->isFractional() && var->getFractional().baseVariable != nullptr && var->getFractional().baseVariable->getTrackedName() == currentName)
-			var->getFractional().baseVariable->setTrackedName(newName);
+		if (var->isFractional() && var->getFractional().baseVariable != nullptr && var->getFractional().baseVariable->getName() == currentName)
+		{
+			auto fractional = var->getFractional();
+			fractional.baseVariable = variableMap[newName].get();
+			var->setFractional(fractional);
+		}
 	}
 }
 

@@ -20,7 +20,7 @@ class VariableHandler
 
 	bool isEmpty();
 
-	void erase(const std::string& name);
+	void erase(const std::string& nameToDelete);
 
 	bool contains(const std::string& name);
 
