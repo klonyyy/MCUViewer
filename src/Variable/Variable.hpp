@@ -95,8 +95,6 @@ class Variable
 	double transformToDouble();
 
    public:
-	static constexpr uint32_t maxVariableNameLength = 100;
-
 	static const char* types[8];
 	static const char* highLevelTypes[3];
 

@@ -266,34 +266,42 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 				continue;
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
-			Variable::Color a = serPtr->var->getColor();
-			ImVec4 col = {a.r, a.g, a.b, a.a};
+			Variable::Color color = serPtr->var->getColor();
+			ImVec4 col = {color.r, color.g, color.b, color.a};
 			ImGui::ColorButton("##", col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip, ImVec2(10 * GuiHelper::contentScale, 10 * GuiHelper::contentScale));
 			ImGui::SameLine();
 			ImGui::Text("%s", key.c_str());
 			ImGui::TableSetColumnIndex(1);
 			ImGui::Text("%s", ("0x" + std::string(GuiHelper::intToHexString(serPtr->var->getAddress()))).c_str());
 			ImGui::TableSetColumnIndex(2);
-			ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, plot->getSeriesValueString(key, serPtr->var->getValue()).data(), Variable::maxVariableNameLength);
+			ImGui::Text("%s", plot->getSeriesValueString(key, serPtr->var->getValue()).data());
 			showChangeFormatPopup("format", *plot, key);
 			ImGui::TableSetColumnIndex(3);
-			ImGui::PushID("input");
-			char newValue[Variable::maxVariableNameLength] = {0};
-			if (ImGui::SelectableInput(key.c_str(), false, ImGuiSelectableFlags_None, newValue, Variable::maxVariableNameLength))
+
+			std::string valueToWrite = "";
+			std::string inputName = "##Input" + key;
+
+			ImVec4 cellBgColor = ImGui::GetStyle().Colors[ImGuiCol_TableRowBg];
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, cellBgColor);
+			ImGui::PushStyleColor(ImGuiCol_FrameBgActive, cellBgColor);
+			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, cellBgColor);
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+
+			if (ImGui::InputText(inputName.c_str(), &valueToWrite, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
 			{
 				if (viewerDataHandler->getState() == DataHandlerBase::state::STOP)
 				{
-					ImGui::PopID();
+					ImGui::PopStyleColor(3);
 					continue;
 				}
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
 				{
-					logger->info("New value to be written: {}", newValue);
-					if (!viewerDataHandler->writeSeriesValue(*serPtr->var, std::stod(newValue)))
+					logger->info("New value to be written: {}", valueToWrite);
+					if (!viewerDataHandler->writeSeriesValue(*serPtr->var, std::stod(valueToWrite)))
 						logger->error("Error while writing new value!");
 				}
 			}
-			ImGui::PopID();
+			ImGui::PopStyleColor(3);
 		}
 		ImGui::EndTable();
 

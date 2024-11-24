@@ -69,8 +69,6 @@ class VariableTableWindow
 				ImGui::ColorEdit4("##", &var->getColor().r, ImGuiColorEditFlags_NoInputs);
 				ImGui::SameLine();
 				ImGui::PopID();
-				char variable[Variable::maxVariableNameLength] = {0};
-				std::memcpy(variable, var->getName().data(), var->getName().length());
 
 				const bool itemIsSelected = selection.contains(name);
 

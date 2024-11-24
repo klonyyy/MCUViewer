@@ -71,7 +71,7 @@ class VariableEditWindow
 		bool selectNameManually = editedVariable->getIsTrackedNameDifferent();
 
 		ImGui::Dummy(ImVec2(-1, 5));
-		GuiHelper::drawCenteredText("Variable");
+		GuiHelper::drawCenteredText("General");
 		ImGui::Separator();
 
 		if (stateChanged)
