@@ -23,7 +23,7 @@ class Plot
 	};
 	struct Series
 	{
-		Variable* var;
+		Variable* var = nullptr;
 		displayFormat format = displayFormat::DEC;
 		std::unique_ptr<ScrollingBuffer<double>> buffer;
 		bool visible = true;
