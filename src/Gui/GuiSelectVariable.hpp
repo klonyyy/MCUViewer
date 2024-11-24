@@ -17,20 +17,17 @@ class SelectVariableWindow
 	SelectVariableWindow(VariableHandler* variableHandler, std::set<std::string>* selection, int id)
 		: variableHandler(variableHandler), selection(selection), id(id)
 	{
+		popupName = "Select Variables##" + std::to_string(id);	// Unique name
 	}
 
 	void draw()
 	{
 		if (show)
-		{
-			std::string popupName = "Select Variables##" + std::to_string(id);	// Unique name
 			ImGui::OpenPopup(popupName.c_str());
-		}
 
 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 		ImGui::SetNextWindowSize(ImVec2(500 * GuiHelper::contentScale, -1), ImGuiCond_Once);
 
-		std::string popupName = "Select Variables##" + std::to_string(id);	// Unique name
 		if (ImGui::BeginPopupModal(popupName.c_str(), &show, 0))
 		{
 			const char* searchLabel = "search ";
@@ -131,6 +128,7 @@ class SelectVariableWindow
    private:
 	VariableHandler* variableHandler;
 	std::set<std::string>* selection;
+	std::string popupName;
 	bool show = false;
 	int id;
 };
