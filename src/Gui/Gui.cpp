@@ -10,8 +10,8 @@
 #include <utility>
 
 #include "PlotHandler.hpp"
-#include "StLinkDebugProbe.hpp"
 #include "Statistics.hpp"
+#include "StlinkDebugProbe.hpp"
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
