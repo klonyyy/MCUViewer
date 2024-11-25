@@ -119,7 +119,6 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAcqusition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiHelper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/MemoryReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/StlinkDebugProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/JlinkDebugProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp

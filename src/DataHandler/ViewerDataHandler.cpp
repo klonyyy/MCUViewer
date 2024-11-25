@@ -11,7 +11,6 @@
 ViewerDataHandler::ViewerDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : DataHandlerBase(plotGroupHandler, variableHandler, plotHandler, tracePlotHandler, done, mtx, logger)
 {
 	dataHandle = std::thread(&ViewerDataHandler::dataHandler, this);
-	varReader = std::make_unique<MemoryReader>();
 }
 ViewerDataHandler::~ViewerDataHandler()
 {
@@ -23,17 +22,17 @@ bool ViewerDataHandler::writeSeriesValue(Variable& var, double value)
 {
 	std::lock_guard<std::mutex> lock(*mtx);
 	uint32_t rawValue = var.getRawFromDouble(value);
-	return varReader->setValue(var.getAddress(), var.getSize(), (uint8_t*)&rawValue);
+	return debugProbe->writeMemory(var.getAddress(), (uint8_t*)&rawValue, var.getSize());
 }
 
 std::string ViewerDataHandler::getLastReaderError() const
 {
-	return varReader->getLastErrorMsg();
+	return debugProbe->getLastErrorMsg();
 }
 
 void ViewerDataHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe)
 {
-	varReader->changeDevice(probe);
+	debugProbe = probe;
 }
 
 IDebugProbe::DebugProbeSettings ViewerDataHandler::getProbeSettings() const
@@ -103,7 +102,7 @@ void ViewerDataHandler::dataHandler()
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
-				auto maybeEntry = varReader->readSingleEntry();
+				auto maybeEntry = debugProbe->readSingleEntry();
 
 				if (!maybeEntry.has_value())
 					continue;
@@ -125,14 +124,12 @@ void ViewerDataHandler::dataHandler()
 				/* sample by address */
 				for (auto& [address, size] : sampleList)
 				{
-					bool result = false;
-					uint32_t value = varReader->getValue(address, size, result);
-
-					if (result)
+					uint32_t value = 0;
+					if (debugProbe->readMemory(address, (uint8_t*)&value, size))
 						rawValues[address] = value;
 				}
-
-				updateVariables(period, rawValues);
+				double timestamp = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start).count();
+				updateVariables(timestamp, rawValues);
 
 				/* filter sampling frequency */
 				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
@@ -150,7 +147,7 @@ void ViewerDataHandler::dataHandler()
 				createSampleList();
 				prepareCSVFile();
 
-				if (varReader->start(probeSettings, sampleList, settings.sampleFrequencyHz))
+				if (debugProbe->startAcqusition(probeSettings, sampleList, settings.sampleFrequencyHz))
 				{
 					timer = 0;
 					lastT = 0.0;
@@ -161,7 +158,7 @@ void ViewerDataHandler::dataHandler()
 			}
 			else
 			{
-				varReader->stop();
+				debugProbe->stopAcqusition();
 				if (settings.shouldLog)
 					csvStreamer->finishLogging();
 			}

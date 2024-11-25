@@ -9,7 +9,6 @@
 
 #include "DataHandlerBase.hpp"
 #include "IDebugProbe.hpp"
-#include "MemoryReader.hpp"
 #include "MovingAverage.hpp"
 #include "VariableHandler.hpp"
 
@@ -62,7 +61,7 @@ class ViewerDataHandler : public DataHandlerBase
 
    private:
 	static constexpr size_t maxVariablesOnSinglePlot = 100;
-	std::unique_ptr<MemoryReader> varReader;
+	std::shared_ptr<IDebugProbe> debugProbe;
 	IDebugProbe::DebugProbeSettings probeSettings{};
 	MovingAverage samplingPeriodFilter{1000};
 	double averageSamplingPeriod = 0.0;
