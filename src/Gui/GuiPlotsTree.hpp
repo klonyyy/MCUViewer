@@ -84,11 +84,12 @@ class PlotsTree
 					ImGui::EndDragDropTarget();
 				}
 
-				for (auto& [name, plot] : *group)
+				for (auto& [name, plotElem] : *group)
 				{
+					auto plot = plotElem.plot;
 					ImGui::PushID("plot");
 
-					ImGui::Checkbox(std::string("##" + name).c_str(), &plot->getVisibilityVar());
+					ImGui::Checkbox(std::string("##" + name).c_str(), (bool*)&plotElem.visibility);
 					ImGui::SameLine();
 
 					if (ImGui::Selectable(name.c_str(), selectedPlot == name, ImGuiSelectableFlags_AllowDoubleClick))

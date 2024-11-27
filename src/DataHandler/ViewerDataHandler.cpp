@@ -75,9 +75,6 @@ void ViewerDataHandler::updateVariables(double timestamp, const std::unordered_m
 
 	for (auto plot : *plotHandler)
 	{
-		if (!plot->getVisibility())
-			continue;
-
 		std::lock_guard<std::mutex> lock(*mtx);
 		/* thread-safe part */
 		plot->updateSeries();
@@ -177,9 +174,11 @@ void ViewerDataHandler::createSampleList()
 							{ return element == newElement; }) != sampleList.end();
 	};
 
-	for (auto& [name, plot] : *plotGroupHandler->getActiveGroup())
+	for (auto& [name, plotElem] : *plotGroupHandler->getActiveGroup())
 	{
-		if (!plot->getVisibility())
+		auto plot = plotElem.plot;
+
+		if (!plotElem.visibility)
 			continue;
 
 		for (auto& [name, ser] : plot->getSeriesMap())
@@ -222,9 +221,11 @@ void ViewerDataHandler::prepareCSVFile()
 
 	std::vector<std::string> headerNames;
 
-	for (auto& [name, plot] : *plotGroupHandler->getActiveGroup())
+	for (auto& [name, plotElem] : *plotGroupHandler->getActiveGroup())
 	{
-		if (!plot->getVisibility())
+		auto plot = plotElem.plot;
+
+		if (!plotElem.visibility)
 			continue;
 
 		for (auto& [name, ser] : plot->getSeriesMap())

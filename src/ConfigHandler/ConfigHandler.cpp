@@ -121,14 +121,12 @@ void ConfigHandler::loadPlots()
 	{
 		std::string sectionName("plot" + std::to_string(plotNumber));
 		plotName = ini->get(sectionName).get("name");
-		bool visibility = ini->get(sectionName).get("visibility") == "true" ? true : false;
 		Plot::Type type = static_cast<Plot::Type>(atoi(ini->get(sectionName).get("type").c_str()));
 
 		if (!plotName.empty())
 		{
 			plotHandler->addPlot(plotName);
 			auto plot = plotHandler->getPlot(plotName);
-			plot->setVisibility(visibility);
 			plot->setType(type);
 			if (type == Plot::Type::XY)
 			{
@@ -216,14 +214,18 @@ void ConfigHandler::loadPlotGroups()
 			logger->info("Adding group: {}", groupName);
 			uint32_t plotNumber = 0;
 			std::string plotName = ini->get(plotGroupFieldFromID(groupNumber, plotNumber)).get("name");
+			std::string visibilityStr = ini->get(plotGroupFieldFromID(groupNumber, plotNumber)).get("visibility");
+			bool visibility = (visibilityStr == "true" || visibilityStr.empty()) ? true : false;
 
 			while (plotName != "")
 			{
-				group->addPlot(plotHandler->getPlot(plotName));
+				group->addPlot(plotHandler->getPlot(plotName), visibility);
 				logger->info("Adding plot {} to group {}", plotName, groupName);
 
 				plotNumber++;
 				plotName = ini->get(plotGroupFieldFromID(groupNumber, plotNumber)).get("name");
+				visibilityStr = ini->get(plotGroupFieldFromID(groupNumber, plotNumber)).get("visibility");
+				visibility = (visibilityStr == "true" || visibilityStr.empty()) ? true : false;
 			}
 		}
 		groupNumber++;
@@ -436,7 +438,6 @@ mINI::INIStructure ConfigHandler::prepareSaveConfigFile(const std::string& elfPa
 	for (std::shared_ptr<Plot> plt : *plotHandler)
 	{
 		(configIni)[plotFieldFromID(plotId)]["name"] = plt->getName();
-		(configIni)[plotFieldFromID(plotId)]["visibility"] = plt->getVisibility() ? "true" : "false";
 		(configIni)[plotFieldFromID(plotId)]["type"] = std::to_string(static_cast<uint8_t>(plt->getType()));
 
 		if (plt->getType() == Plot::Type::XY)
@@ -472,9 +473,12 @@ mINI::INIStructure ConfigHandler::prepareSaveConfigFile(const std::string& elfPa
 		(configIni)[groupFieldFromID(groupId)]["name"] = group->getName();
 
 		uint32_t plotId = 0;
-		for (auto& [name, plot] : *group)
+		for (auto& [name, plotElem] : *group)
 		{
+			auto plot = plotElem.plot;
+			bool visibility = plotElem.visibility;
 			(configIni)[plotGroupFieldFromID(groupId, plotId)]["name"] = plot->getName();
+			(configIni)[plotGroupFieldFromID(groupId, plotId)]["visibility"] = visibility ? "true" : "false";
 			plotId++;
 		}
 		groupId++;

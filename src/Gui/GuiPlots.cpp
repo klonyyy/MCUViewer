@@ -22,13 +22,17 @@ void Gui::drawPlots()
 	ImVec2 initialCursorPos = ImGui::GetCursorPos();
 	auto activeGroup = plotGroupHandler->getActiveGroup();
 
-	for (auto [name, plot] : *activeGroup)
+	for (auto [name, plotElem] : *activeGroup)
 	{
+		auto plot = plotElem.plot;
+
 		if (plot->getType() == Plot::Type::TABLE)
 		{
-			drawPlotTable(plot);
-			if (plot->getVisibility())
+			if (plotElem.visibility)
+			{
 				tablePlots++;
+				drawPlotTable(plot);
+			}
 		}
 	}
 
@@ -44,9 +48,11 @@ void Gui::drawPlots()
 	{
 		auto activeGroup = plotGroupHandler->getActiveGroup();
 
-		for (auto [name, plot] : *activeGroup)
+		for (auto [name, plotElem] : *activeGroup)
 		{
-			if (!plot->getVisibility())
+			auto plot = plotElem.plot;
+
+			if (!plotElem.visibility)
 				continue;
 
 			if (plot->getType() == Plot::Type::CURVE)
@@ -242,9 +248,6 @@ void Gui::drawPlotBar(std::shared_ptr<Plot> plot)
 void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 {
 	auto& seriesMap = plot->getSeriesMap();
-
-	if (!plot->getVisibility())
-		return;
 
 	static ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 
