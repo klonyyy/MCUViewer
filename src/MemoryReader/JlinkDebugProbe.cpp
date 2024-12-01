@@ -16,6 +16,7 @@ bool JlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, s
 	int serialNumberInt = std::atoi(probeSettings.serialNumber.c_str());
 	lastErrorMsg = "";
 	isRunning = false;
+	emptyMessageErrorCnt = 0;
 
 	if (JLINKARM_EMU_SelectByUSBSN(serialNumberInt) < 0)
 	{
@@ -80,6 +81,8 @@ bool JlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, s
 
 	uint32_t samplePeriodUs = 1.0 / (samplingFreqency * timestampResolution);
 	int32_t result = JLINK_HSS_Start(variableDesc, trackedVarsCount, samplePeriodUs, JLINK_HSS_FLAG_TIMESTAMP_US);
+	/* 1M is arbitraty value that works across all sampling frequencies */
+	emptyMessageErrorThreshold = 1.0 / (timestampResolution * samplingFreqency) * 1000000;
 
 	if (result >= 0)
 		isRunning = true;
@@ -116,7 +119,6 @@ bool JlinkDebugProbe::stopAcqusition()
 
 bool JlinkDebugProbe::isValid() const
 {
-	std::lock_guard<std::mutex> lock(mtx);
 	return isRunning;
 }
 
@@ -141,6 +143,20 @@ std::optional<IDebugProbe::varEntryType> JlinkDebugProbe::readSingleEntry()
 
 	int32_t readSize = JLINK_HSS_Read(rawBuffer, sizeof(rawBuffer));
 
+	if (readSize <= 0)
+	{
+		emptyMessageErrorCnt++;
+		if (emptyMessageErrorCnt > emptyMessageErrorThreshold)
+		{
+			lastErrorMsg = "Error reading HSS data!";
+			logger->error(lastErrorMsg);
+			isRunning = false;
+		}
+		return varTable.pop();
+	}
+
+	emptyMessageErrorCnt = 0;
+
 	for (int32_t i = 0; i < readSize; i += trackedVarsTotalSize)
 	{
 		varEntryType entry{};
@@ -156,11 +172,13 @@ std::optional<IDebugProbe::varEntryType> JlinkDebugProbe::readSingleEntry()
 			k += addressSizeMap[address];
 		}
 
-		varTable.push(entry);
+		if (!varTable.push(entry))
+		{
+			lastErrorMsg = "HSS FIFO overflow!";
+			logger->error(lastErrorMsg);
+			isRunning = false;
+		}
 	}
-
-	if (readSize < 0 || varTable.size() == 0)
-		return std::nullopt;
 
 	return varTable.pop();
 }

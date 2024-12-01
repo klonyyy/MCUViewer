@@ -39,6 +39,9 @@ class JlinkDebugProbe : public IDebugProbe
 	size_t trackedVarsCount = 0;
 	size_t trackedVarsTotalSize = 0;
 
+	size_t emptyMessageErrorThreshold = 100000;
+	size_t emptyMessageErrorCnt = 0;
+
 	std::unordered_map<uint32_t, uint8_t> addressSizeMap;
 	RingBuffer<varEntryType, fifoSize> varTable;
 

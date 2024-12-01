@@ -99,6 +99,9 @@ void ViewerDataHandler::dataHandler()
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
+				if (!debugProbe->isValid())
+					setState(state::STOP);
+
 				auto maybeEntry = debugProbe->readSingleEntry();
 
 				if (!maybeEntry.has_value())
@@ -124,6 +127,8 @@ void ViewerDataHandler::dataHandler()
 					uint32_t value = 0;
 					if (debugProbe->readMemory(address, (uint8_t*)&value, size))
 						rawValues[address] = value;
+					else
+						setState(state::STOP);
 				}
 				double timestamp = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start).count();
 				updateVariables(timestamp, rawValues);
