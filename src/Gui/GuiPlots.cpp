@@ -185,7 +185,7 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 
 			ImPlot::SetNextLineStyle(ImVec4(serPtr->var->getColor().r, serPtr->var->getColor().g, serPtr->var->getColor().b, 1.0f));
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 2.0f);
-			ImPlot::PlotLine(name.c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, 0, offset, sizeof(double));
+			ImPlot::PlotLine(name.c_str(), time.getFirstElementCopy(), serPtr->buffer->getFirstElementCopy(), size, ImPlotLineFlags_None, offset, sizeof(double));
 
 			if (plot->markerX0.getState())
 			{
@@ -267,6 +267,9 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 		{
 			if (!serPtr->visible)
 				continue;
+
+			ImGui::BeginDisabled(!serPtr->var->getIsCurrentlySampled() && viewerDataHandler->getState() == DataHandlerBase::state::RUN);
+
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 			Variable::Color color = serPtr->var->getColor();
@@ -305,6 +308,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 				}
 			}
 			ImGui::PopStyleColor(3);
+			ImGui::EndDisabled();
 		}
 		ImGui::EndTable();
 

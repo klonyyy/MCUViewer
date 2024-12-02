@@ -201,6 +201,9 @@ void Plot::setSeriesDisplayFormat(const std::string& name, displayFormat format)
 
 std::string Plot::getSeriesValueString(const std::string& name, double value)
 {
+	if (!seriesMap.at(name)->var->getIsCurrentlySampled())
+		return "-";
+
 	Variable::Type type = seriesMap.at(name)->var->getType();
 	Variable::HighLevelType highLevelType = seriesMap.at(name)->var->getHighLevelType();
 

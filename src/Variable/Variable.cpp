@@ -336,3 +336,13 @@ bool Variable::isFractional() const
 {
 	return highLevelType == HighLevelType::SIGNEDFRAC || highLevelType == HighLevelType::UNSIGNEDFRAC;
 }
+
+void Variable::setIsCurrentlySampled(bool isCurrentlySampled)
+{
+	this->isCurrentlySampled = isCurrentlySampled;
+}
+
+bool Variable::getIsCurrentlySampled() const
+{
+	return isCurrentlySampled;
+}

@@ -10,17 +10,18 @@
 #include "IFileHandler.hpp"
 #include "Plot.hpp"
 #include "PlotGroupHandler.hpp"
+#include "ViewerDataHandler.hpp"
 
 class PlotsTree
 {
    public:
-	PlotsTree(PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, std::shared_ptr<PlotEditWindow> plotEditWindow, IFileHandler* fileHandler, spdlog::logger* logger) : plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), variableHandler(variableHandler), plotEditWindow(plotEditWindow), fileHandler(fileHandler), logger(logger)
+	PlotsTree(ViewerDataHandler* viewerDataHandler, PlotHandler* plotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, std::shared_ptr<PlotEditWindow> plotEditWindow, IFileHandler* fileHandler, spdlog::logger* logger) : viewerDataHandler(viewerDataHandler), plotHandler(plotHandler), plotGroupHandler(plotGroupHandler), variableHandler(variableHandler), plotEditWindow(plotEditWindow), fileHandler(fileHandler), logger(logger)
 	{
 		groupEditWindow = std::make_unique<GroupEditWindow>(plotGroupHandler);
 	}
 	void draw()
 	{
-		const uint32_t windowHeight = 320 * GuiHelper::contentScale;
+		const uint32_t windowHeight = 350 * GuiHelper::contentScale;
 		static std::string selectedGroup = "";
 		static std::string selectedPlot = "";
 		std::optional<std::string> plotNameToDelete = {};
@@ -169,6 +170,7 @@ class PlotsTree
 			std::optional<std::string> seriesNameToDelete = {};
 			for (auto& [name, ser] : plt->getSeriesMap())
 			{
+				ImGui::BeginDisabled(!ser->var->getIsCurrentlySampled() && viewerDataHandler->getState() == DataHandlerBase::state::RUN);
 				ImGui::PushID(name.c_str());
 				ImGui::Checkbox("", &ser->visible);
 				ImGui::PopID();
@@ -180,6 +182,7 @@ class PlotsTree
 				if (!seriesNameToDelete.has_value())
 					seriesNameToDelete = GuiHelper::showDeletePopup("Delete var", name);
 				ImGui::PopID();
+				ImGui::EndDisabled();
 			}
 			plt->removeSeries(seriesNameToDelete.value_or(""));
 
@@ -328,6 +331,7 @@ class PlotsTree
 	}
 
    private:
+	ViewerDataHandler* viewerDataHandler;
 	PlotHandler* plotHandler;
 	PlotGroupHandler* plotGroupHandler;
 	VariableHandler* variableHandler;

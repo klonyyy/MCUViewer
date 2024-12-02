@@ -205,6 +205,7 @@ void ViewerDataHandler::createSampleList()
 			}
 		}
 	}
+
 	/* additionally scan for eventual bases of fractional variables that should be sampled */
 	for (auto variable : *variableHandler)
 	{
@@ -216,6 +217,14 @@ void ViewerDataHandler::createSampleList()
 			if (!checkIfElementExists(newElement))
 				sampleList.push_back(newElement);
 		}
+	}
+
+	/* mark actively sampled varaibles */
+	for (auto variable : *variableHandler)
+	{
+		variable->setIsCurrentlySampled(false);
+		if (std::find(sampleList.begin(), sampleList.end(), std::pair<uint32_t, uint8_t>(variable->getAddress(), variable->getSize())) != sampleList.end())
+			variable->setIsCurrentlySampled(true);
 	}
 }
 

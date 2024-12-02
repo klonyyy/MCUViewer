@@ -94,6 +94,9 @@ class Variable
 	uint32_t getRawFromDouble(double value);
 	double transformToDouble();
 
+	void setIsCurrentlySampled(bool isCurrentlySampled);
+	bool getIsCurrentlySampled() const;
+
    public:
 	static const char* types[8];
 	static const char* highLevelTypes[3];
@@ -117,6 +120,7 @@ class Variable
 	bool isFound = false;
 	bool shouldUpdateFromElf = true;
 	bool isTrackedNameDifferent = false;
+	bool isCurrentlySampled = false;
 };
 
 #endif
