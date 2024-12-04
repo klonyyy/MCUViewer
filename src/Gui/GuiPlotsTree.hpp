@@ -44,6 +44,9 @@ class PlotsTree
 		if (!plotHandler->checkIfPlotExists(selectedPlot))
 			selectedPlot = plotGroupHandler->getActiveGroup()->begin()->second.plot->getName();
 
+		if (!plotGroupHandler->checkIfGroupExists(selectedGroup))
+			selectedGroup = plotGroupHandler->getActiveGroup()->getName();
+
 		ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 		ImGui::BeginChild("left pane", ImVec2(200 * GuiHelper::contentScale, -1), true);
 
@@ -93,7 +96,9 @@ class PlotsTree
 					ImGui::Checkbox(std::string("##" + name).c_str(), (bool*)&plotElem.visibility);
 					ImGui::SameLine();
 
-					if (ImGui::Selectable(name.c_str(), selectedPlot == name, ImGuiSelectableFlags_AllowDoubleClick))
+					bool shouldSelect = (selectedPlot == name && plotGroupHandler->getActiveGroup() == group);
+
+					if (ImGui::Selectable(name.c_str(), shouldSelect, ImGuiSelectableFlags_AllowDoubleClick))
 					{
 						selectedPlot = name;
 
