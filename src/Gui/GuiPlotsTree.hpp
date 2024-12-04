@@ -142,30 +142,33 @@ class PlotsTree
 		ImGui::BeginGroup();
 		ImGui::PushID(plt->getName().c_str());
 
-		int32_t listBoxHeight = windowHeight - 30 * GuiHelper::contentScale;
+		/* reset markers when viewer is running */
+		if (viewerDataHandler->getState() == ViewerDataHandler::state::RUN)
+		{
+			plt->markerX0.setState(false);
+			plt->markerX1.setState(false);
+			plt->statisticsSeries = 0;
+		}
 
 		/* Staticstics */
-		if (plt->getType() == Plot::Type::CURVE)
-		{
-			bool mx0 = plt->markerX0.getState();
-			bool mx1 = plt->markerX1.getState();
-			ImGui::Text("x0 marker  ");
-			ImGui::SameLine();
-			ImGui::Checkbox("##mx0", &mx0);
-			plt->markerX0.setState(mx0);
-			ImGui::Text("x1 marker  ");
-			ImGui::SameLine();
-			ImGui::Checkbox("##mx1", &mx1);
-			plt->markerX1.setState(mx1);
-			statisticsWindow.drawAnalog(plt);
-
-			listBoxHeight -= 70 * GuiHelper::contentScale;
-		}
+		ImGui::BeginDisabled(plt->getType() != Plot::Type::CURVE);
+		bool mx0 = plt->markerX0.getState();
+		bool mx1 = plt->markerX1.getState();
+		ImGui::Text("x0 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx0", &mx0);
+		plt->markerX0.setState(mx0);
+		ImGui::Text("x1 marker  ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##mx1", &mx1);
+		plt->markerX1.setState(mx1);
+		statisticsWindow.drawAnalog(plt);
+		ImGui::EndDisabled();
 		ImGui::PopID();
 
 		/* Var list within plot*/
 		ImGui::PushID("list");
-		if (ImGui::BeginListBox("##", ImVec2(-1, listBoxHeight)))
+		if (ImGui::BeginListBox("##", ImVec2(-1, windowHeight - 100 * GuiHelper::contentScale)))
 		{
 			std::optional<std::string> seriesNameToDelete = {};
 			for (auto& [name, ser] : plt->getSeriesMap())
