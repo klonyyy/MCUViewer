@@ -93,14 +93,14 @@ void ViewerDataHandler::dataHandler()
 
 	while (!done)
 	{
-		if (viewerState == state::RUN)
+		if (viewerState == State::RUN)
 		{
 			double period = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start).count();
 
 			if (probeSettings.mode == IDebugProbe::Mode::HSS)
 			{
 				if (!debugProbe->isValid())
-					setState(state::STOP);
+					setState(State::STOP);
 
 				auto maybeEntry = debugProbe->readSingleEntry();
 
@@ -128,7 +128,7 @@ void ViewerDataHandler::dataHandler()
 					if (debugProbe->readMemory(address, (uint8_t*)&value, size))
 						rawValues[address] = value;
 					else
-						setState(state::STOP);
+						setState(State::STOP);
 				}
 				double timestamp = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start).count();
 				updateVariables(timestamp, rawValues);
@@ -144,7 +144,7 @@ void ViewerDataHandler::dataHandler()
 
 		if (stateChangeOrdered)
 		{
-			if (viewerState == state::RUN)
+			if (viewerState == State::RUN)
 			{
 				createSampleList();
 				prepareCSVFile();
@@ -156,7 +156,7 @@ void ViewerDataHandler::dataHandler()
 					start = std::chrono::steady_clock::now();
 				}
 				else
-					viewerState = state::STOP;
+					viewerState = State::STOP;
 			}
 			else
 			{

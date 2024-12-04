@@ -77,7 +77,7 @@ void Gui::drawPlotXY(std::shared_ptr<Plot> plot)
 		Variable* xAxisVariable = plot->getXAxisVariable();
 		std::string xLabel = xAxisVariable ? xAxisVariable->getName() : "";
 
-		if (viewerDataHandler->getState() == DataHandlerBase::state::RUN)
+		if (viewerDataHandler->getState() == DataHandlerBase::State::RUN)
 		{
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
 			ImPlot::SetupAxis(ImAxis_X1, xLabel.c_str(), ImPlotAxisFlags_AutoFit);
@@ -126,7 +126,7 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 
 	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
 	{
-		if (viewerDataHandler->getState() == DataHandlerBase::state::RUN)
+		if (viewerDataHandler->getState() == DataHandlerBase::State::RUN)
 		{
 			ViewerDataHandler::Settings settings = viewerDataHandler->getSettings();
 			ImPlot::SetupAxis(ImAxis_Y1, NULL, ImPlotAxisFlags_AutoFit);
@@ -146,7 +146,7 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 		plot->setIsHovered(ImPlot::IsPlotHovered());
 		dragAndDropPlot(plot);
 
-		if (viewerDataHandler->getState() == DataHandlerBase::state::STOP)
+		if (viewerDataHandler->getState() == DataHandlerBase::State::STOP)
 		{
 			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
 			handleMarkers(0, plot->markerX0, plotLimits, [&]()
@@ -268,7 +268,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 			if (!serPtr->visible)
 				continue;
 
-			ImGui::BeginDisabled(!serPtr->var->getIsCurrentlySampled() && viewerDataHandler->getState() == DataHandlerBase::state::RUN);
+			ImGui::BeginDisabled(!serPtr->var->getIsCurrentlySampled() && viewerDataHandler->getState() == DataHandlerBase::State::RUN);
 
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -295,7 +295,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 
 			if (ImGui::InputText(inputName.c_str(), &valueToWrite, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
 			{
-				if (viewerDataHandler->getState() == DataHandlerBase::state::STOP)
+				if (viewerDataHandler->getState() == DataHandlerBase::State::STOP)
 				{
 					ImGui::PopStyleColor(3);
 					continue;

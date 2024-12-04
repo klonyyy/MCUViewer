@@ -11,7 +11,7 @@ void Gui::drawSettingsSwo()
 	auto settings = traceDataHandler->getSettings();
 	auto state = traceDataHandler->getState();
 
-	if (state == DataHandlerBase::state::RUN)
+	if (state == DataHandlerBase::State::RUN)
 		ImGui::BeginDisabled();
 
 	ImGui::Text("core frequency [kHz]   ");
@@ -48,7 +48,7 @@ void Gui::drawSettingsSwo()
 	ImGui::Checkbox("##rst", &shouldReset);
 	settings.shouldReset = shouldReset;
 
-	if (state != DataHandlerBase::state::STOP)
+	if (state != DataHandlerBase::State::STOP)
 		ImGui::EndDisabled();
 	else
 		traceDataHandler->setSettings(settings);
@@ -100,10 +100,10 @@ void Gui::drawPlotsTreeSwo()
 
 		plt->trigger.setState(traceDataHandler->getSettings().triggerChannel == iter++);
 
-		if (state == DataHandlerBase::state::RUN)
+		if (state == DataHandlerBase::State::RUN)
 			ImGui::BeginDisabled();
 		ImGui::Checkbox(std::string("##" + name).c_str(), &plt->getVisibilityVar());
-		if (state == DataHandlerBase::state::RUN)
+		if (state == DataHandlerBase::State::RUN)
 			ImGui::EndDisabled();
 
 		ImGui::SameLine();
@@ -141,7 +141,7 @@ void Gui::drawPlotsTreeSwo()
 	else
 		statisticsWindow.drawDigital(plt);
 
-	bool mx0 = (traceDataHandler->getState() == DataHandlerBase::state::RUN) ? false : plt->markerX0.getState();
+	bool mx0 = (traceDataHandler->getState() == DataHandlerBase::State::RUN) ? false : plt->markerX0.getState();
 	ImGui::Text("markers    ");
 	ImGui::SameLine();
 	ImGui::Checkbox("##mx0", &mx0);

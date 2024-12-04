@@ -13,7 +13,7 @@
 class DataHandlerBase
 {
    public:
-	enum class state
+	enum class State
 	{
 		STOP = 0,
 		RUN = 1,
@@ -27,7 +27,7 @@ class DataHandlerBase
 
 	virtual std::string getLastReaderError() const = 0;
 
-	void setState(state state)
+	void setState(State state)
 	{
 		if (state == viewerState)
 			return;
@@ -35,7 +35,7 @@ class DataHandlerBase
 		viewerState = state;
 		stateChangeOrdered = true;
 	}
-	state getState() const
+	State getState() const
 	{
 		/* TODO possible deadlock */
 		while (stateChangeOrdered);
@@ -48,7 +48,7 @@ class DataHandlerBase
 	PlotHandler* plotHandler;
 	PlotHandler* tracePlotHandler;
 	std::atomic<bool>& done;
-	std::atomic<state> viewerState = state::STOP;
+	std::atomic<State> viewerState = State::STOP;
 	std::mutex* mtx;
 	std::thread dataHandle;
 	std::atomic<bool> stateChangeOrdered = false;

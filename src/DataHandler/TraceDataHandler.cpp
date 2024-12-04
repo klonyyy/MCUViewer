@@ -120,12 +120,12 @@ void TraceDataHandler::dataHandler()
 
 	while (!done)
 	{
-		if (viewerState == state::RUN)
+		if (viewerState == State::RUN)
 		{
 			if (!traceReader->isValid())
 			{
 				logger->error("Trace invalid, stopping!");
-				viewerState = state::STOP;
+				viewerState = State::STOP;
 				stateChangeOrdered = true;
 			}
 
@@ -177,7 +177,7 @@ void TraceDataHandler::dataHandler()
 			if (traceTriggered && cnt++ >= (settings.maxPoints * 0.9))
 			{
 				logger->info("After-trigger trace collcted. Stopping.");
-				viewerState = state::STOP;
+				viewerState = State::STOP;
 				stateChangeOrdered = true;
 			}
 
@@ -185,7 +185,7 @@ void TraceDataHandler::dataHandler()
 			{
 				lastErrorMsg = "Too many error frames!";
 				logger->error("Too many error frames. Please modify your clock and prescaler settings. Stopping.");
-				viewerState = state::STOP;
+				viewerState = State::STOP;
 				stateChangeOrdered = true;
 			}
 
@@ -193,7 +193,7 @@ void TraceDataHandler::dataHandler()
 			{
 				lastErrorMsg = "Too many delayed timestamp 3 frames!";
 				logger->error("Too many delayed timestamp 3 frames. Please modify your clock and prescaler settings or limit the logged channels. Stopping.");
-				viewerState = state::STOP;
+				viewerState = State::STOP;
 				stateChangeOrdered = true;
 			}
 		}
@@ -202,7 +202,7 @@ void TraceDataHandler::dataHandler()
 
 		if (stateChangeOrdered)
 		{
-			if (viewerState == state::RUN)
+			if (viewerState == State::RUN)
 			{
 				std::array<bool, 32> activeChannels{};
 
@@ -219,7 +219,7 @@ void TraceDataHandler::dataHandler()
 				if (traceReader->startAcqusition(probeSettings, activeChannels))
 					time = 0;
 				else
-					viewerState = state::STOP;
+					viewerState = State::STOP;
 			}
 			else
 			{

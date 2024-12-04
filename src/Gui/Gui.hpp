@@ -38,7 +38,7 @@ class Gui
    private:
 	static constexpr bool showDemoWindow = true;
 
-	const std::map<DataHandlerBase::state, std::string> viewerStateMap{{DataHandlerBase::state::RUN, "RUNNING"}, {DataHandlerBase::state::STOP, "STOPPED"}};
+	const std::map<DataHandlerBase::State, std::string> viewerStateMap{{DataHandlerBase::State::RUN, "RUNNING"}, {DataHandlerBase::State::STOP, "STOPPED"}};
 
 	std::thread threadHandle;
 	PlotHandler* plotHandler;

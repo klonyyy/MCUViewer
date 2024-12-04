@@ -148,7 +148,7 @@ class PlotsTree
 		ImGui::PushID(plt->getName().c_str());
 
 		/* reset markers when viewer is running */
-		if (viewerDataHandler->getState() == ViewerDataHandler::state::RUN)
+		if (viewerDataHandler->getState() == ViewerDataHandler::State::RUN)
 		{
 			plt->markerX0.setState(false);
 			plt->markerX1.setState(false);
@@ -178,7 +178,7 @@ class PlotsTree
 			std::optional<std::string> seriesNameToDelete = {};
 			for (auto& [name, ser] : plt->getSeriesMap())
 			{
-				ImGui::BeginDisabled(!ser->var->getIsCurrentlySampled() && viewerDataHandler->getState() == DataHandlerBase::state::RUN);
+				ImGui::BeginDisabled(!ser->var->getIsCurrentlySampled() && viewerDataHandler->getState() == DataHandlerBase::State::RUN);
 				ImGui::PushID(name.c_str());
 				ImGui::Checkbox("", &ser->visible);
 				ImGui::PopID();

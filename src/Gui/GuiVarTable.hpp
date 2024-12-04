@@ -28,7 +28,7 @@ class VariableTableWindow
 		static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable;
 		static std::set<std::string> selection;
 
-		ImGui::BeginDisabled(viewerDataHandler->getState() == DataHandlerBase::state::RUN);
+		ImGui::BeginDisabled(viewerDataHandler->getState() == DataHandlerBase::State::RUN);
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Variables");
 		ImGui::SameLine();
@@ -191,7 +191,7 @@ class VariableTableWindow
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
 
 			if (viewerDataHandler->getSettings().stopAcqusitionOnElfChange)
-				viewerDataHandler->setState(DataHandlerBase::state::STOP);
+				viewerDataHandler->setState(DataHandlerBase::State::STOP);
 
 			if (viewerDataHandler->getSettings().refreshAddressesOnElfChange)
 			{

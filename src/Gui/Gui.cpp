@@ -116,7 +116,7 @@ void Gui::mainThread(std::string externalPath)
 			continue;
 		}
 
-		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (traceDataHandler->getState() == DataHandlerBase::state::RUN) || (viewerDataHandler->getState() == DataHandlerBase::state::RUN))
+		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN))
 			glfwSwapInterval(1);
 		else
 			glfwSwapInterval(4);
@@ -134,8 +134,8 @@ void Gui::mainThread(std::string externalPath)
 
 		if (glfwWindowShouldClose(window))
 		{
-			viewerDataHandler->setState(DataHandlerBase::state::STOP);
-			traceDataHandler->setState(DataHandlerBase::state::STOP);
+			viewerDataHandler->setState(DataHandlerBase::State::STOP);
+			traceDataHandler->setState(DataHandlerBase::State::STOP);
 
 			if (configHandler->isSavingRequired(projectElfPath))
 				askShouldSaveOnExit(glfwWindowShouldClose(window));
@@ -216,7 +216,7 @@ void Gui::drawMenu()
 	bool shouldSaveOnNew = false;
 	ImGui::BeginMainMenuBar();
 
-	bool active = !(viewerDataHandler->getState() == DataHandlerBase::state::RUN || traceDataHandler->getState() == DataHandlerBase::state::RUN);
+	bool active = !(viewerDataHandler->getState() == DataHandlerBase::State::RUN || traceDataHandler->getState() == DataHandlerBase::State::RUN);
 
 	if (ImGui::BeginMenu("File"))
 	{
@@ -269,15 +269,15 @@ void Gui::drawStartButton(DataHandlerBase* activeDataHandler)
 	bool shouldDisableButton = (!devicesList.empty() && devicesList.front() == noDevices);
 	ImGui::BeginDisabled(shouldDisableButton);
 
-	DataHandlerBase::state state = activeDataHandler->getState();
+	DataHandlerBase::State state = activeDataHandler->getState();
 
-	if (state == DataHandlerBase::state::RUN)
+	if (state == DataHandlerBase::State::RUN)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Button, GuiHelper::green);
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GuiHelper::greenLight);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, GuiHelper::greenLightDim);
 	}
-	else if (state == DataHandlerBase::state::STOP)
+	else if (state == DataHandlerBase::State::STOP)
 	{
 		if (activeDataHandler->getLastReaderError() != "")
 		{
@@ -297,17 +297,17 @@ void Gui::drawStartButton(DataHandlerBase* activeDataHandler)
 		 (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopup))) &&
 		!shouldDisableButton)
 	{
-		if (state == DataHandlerBase::state::STOP)
+		if (state == DataHandlerBase::State::STOP)
 		{
 			logger->info("Start clicked!");
 			plotHandler->eraseAllPlotData();
 			tracePlotHandler->eraseAllPlotData();
-			activeDataHandler->setState(DataHandlerBase::state::RUN);
+			activeDataHandler->setState(DataHandlerBase::State::RUN);
 		}
 		else
 		{
 			logger->info("Stop clicked!");
-			activeDataHandler->setState(DataHandlerBase::state::STOP);
+			activeDataHandler->setState(DataHandlerBase::State::STOP);
 		}
 	}
 
