@@ -1,6 +1,8 @@
 #ifndef _GUI_VARIABLESEDIT_HPP
 #define _GUI_VARIABLESEDIT_HPP
 
+#include <algorithm>
+
 #include "GuiHelper.hpp"
 #include "Popup.hpp"
 #include "Variable.hpp"
@@ -175,6 +177,7 @@ class VariableEditWindow
 		if (ImGui::InputText("##shift", &shift, ImGuiInputTextFlags_CharsDecimal, NULL, NULL))
 		{
 			uint32_t shiftDec = GuiHelper::convertStringToNumber<uint32_t>(shift);
+			shiftDec = std::clamp<uint32_t>(shiftDec, 0, (editedVariable->getSize() * 8) - 1);
 			editedVariable->setShift(shiftDec);
 		}
 
@@ -240,7 +243,8 @@ class VariableEditWindow
 
 			if (shouldUpdate)
 			{
-				fractional.fractionalBits = GuiHelper::convertStringToNumber<uint32_t>(fractionalBits);
+				fractional.fractionalBits = std::clamp<uint32_t>(GuiHelper::convertStringToNumber<uint32_t>(fractionalBits), 0, (editedVariable->getSize() * 8) - 1);
+
 				if (variableHandler->contains(base))
 					fractional.baseVariable = variableHandler->getVariable(base).get();
 				else
