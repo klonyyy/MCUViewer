@@ -211,6 +211,8 @@ Variable::Type GdbParser::checkType(const std::string& name, std::string* output
 
 	auto line = out.substr(start + 2, end - start - 2);
 
+	logger->debug("CHECKING TYPE FOR LINE: {}", line);
+
 	/* remove const and volatile */
 	if (line.find("volatile ", 0) != std::string::npos)
 		line.erase(0, 9);
@@ -218,6 +220,8 @@ Variable::Type GdbParser::checkType(const std::string& name, std::string* output
 		line.erase(0, 6);
 	if (line.find("static const ", 0) != std::string::npos)
 		line.erase(0, 13);
+	if (line.find("enum {", 0) != std::string::npos)
+		return Variable::Type::I32;
 
 	if (!isTrivial.contains(line))
 		return Variable::Type::UNKNOWN;
