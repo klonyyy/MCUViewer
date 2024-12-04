@@ -42,7 +42,7 @@ class PlotsTree
 		}
 
 		if (!plotHandler->checkIfPlotExists(selectedPlot))
-			selectedPlot = plotHandler->begin().operator*()->getName();
+			selectedPlot = plotGroupHandler->getActiveGroup()->begin()->second.plot->getName();
 
 		ImGui::BeginChild("Plot Tree", ImVec2(-1, windowHeight));
 		ImGui::BeginChild("left pane", ImVec2(200 * GuiHelper::contentScale, -1), true);
