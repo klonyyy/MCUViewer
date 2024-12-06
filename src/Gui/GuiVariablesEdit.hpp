@@ -24,7 +24,7 @@ class VariableEditWindow
 			ImGui::OpenPopup("Variable Edit");
 
 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(700 * GuiHelper::contentScale, 500 * GuiHelper::contentScale));
+		ImGui::SetNextWindowSize(ImVec2(800 * GuiHelper::contentScale, 500 * GuiHelper::contentScale));
 		if (ImGui::BeginPopupModal("Variable Edit", &showVariableEditWindow, 0))
 		{
 			drawVariableEditSettings();
@@ -95,6 +95,9 @@ class VariableEditWindow
 				popup.show("Error!", "Variable already exists!", 1.5f);
 		}
 
+		ImGui::SameLine();
+		ImGui::HelpMarker("Name has to be unique - it can be different from tracked variable name if you specify it manually below.");
+
 		/* TRACKED NAME */
 		ImGui::BeginDisabled(!shouldUpdateFromElf);
 
@@ -102,6 +105,9 @@ class VariableEditWindow
 		ImGui::SameLine();
 		if (ImGui::Checkbox("##selectNameManually", &selectNameManually))
 			editedVariable->setIsTrackedNameDifferent(selectNameManually);
+
+		ImGui::SameLine();
+		ImGui::HelpMarker("Check if you'd like to specify a different variable name that will be sampled.");
 
 		ImGui::EndDisabled();
 
@@ -133,6 +139,9 @@ class VariableEditWindow
 		if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
 			selectVariableWindow->setShowState(true);
 
+		ImGui::SameLine();
+		ImGui::HelpMarker("Select or type an imported variable name from the *.elf file.");
+
 		ImGui::EndDisabled();
 
 		/* SHOULD UPDATE FROM ELF */
@@ -143,9 +152,10 @@ class VariableEditWindow
 			editedVariable->setShouldUpdateFromElf(shouldUpdateFromElf);
 			editedVariable->setIsTrackedNameDifferent(false);
 		}
+		ImGui::SameLine();
+		ImGui::HelpMarker("Check if the variable address and size should be automatically updated from *.elf file.");
 
 		/* ADDRESS */
-
 		ImGui::BeginDisabled(shouldUpdateFromElf);
 
 		GuiHelper::drawTextAlignedToSize("address:", alignment);
@@ -170,6 +180,8 @@ class VariableEditWindow
 		/* POSTPROCESSING */
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Postprocessing");
+		ImGui::SameLine();
+		ImGui::HelpMarker("Applies transformation [(value >> shift) & mask] after sampling and before interpretation.");
 		ImGui::Separator();
 
 		GuiHelper::drawTextAlignedToSize("shift right:", alignment);
@@ -192,6 +204,8 @@ class VariableEditWindow
 		/* INTERPRETATION */
 		ImGui::Dummy(ImVec2(-1, 5));
 		GuiHelper::drawCenteredText("Interpretation");
+		ImGui::SameLine();
+		ImGui::HelpMarker("Interpret integer numbers as fixed point variables.");
 		ImGui::Separator();
 
 		GuiHelper::drawTextAlignedToSize("type:", alignment);
@@ -240,6 +254,8 @@ class VariableEditWindow
 			if (ImGui::Button("select...", ImVec2(65 * GuiHelper::contentScale, 19 * GuiHelper::contentScale)))
 				selectVariableWindowBase->setShowState(true);
 			ImGui::PopID();
+			ImGui::SameLine();
+			ImGui::HelpMarker("Either type a new base (multiplier), or select a variable defined as base from the list of imported variables.");
 
 			if (shouldUpdate)
 			{
