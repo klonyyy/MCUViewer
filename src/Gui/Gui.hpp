@@ -11,47 +11,52 @@
 #include <unordered_set>
 
 #include "ConfigHandler.hpp"
-#include "GdbParser.hpp"
+#include "GuiPlotEdit.hpp"
+#include "GuiPlotsTree.hpp"
+#include "GuiVarTable.hpp"
+#include "GuiVariablesEdit.hpp"
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
 #include "JlinkDebugProbe.hpp"
 #include "JlinkTraceProbe.hpp"
 #include "Plot.hpp"
-#include "PlotHandler.hpp"
+#include "PlotGroupHandler.hpp"
 #include "Popup.hpp"
-#include "TracePlotHandler.hpp"
+#include "TraceDataHandler.hpp"
+#include "VariableHandler.hpp"
+#include "ViewerDataHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
 
 class Gui
 {
    public:
-	Gui(PlotHandler* plotHandler, ConfigHandler* configHandler, IFileHandler* fileHandler, TracePlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, GdbParser* parser, spdlog::logger* logger, std::string& projectPath);
+	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
 	~Gui();
 
    private:
 	static constexpr bool showDemoWindow = false;
 
-	const std::map<PlotHandlerBase::state, std::string> viewerStateMap{{PlotHandlerBase::state::RUN, "RUNNING"}, {PlotHandlerBase::state::STOP, "STOPPED"}};
-	static constexpr uint32_t maxVariableNameLength = 100;
-	std::map<std::string, std::shared_ptr<Variable>> vars;
+	const std::map<DataHandlerBase::State, std::string> viewerStateMap{{DataHandlerBase::State::RUN, "RUNNING"}, {DataHandlerBase::State::STOP, "STOPPED"}};
+
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
+	VariableHandler* variableHandler;
 	ConfigHandler* configHandler;
+	PlotGroupHandler* plotGroupHandler;
+
 	std::string projectConfigPath;
 	std::string projectElfPath;
-	std::filesystem::file_time_type lastModifiedTime = std::filesystem::file_time_type::clock::now();
 	bool showAcqusitionSettingsWindow = false;
 	bool showAboutWindow = false;
 	bool showPreferencesWindow = false;
-	bool showImportVariablesWindow = false;
-	bool performVariablesUpdate = false;
-
-	float contentScale = 1.0f;
+	bool showSelectVariablesWindow = false;
 
 	IFileHandler* fileHandler;
-	TracePlotHandler* tracePlotHandler;
+	PlotHandler* tracePlotHandler;
+	ViewerDataHandler* viewerDataHandler;
+	TraceDataHandler* traceDataHandler;
 
 	std::shared_ptr<IDebugProbe> stlinkProbe;
 	std::shared_ptr<IDebugProbe> jlinkProbe;
@@ -78,39 +83,38 @@ class Gui
 
 	std::mutex* mtx;
 
-	GdbParser* parser;
+	spdlog::logger* logger;
 
+	std::shared_ptr<PlotEditWindow> plotEditWindow;
+	std::shared_ptr<VariableTableWindow> variableTable;
+	std::shared_ptr<PlotsTree> plotsTree;
+
+   private:
 	void mainThread(std::string externalPath);
 	void drawMenu();
-	void drawStartButton(PlotHandlerBase* activePlotHandler);
+	void drawStartButton(DataHandlerBase* activeDataHandler);
 	void drawDebugProbes();
 	void drawTraceProbes();
-	void addNewVariable(const std::string& newName);
-	void drawAddVariableButton();
 	void drawUpdateAddressesFromElf();
-	void drawVarTable();
-	void drawAddPlotButton();
-	void drawExportPlotToCSVButton(std::shared_ptr<Plot> plt);
-	void drawPlotsTree();
 	void drawAcqusitionSettingsWindow(ActiveViewType type);
 	void acqusitionSettingsViewer();
 
 	template <typename Settings>
-	void drawLoggingSettings(PlotHandlerBase* handler, Settings& settings);
+	void drawLoggingSettings(PlotHandler* handler, Settings& settings);
+	void drawGdbSettings(ViewerDataHandler::Settings& settings);
 
 	void drawAboutWindow();
 	void drawPreferencesWindow();
-	void drawStatisticsAnalog(std::shared_ptr<Plot> plt);
-	void drawStatisticsDigital(std::shared_ptr<Plot> plt);
 	void acqusitionSettingsTrace();
 
 	void drawPlots();
-	void drawPlotCurve(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
-	void drawPlotBar(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, uint32_t curveBarPlots);
-	void drawPlotTable(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap);
+	void drawPlotCurve(std::shared_ptr<Plot> plot);
+	void drawPlotBar(std::shared_ptr<Plot> plot);
+	void drawPlotTable(std::shared_ptr<Plot> plot);
+	void drawPlotXY(std::shared_ptr<Plot> plot);
 	void handleMarkers(uint32_t id, Plot::Marker& marker, ImPlotRect plotLimits, std::function<void()> activeCallback);
 	void handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotLimits);
-	void dragAndDropPlot(Plot* plot);
+	void dragAndDropPlot(std::shared_ptr<Plot> plot);
 
 	void showQuestionBox(const char* id, const char* question, std::function<void()> onYes, std::function<void()> onNo, std::function<void()> onCancel);
 	void askShouldSaveOnExit(bool shouldOpenPopup);
@@ -130,38 +134,7 @@ class Gui
 	void drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<std::string, std::shared_ptr<Plot::Series>>& seriesMap, bool first);
 	void drawPlotsTreeSwo();
 
-	void drawImportVariablesWindow();
-	void drawImportVariablesTable(const std::map<std::string, GdbParser::VariableData>& importedVars, std::unordered_map<std::string, uint32_t>& selection, const std::string& substring);
-
-	template <typename T>
-	void drawInputText(const char* id, T variable, std::function<void(std::string)> valueChanged)
-	{
-		std::string str = std::to_string(variable);
-		if (ImGui::InputText(id, &str, ImGuiInputTextFlags_EnterReturnsTrue, NULL, NULL) || ImGui::IsMouseClicked(0))
-			if (valueChanged)
-				valueChanged(str);
-	}
-	template <typename T>
-	void drawDescriptionWithNumber(const char* description, T number, std::string unit = "", size_t decimalPlaces = 5, float threshold = std::nan(""), ImVec4 thresholdExceededColor = {0.0f, 0.0f, 0.0f, 1.0f})
-	{
-		if (threshold != std::nan("") && number > threshold)
-			ImGui::TextColored(thresholdExceededColor, "%s", description);
-		else
-			ImGui::Text("%s", description);
-		ImGui::SameLine();
-		std::ostringstream formattedNum;
-		formattedNum << std::fixed << std::setprecision(decimalPlaces) << number;
-		ImGui::Text("%s", (formattedNum.str() + unit).c_str());
-	}
-
-	std::optional<std::string> showDeletePopup(const char* text, const std::string& name);
-	std::string intToHexString(uint32_t i);
-	void drawCenteredText(std::string&& text);
-	void drawTextAlignedToSize(std::string&& text, size_t alignTo);
-
 	bool openWebsite(const char* url);
-
-	spdlog::logger* logger;
 };
 
 #endif

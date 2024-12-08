@@ -5,6 +5,7 @@
 #include <future>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include "spdlog/spdlog.h"
 
@@ -27,16 +28,16 @@ class CSVStreamer
 	/// @brief Creates file in given directory with a fixed name
 	/// @param directory directory string
 	/// @return
-	bool prepareFile(std::string& directory);
+	bool prepareFile(const std::string& directory);
 
 	/// @brief create csv file header from given argument, first column - time - is added internally
-	/// @param values table headers
-	void createHeader(const std::vector<std::string>& values);
+	/// @param headerNames table headers
+	void createHeader(const std::vector<std::string>& headerNames);
 
 	/// @brief writes single line to internal buffer
 	/// @param time
-	/// @param values
-	void writeLine(double time, const std::vector<double>& values);
+	/// @param valuesMap
+	void writeLine(double time, std::unordered_map<std::string, double>& valuesMap);
 
 	/// @brief exchanges the buffer that is being processed with the one that's being written to
 	void exchangeBuffers();
@@ -58,6 +59,7 @@ class CSVStreamer
 	Buffer buffer2{};
 	Buffer* currentBuffer;
 	Buffer* processingBuffer;
+	std::vector<std::string> headerNames;
 };
 
 #endif

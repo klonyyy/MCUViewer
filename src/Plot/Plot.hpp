@@ -23,10 +23,12 @@ class Plot
 	};
 	struct Series
 	{
-		Variable* var;
+		Variable* var = nullptr;
 		displayFormat format = displayFormat::DEC;
 		std::unique_ptr<ScrollingBuffer<double>> buffer;
 		bool visible = true;
+
+		void addPointFromVar() { buffer->addPoint(var->getValue()); }
 	};
 
 	enum class Type : uint8_t
@@ -34,6 +36,7 @@ class Plot
 		CURVE = 0,
 		BAR = 1,
 		TABLE = 2,
+		XY = 3
 	};
 
 	enum class Domain : uint8_t
@@ -105,16 +108,17 @@ class Plot
 	std::string& getNameVar();
 	void setAlias(const std::string& newAlias);
 	std::string getAlias() const;
-	bool addSeries(Variable& var);
+	bool addSeries(Variable* var);
 	std::shared_ptr<Plot::Series> getSeries(const std::string& name);
 	std::map<std::string, std::shared_ptr<Plot::Series>>& getSeriesMap();
-	ScrollingBuffer<double>& getTimeSeries();
+	ScrollingBuffer<double>* getXAxisSeries();
 	bool removeSeries(const std::string& name);
 	bool removeAllVariables();
 	void renameSeries(const std::string& oldName, const std::string newName);
 	std::vector<uint32_t> getVariableAddesses() const;
-	std::vector<Variable::type> getVariableTypes() const;
+	std::vector<Variable::Type> getVariableTypes() const;
 	bool addPoint(const std::string& varName, double value);
+	void updateSeries();
 	bool addTimePoint(double t);
 	void erase();
 	void setVisibility(bool state);
@@ -134,6 +138,9 @@ class Plot
 	void setIsHovered(bool isHovered);
 	bool isHovered() const;
 
+	Variable* getXAxisVariable();
+	void setXAxisVariable(Variable* var);
+
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
 	std::string getSeriesValueString(const std::string& name, double value);
@@ -145,6 +152,7 @@ class Plot
 	std::string alias;
 	std::map<std::string, std::shared_ptr<Series>> seriesMap;
 	ScrollingBuffer<double> time;
+	Series xAxisSeries;
 	bool visibility = true;
 	Type type = Type::CURVE;
 	Domain domain = Domain::ANALOG;

@@ -45,6 +45,7 @@ class WindowsProcessHandler
 	{
 		std::string result{};
 		std::array<char, 128> buffer;
+		buffer.fill(0);
 
 		if (pipes.first == nullptr || pipes.second == nullptr)
 			pipes = popen2(cmd.c_str());

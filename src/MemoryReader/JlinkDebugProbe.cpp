@@ -12,9 +12,11 @@ JlinkDebugProbe::JlinkDebugProbe(spdlog::logger* logger) : logger(logger)
 
 bool JlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	int serialNumberInt = std::atoi(probeSettings.serialNumber.c_str());
 	lastErrorMsg = "";
 	isRunning = false;
+	emptyMessageErrorCnt = 0;
 
 	if (JLINKARM_EMU_SelectByUSBSN(serialNumberInt) < 0)
 	{
@@ -79,6 +81,8 @@ bool JlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, s
 
 	uint32_t samplePeriodUs = 1.0 / (samplingFreqency * timestampResolution);
 	int32_t result = JLINK_HSS_Start(variableDesc, trackedVarsCount, samplePeriodUs, JLINK_HSS_FLAG_TIMESTAMP_US);
+	/* 1M is arbitraty value that works across all sampling frequencies */
+	emptyMessageErrorThreshold = 1.0 / (timestampResolution * samplingFreqency) * 1000000;
 
 	if (result >= 0)
 		isRunning = true;
@@ -108,6 +112,7 @@ bool JlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, s
 
 bool JlinkDebugProbe::stopAcqusition()
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	JLINKARM_Close();
 	return true;
 }
@@ -119,6 +124,7 @@ bool JlinkDebugProbe::isValid() const
 
 std::string JlinkDebugProbe::getTargetName()
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	JLINKARM_DEVICE_SELECT_INFO info;
 	info.SizeOfStruct = sizeof(JLINKARM_DEVICE_SELECT_INFO);
 	int32_t index = JLINKARM_DEVICE_SelectDialog(NULL, 0, &info);
@@ -132,11 +138,26 @@ std::string JlinkDebugProbe::getTargetName()
 
 std::optional<IDebugProbe::varEntryType> JlinkDebugProbe::readSingleEntry()
 {
-	uint8_t rawBuffer[16384]{};
+	std::lock_guard<std::mutex> lock(mtx);
+	uint8_t rawBuffer[bufferSizeHSS]{};
 
 	int32_t readSize = JLINK_HSS_Read(rawBuffer, sizeof(rawBuffer));
 
-	for (size_t i = 0; i < readSize; i += trackedVarsTotalSize)
+	if (readSize <= 0)
+	{
+		emptyMessageErrorCnt++;
+		if (emptyMessageErrorCnt > emptyMessageErrorThreshold)
+		{
+			lastErrorMsg = "Error reading HSS data!";
+			logger->error(lastErrorMsg);
+			isRunning = false;
+		}
+		return varTable.pop();
+	}
+
+	emptyMessageErrorCnt = 0;
+
+	for (int32_t i = 0; i < readSize; i += trackedVarsTotalSize)
 	{
 		varEntryType entry{};
 
@@ -151,23 +172,27 @@ std::optional<IDebugProbe::varEntryType> JlinkDebugProbe::readSingleEntry()
 			k += addressSizeMap[address];
 		}
 
-		varTable.push(entry);
+		if (!varTable.push(entry))
+		{
+			lastErrorMsg = "HSS FIFO overflow!";
+			logger->error(lastErrorMsg);
+			isRunning = false;
+		}
 	}
-
-	if (readSize < 0 || varTable.size() == 0)
-		return std::nullopt;
 
 	return varTable.pop();
 }
 
-bool JlinkDebugProbe::readMemory(uint32_t address, uint32_t* value)
+bool JlinkDebugProbe::readMemory(uint32_t address, uint8_t* buf, uint32_t size)
 {
-	return (isRunning && JLINKARM_ReadMemEx(address, 4, (uint8_t*)value, 0) >= 0);
+	std::lock_guard<std::mutex> lock(mtx);
+	return (isRunning && JLINKARM_ReadMemEx(address, size, buf, 0) >= 0);
 }
 
-bool JlinkDebugProbe::writeMemory(uint32_t address, uint8_t* buf, uint32_t len)
+bool JlinkDebugProbe::writeMemory(uint32_t address, uint8_t* buf, uint32_t size)
 {
-	return (isRunning && JLINKARM_WriteMemEx(address, len, buf, 0) >= 0);
+	std::lock_guard<std::mutex> lock(mtx);
+	return (isRunning && JLINKARM_WriteMemEx(address, size, buf, 0) >= 0);
 }
 
 std::string JlinkDebugProbe::getLastErrorMsg() const
@@ -177,6 +202,7 @@ std::string JlinkDebugProbe::getLastErrorMsg() const
 
 std::vector<std::string> JlinkDebugProbe::getConnectedDevices()
 {
+	std::lock_guard<std::mutex> lock(mtx);
 	std::vector<std::string> deviceIDs{};
 
 	JLINKARM_EMU_CONNECT_INFO connectInfo[maxDevices]{};

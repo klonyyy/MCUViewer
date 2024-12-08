@@ -1,6 +1,7 @@
 #ifndef _JlinkDebugProbe_HPP
 #define _JlinkDebugProbe_HPP
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -20,13 +21,11 @@ class JlinkDebugProbe : public IDebugProbe
 
 	std::optional<IDebugProbe::varEntryType> readSingleEntry() override;
 
-	bool readMemory(uint32_t address, uint32_t* value) override;
-	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) override;
+	bool readMemory(uint32_t address, uint8_t* buf, uint32_t size) override;
+	bool writeMemory(uint32_t address, uint8_t* buf, uint32_t size) override;
 
 	std::string getLastErrorMsg() const override;
 	std::vector<std::string> getConnectedDevices() override;
-
-	bool requiresAlignedAccessOnRead() override { return false; }
 
    private:
 	static constexpr size_t maxDevices = 10;
@@ -34,16 +33,18 @@ class JlinkDebugProbe : public IDebugProbe
 	static constexpr size_t fifoSize = 2000;
 	static constexpr uint32_t maxSpeedkHz = 50000;
 	static constexpr double timestampResolution = 1e-6;
+	static constexpr uint32_t bufferSizeHSS = 16384;
 
 	JLINK_HSS_MEM_BLOCK_DESC variableDesc[maxVariables]{};
 	size_t trackedVarsCount = 0;
 	size_t trackedVarsTotalSize = 0;
 
+	size_t emptyMessageErrorThreshold = 100000;
+	size_t emptyMessageErrorCnt = 0;
+
 	std::unordered_map<uint32_t, uint8_t> addressSizeMap;
 	RingBuffer<varEntryType, fifoSize> varTable;
 
-	bool isRunning = false;
-	std::string lastErrorMsg = "";
 	spdlog::logger* logger;
 };
 

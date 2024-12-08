@@ -2,12 +2,13 @@
 #define __VARIABLE_HPP
 
 #include <cstdint>
+#include <functional>
 #include <string>
 
 class Variable
 {
    public:
-	enum class type
+	enum class Type
 	{
 		UNKNOWN = 0,
 		U8 = 1,
@@ -17,7 +18,13 @@ class Variable
 		U32 = 5,
 		I32 = 6,
 		F32 = 7
+	};
 
+	enum class HighLevelType
+	{
+		NONE = 0,
+		SIGNEDFRAC = 1,
+		UNSIGNEDFRAC = 2,
 	};
 
 	struct Color
@@ -28,20 +35,28 @@ class Variable
 		float a;
 	};
 
-	explicit Variable(std::string name);
-	Variable(std::string name, type type, double value);
+	struct Fractional
+	{
+		uint32_t fractionalBits = 15;
+		double base = 1.0;
+		Variable* baseVariable = nullptr;
+	};
 
-	void setType(type varType);
-	type getType() const;
+	explicit Variable(std::string name);
+	Variable(std::string name, Type type, double value);
+
+	void setType(Type type);
+	Type getType() const;
 	std::string getTypeStr() const;
 
+	void setRawValue(uint32_t value);
 	void setValue(double val);
 	double getValue() const;
 
 	void setAddress(uint32_t addr);
 	uint32_t getAddress() const;
-	std::string& getName();
-	void setName(const std::string& name_);
+	std::string getName();
+	void rename(const std::string& newName);
 
 	void setColor(float r, float g, float b, float a);
 	void setColor(uint32_t AaBbGgRr);
@@ -54,22 +69,58 @@ class Variable
 
 	uint8_t getSize();
 
-   private:
-	std::string name;
-	type varType;
-	double value;
-	uint32_t address;
-	const char* types[8] = {"UNKNOWN",
-							"U8",
-							"I8",
-							"U16",
-							"I16",
-							"U32",
-							"I32",
-							"F32"};
+	bool getShouldUpdateFromElf() const;
+	void setShouldUpdateFromElf(bool shouldUpdateFromElf);
 
-	Color color;
+	bool getIsTrackedNameDifferent() const;
+	void setIsTrackedNameDifferent(bool isDifferent);
+
+	std::string getTrackedName() const;
+	void setTrackedName(const std::string& trackedName);
+
+	void setShift(uint32_t shift);
+	uint32_t getShift() const;
+
+	void setMask(uint32_t mask);
+	uint32_t getMask() const;
+
+	void setHighLevelType(HighLevelType type);
+	HighLevelType getHighLevelType() const;
+
+	void setFractional(Fractional fractional);
+	Variable::Fractional getFractional() const;
+	bool isFractional() const;
+
+	uint32_t getRawFromDouble(double value);
+	double transformToDouble();
+
+	void setIsCurrentlySampled(bool isCurrentlySampled);
+	bool getIsCurrentlySampled() const;
+
+   public:
+	static const char* types[8];
+	static const char* highLevelTypes[3];
+
+   private:
+	std::string name = "";
+	std::string trackedName = "";
+	Type type = Type::UNKNOWN;
+	HighLevelType highLevelType = HighLevelType::NONE;
+
+	double value = 0.0;
+	uint32_t rawValue = 0;
+
+	uint32_t address = 0x20000000;
+	Fractional fractional{};
+
+	uint32_t shift = 0;
+	uint32_t mask = 0xffffffff;
+
+	Color color{};
 	bool isFound = false;
+	bool shouldUpdateFromElf = true;
+	bool isTrackedNameDifferent = false;
+	bool isCurrentlySampled = false;
 };
 
 #endif

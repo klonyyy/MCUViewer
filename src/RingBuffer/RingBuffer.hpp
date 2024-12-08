@@ -2,12 +2,9 @@
 #define __RIGNBUFFER_HPP
 
 #include <array>
-#include <chrono>
-#include <condition_variable>
 #include <iostream>
 #include <mutex>
-
-using std::chrono::operator""ms;
+#include <optional>
 
 template <typename T, size_t capacity>
 class RingBuffer
@@ -18,29 +15,25 @@ class RingBuffer
 	bool push(const T& item)
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		if (!cond_full.wait_for(lock, 100ms, [this]()
-								{ return size_ < capacity; }))
+		if (size_ == capacity)
 			return false;
 
 		buffer[write_idx] = item;
 		write_idx = (write_idx + 1) % capacity;
 		size_++;
-
-		cond_empty.notify_one();
 		return true;
 	}
 
-	T pop()
+	std::optional<T> pop()
 	{
 		std::unique_lock<std::mutex> lock(mutex);
-		cond_empty.wait(lock, [this]()
-						{ return size_ > 0; });
+
+		if (size_ == 0)
+			return std::nullopt;
 
 		T item = buffer[read_idx];
 		read_idx = (read_idx + 1) % capacity;
 		size_--;
-
-		cond_full.notify_one();
 		return item;
 	}
 
@@ -63,8 +56,6 @@ class RingBuffer
 	size_t size_;
 
 	std::mutex mutex;
-	std::condition_variable cond_empty;
-	std::condition_variable cond_full;
 };
 
 #endif

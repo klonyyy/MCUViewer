@@ -16,7 +16,7 @@ void Gui::drawPlotsSwo()
 			if (!plt->getVisibility())
 				continue;
 
-			drawPlotCurveSwo(plt.get(), plt->getTimeSeries(), plt->getSeriesMap(), first);
+			drawPlotCurveSwo(plt.get(), *plt->getXAxisSeries(), plt->getSeriesMap(), first);
 			first = false;
 		}
 		ImPlot::EndSubplots();
@@ -32,9 +32,9 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 		else
 			ImPlot::SetupAxis(ImAxis_X1, "time[s]", ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel);
 
-		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::RUN)
+		if (traceDataHandler->getState() == DataHandlerBase::State::RUN)
 		{
-			auto settings = tracePlotHandler->getSettings();
+			auto settings = traceDataHandler->getSettings();
 			const double min = time.getOldestValue();
 			const double max = time.getNewestValue();
 			const double viewportWidth = (max - min) * (settings.maxViewportPointsPercent / 100.0);
@@ -60,7 +60,7 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			plot->trigger.setValue(triggerLevel);
 		}
 
-		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
+		if (traceDataHandler->getState() == DataHandlerBase::State::STOP)
 		{
 			ImPlotRect plotLimits = ImPlot::GetPlotLimits();
 			handleMarkers(0, plot->markerX0, plotLimits, [&]()
@@ -99,10 +99,10 @@ void Gui::drawPlotCurveSwo(Plot* plot, ScrollingBuffer<double>& time, std::map<s
 			ImPlot::PlotScatter("###point", &timepoint, &value, 1, false);
 		}
 
-		if (tracePlotHandler->getViewerState() == TracePlotHandler::state::STOP)
+		if (traceDataHandler->getState() == DataHandlerBase::State::STOP)
 		{
-			auto errorTimestamps = tracePlotHandler->getErrorTimestamps();
-			auto delayed3Timestamps = tracePlotHandler->getDelayed3Timestamps();
+			auto errorTimestamps = traceDataHandler->getErrorTimestamps();
+			auto delayed3Timestamps = traceDataHandler->getDelayed3Timestamps();
 			std::array<double, 100> values{0};
 
 			ImPlot::SetNextMarkerStyle(ImPlotMarker_Cross, 8, ImVec4(1, 0, 0, 1), 3, ImVec4(1, 0, 0, 1));
