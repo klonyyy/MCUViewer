@@ -16,6 +16,10 @@ public:
 
 	float getSin(float x);
 	float getCos(float x);
+	float getLissajousX(float x);
+	float getLissajousY1(float x);
+	float getLissajousY2(float x);
+	float getLissajousY3(float x);
 	void spin();
 
 	struct __attribute__((packed, aligned(1))) StructA
@@ -34,7 +38,7 @@ public:
 
 private:
 	volatile float triangle = 0.0f;
-	volatile float triangleFrequency = 1.0f;
+	volatile float triangleFrequency = 0.01f;
 	volatile float a,b,c;
 	volatile float x, dir = 1.0f;
 	volatile int8_t tri = 0;

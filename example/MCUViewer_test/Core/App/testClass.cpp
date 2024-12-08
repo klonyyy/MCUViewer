@@ -19,6 +19,26 @@ float TestClass::getCos(float x)
 	return cosf(x);
 }
 
+float TestClass::getLissajousX(float x)
+{
+	return sinf(x);
+}
+
+float TestClass::getLissajousY1(float x)
+{
+	return sinf(4.0f * x);
+}
+
+float TestClass::getLissajousY2(float x)
+{
+	return sinf(7.0f * x);
+}
+
+float TestClass::getLissajousY3(float x)
+{
+	return sinf(15.0f * x);
+}
+
 void TestClass::spin()
 {
 	x += 0.02f;
