@@ -99,7 +99,14 @@ class PlotEditWindow
 		{
 			GuiHelper::drawTextAlignedToSize("X-axis variable:", alignment);
 			ImGui::SameLine();
-			std::string selectedVariable = selection.empty() ? editedPlot->getXAxisVariable()->getName() : *selection.begin();
+
+			std::string selectedVariable = "";
+
+			if (selection.empty())
+				selectedVariable = editedPlot->getXAxisVariable() ? editedPlot->getXAxisVariable()->getName() : "";
+			else
+				selectedVariable = *selection.begin();
+
 			ImGui::InputText("##", &selectedVariable, 0, NULL, NULL);
 			if (variableHandler->contains(selectedVariable))
 				editedPlot->setXAxisVariable(variableHandler->getVariable(selectedVariable).get());
