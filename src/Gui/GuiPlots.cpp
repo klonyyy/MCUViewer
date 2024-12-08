@@ -254,6 +254,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 	ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(plot->getName().c_str()).x) * 0.5f);
 	ImGui::Text("%s", plot->getName().c_str());
 
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));  // Adjust vertical padding
 	if (ImGui::BeginTable(plot->getName().c_str(), 4, flags))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);  // Make top row always visible
@@ -298,6 +299,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 				if (viewerDataHandler->getState() == DataHandlerBase::State::STOP)
 				{
 					ImGui::PopStyleColor(3);
+					ImGui::EndDisabled();
 					continue;
 				}
 				if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
@@ -325,6 +327,7 @@ void Gui::drawPlotTable(std::shared_ptr<Plot> plot)
 			ImGui::EndDragDropTarget();
 		}
 	}
+	ImGui::PopStyleVar();
 	plot->setIsHovered(ImGui::IsItemHovered());
 }
 
