@@ -204,7 +204,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotGroupHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Recorder)
 
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/

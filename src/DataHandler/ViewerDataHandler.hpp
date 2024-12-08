@@ -11,6 +11,7 @@
 #include "IDebugProbe.hpp"
 #include "MovingAverage.hpp"
 #include "VariableHandler.hpp"
+#include "Recorder.hpp"
 
 class ViewerDataHandler : public DataHandlerBase
 {
@@ -67,6 +68,8 @@ class ViewerDataHandler : public DataHandlerBase
 	double averageSamplingPeriod = 0.0;
 	Settings settings{};
 	std::unordered_map<std::string, double> csvEntry;
+
+	std::shared_ptr<Recorder> recorder;
 
 	SampleListType sampleList;
 };

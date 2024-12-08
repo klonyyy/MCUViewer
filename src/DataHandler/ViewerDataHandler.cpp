@@ -6,11 +6,13 @@
 #include <string>
 
 #include "JlinkDebugProbe.hpp"
+#include "Recorder.hpp"
 #include "StlinkDebugProbe.hpp"
 
 ViewerDataHandler::ViewerDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : DataHandlerBase(plotGroupHandler, variableHandler, plotHandler, tracePlotHandler, done, mtx, logger)
 {
 	dataHandle = std::thread(&ViewerDataHandler::dataHandler, this);
+	recorder = std::make_shared<Recorder>(variableHandler);
 }
 ViewerDataHandler::~ViewerDataHandler()
 {
@@ -219,13 +221,15 @@ void ViewerDataHandler::createSampleList()
 		}
 	}
 
-	/* mark actively sampled varaibles */
+	/* mark actively sampled variables */
 	for (auto variable : *variableHandler)
 	{
 		variable->setIsCurrentlySampled(false);
 		if (std::find(sampleList.begin(), sampleList.end(), std::pair<uint32_t, uint8_t>(variable->getAddress(), variable->getSize())) != sampleList.end())
 			variable->setIsCurrentlySampled(true);
 	}
+
+	recorder->init();
 }
 
 void ViewerDataHandler::prepareCSVFile()
