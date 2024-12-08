@@ -1,48 +1,60 @@
 #include "GdbParser.hpp"
 
-GdbParser::GdbParser(spdlog::logger* logger) : logger(logger)
+GdbParser::GdbParser(VariableHandler* variableHandler, spdlog::logger* logger) : variableHandler(variableHandler), logger(logger)
+{
+	validateGDB();
+}
+
+void GdbParser::changeCurrentGDBCommand(const std::string& command)
+{
+	currentGDBCommand = command;
+}
+
+bool GdbParser::validateGDB()
 {
 	ProcessHandler process;
-	int32_t version = 0;
 
-	version = extractGDBVersionNumber(process.executeCmd("gdb -v", "\n"));
+	auto output = process.executeCmd(currentGDBCommand + std::string(" -v"), "GNU gdb");
 
-	if (version == 0)
+	if (output.find("GNU") != std::string::npos || output.find("gnu") != std::string::npos)
 	{
-		logger->warn("Failed to read GDB version (from PATH). Retrying on the distributed GDB...");
-		version = extractGDBVersionNumber(process.executeCmd("./gdb -v", "\n"));
+		logger->info("GDB executable working!");
+		return true;
 	}
-
-	if (version == 0)
-		logger->error("Failed to read GDB version! Make sure it's installed and added to your PATH!");
 	else
 	{
-		logger->info("GDB version: {}", version);
-		if (version < gdbMinimumVersion)
-			logger->error("Your GDB is too old, please update it to at least 10.3");
+		logger->error("GDB executable error! Please check the GDB path in the acqusition settings!");
+		return false;
 	}
 }
 
-bool GdbParser::updateVariableMap2(const std::string& elfPath, std::map<std::string, std::shared_ptr<Variable>>& vars)
+bool GdbParser::updateVariableMap(const std::string& elfPath)
 {
+	if (!validateGDB())
+		return false;
+
 	if (!std::filesystem::exists(elfPath))
 		return false;
 
-	std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
+	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
 
-	for (auto& [name, var] : vars)
+	for (std::shared_ptr<Variable> var : *variableHandler)
 	{
-		var->setIsFound(false);
-		var->setType(Variable::type::UNKNOWN);
+		std::string name = var->getName();
+		if (var->getShouldUpdateFromElf() == false)
+			continue;
 
-		auto maybeAddress = checkAddress(name);
+		var->setIsFound(false);
+		var->setType(Variable::Type::UNKNOWN);
+
+		auto maybeAddress = checkAddress(var->getTrackedName());
 		if (!maybeAddress.has_value())
 			continue;
 
 		var->setIsFound(true);
 		var->setAddress(maybeAddress.value());
-		var->setType(checkType(name, nullptr));
+		var->setType(checkType(var->getTrackedName(), nullptr));
 	}
 
 	process.closePipes();
@@ -52,6 +64,9 @@ bool GdbParser::updateVariableMap2(const std::string& elfPath, std::map<std::str
 
 bool GdbParser::parse(const std::string& elfPath)
 {
+	if (!validateGDB())
+		return false;
+
 	if (!std::filesystem::exists(elfPath))
 		return false;
 
@@ -59,7 +74,7 @@ bool GdbParser::parse(const std::string& elfPath)
 	parsedData.clear();
 	lock.unlock();
 
-	std::string cmd = std::string("gdb --interpreter=mi ") + elfPath;
+	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
 	auto out = process.executeCmd("info variables\n", "(gdb)");
 
@@ -129,7 +144,7 @@ void GdbParser::checkVariableType(std::string& name)
 
 	std::string out;
 
-	if (checkType(name, &out) != Variable::type::UNKNOWN)
+	if (checkType(name, &out) != Variable::Type::UNKNOWN)
 	{
 		/* trivial type */
 		std::lock_guard<std::mutex> lock(mtx);
@@ -186,7 +201,7 @@ void GdbParser::checkVariableType(std::string& name)
 	}
 }
 
-Variable::type GdbParser::checkType(const std::string& name, std::string* output)
+Variable::Type GdbParser::checkType(const std::string& name, std::string* output)
 {
 	auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"), "(gdb)");
 	if (output != nullptr)
@@ -196,6 +211,8 @@ Variable::type GdbParser::checkType(const std::string& name, std::string* output
 
 	auto line = out.substr(start + 2, end - start - 2);
 
+	logger->debug("CHECKING TYPE FOR LINE: {}", line);
+
 	/* remove const and volatile */
 	if (line.find("volatile ", 0) != std::string::npos)
 		line.erase(0, 9);
@@ -203,9 +220,11 @@ Variable::type GdbParser::checkType(const std::string& name, std::string* output
 		line.erase(0, 6);
 	if (line.find("static const ", 0) != std::string::npos)
 		line.erase(0, 13);
+	if (line.find("enum {", 0) != std::string::npos)
+		return Variable::Type::I32;
 
 	if (!isTrivial.contains(line))
-		return Variable::type::UNKNOWN;
+		return Variable::Type::UNKNOWN;
 
 	return isTrivial.at(line);
 }
@@ -249,29 +268,4 @@ std::map<std::string, GdbParser::VariableData> GdbParser::getParsedData()
 {
 	std::lock_guard<std::mutex> lock(mtx);
 	return parsedData;
-}
-
-int32_t GdbParser::extractGDBVersionNumber(const std::string&& versionString)
-{
-	int32_t majorVersion = 0;
-	int32_t minorVersion = 0;
-
-	auto pos = versionString.find(") ");
-
-	if (pos == std::string::npos)
-		return 0;
-
-	auto dotPos = versionString.find(".", pos);
-
-	try
-	{
-		majorVersion = std::stoi(versionString.substr(pos + 2, dotPos - pos - 2));
-		minorVersion = std::stoi(versionString.substr(dotPos + 1, 1));
-	}
-	catch (...)
-	{
-		logger->warn("std::stoi() incorect argument!");
-	}
-
-	return majorVersion * 10 + minorVersion;
 }

@@ -27,13 +27,16 @@ include_directories(${EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/src/RingBuffer
     ${CMAKE_SOURCE_DIR}/src/TraceReader
     ${CMAKE_SOURCE_DIR}/src/Statistics
-    ${CMAKE_SOURCE_DIR}/src/GdbParser)
+    ${CMAKE_SOURCE_DIR}/src/GdbParser
+    ${CMAKE_SOURCE_DIR}/src/Variable
+    ${CMAKE_SOURCE_DIR}/src/VariableHandler)
 
 include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/spdlog/inc)
 
 set(SOURCES
-    ${CMAKE_SOURCE_DIR}/src/TraceReader/TraceReader.cpp)
+    ${CMAKE_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
+    ${CMAKE_SOURCE_DIR}/src/Variable/Variable.cpp)
 
 target_link_libraries(GTest::GTest INTERFACE gtest_main gmock gmock_main)
 
@@ -43,6 +46,7 @@ add_executable(${EXECUTABLE} main.cpp
     TraceReaderTest.cpp
     StatisticsTest.cpp
     GdbParserTest.cpp
+    VariableTest.cpp
     ${SOURCES})
 
 add_compile_options(-Wall -Wextra -Wpedantic)

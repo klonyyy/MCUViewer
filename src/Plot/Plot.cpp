@@ -12,6 +12,7 @@
 
 Plot::Plot(const std::string& name) : name(name)
 {
+	xAxisSeries.buffer = std::make_unique<ScrollingBuffer<double>>();
 }
 
 void Plot::setName(const std::string& newName)
@@ -39,12 +40,12 @@ std::string Plot::getAlias() const
 	return alias;
 }
 
-bool Plot::addSeries(Variable& var)
+bool Plot::addSeries(Variable* var)
 {
-	std::string name = var.getName();
+	std::string name = var->getName();
 	seriesMap[name] = std::make_shared<Series>();
 	seriesMap[name]->buffer = std::make_unique<ScrollingBuffer<double>>();
-	seriesMap[name]->var = &var;
+	seriesMap[name]->var = var;
 	return true;
 }
 
@@ -58,9 +59,14 @@ std::map<std::string, std::shared_ptr<Plot::Series>>& Plot::getSeriesMap()
 	return seriesMap;
 }
 
-ScrollingBuffer<double>& Plot::getTimeSeries()
+ScrollingBuffer<double>* Plot::getXAxisSeries()
 {
-	return time;
+	if (type == Type::XY)
+	{
+		if (xAxisSeries.var != nullptr)
+			return xAxisSeries.buffer.get();
+	}
+	return &time;
 }
 
 bool Plot::removeSeries(const std::string& name)
@@ -102,9 +108,9 @@ std::vector<uint32_t> Plot::getVariableAddesses() const
 	return addresses;
 }
 
-std::vector<Variable::type> Plot::getVariableTypes() const
+std::vector<Variable::Type> Plot::getVariableTypes() const
 {
-	std::vector<Variable::type> types;
+	std::vector<Variable::Type> types;
 	for (auto& [name, ser] : seriesMap)
 		types.push_back(ser->var->getType());
 
@@ -118,6 +124,15 @@ bool Plot::addPoint(const std::string& varName, double value)
 	return true;
 }
 
+void Plot::updateSeries()
+{
+	for (auto& [name, ser] : seriesMap)
+		ser->addPointFromVar();
+
+	if (xAxisSeries.var != nullptr)
+		xAxisSeries.addPointFromVar();
+}
+
 bool Plot::addTimePoint(double t)
 {
 	time.addPoint(t);
@@ -127,6 +142,7 @@ bool Plot::addTimePoint(double t)
 void Plot::erase()
 {
 	time.erase();
+	xAxisSeries.buffer->erase();
 
 	for (auto& [name, ser] : seriesMap)
 		ser->buffer->erase();
@@ -185,9 +201,13 @@ void Plot::setSeriesDisplayFormat(const std::string& name, displayFormat format)
 
 std::string Plot::getSeriesValueString(const std::string& name, double value)
 {
-	Variable::type type = seriesMap.at(name)->var->getType();
+	if (!seriesMap.at(name)->var->getIsCurrentlySampled())
+		return "-";
 
-	if (type == Variable::type::F32)
+	Variable::Type type = seriesMap.at(name)->var->getType();
+	Variable::HighLevelType highLevelType = seriesMap.at(name)->var->getHighLevelType();
+
+	if (type == Variable::Type::F32 || highLevelType == Variable::HighLevelType::SIGNEDFRAC || highLevelType == Variable::HighLevelType::UNSIGNEDFRAC)
 		return std::to_string(value);
 
 	switch (seriesMap.at(name)->format)
@@ -204,20 +224,20 @@ std::string Plot::getSeriesValueString(const std::string& name, double value)
 		{
 			switch (type)
 			{
-				case Variable::type::I8:
-				case Variable::type::U8:
+				case Variable::Type::I8:
+				case Variable::Type::U8:
 				{
 					std::bitset<8> binaryValue(value);
 					return std::string("0b") + binaryValue.to_string();
 				}
-				case Variable::type::I16:
-				case Variable::type::U16:
+				case Variable::Type::I16:
+				case Variable::Type::U16:
 				{
 					std::bitset<16> binaryValue(value);
 					return std::string("0b") + binaryValue.to_string();
 				}
-				case Variable::type::I32:
-				case Variable::type::U32:
+				case Variable::Type::I32:
+				case Variable::Type::U32:
 				{
 					std::bitset<32> binaryValue(value);
 					return std::string("0b") + binaryValue.to_string();
@@ -241,4 +261,14 @@ void Plot::setIsHovered(bool isHovered)
 bool Plot::isHovered() const
 {
 	return isHoveredOver;
+}
+
+Variable* Plot::getXAxisVariable()
+{
+	return xAxisSeries.var;
+}
+
+void Plot::setXAxisVariable(Variable* var)
+{
+	xAxisSeries.var = var;
 }

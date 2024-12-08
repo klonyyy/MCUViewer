@@ -32,7 +32,7 @@ CSVStreamer::~CSVStreamer()
 	finishLogging();
 }
 
-bool CSVStreamer::prepareFile(std::string& directory)
+bool CSVStreamer::prepareFile(const std::string& directory)
 {
 	filePath = directory + logFileName;
 	csvFile.open(filePath, std::ios::out);
@@ -44,10 +44,12 @@ bool CSVStreamer::prepareFile(std::string& directory)
 	return true;
 }
 
-void CSVStreamer::createHeader(const std::vector<std::string>& values)
+void CSVStreamer::createHeader(const std::vector<std::string>& headerNames)
 {
+	this->headerNames = headerNames;
+
 	std::string header = "time,";
-	for (const auto& value : values)
+	for (const auto& value : headerNames)
 	{
 		header += value + ",";
 	}
@@ -55,12 +57,12 @@ void CSVStreamer::createHeader(const std::vector<std::string>& values)
 	currentBuffer->appendLine(header);
 }
 
-void CSVStreamer::writeLine(double time, const std::vector<double>& values)
+void CSVStreamer::writeLine(double time, std::unordered_map<std::string, double>& valuesMap)
 {
 	std::string line = std::to_string(time) + ",";
-	for (const auto& value : values)
+	for (const auto& name : headerNames)
 	{
-		line += std::to_string(value) + ",";
+		line += std::to_string(valuesMap[name]) + ",";
 	}
 	line.back() = '\n';
 

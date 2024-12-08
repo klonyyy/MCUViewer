@@ -86,7 +86,9 @@
         "coroutine": "cpp",
         "resumable": "cpp",
         "future": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "complex": "cpp",
+        "queue": "cpp"
     },
     "docwriter.style": "Doxygen"
 }

@@ -261,6 +261,29 @@ namespace mINI
 		}
 		const_iterator begin() const { return data.begin(); }
 		const_iterator end() const { return data.end(); }
+
+		bool operator==(INIMap other) const
+		{
+			for (auto const& it : *this)
+			{
+				auto const& section = it.first;
+				auto const& collection = it.second;
+				if (collection.size() != other[section].size())
+				{
+					return false;
+				}
+				for (auto const& it2 : collection)
+				{
+					auto const& key = it2.first;
+					auto const& value = it2.second;
+					if (value != other[section][key])
+					{
+						return false;
+					}
+				}
+			}
+			return this->size() == other.size();
+		}
 	};
 
 	using INIStructure = INIMap<INIMap<std::string>>;

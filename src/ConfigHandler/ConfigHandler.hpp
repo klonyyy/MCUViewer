@@ -1,13 +1,14 @@
-#ifndef _CONFIGHANDLER_HPP
-#define _CONFIGHANDLER_HPP
+#pragma once
 
 #include <map>
 #include <memory>
 #include <string>
 
-#include "PlotHandler.hpp"
-#include "TracePlotHandler.hpp"
+#include "PlotGroupHandler.hpp"
+#include "TraceDataHandler.hpp"
 #include "Variable.hpp"
+#include "VariableHandler.hpp"
+#include "ViewerDataHandler.hpp"
 #include "ini.h"
 #include "spdlog/spdlog.h"
 
@@ -19,12 +20,13 @@ class ConfigHandler
 		uint32_t version = 1;
 	} GlobalSettings;
 
-	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, TracePlotHandler* tracePlotHandler, spdlog::logger* logger);
+	ConfigHandler(const std::string& configFilePath, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, spdlog::logger* logger);
 	~ConfigHandler() = default;
 
 	bool changeConfigFile(const std::string& newConfigFilePath);
-	bool readConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, std::string& elfPath);
-	bool saveConfigFile(std::map<std::string, std::shared_ptr<Variable>>& vars, const std::string& elfPath, const std::string& newSavePath);
+	bool readConfigFile(std::string& elfPath);
+	bool saveConfigFile(const std::string& elfPath, const std::string& newSavePath);
+	bool isSavingRequired(const std::string& elfPath);
 
 	template <typename T>
 	void parseValue(const std::string& value, T& result)
@@ -51,10 +53,22 @@ class ConfigHandler
 	}
 
    private:
+	void loadVariables();
+	void loadPlots();
+	void loadTracePlots();
+	void loadPlotGroups();
+
+	mINI::INIStructure prepareSaveConfigFile(const std::string& elfPath);
+
+   private:
 	GlobalSettings globalSettings;
 	std::string configFilePath;
 	PlotHandler* plotHandler;
-	TracePlotHandler* tracePlotHandler;
+	PlotHandler* tracePlotHandler;
+	PlotGroupHandler* plotGroupHandler;
+	VariableHandler* variableHandler;
+	ViewerDataHandler* viewerDataHandler;
+	TraceDataHandler* traceDataHandler;
 	spdlog::logger* logger;
 
 	std::map<std::string, Plot::displayFormat> displayFormatMap{{"DEC", Plot::displayFormat::DEC}, {"HEX", Plot::displayFormat::HEX}, {"BIN", Plot::displayFormat::BIN}};
@@ -62,5 +76,3 @@ class ConfigHandler
 	std::unique_ptr<mINI::INIFile> file;
 	std::unique_ptr<mINI::INIStructure> ini;
 };
-
-#endif

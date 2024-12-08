@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "ITraceProbe.hpp"
-#include "RingBuffer.hpp"
+#include "RingBufferBlocking.hpp"
 #include "spdlog/spdlog.h"
 
 class TraceReader
@@ -88,7 +88,7 @@ class TraceReader
 	std::atomic<bool> isRunning{false};
 	std::string lastErrorMsg = "";
 	std::array<uint32_t, channels> previousEntry{};
-	RingBuffer<std::pair<std::array<uint32_t, channels>, double>, 2000> traceTable;
+	RingBufferBlocking<std::pair<std::array<uint32_t, channels>, double>, 2000> traceTable;
 	std::thread readerHandle;
 
 	std::shared_ptr<ITraceProbe> TraceProbe;

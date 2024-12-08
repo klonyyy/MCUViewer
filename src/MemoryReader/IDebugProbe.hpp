@@ -1,6 +1,7 @@
 #ifndef _IVARIABLEREADER_HPP
 #define _IVARIABLEREADER_HPP
 
+#include <atomic>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -42,13 +43,17 @@ class IDebugProbe
 	virtual std::optional<varEntryType> readSingleEntry() = 0;
 
 	/* NORMAL mode */
-	virtual bool readMemory(uint32_t address, uint32_t* value) = 0;
-	virtual bool writeMemory(uint32_t address, uint8_t* buf, uint32_t len) = 0;
+	virtual bool readMemory(uint32_t address, uint8_t* buf, uint32_t size) = 0;
+	virtual bool writeMemory(uint32_t address, uint8_t* buf, uint32_t size) = 0;
 
 	virtual std::string getLastErrorMsg() const = 0;
 
 	virtual std::vector<std::string> getConnectedDevices() = 0;
-	virtual bool requiresAlignedAccessOnRead() = 0;
+
+   protected:
+	std::atomic<bool> isRunning = false;
+	std::string lastErrorMsg = "";
+	mutable std::mutex mtx;
 };
 
 #endif

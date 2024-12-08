@@ -4,205 +4,120 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <utility>
 
-#include "JlinkDebugProbe.hpp"
-#include "StlinkDebugProbe.hpp"
-
-PlotHandler::PlotHandler(std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger) : PlotHandlerBase(done, mtx, logger)
+std::shared_ptr<Plot> PlotHandler::addPlot(const std::string& name)
 {
-	dataHandle = std::thread(&PlotHandler::dataHandler, this);
-	varReader = std::make_unique<MemoryReader>();
-}
-PlotHandler::~PlotHandler()
-{
-	if (dataHandle.joinable())
-		dataHandle.join();
+	plotsMap[name] = std::make_shared<Plot>(name);
+	return plotsMap[name];
 }
 
-PlotHandler::Settings PlotHandler::getSettings() const
+bool PlotHandler::removePlot(const std::string& name)
 {
-	return settings;
+	plotsMap.erase(name);
+	return true;
 }
 
-void PlotHandler::setSettings(const Settings& newSettings)
+bool PlotHandler::renamePlot(const std::string& oldName, const std::string& newName)
 {
-	settings = newSettings;
-	setMaxPoints(settings.maxPoints);
+	auto plt = plotsMap.extract(oldName);
+	plt.key() = newName;
+	plotsMap.insert(std::move(plt));
+	plotsMap[newName]->setName(newName);
+	return true;
 }
 
-bool PlotHandler::writeSeriesValue(Variable& var, double value)
+bool PlotHandler::removeAllPlots()
 {
-	std::lock_guard<std::mutex> lock(*mtx);
-	return varReader->setValue(var, value);
+	plotsMap.clear();
+	return true;
 }
 
-std::string PlotHandler::getLastReaderError() const
+std::shared_ptr<Plot> PlotHandler::getPlot(std::string name)
 {
-	return varReader->getLastErrorMsg();
+	return plotsMap.at(name);
 }
 
-void PlotHandler::setDebugProbe(std::shared_ptr<IDebugProbe> probe)
+bool PlotHandler::eraseAllPlotData()
 {
-	varReader->changeDevice(probe);
+	if (plotsMap.empty())
+		return false;
+
+	for (auto& plot : plotsMap)
+		if (plot.second != nullptr)
+			plot.second->erase();
+
+	return true;
 }
 
-IDebugProbe::DebugProbeSettings PlotHandler::getProbeSettings() const
+uint32_t PlotHandler::getVisiblePlotsCount() const
 {
-	return probeSettings;
+	return std::count_if(plotsMap.begin(), plotsMap.end(), [](const auto& pair)
+						 { return pair.second->getVisibility(); });
 }
 
-void PlotHandler::setProbeSettings(const IDebugProbe::DebugProbeSettings& settings)
+uint32_t PlotHandler::getPlotsCount() const
 {
-	probeSettings = settings;
+	return plotsMap.size();
 }
 
-void PlotHandler::dataHandler()
+bool PlotHandler::checkIfPlotExists(const std::string& name) const
 {
-	std::chrono::time_point<std::chrono::steady_clock> start;
-	uint32_t timer = 0;
-	double lastT = 0.0;
-	std::vector<double> csvValues;
-	csvValues.reserve(maxVariablesOnSinglePlot);
-
-	while (!done)
-	{
-		if (viewerState == state::RUN)
-		{
-			auto finish = std::chrono::steady_clock::now();
-			double period = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
-			csvValues.clear();
-
-			if (probeSettings.mode == IDebugProbe::Mode::HSS)
-			{
-				auto maybeEntry = varReader->readSingleEntry();
-
-				if (!maybeEntry.has_value())
-					continue;
-
-				auto [timestamp, values] = maybeEntry.value();
-
-				for (auto& [key, plot] : plotsMap)
-				{
-					if (!plot->getVisibility())
-						continue;
-
-					std::lock_guard<std::mutex> lock(*mtx);
-					/* thread-safe part */
-					for (auto& [name, ser] : plot->getSeriesMap())
-					{
-						double value = varReader->castToProperType(values[ser->var->getAddress()], ser->var->getType());
-						ser->var->setValue(value);
-						plot->addPoint(name, value);
-						csvValues.push_back(ser->var->getValue());
-					}
-					plot->addTimePoint(timestamp);
-				}
-
-				if (settings.shouldLog)
-					csvStreamer->writeLine(period, csvValues);
-				/* filter sampling frequency */
-				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
-				lastT = period;
-				timer++;
-			}
-
-			else if (period > ((1.0 / settings.sampleFrequencyHz) * timer))
-			{
-				for (auto& [key, plot] : plotsMap)
-				{
-					if (!plot->getVisibility())
-						continue;
-
-					/* this part consumes most of the thread time */
-					for (auto& [name, ser] : plot->getSeriesMap())
-					{
-						bool result = false;
-						auto value = varReader->getValue(ser->var->getAddress(), ser->var->getType(), result);
-
-						if (result)
-							ser->var->setValue(value);
-					}
-
-					/* thread-safe part */
-					std::lock_guard<std::mutex> lock(*mtx);
-					for (auto& [name, ser] : plot->getSeriesMap())
-					{
-						plot->addPoint(name, ser->var->getValue());
-						csvValues.push_back(ser->var->getValue());
-					}
-					plot->addTimePoint(period);
-				}
-
-				if (settings.shouldLog)
-					csvStreamer->writeLine(period, csvValues);
-				/* filter sampling frequency */
-				averageSamplingPeriod = samplingPeriodFilter.filter((period - lastT));
-				lastT = period;
-				timer++;
-			}
-		}
-		else
-			std::this_thread::sleep_for(std::chrono::milliseconds(20));
-
-		if (stateChangeOrdered)
-		{
-			if (viewerState == state::RUN)
-			{
-				auto addressSizeVector = createAddressSizeVector();
-
-				prepareCSVFile();
-
-				if (varReader->start(probeSettings, addressSizeVector, settings.sampleFrequencyHz))
-				{
-					timer = 0;
-					lastT = 0.0;
-					start = std::chrono::steady_clock::now();
-				}
-				else
-					viewerState = state::STOP;
-			}
-			else
-			{
-				varReader->stop();
-				if (settings.shouldLog)
-					csvStreamer->finishLogging();
-			}
-			stateChangeOrdered = false;
-		}
-	}
+	return plotsMap.find(name) != plotsMap.end();
 }
 
-std::vector<std::pair<uint32_t, uint8_t>> PlotHandler::createAddressSizeVector()
+void PlotHandler::setMaxPoints(uint32_t maxPoints)
 {
-	std::vector<std::pair<uint32_t, uint8_t>> addressSizeVector;
-
-	for (auto& [key, plot] : plotsMap)
-	{
-		if (!plot->getVisibility())
-			continue;
-
-		for (auto& [name, ser] : plot->getSeriesMap())
-			addressSizeVector.push_back({ser->var->getAddress(), ser->var->getSize()});
-	}
-
-	return addressSizeVector;
-}
-
-void PlotHandler::prepareCSVFile()
-{
-	if (!settings.shouldLog)
+	if (maxPoints == 0)
 		return;
 
-	std::vector<std::string> headerNames;
-
-	for (auto& [key, plot] : plotsMap)
+	for (auto& [name, plt] : plotsMap)
 	{
-		if (!plot->getVisibility())
-			continue;
-
-		for (auto& [name, ser] : plot->getSeriesMap())
-			headerNames.push_back(name);
+		for (auto& [serName, ser] : plt->getSeriesMap())
+			ser->buffer->setMaxSize(maxPoints);
+		plt->getXAxisSeries()->setMaxSize(maxPoints);
 	}
-	csvStreamer->prepareFile(settings.logFilePath);
-	csvStreamer->createHeader(headerNames);
+}
+
+PlotHandler::iterator::iterator(std::map<std::string, std::shared_ptr<Plot>>::iterator iter)
+	: m_iter(iter)
+{
+}
+
+PlotHandler::iterator& PlotHandler::iterator::operator++()
+{
+	++m_iter;
+	return *this;
+}
+
+PlotHandler::iterator PlotHandler::iterator::operator++(int)
+{
+	iterator tmp = *this;
+	++(*this);
+	return tmp;
+}
+
+bool PlotHandler::iterator::operator==(const iterator& other) const
+{
+	return m_iter == other.m_iter;
+}
+
+bool PlotHandler::iterator::operator!=(const iterator& other) const
+{
+	return !(*this == other);
+}
+
+std::shared_ptr<Plot> PlotHandler::iterator::operator*()
+{
+	return m_iter->second;
+}
+
+PlotHandler::iterator PlotHandler::begin()
+{
+	return iterator(plotsMap.begin());
+}
+
+PlotHandler::iterator PlotHandler::end()
+{
+	return iterator(plotsMap.end());
 }
