@@ -42,8 +42,7 @@ class Variable
 		Variable* baseVariable = nullptr;
 	};
 
-	explicit Variable(std::string name);
-	Variable(std::string name, Type type, double value);
+	Variable(std::string name);
 
 	void setType(Type type);
 	Type getType() const;

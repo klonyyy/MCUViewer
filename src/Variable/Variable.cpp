@@ -20,11 +20,6 @@ Variable::Variable(std::string name) : name(name)
 	name.reserve(100);
 }
 
-Variable::Variable(std::string name, Variable::Type type, double value) : name(name), type(type), value(value)
-{
-	name.reserve(100);
-}
-
 void Variable::setType(Type type)
 {
 	this->type = type;
