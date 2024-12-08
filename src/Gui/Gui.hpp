@@ -36,7 +36,7 @@ class Gui
 	~Gui();
 
    private:
-	static constexpr bool showDemoWindow = true;
+	static constexpr bool showDemoWindow = false;
 
 	const std::map<DataHandlerBase::State, std::string> viewerStateMap{{DataHandlerBase::State::RUN, "RUNNING"}, {DataHandlerBase::State::STOP, "STOPPED"}};
 
