@@ -74,8 +74,6 @@ void Gui::mainThread(std::string externalPath)
 	ImFontConfig cfg;
 	cfg.SizePixels = 13.0f * GuiHelper::contentScale;
 
-	ImGui::GetStyle().ScaleAllSizes(GuiHelper::contentScale);
-
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -84,6 +82,9 @@ void Gui::mainThread(std::string externalPath)
 
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
+
+	ImGui::GetStyle().ScaleAllSizes(GuiHelper::contentScale);
+	ImGui::GetStyle().Colors[ImGuiCol_PopupBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
