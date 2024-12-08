@@ -76,7 +76,7 @@ void Gui::mainThread(std::string externalPath)
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.Fonts->AddFontDefault(&cfg);
 	io.FontGlobalScale = 1.0f;
 
