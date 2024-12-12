@@ -234,7 +234,10 @@ class VariableEditWindow
 			std::string base = "";
 
 			if (!selectionBase.empty())
+			{
 				base = *selectionBase.begin();
+				shouldUpdate = true;
+			}
 			else if (fractional.baseVariable != nullptr)
 				base = fractional.baseVariable->getName();
 			else
