@@ -21,9 +21,21 @@ class Recorder
 		variableHandler->addVariable(std::make_shared<Variable>(settings.state));
 		variableHandler->addVariable(std::make_shared<Variable>(settings.timestepUs));
 		variableHandler->addVariable(std::make_shared<Variable>(settings.maxBufferSize));
+
+		variableHandler->getVariable(settings.state)->setTrackedName(settings.state);
+		variableHandler->getVariable(settings.timestepUs)->setTrackedName(settings.timestepUs);
+		variableHandler->getVariable(settings.maxBufferSize)->setTrackedName(settings.maxBufferSize);
+	}
+
+	void start()
+	{
 	}
 
 	void perform()
+	{
+	}
+
+	void finish()
 	{
 	}
 
