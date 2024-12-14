@@ -217,6 +217,8 @@ void ViewerDataHandler::createSampleList()
 			if (!checkIfElementExists(newElement))
 				sampleList.push_back(newElement);
 		}
+
+		variable->setValue(0.0);
 	}
 
 	/* mark actively sampled varaibles */
