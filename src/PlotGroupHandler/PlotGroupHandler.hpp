@@ -15,12 +15,6 @@ class PlotGroup
 		std::shared_ptr<Plot> plot;
 	};
 
-	typedef enum
-	{
-		SAMPLING = 0,
-		RECORDER = 1
-	} Type;
-
 	PlotGroup(const std::string& name) : name(name)
 	{
 	}
@@ -82,22 +76,9 @@ class PlotGroup
 							 { return pair.second.visibility; });
 	}
 
-	Type getType() const
-	{
-		return type;
-	}
-
-	void setType(Type type)
-	{
-		this->type = type;
-	}
-
    private:
 	std::string name;
 	std::map<std::string, PlotEntry> group;
-
-	Type type = Type::SAMPLING;
-
 };
 
 class PlotGroupHandler

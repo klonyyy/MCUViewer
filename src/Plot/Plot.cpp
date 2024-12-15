@@ -272,3 +272,13 @@ void Plot::setXAxisVariable(Variable* var)
 {
 	xAxisSeries.var = var;
 }
+
+Plot::AcquisitionType Plot::getAcquisitionType() const
+{
+	return acquisitionType;
+}
+
+void Plot::setAcquisitionType(AcquisitionType type)
+{
+	this->acquisitionType = type;
+}

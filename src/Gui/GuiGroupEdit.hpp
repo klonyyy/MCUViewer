@@ -82,23 +82,6 @@ class GroupEditWindow
 			else
 				popup.show("Error!", "Group already exists!", 1.5f);
 		}
-
-		PlotGroup::Type groupType = editedGroup->getType();
-
-		GuiHelper::drawTextAlignedToSize("type:", alignment);
-		ImGui::SameLine();
-		ImGui::RadioButton("sampling", (int32_t*)(&groupType), 0);
-		ImGui::SameLine();
-		ImGui::RadioButton("recorder", (int32_t*)(&groupType), 1);
-		ImGui::SameLine();
-		ImGui::HelpMarker("A sampling group is sampled asynchonously in regular intervals without additional software on target's side. \r\n A recorder group is a group used for registering high frequency signals with predefined intervals. Recorder file and sampling function execution is needed for proper operation.");
-
-		if (groupType == PlotGroup::Type::RECORDER)
-		{
-			ImGui::Text("Recorder");
-		}
-
-		editedGroup->setType(groupType);
 	}
 
    private:

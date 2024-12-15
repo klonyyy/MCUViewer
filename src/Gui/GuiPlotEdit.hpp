@@ -95,6 +95,35 @@ class PlotEditWindow
 		if (ImGui::Combo("##combo", &typeCombo, plotTypes, IM_ARRAYSIZE(plotTypes)))
 			editedPlot->setType((Plot::Type)typeCombo);
 
+		/* Acquisition type section */
+		bool isRecordable = editedPlot->getType() == Plot::Type::CURVE || editedPlot->getType() == Plot::Type::XY;
+
+		if (!isRecordable)
+			editedPlot->setAcquisitionType(Plot::AcquisitionType::SAMPLING);
+
+		ImGui::BeginDisabled(!isRecordable);
+
+		Plot::AcquisitionType acquisitionType = editedPlot->getAcquisitionType();
+
+		GuiHelper::drawTextAlignedToSize("acqusition:", alignment);
+		ImGui::SameLine();
+		ImGui::RadioButton("sampling", (int32_t*)(&acquisitionType), 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("recorder", (int32_t*)(&acquisitionType), 1);
+		ImGui::SameLine();
+		ImGui::HelpMarker("A sampling plot is sampled asynchonously in regular intervals without additional software on target's side. \r\n A recorder group is a group used for registering high frequency signals with predefined intervals. Recorder file and sampling function execution is needed for proper operation.");
+
+		if (acquisitionType == Plot::AcquisitionType::RECORDER)
+		{
+			ImGui::Text("Recorder");
+		}
+
+		editedPlot->setAcquisitionType(acquisitionType);
+
+		ImGui::EndDisabled();
+
+		/* XY plot settings section*/
+
 		if (editedPlot->getType() == Plot::Type::XY)
 		{
 			GuiHelper::drawTextAlignedToSize("X-axis variable:", alignment);

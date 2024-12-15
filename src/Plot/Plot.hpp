@@ -39,6 +39,12 @@ class Plot
 		XY = 3
 	};
 
+	enum class AcquisitionType : int32_t
+	{
+		SAMPLING = 0,
+		RECORDER = 1
+	};
+
 	enum class Domain : uint8_t
 	{
 		ANALOG = 0,
@@ -141,6 +147,9 @@ class Plot
 	Variable* getXAxisVariable();
 	void setXAxisVariable(Variable* var);
 
+	Plot::AcquisitionType getAcquisitionType() const;
+	void setAcquisitionType(AcquisitionType type);
+
 	displayFormat getSeriesDisplayFormat(const std::string& name) const;
 	void setSeriesDisplayFormat(const std::string& name, displayFormat format);
 	std::string getSeriesValueString(const std::string& name, double value);
@@ -158,6 +167,7 @@ class Plot
 	Domain domain = Domain::ANALOG;
 	TraceVarType traceVarType = TraceVarType::F32;
 	bool isHoveredOver = false;
+	AcquisitionType acquisitionType = AcquisitionType::SAMPLING;
 
 	Marker mx0;
 	Marker mx1;
