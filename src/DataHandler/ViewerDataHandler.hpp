@@ -72,4 +72,5 @@ class ViewerDataHandler : public DataHandlerBase
 	std::shared_ptr<Recorder> recorder;
 
 	SampleListType sampleList;
+	SampleListType recorderSampleList;
 };

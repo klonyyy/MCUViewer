@@ -156,6 +156,8 @@ void ViewerDataHandler::dataHandler()
 					timer = 0;
 					lastT = 0.0;
 					start = std::chrono::steady_clock::now();
+
+					recorder->start(debugProbe, recorderSampleList);
 				}
 				else
 					viewerState = State::STOP;
@@ -174,6 +176,7 @@ void ViewerDataHandler::dataHandler()
 void ViewerDataHandler::createSampleList()
 {
 	sampleList.clear();
+	recorderSampleList.clear();
 
 	auto checkIfElementExists = [&](std::pair<uint32_t, uint8_t> newElement)
 	{
@@ -187,6 +190,22 @@ void ViewerDataHandler::createSampleList()
 
 		if (!plotElem.visibility)
 			continue;
+
+		/* if any plot is set to recorder mode */
+		if (plot->getAcquisitionType() == Plot::AcquisitionType::RECORDER)
+		{
+			for (auto& [name, ser] : plot->getSeriesMap())
+			{
+				if (!ser->visible)
+					continue;
+
+				std::pair<uint32_t, uint8_t> newElement = {ser->var->getAddress(), ser->var->getSize()};
+
+				if (!checkIfElementExists(newElement))
+					recorderSampleList.push_back(newElement);
+			}
+			continue;
+		}
 
 		for (auto& [name, ser] : plot->getSeriesMap())
 		{
@@ -231,7 +250,7 @@ void ViewerDataHandler::createSampleList()
 			variable->setIsCurrentlySampled(true);
 	}
 
-	recorder->init();
+	recorder->init(recorderSampleList);
 }
 
 void ViewerDataHandler::prepareCSVFile()

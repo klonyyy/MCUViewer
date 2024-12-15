@@ -96,7 +96,7 @@ class PlotEditWindow
 			editedPlot->setType((Plot::Type)typeCombo);
 
 		/* Acquisition type section */
-		bool isRecordable = editedPlot->getType() == Plot::Type::CURVE || editedPlot->getType() == Plot::Type::XY;
+		bool isRecordable = editedPlot->getType() == Plot::Type::CURVE;
 
 		if (!isRecordable)
 			editedPlot->setAcquisitionType(Plot::AcquisitionType::SAMPLING);

@@ -46,7 +46,8 @@ add_compile_options(-Wall
     -Wextra
     -Wpedantic
     -Wno-unused-parameter
-    -Wno-missing-field-initializers)
+    -Wno-missing-field-initializers
+    -Werror=return-type)
 
 if(WIN32)
     add_compile_options(-Wa,-mbig-obj)
