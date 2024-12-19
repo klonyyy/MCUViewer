@@ -18,8 +18,10 @@
 #include "IDebugProbe.hpp"
 #include "IFileHandler.hpp"
 #include "ImguiPlugins.hpp"
+#ifndef __APPLE__
 #include "JlinkDebugProbe.hpp"
 #include "JlinkTraceProbe.hpp"
+#endif
 #include "Plot.hpp"
 #include "PlotGroupHandler.hpp"
 #include "Popup.hpp"
@@ -59,13 +61,17 @@ class Gui
 	TraceDataHandler* traceDataHandler;
 
 	std::shared_ptr<IDebugProbe> stlinkProbe;
+	#ifndef __APPLE__
 	std::shared_ptr<IDebugProbe> jlinkProbe;
+	#endif
 	std::shared_ptr<IDebugProbe> debugProbeDevice;
 	std::vector<std::string> devicesList{};
 	const std::string noDevices = "No debug probes found!";
 
 	std::shared_ptr<ITraceProbe> stlinkTraceProbe;
+	#ifndef __APPLE__
 	std::shared_ptr<ITraceProbe> jlinkTraceProbe;
+	#endif
 	std::shared_ptr<ITraceProbe> traceProbeDevice;
 
 	std::atomic<bool>& done;

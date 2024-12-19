@@ -12,9 +12,23 @@
 #include "PlotHandler.hpp"
 #include "Statistics.hpp"
 #include "StlinkDebugProbe.hpp"
+#ifndef __APPLE__
 #include "glfw3.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#else
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_metal.h"
+#include <stdio.h>
+
+#define GLFW_INCLUDE_NONE
+#define GLFW_EXPOSE_NATIVE_COCOA
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#include "Statistics.hpp"
+#import <Metal/Metal.h>
+#import <QuartzCore/QuartzCore.h>
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -22,7 +36,9 @@
 
 Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), viewerDataHandler(viewerDataHandler), traceDataHandler(traceDataHandler), done(done), mtx(mtx), logger(logger)
 {
+	#ifndef __APPLE__
 	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
+	#endif
 	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, variableHandler);
 	plotsTree = std::make_shared<PlotsTree>(viewerDataHandler, plotHandler, plotGroupHandler, variableHandler, plotEditWindow, fileHandler, logger);
 	variableTable = std::make_shared<VariableTableWindow>(viewerDataHandler, plotHandler, variableHandler, &projectElfPath, &projectConfigPath, logger);
@@ -32,12 +48,20 @@ Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandl
 		for (std::shared_ptr<Plot> plt : *this->plotHandler)
 			plt->renameSeries(oldName, newName);
 	};
+
+	#ifdef __APPLE__
+	mainThread(projectPath);
+	#endif
 }
 
 Gui::~Gui()
-{
+{	
+	#ifndef __APPLE__
 	if (threadHandle.joinable())
 		threadHandle.join();
+	#else
+	;
+	#endif
 }
 
 static void glfw_error_callback(int error, const char* description)
@@ -49,8 +73,14 @@ static float getContentScale(GLFWwindow* window)
 {
 	float xscale;
 	float yscale;
+	float scaleFactor;
+	#ifdef __APPLE__
+	scaleFactor = 4.0;
+	#else
+	scaleFactor = 2.0;
+	#endif
 	glfwGetWindowContentScale(window, &xscale, &yscale);
-	return (xscale + yscale) / 2.0f;
+	return (xscale + yscale) / scaleFactor;
 }
 
 void Gui::mainThread(std::string externalPath)
@@ -83,126 +113,194 @@ void Gui::mainThread(std::string externalPath)
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();
 
+	#ifdef __APPLE__
+	id <MTLDevice> device = MTLCreateSystemDefaultDevice();
+	id <MTLCommandQueue> commandQueue = [device newCommandQueue];
+	#endif
+
 	ImGui::GetStyle().ScaleAllSizes(GuiHelper::contentScale);
 	ImGui::GetStyle().Colors[ImGuiCol_PopupBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
 
+	#ifndef __APPLE__
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
+	#else
+	ImGui_ImplGlfw_InitForOther(window, true);
+    ImGui_ImplMetal_Init(device);
+	#endif
 
 	ImGuiWindowClass window_class;
 	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
+	#ifdef __APPLE__
+    NSWindow *nswin = glfwGetCocoaWindow(window);
+    CAMetalLayer *layer = [CAMetalLayer layer];
+    layer.device = device;
+    layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    nswin.contentView.layer = layer;
+    nswin.contentView.wantsLayer = YES;
+
+    MTLRenderPassDescriptor *renderPassDescriptor = [MTLRenderPassDescriptor new];
+	#endif
+
 	fileHandler->init();
 
+	#ifndef __APPLE__
 	jlinkProbe = std::make_shared<JlinkDebugProbe>(logger);
+	#endif
+
 	stlinkProbe = std::make_shared<StlinkDebugProbe>(logger);
 	debugProbeDevice = stlinkProbe;
 	viewerDataHandler->setDebugProbe(debugProbeDevice);
 
+	#ifndef __APPLE__
 	jlinkTraceProbe = std::make_shared<JlinkTraceProbe>(logger);
+	#endif
+
 	stlinkTraceProbe = std::make_shared<StlinkTraceProbe>(logger);
 	traceProbeDevice = stlinkTraceProbe;
 	traceDataHandler->setDebugProbe(traceProbeDevice);
+
+	float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
 	if (!externalPath.empty())
 		openProject(externalPath);
 
 	while (!done)
-	{
-		if (glfwGetWindowAttrib(window, GLFW_ICONIFIED))
-		{
-			glfwWaitEvents();
-			continue;
-		}
+	{	
+		#ifdef __APPLE__
+		@autoreleasepool
+        {
+		#else
+			if (glfwGetWindowAttrib(window, GLFW_ICONIFIED))
+			{
+				glfwWaitEvents();
+				continue;
+			}
 
-		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN))
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(4);
-
-		glfwSetWindowTitle(window, (std::string("MCUViewer - ") + projectConfigPath).c_str());
-		glfwPollEvents();
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-
-		ImGui::NewFrame();
-		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-
-		if (showDemoWindow)
-			ImPlot::ShowDemoWindow();
-
-		if (glfwWindowShouldClose(window))
-		{
-			viewerDataHandler->setState(DataHandlerBase::State::STOP);
-			traceDataHandler->setState(DataHandlerBase::State::STOP);
-
-			if (configHandler->isSavingRequired(projectElfPath))
-				askShouldSaveOnExit(glfwWindowShouldClose(window));
+			if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN))
+				glfwSwapInterval(1);
 			else
-				done = true;
-		}
-		glfwSetWindowShouldClose(window, done);
-		checkShortcuts();
+				glfwSwapInterval(4);
+		#endif
+			glfwSetWindowTitle(window, (std::string("MCUViewer - ") + projectConfigPath).c_str());
+			glfwPollEvents();
+			
+			#ifdef __APPLE__
+			int width, height;
+			glfwGetFramebufferSize(window, &width, &height);
+			layer.drawableSize = CGSizeMake(width, height);
+			id<CAMetalDrawable> drawable = [layer nextDrawable];
 
-		drawMenu();
-		drawAboutWindow();
-		drawPreferencesWindow();
+			id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+			renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(clear_color[0] * clear_color[3], clear_color[1] * clear_color[3], clear_color[2] * clear_color[3], clear_color[3]);
+			renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
+			renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+			renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+			id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+			[renderEncoder pushDebugGroup:@"ImGui demo"];
 
-		if (ImGui::Begin("Trace Viewer"))
-		{
-			activeView = ActiveViewType::TraceViewer;
-			drawAcqusitionSettingsWindow(activeView);
-			ImGui::SetNextWindowClass(&window_class);
-			if (ImGui::Begin("Trace Plots"))
-				drawPlotsSwo();
+			ImGui_ImplMetal_NewFrame(renderPassDescriptor);
+			#else
+			ImGui_ImplOpenGL3_NewFrame();
+			#endif
+
+			ImGui_ImplGlfw_NewFrame();
+
+			ImGui::NewFrame();
+			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+			if (showDemoWindow)
+				ImPlot::ShowDemoWindow();
+
+			if (glfwWindowShouldClose(window))
+			{
+				viewerDataHandler->setState(DataHandlerBase::State::STOP);
+				traceDataHandler->setState(DataHandlerBase::State::STOP);
+
+				if (configHandler->isSavingRequired(projectElfPath))
+					askShouldSaveOnExit(glfwWindowShouldClose(window));
+				else
+					done = true;
+			}
+			glfwSetWindowShouldClose(window, done);
+			checkShortcuts();
+
+			drawMenu();
+			drawAboutWindow();
+			drawPreferencesWindow();
+
+			if (ImGui::Begin("Trace Viewer"))
+			{
+				activeView = ActiveViewType::TraceViewer;
+				drawAcqusitionSettingsWindow(activeView);
+				ImGui::SetNextWindowClass(&window_class);
+				if (ImGui::Begin("Trace Plots"))
+					drawPlotsSwo();
+				ImGui::End();
+				drawStartButton(traceDataHandler);
+				drawSettingsSwo();
+				drawIndicatorsSwo();
+				drawPlotsTreeSwo();
+			}
 			ImGui::End();
-			drawStartButton(traceDataHandler);
-			drawSettingsSwo();
-			drawIndicatorsSwo();
-			drawPlotsTreeSwo();
-		}
-		ImGui::End();
 
-		if (ImGui::Begin("Var Viewer"))
-		{
-			activeView = ActiveViewType::VarViewer;
-			drawAcqusitionSettingsWindow(activeView);
-			drawStartButton(viewerDataHandler);
-			variableTable->draw();
-			plotsTree->draw();
-			plotEditWindow->draw();
-			ImGui::SetNextWindowClass(&window_class);
-			if (ImGui::Begin("Plots"))
-				drawPlots();
+			if (ImGui::Begin("Var Viewer"))
+			{
+				activeView = ActiveViewType::VarViewer;
+				drawAcqusitionSettingsWindow(activeView);
+				drawStartButton(viewerDataHandler);
+				variableTable->draw();
+				plotsTree->draw();
+				plotEditWindow->draw();
+				ImGui::SetNextWindowClass(&window_class);
+				if (ImGui::Begin("Plots"))
+					drawPlots();
+				ImGui::End();
+			}
 			ImGui::End();
+
+			popup.handle();
+
+			// Rendering
+			ImGui::Render();
+			#ifndef __APPLE__
+			int display_w, display_h;
+			glfwGetFramebufferSize(window, &display_w, &display_h);
+			glViewport(0, 0, display_w, display_h);
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			#else
+			ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, renderEncoder);
+			#endif
+
+			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+			{
+				GLFWwindow* backup_current_context = glfwGetCurrentContext();
+				ImGui::UpdatePlatformWindows();
+				ImGui::RenderPlatformWindowsDefault();
+				glfwMakeContextCurrent(backup_current_context);
+			}
+			#ifndef __APPLE__
+			glfwSwapBuffers(window);
+			#else
+			[renderEncoder popDebugGroup];
+			[renderEncoder endEncoding];
+
+			[commandBuffer presentDrawable:drawable];
+			[commandBuffer commit];
 		}
-		ImGui::End();
-
-		popup.handle();
-
-		// Rendering
-		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-
-		glfwSwapBuffers(window);
+		#endif
 	}
 
 	logger->info("Exiting GUI main thread");
-
+	
+	#ifndef __APPLE__
 	ImGui_ImplOpenGL3_Shutdown();
+	#else
+	ImGui_ImplMetal_Shutdown();
+	#endif
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
@@ -460,14 +558,22 @@ bool Gui::openProject(std::string externalPath)
 		/* TODO refactor */
 		devicesList.clear();
 		if (viewerDataHandler->getProbeSettings().debugProbe == 1)
+			#ifndef __APPLE__
 			debugProbeDevice = jlinkProbe;
+			#else
+			;
+			#endif
 		else
 			debugProbeDevice = stlinkProbe;
 
 		viewerDataHandler->setDebugProbe(debugProbeDevice);
 
 		if (traceDataHandler->getProbeSettings().debugProbe == 1)
+			#ifndef __APPLE__
 			traceProbeDevice = jlinkTraceProbe;
+			#else
+			;
+			#endif
 		else
 			traceProbeDevice = stlinkTraceProbe;
 

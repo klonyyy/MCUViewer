@@ -52,7 +52,9 @@ if(WIN32)
     add_compile_options(-Wa,-mbig-obj)
 endif()
 
-set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
+if(NOT APPLE)
+    set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
+endif()
 
 if(UNIX)
     include(FetchContent)
@@ -74,8 +76,10 @@ if(UNIX)
 
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
-    find_package(libusb REQUIRED)
-    find_package(glfw3 REQUIRED)
+    if(NOT APPLE)
+        find_package(libusb REQUIRED)
+        find_package(glfw3 REQUIRED)
+    endif()
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.8)
     set(INSTALL_PATH /usr/local/MCUViewer)
@@ -86,11 +90,13 @@ if(UNIX)
     set(LIB_CONF_FILE_PATH /etc/ld.so.conf.d/)
 
     if(APPLE)
-        find_package(OpenGL REQUIRED)
-        find_package(GLUT REQUIRED)
 
         # TODO distinguish between ARM and x86 */
         set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
+        set(GLFW3_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/macos/libglfw3.a)
+        set(SPDLOG_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/macos/libspdlog.a)
+        set(LIBUSB_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/lib/macos/libusb-1.0.a)
+        set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
     else()
         set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     endif()
@@ -110,17 +116,8 @@ if(WIN32)
 endif()
 
 set(PROJECT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/commons.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAcqusition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiHelper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/StlinkDebugProbe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/JlinkDebugProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot/Plot.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable/Variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MovingAverage/MovingAverage.cpp
@@ -131,12 +128,33 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotHandler/PlotHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/TraceReader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/StlinkTraceProbe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JlinkTraceProbe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GdbParser/GdbParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CSVStreamer/CSVStreamer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler/VariableHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/ViewerDataHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/TraceDataHandler.cpp)
+
+set(GUI_PROJECT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAbout.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiAcqusition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiHelper.cpp)
+
+if(APPLE)
+    enable_language(OBJCXX)
+    set_source_files_properties(
+        ${GUI_PROJECT_SOURCES}
+        PROPERTIES
+        LANGUAGE OBJCXX)
+else()
+    list(APPEND PROJECT_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader/JlinkDebugProbe.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/TraceReader/JlinkTraceProbe.cpp)
+endif()
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -144,8 +162,13 @@ set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_draw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_tables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_widgets.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_glfw.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_opengl3.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_glfw.cpp)
+
+if(APPLE)
+    list(APPEND IMGUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_metal.mm)
+else()
+    list(APPEND IMGUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_opengl3.cpp)
+endif()
 
 set(IMPLOT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/implot.cpp
@@ -160,9 +183,14 @@ set_source_files_properties(
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 
-set(EXECUTABLE ${CMAKE_PROJECT_NAME})
+string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${MCUVIEWER_VERSION}")
+if(APPLE)
+    set(EXECUTABLE ${CMAKE_PROJECT_NAME}-${CMAKE_MATCH_1}_${CMAKE_MATCH_2}_${CMAKE_MATCH_3})
+else()
+    set(EXECUTABLE ${CMAKE_PROJECT_NAME})
+endif()
 
-add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${GUI_PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
 
 set(GIT_VERSION_HPP ${CMAKE_CURRENT_SOURCE_DIR}/src/gitversion.hpp)
 
@@ -179,7 +207,6 @@ add_custom_command(
 add_custom_target(addGitVersion ALL DEPENDS ${GIT_VERSION_HPP})
 add_dependencies(${EXECUTABLE} addGitVersion)
 
-string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${MCUVIEWER_VERSION}")
 target_compile_definitions(${EXECUTABLE}
     PRIVATE MCUVIEWER_VERSION_MAJOR=${CMAKE_MATCH_1}
     PRIVATE MCUVIEWER_VERSION_MINOR=${CMAKE_MATCH_2}
@@ -206,9 +233,8 @@ target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler)
 
-target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
+set(SYSTEM_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
-    ${JLINK_INCLUDE_DIR}
     ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
@@ -220,9 +246,29 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/inc/)
 
+if(NOT APPLE)
+    list(APPEND SYSTEM_INCLUDE_DIRS ${JLINK_INCLUDE_DIR})
+endif()
+
+target_include_directories(${EXECUTABLE} SYSTEM PRIVATE ${SYSTEM_INCLUDE_DIRS})
+
 if(APPLE)
-    include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
-    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} spdlog::spdlog pthread dl glfw nfd)
+    target_link_libraries(${EXECUTABLE} 
+                        ${GLFW3_MACOS}
+                        ${STLINK_MACOS} 
+                        ${SPDLOG_MACOS} 
+                        ${LIBUSB_MACOS} 
+                        "-framework Metal"
+                        "-framework MetalKit"
+                        "-framework Cocoa"
+                        "-framework IOKit"
+                        "-framework CoreVideo"
+                        "-framework QuartzCore"
+                        "-framework AppKit"
+                        "-framework UniformTypeIdentifiers"
+                        "-framework Security"
+                        nfd
+                        )                
 elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${JLINK_LINUX} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
@@ -256,9 +302,11 @@ add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
     ${CMAKE_BINARY_DIR}/imgui.ini)
 
-install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
+if(NOT APPLE)
+    install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
+endif()
 
 if(WIN32)
     if(PRODUCTION)
@@ -275,7 +323,7 @@ if(WIN32)
     Delete \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\"")
 endif()
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
@@ -290,17 +338,19 @@ if(UNIX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
 
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})
-set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")
-set(CPACK_PACKAGE_VENDOR "klonyyy")
-set(CPACK_PACKAGE_DESCRIPTION "STM32 no-overhead realtime variable viewer.")
-set(CPACK_NSIS_CREATE_UNINSTALLER ON)
-set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-set(CPACK_NSIS_MODIFY_PATH ON)
-set(CPACK_ALL_INSTALL_TYPES Full Developer)
-set(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full)
-set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/launch/install/Unix/postinst")
-include(CPack)
+if(NOT APPLE)
+    set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+    set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})
+    set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
+    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")
+    set(CPACK_PACKAGE_VENDOR "klonyyy")
+    set(CPACK_PACKAGE_DESCRIPTION "STM32 no-overhead realtime variable viewer.")
+    set(CPACK_NSIS_CREATE_UNINSTALLER ON)
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+    set(CPACK_NSIS_MODIFY_PATH ON)
+    set(CPACK_ALL_INSTALL_TYPES Full Developer)
+    set(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full)
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/launch/install/Unix/postinst")
+    include(CPack)
+endif()

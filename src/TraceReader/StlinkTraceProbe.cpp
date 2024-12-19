@@ -8,7 +8,11 @@
 
 StlinkTraceProbe::StlinkTraceProbe(spdlog::logger* logger) : logger(logger)
 {
+	#ifndef __APPLE__
 	init_chipids(const_cast<char*>("./chips"));
+	#else
+	;
+	#endif
 }
 
 bool StlinkTraceProbe::stopTrace()

@@ -70,7 +70,11 @@ void Gui::drawDebugProbes()
 	GuiHelper::drawTextAlignedToSize("Debug probe:", alignment);
 	ImGui::SameLine();
 
+	#ifdef __APPLE__
+	const char* debugProbes[] = {"STLINK"}; //, "JLINK"};
+	#else
 	const char* debugProbes[] = {"STLINK", "JLINK"};
+	#endif
 	IDebugProbe::DebugProbeSettings probeSettings = viewerDataHandler->getProbeSettings();
 	int32_t debugProbe = probeSettings.debugProbe;
 
@@ -81,7 +85,9 @@ void Gui::drawDebugProbes()
 
 		if (probeSettings.debugProbe == 1)
 		{
+			#ifndef __APPLE__
 			debugProbeDevice = jlinkProbe;
+			#endif
 			shouldListDevices = true;
 		}
 		else
@@ -254,7 +260,11 @@ void Gui::drawTraceProbes()
 	GuiHelper::drawTextAlignedToSize("Debug probe:", alignment);
 	ImGui::SameLine();
 
+	#ifdef __APPLE__
+	const char* debugProbes[] = {"STLINK"}; //, "JLINK"};
+	#else
 	const char* debugProbes[] = {"STLINK", "JLINK"};
+	#endif
 	ITraceProbe::TraceProbeSettings probeSettings = traceDataHandler->getProbeSettings();
 	int32_t debugProbe = probeSettings.debugProbe;
 
@@ -265,7 +275,9 @@ void Gui::drawTraceProbes()
 
 		if (probeSettings.debugProbe == 1)
 		{
+			#ifndef __APPLE__
 			traceProbeDevice = jlinkTraceProbe;
+			#endif
 			shouldListDevices = true;
 		}
 		else
