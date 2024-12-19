@@ -9,8 +9,12 @@
 #include "logging.h"
 
 StlinkDebugProbe::StlinkDebugProbe(spdlog::logger* logger) : logger(logger)
-{
+{	
+	#ifndef __APPLE__
 	init_chipids(const_cast<char*>("./chips"));
+	#else
+	;
+	#endif
 }
 
 bool StlinkDebugProbe::startAcqusition(const DebugProbeSettings& probeSettings, std::vector<std::pair<uint32_t, uint8_t>>& addressSizeVector, uint32_t samplingFreqency)
