@@ -89,6 +89,9 @@ void Gui::mainThread(std::string externalPath)
 	if (!glfwInit())
 		return;
 
+	#ifdef __APPLE__
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	#endif
 	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("MCUViewer | ") + projectConfigPath).c_str(), NULL, NULL);
 	if (window == NULL)
 		return;
