@@ -221,10 +221,10 @@ void Gui::drawMenu()
 
 	if (ImGui::BeginMenu("File"))
 	{
-		if (ImGui::MenuItem("New"))
+		if (ImGui::MenuItem("New", NULL, nullptr, active))
 			shouldSaveOnNew = true;
 
-		if (ImGui::MenuItem("Open", "Ctrl+O"))
+		if (ImGui::MenuItem("Open", "Ctrl+O", nullptr, active))
 			openProject();
 
 		if (ImGui::MenuItem("Save", "Ctrl+S", false, (!projectConfigPath.empty())))
@@ -233,7 +233,7 @@ void Gui::drawMenu()
 		if (ImGui::MenuItem("Save As.."))
 			saveProjectAs();
 
-		if (ImGui::MenuItem("Quit"))
+		if (ImGui::MenuItem("Quit", NULL, nullptr, active))
 			shouldSaveOnClose = true;
 
 		ImGui::EndMenu();
