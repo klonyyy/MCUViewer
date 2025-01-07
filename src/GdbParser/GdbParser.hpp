@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -33,7 +34,7 @@ class GdbParser
 
 	bool validateGDB();
 	bool updateVariableMap(const std::string& elfPath);
-	bool parse(const std::string& elfPath);
+	bool parse(const std::string& elfPath, std::atomic<bool>& shouldStopParsing);
 	std::map<std::string, VariableData> getParsedData();
 
 	void changeCurrentGDBCommand(const std::string& command);

@@ -52,7 +52,8 @@ class ImportVariablesWindow
 
 			if (ImGui::Button(buttonText, ImVec2(-1, 25 * GuiHelper::contentScale)) || shouldUpdateOnOpen)
 			{
-				refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, GuiHelper::convertProjectPathToAbsolute(projectElfPath, projectConfigPath));
+				stopRequested = false;
+				refreshThread = std::async(std::launch::async, &GdbParser::parse, parser, GuiHelper::convertProjectPathToAbsolute(projectElfPath, projectConfigPath),  std::ref(stopRequested));
 				shouldUpdateOnOpen = false;
 			}
 
@@ -96,11 +97,17 @@ class ImportVariablesWindow
 
 					importWarningPopup.show("Warning!", message.c_str(), 2.0f);
 				}
-				shouldUpdate = true;
+				if (!refreshThread.valid())
+					shouldUpdate = true;
 			}
 
 			if (ImGui::Button("Done", ImVec2(-1, 25 * GuiHelper::contentScale)))
 			{
+				stopRequested = true;
+
+				if (refreshThread.valid())
+					refreshThread.wait();
+				
 				showImportVariablesWindow = false;
 				ImGui::CloseCurrentPopup();
 			}
@@ -184,4 +191,5 @@ class ImportVariablesWindow
 
 	bool showImportVariablesWindow = false;
 	bool shouldUpdate = false;
+	std::atomic<bool> stopRequested = false;
 };

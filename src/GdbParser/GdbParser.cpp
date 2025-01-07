@@ -62,7 +62,7 @@ bool GdbParser::updateVariableMap(const std::string& elfPath)
 	return true;
 }
 
-bool GdbParser::parse(const std::string& elfPath)
+bool GdbParser::parse(const std::string& elfPath, std::atomic<bool>& shouldStopParsing)
 {
 	if (!validateGDB())
 		return false;
@@ -79,7 +79,7 @@ bool GdbParser::parse(const std::string& elfPath)
 	auto out = process.executeCmd("info variables\n", "(gdb)");
 
 	size_t start = 0;
-	while (out.length() > 0)
+	while (out.length() > 0 && shouldStopParsing == false)
 	{
 		std::string delimiter = "File";
 
