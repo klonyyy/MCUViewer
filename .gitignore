@@ -20,10 +20,7 @@ test/MCUViewer_test/.settings/
 # Precompiled Headers
 *.gch
 *.pch
-
-# Compiled Dynamic libraries
-*.dylib
-
+.ds_store
 # Fortran module files
 *.mod
 *.smod

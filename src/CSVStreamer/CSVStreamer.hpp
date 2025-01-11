@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-
+#include <array>
 #include "spdlog/spdlog.h"
 
 class CSVStreamer

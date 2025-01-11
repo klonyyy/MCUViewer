@@ -2,7 +2,7 @@
 #define _ITRACEPROBE_HPP
 
 #include <stdint.h>
-
+#include <string>
 #include <vector>
 
 class ITraceProbe

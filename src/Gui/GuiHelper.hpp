@@ -7,6 +7,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <cmath>
 
 #include "ImguiPlugins.hpp"
 #include "imgui.h"
