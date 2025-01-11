@@ -1,5 +1,10 @@
 // dear imgui: standalone example application for Android + OpenGL ES 3
-// If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
+
+// Learn about Dear ImGui:
+// - FAQ                  https://dearimgui.com/faq
+// - Getting Started      https://dearimgui.com/getting-started
+// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
+// - Introduction, links and more at the top of imgui.cpp
 
 #include "imgui.h"
 #include "imgui_impl_android.h"
@@ -15,7 +20,7 @@
 static EGLDisplay           g_EglDisplay = EGL_NO_DISPLAY;
 static EGLSurface           g_EglSurface = EGL_NO_SURFACE;
 static EGLContext           g_EglContext = EGL_NO_CONTEXT;
-static struct android_app*  g_App = NULL;
+static struct android_app*  g_App = nullptr;
 static bool                 g_Initialized = false;
 static char                 g_LogTag[] = "ImGuiExample";
 static std::string          g_IniFilename = "";
@@ -63,10 +68,10 @@ void android_main(struct android_app* app)
         struct android_poll_source* out_data;
 
         // Poll all events. If the app is not visible, this loop blocks until g_Initialized == true.
-        while (ALooper_pollAll(g_Initialized ? 0 : -1, NULL, &out_events, (void**)&out_data) >= 0)
+        while (ALooper_pollOnce(g_Initialized ? 0 : -1, nullptr, &out_events, (void**)&out_data) >= 0)
         {
             // Process one event
-            if (out_data != NULL)
+            if (out_data != nullptr)
                 out_data->process(app, out_data);
 
             // Exit the app by returning from within the infinite loop
@@ -124,7 +129,7 @@ void Init(struct android_app* app)
         if (g_EglContext == EGL_NO_CONTEXT)
             __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "%s", "eglCreateContext() returned EGL_NO_CONTEXT");
 
-        g_EglSurface = eglCreateWindowSurface(g_EglDisplay, egl_config, g_App->window, NULL);
+        g_EglSurface = eglCreateWindowSurface(g_EglDisplay, egl_config, g_App->window, nullptr);
         eglMakeCurrent(g_EglDisplay, g_EglSurface, g_EglSurface, g_EglContext);
     }
 
@@ -148,7 +153,7 @@ void Init(struct android_app* app)
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+    // - If the file cannot be loaded, the function will return a nullptr. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
     // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
     // - Read 'docs/FONTS.md' for more instructions and details.
     // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
@@ -156,7 +161,7 @@ void Init(struct android_app* app)
 
     // We load the default font with increased size to improve readability on many devices with "high" DPI.
     // FIXME: Put some effort into DPI awareness.
-    // Important: when calling AddFontFromMemoryTTF(), ownership of font_data is transfered by Dear ImGui by default (deleted is handled by Dear ImGui), unless we set FontDataOwnedByAtlas=false in ImFontConfig
+    // Important: when calling AddFontFromMemoryTTF(), ownership of font_data is transferred by Dear ImGui by default (deleted is handled by Dear ImGui), unless we set FontDataOwnedByAtlas=false in ImFontConfig
     ImFontConfig font_cfg;
     font_cfg.SizePixels = 22.0f;
     io.Fonts->AddFontDefault(&font_cfg);
@@ -165,19 +170,19 @@ void Init(struct android_app* app)
     //ImFont* font;
     //font_data_size = GetAssetData("segoeui.ttf", &font_data);
     //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 16.0f);
-    //IM_ASSERT(font != NULL);
+    //IM_ASSERT(font != nullptr);
     //font_data_size = GetAssetData("DroidSans.ttf", &font_data);
     //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 16.0f);
-    //IM_ASSERT(font != NULL);
+    //IM_ASSERT(font != nullptr);
     //font_data_size = GetAssetData("Roboto-Medium.ttf", &font_data);
     //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 16.0f);
-    //IM_ASSERT(font != NULL);
+    //IM_ASSERT(font != nullptr);
     //font_data_size = GetAssetData("Cousine-Regular.ttf", &font_data);
     //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 15.0f);
-    //IM_ASSERT(font != NULL);
+    //IM_ASSERT(font != nullptr);
     //font_data_size = GetAssetData("ArialUni.ttf", &font_data);
-    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != NULL);
+    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+    //IM_ASSERT(font != nullptr);
 
     // Arbitrary scale-up
     // FIXME: Put some effort into DPI awareness
@@ -236,7 +241,7 @@ void MainLoopStep()
         ImGui::SameLine();
         ImGui::Text("counter = %d", counter);
 
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
     }
 
@@ -297,22 +302,22 @@ void Shutdown()
 static int ShowSoftKeyboardInput()
 {
     JavaVM* java_vm = g_App->activity->vm;
-    JNIEnv* java_env = NULL;
+    JNIEnv* java_env = nullptr;
 
     jint jni_return = java_vm->GetEnv((void**)&java_env, JNI_VERSION_1_6);
     if (jni_return == JNI_ERR)
         return -1;
 
-    jni_return = java_vm->AttachCurrentThread(&java_env, NULL);
+    jni_return = java_vm->AttachCurrentThread(&java_env, nullptr);
     if (jni_return != JNI_OK)
         return -2;
 
     jclass native_activity_clazz = java_env->GetObjectClass(g_App->activity->clazz);
-    if (native_activity_clazz == NULL)
+    if (native_activity_clazz == nullptr)
         return -3;
 
     jmethodID method_id = java_env->GetMethodID(native_activity_clazz, "showSoftInput", "()V");
-    if (method_id == NULL)
+    if (method_id == nullptr)
         return -4;
 
     java_env->CallVoidMethod(g_App->activity->clazz, method_id);
@@ -330,22 +335,22 @@ static int ShowSoftKeyboardInput()
 static int PollUnicodeChars()
 {
     JavaVM* java_vm = g_App->activity->vm;
-    JNIEnv* java_env = NULL;
+    JNIEnv* java_env = nullptr;
 
     jint jni_return = java_vm->GetEnv((void**)&java_env, JNI_VERSION_1_6);
     if (jni_return == JNI_ERR)
         return -1;
 
-    jni_return = java_vm->AttachCurrentThread(&java_env, NULL);
+    jni_return = java_vm->AttachCurrentThread(&java_env, nullptr);
     if (jni_return != JNI_OK)
         return -2;
 
     jclass native_activity_clazz = java_env->GetObjectClass(g_App->activity->clazz);
-    if (native_activity_clazz == NULL)
+    if (native_activity_clazz == nullptr)
         return -3;
 
     jmethodID method_id = java_env->GetMethodID(native_activity_clazz, "pollUnicodeChar", "()I");
-    if (method_id == NULL)
+    if (method_id == nullptr)
         return -4;
 
     // Send the actual characters to Dear ImGui

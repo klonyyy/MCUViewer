@@ -72,7 +72,7 @@ void Gui::drawPlotXY(std::shared_ptr<Plot> plot)
 	auto& time = *plot->getXAxisSeries();
 	auto& seriesMap = plot->getSeriesMap();
 
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
 		Variable* xAxisVariable = plot->getXAxisVariable();
 		std::string xLabel = xAxisVariable ? xAxisVariable->getName() : "";
@@ -124,7 +124,7 @@ void Gui::drawPlotCurve(std::shared_ptr<Plot> plot)
 	auto& time = *plot->getXAxisSeries();
 	auto& seriesMap = plot->getSeriesMap();
 
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
 		if (viewerDataHandler->getState() == DataHandlerBase::State::RUN)
 		{
@@ -201,7 +201,7 @@ void Gui::drawPlotBar(std::shared_ptr<Plot> plot)
 {
 	auto& seriesMap = plot->getSeriesMap();
 
-	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_NoChild))
+	if (ImPlot::BeginPlot(plot->getName().c_str(), ImVec2(-1, -1), ImPlotFlags_None))
 	{
 		std::vector<const char*> glabels;
 		std::vector<double> positions;

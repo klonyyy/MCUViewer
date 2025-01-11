@@ -1,7 +1,7 @@
 # FAQ (Frequently Asked Questions)
 
 You may link to this document using short form:
-  https://www.dearimgui.org/faq
+  https://www.dearimgui.com/faq
 or its real address:
   https://github.com/ocornut/imgui/blob/master/docs/FAQ.md
 or view this file with any Markdown viewer.
@@ -23,9 +23,10 @@ or view this file with any Markdown viewer.
 | [I integrated Dear ImGui in my engine and some elements are clipping or disappearing when I move windows around...](#q-i-integrated-dear-imgui-in-my-engine-and-some-elements-are-clipping-or-disappearing-when-i-move-windows-around) |
 | [I integrated Dear ImGui in my engine and some elements are displaying outside their expected windows boundaries...](#q-i-integrated-dear-imgui-in-my-engine-and-some-elements-are-displaying-outside-their-expected-windows-boundaries) |
 | **Q&A: Usage** |
-| **[About the ID Stack system..<br>Why is my widget not reacting when I click on it?<br>How can I have widgets with an empty label?<br>How can I have multiple widgets with the same label?<br>How can I have multiple windows with the same label?](#q-about-the-id-stack-system)** |
+| **[About the ID Stack system..<br>Why is my widget not reacting when I click on it?<br>Why is the wrong widget reacting when I click on one?<br>How can I have widgets with an empty label?<br>How can I have multiple widgets with the same label?<br>How can I have multiple windows with the same label?](#q-about-the-id-stack-system)** |
 | [How can I display an image? What is ImTextureID, how does it work?](#q-how-can-i-display-an-image-what-is-imtextureid-how-does-it-work)|
-| [How can I use my own math types instead of ImVec2/ImVec4?](#q-how-can-i-use-my-own-math-types-instead-of-imvec2imvec4) |
+| [How can I use maths operators with ImVec2?](#q-how-can-i-use-maths-operators-with-imvec2) |
+| [How can I use my own maths types instead of ImVec2/ImVec4?](#q-how-can-i-use-my-own-maths-types-instead-of-imvec2imvec4) |
 | [How can I interact with standard C++ types (such as std::string and std::vector)?](#q-how-can-i-interact-with-standard-c-types-such-as-stdstring-and-stdvector) |
 | [How can I display custom shapes? (using low-level ImDrawList API)](#q-how-can-i-display-custom-shapes-using-low-level-imdrawlist-api) |
 | **Q&A: Fonts, Text** |
@@ -49,7 +50,8 @@ or view this file with any Markdown viewer.
 
 **This library is poorly documented at the moment and expects the user to be acquainted with C/C++.**
 - The [Wiki](https://github.com/ocornut/imgui/wiki) is a hub to many resources and links.
-- Dozens of standalone example applications using e.g. OpenGL/DirectX are provided in the [examples/](https://github.com/ocornut/imgui/blob/master/examples/) folder to explain how to integrate Dear ImGui with your own engine/application. You can run those applications and explore them.
+- Handy [Getting Started](https://github.com/ocornut/imgui/wiki/Getting-Started) guide to integrate Dear ImGui in an existing application.
+- 20+ standalone example applications using e.g. OpenGL/DirectX are provided in the [examples/](https://github.com/ocornut/imgui/blob/master/examples/) folder to explain how to integrate Dear ImGui with your own engine/application. You can run those applications and explore them.
 - See demo code in [imgui_demo.cpp](https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp) and particularly the `ImGui::ShowDemoWindow()` function. The demo covers most features of Dear ImGui, so you can read the code and see its output.
 - See documentation: [Backends](https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md), [Examples](https://github.com/ocornut/imgui/blob/master/docs/EXAMPLES.md), [Fonts](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md).
 - See documentation and comments at the top of [imgui.cpp](https://github.com/ocornut/imgui/blob/master/imgui.cpp) + general API comments in [imgui.h](https://github.com/ocornut/imgui/blob/master/imgui.h).
@@ -75,9 +77,9 @@ or view this file with any Markdown viewer.
 ### Q: Which version should I get?
 I occasionally tag [Releases](https://github.com/ocornut/imgui/releases) but it is generally safe and recommended to sync to master/latest. The library is fairly stable and regressions tend to be fixed fast when reported.
 
-You may use the [docking](https://github.com/ocornut/imgui/tree/docking) branch which includes:
-- [Docking features](https://github.com/ocornut/imgui/issues/2109)
-- [Multi-viewport features](https://github.com/ocornut/imgui/issues/1542)
+You may use the ['docking'](https://github.com/ocornut/imgui/tree/docking) branch which includes:
+- [Docking features](https://github.com/ocornut/imgui/wiki/Docking)
+- [Multi-viewport features](https://github.com/ocornut/imgui/wiki/Multi-Viewports)
 
 Many projects are using this branch and it is kept in sync with master regularly.
 
@@ -89,6 +91,7 @@ Many projects are using this branch and it is kept in sync with master regularly
 
 ### Q: How to get started?
 
+Read [Getting Started](https://github.com/ocornut/imgui/wiki/Getting-Started). <BR>
 Read [EXAMPLES.md](https://github.com/ocornut/imgui/blob/master/docs/EXAMPLES.md). <BR>
 Read [BACKENDS.md](https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md). <BR>
 Read `PROGRAMMER GUIDE` section of [imgui.cpp](https://github.com/ocornut/imgui/blob/master/imgui.cpp). <BR>
@@ -122,12 +125,7 @@ void MyLowLevelMouseButtonHandler(int button, bool down)
 }
 ```
 
-
 **Note:** The `io.WantCaptureMouse` is more correct that any manual attempt to "check if the mouse is hovering a window" (don't do that!). It handles mouse dragging correctly (both dragging that started over your application or over a Dear ImGui window) and handle e.g. popup and modal windows blocking inputs.
-
-**Note:** Those flags are updated by `ImGui::NewFrame()`. However it is generally more correct and easier that you poll flags from the previous frame, then submit your inputs, then call `NewFrame()`. If you attempt to do the opposite (which is generally harder) you are likely going to submit your inputs after `NewFrame()`, and therefore too late.
-
-**Note:** If you are using a touch device, you may find use for an early call to `UpdateHoveredWindowAndCaptureFlags()` to correctly dispatch your initial touch. We will work on better out-of-the-box touch support in the future.
 
 **Note:** Text input widget releases focus on the "KeyDown" event of the Return key, so the subsequent "KeyUp" event that your application receive will typically have `io.WantCaptureKeyboard == false`. Depending on your application logic it may or not be inconvenient to receive that KeyUp event. You might want to track which key-downs were targeted for Dear ImGui, e.g. with an array of bool, and filter out the corresponding key-ups.)
 
@@ -139,7 +137,7 @@ void MyLowLevelMouseButtonHandler(int button, bool down)
 - The gamepad/keyboard navigation is fairly functional and keeps being improved. The initial focus was to support game controllers, but keyboard is becoming increasingly and decently usable. Gamepad support is particularly useful to use Dear ImGui on a game console (e.g. PS4, Switch, XB1) without a mouse connected!
 - Keyboard: set `io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard` to enable.
 - Gamepad: set `io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad` to enable (with a supporting backend).
-- See [Control Sheets for Gamepads](http://www.dearimgui.org/controls_sheets) (reference PNG/PSD for PS4, XB1, Switch gamepads).
+- See [Control Sheets for Gamepads](https://www.dearimgui.com/controls_sheets) (reference PNG/PSD for PS4, XB1, Switch gamepads).
 - See `USING GAMEPAD/KEYBOARD NAVIGATION CONTROLS` section of [imgui.cpp](https://github.com/ocornut/imgui/blob/master/imgui.cpp) for more details.
 
 ##### [Return to Index](#index)
@@ -162,8 +160,8 @@ Console SDK also sometimes provide equivalent tooling or wrapper for Synergy-lik
 ---
 
 ### Q: I integrated Dear ImGui in my engine and little squares are showing instead of text...
-Your renderer is not using the font texture correctly or it hasn't been uploaded to the GPU.
-- If this happens using the standard backends: A) have you modified the font atlas after `ImGui_ImplXXX_NewFrame()`? B) maybe the texture failed to upload, which could happens if for some reason your texture is too big. Also see [docs/FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md).
+Your renderer backend is not using the font texture correctly or it hasn't been uploaded to the GPU.
+- If this happens using the standard backends: A) have you modified the font atlas after `ImGui_ImplXXX_NewFrame()`? B) maybe the texture failed to upload, which **can if your texture atlas is too big**. Also see [docs/FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md).
 - If this happens with a custom backend: make sure you have uploaded the font texture to the GPU, that all shaders are rendering states are setup properly (e.g. texture is bound). Compare your code to existing backends and use a graphics debugger such as [RenderDoc](https://renderdoc.org) to debug your rendering states.
 
 ##### [Return to Index](#index)
@@ -192,7 +190,7 @@ if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 const D3D11_RECT r = { (LONG)clip_min.x, (LONG)clip_min.y, (LONG)clip_max.x, (LONG)clip_max.y };
 ctx->RSSetScissorRects(1, &r);
 ```
-    
+
 ##### [Return to Index](#index)
 
 ---
@@ -201,9 +199,42 @@ ctx->RSSetScissorRects(1, &r);
 
 ### Q: About the ID Stack system...
 ### Q: Why is my widget not reacting when I click on it?
+### Q: Why is the wrong widget reacting when I click on one?
 ### Q: How can I have widgets with an empty label?
 ### Q: How can I have multiple widgets with the same label?
 ### Q: How can I have multiple windows with the same label?
+
+**USING THE SAME LABEL+ID IS THE MOST COMMON USER MISTAKE!**
+<br>**USING AN EMPTY LABEL IS THE SAME AS USING THE SAME LABEL AS YOUR PARENT WIDGET!**
+<table>
+<tr>
+<td><img src="https://github.com/user-attachments/assets/776a8315-1164-4178-9a8c-df52e0ff28aa"></td>
+<td>
+<pre lang="cpp">
+ImGui::Begin("Incorrect!");
+ImGui::DragFloat2("My value", &objects[0]->pos.x);
+ImGui::DragFloat2("My value", &objects[1]->pos.x);
+ImGui::DragFloat2("My value", &objects[2]->pos.x);
+ImGui::End();
+&nbsp;
+ImGui::Begin("Correct!");
+ImGui::DragFloat2("My value", &objects[0]->pos.x);
+ImGui::DragFloat2("My value##2", &objects[1]->pos.x);
+ImGui::DragFloat2("My value##3", &objects[2]->pos.x);
+ImGui::End();
+&nbsp;
+ImGui::Begin("Also Correct!");
+for (int n = 0; n < 3; n++)
+{
+    ImGui::PushID(n);
+    ImGui::DragFloat2("My value", &objects[n]->pos.x);
+    ImGui::PopID();
+}
+ImGui::End();
+</pre>
+</td>
+</tr>    
+</table>
 
 A primer on labels and the ID Stack...
 
@@ -214,7 +245,7 @@ Interactive widgets (such as calls to Button buttons) need a unique ID.
 **Unique IDs are used internally to track active widgets and occasionally associate state to widgets.<BR>
 Unique IDs are implicitly built from the hash of multiple elements that identify the "path" to the UI element.**
 
-Since Dear ImGui 1.85, you can use `Demo>Tools>Stack Tool` or call `ImGui::ShowStackToolWindow()`. The tool display intermediate values leading to the creation of a unique ID, making things easier to debug and understand.
+Since Dear ImGui 1.85, you can use `Demo>Tools>ID Stack Tool` or call `ImGui::ShowIDStackToolWindow()`. The tool display intermediate values leading to the creation of a unique ID, making things easier to debug and understand.
 
 ![Stack tool](https://user-images.githubusercontent.com/8225057/136235657-a0ea5665-dcd1-423f-9be6-dc3f8ced8f12.png)
 
@@ -349,8 +380,9 @@ node open/closed state differently. See what makes more sense in your situation!
 Short explanation:
 - Refer to [Image Loading and Displaying Examples](https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples) on the [Wiki](https://github.com/ocornut/imgui/wiki).
 - You may use functions such as `ImGui::Image()`, `ImGui::ImageButton()` or lower-level `ImDrawList::AddImage()` to emit draw calls that will use your own textures.
-- Actual textures are identified in a way that is up to the user/engine. Those identifiers are stored and passed as ImTextureID (void*) value.
-- Loading image files from the disk and turning them into a texture is not within the scope of Dear ImGui (for a good reason).
+- Actual textures are identified in a way that is up to the user/engine. Those identifiers are stored and passed as an opaque ImTextureID value.
+- By default ImTextureID can store up to 64-bits. You may `#define` it to a custom type/structure if you need.
+- Loading image files from the disk and turning them into a texture is not within the scope of Dear ImGui (for a good reason), but the examples linked above may be useful references.
 
 **Please read documentations or tutorials on your graphics API to understand how to display textures on the screen before moving onward.**
 
@@ -358,27 +390,27 @@ Long explanation:
 - Dear ImGui's job is to create "meshes", defined in a renderer-agnostic format made of draw commands and vertices. At the end of the frame, those meshes (ImDrawList) will be displayed by your rendering function. They are made up of textured polygons and the code to render them is generally fairly short (a few dozen lines). In the examples/ folder, we provide functions for popular graphics APIs (OpenGL, DirectX, etc.).
 - Each rendering function decides on a data type to represent "textures". The concept of what is a "texture" is entirely tied to your underlying engine/graphics API.
  We carry the information to identify a "texture" in the ImTextureID type.
-ImTextureID is nothing more than a void*, aka 4/8 bytes worth of data: just enough to store one pointer or integer of your choice.
+ImTextureID default to ImU64 aka 8 bytes worth of data: just enough to store one pointer or integer of your choice.
 Dear ImGui doesn't know or understand what you are storing in ImTextureID, it merely passes ImTextureID values until they reach your rendering function.
 - In the [examples/](https://github.com/ocornut/imgui/tree/master/examples) backends, for each graphics API we decided on a type that is likely to be a good representation for specifying an image from the end-user perspective. This is what the _examples_ rendering functions are using:
 ```cpp
 OpenGL:
-- ImTextureID = GLuint
+- ImTextureID should contains 'GLuint' (GL texture identifier).
 - See ImGui_ImplOpenGL3_RenderDrawData() function in imgui_impl_opengl3.cpp
 ```
 ```cpp
 DirectX9:
-- ImTextureID = LPDIRECT3DTEXTURE9
+- ImTextureID should contain a 'LPDIRECT3DTEXTURE9' (pointer).
 - See ImGui_ImplDX9_RenderDrawData() function in imgui_impl_dx9.cpp
 ```
 ```cpp
 DirectX11:
-- ImTextureID = ID3D11ShaderResourceView*
+- ImTextureID should contain a 'ID3D11ShaderResourceView*' (pointer)
 - See ImGui_ImplDX11_RenderDrawData() function in imgui_impl_dx11.cpp
 ```
 ```cpp
 DirectX12:
-- ImTextureID = D3D12_GPU_DESCRIPTOR_HANDLE
+- ImTextureID should contain a 'D3D12_GPU_DESCRIPTOR_HANDLE' (always 64-bits)
 - See ImGui_ImplDX12_RenderDrawData() function in imgui_impl_dx12.cpp
 ```
 For example, in the OpenGL example backend we store raw OpenGL texture identifier (GLuint) inside ImTextureID.
@@ -390,14 +422,14 @@ If you are starting with OpenGL or DirectX or Vulkan and haven't built much of a
 
 User code may do:
 ```cpp
-// Cast our texture type to ImTextureID / void*
+// Cast our texture type to ImTextureID
 MyTexture* texture = g_CoffeeTableTexture;
-ImGui::Image((void*)texture, ImVec2(texture->Width, texture->Height));
+ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(texture->Width, texture->Height));
 ```
 The renderer function called after ImGui::Render() will receive that same value that the user code passed:
 ```cpp
-// Cast ImTextureID / void* stored in the draw command as our texture type
-MyTexture* texture = (MyTexture*)pcmd->GetTexID();
+// Cast ImTextureID stored in the draw command as our texture type
+MyTexture* texture = (MyTexture*)(intptr_t)pcmd->GetTexID();
 MyEngineBindTexture2D(texture);
 ```
 Once you understand this design, you will understand that loading image files and turning them into displayable textures is not within the scope of Dear ImGui.
@@ -406,19 +438,19 @@ If you want to display an image file (e.g. PNG file) on the screen, please refer
 
 Refer to [Image Loading and Displaying Examples](https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples) on the [Wiki](https://github.com/ocornut/imgui/wiki) to find simplified examples for loading textures with OpenGL, DirectX9 and DirectX11.
 
-C/C++ tip: a void* is pointer-sized storage. You may safely store any pointer or integer into it by casting your value to ImTextureID / void*, and vice-versa.
-Because both end-points (user code and rendering function) are under your control, you know exactly what is stored inside the ImTextureID / void*.
+C/C++ tip: a u64 is 8 bytes. You may safely store any pointer or integer into it by casting your value to ImTextureID, and vice-versa.
+Because both end-points (user code and rendering function) are under your control, you know exactly what is stored inside the ImTextureID.
 Here are some examples:
 ```cpp
 GLuint my_tex = XXX;
-void* my_void_ptr;
-my_void_ptr = (void*)(intptr_t)my_tex;                  // cast a GLuint into a void* (we don't take its address! we literally store the value inside the pointer)
-my_tex = (GLuint)(intptr_t)my_void_ptr;                 // cast a void* into a GLuint
+ImTextureID my_imtexid;
+my_imtexid = (ImTextureID)(intptr_t)my_tex;                     // cast a GLuint into a ImTextureID (we don't take its address! we just copy the address)
+my_tex = (GLuint)(intptr_t)my_imtexid;                          // cast a ImTextureID into a GLuint
 
 ID3D11ShaderResourceView* my_dx11_srv = XXX;
-void* my_void_ptr;
-my_void_ptr = (void*)my_dx11_srv;                       // cast a ID3D11ShaderResourceView* into an opaque void*
-my_dx11_srv = (ID3D11ShaderResourceView*)my_void_ptr;   // cast a void* into a ID3D11ShaderResourceView*
+ImTextureID my_imtexid;
+my_imtexid = (ImTextureID)(intptr_t)my_dx11_srv;                // cast a ID3D11ShaderResourceView* into an opaque ImTextureID
+my_dx11_srv = (ID3D11ShaderResourceView*)(intptr_t)_my_imtexid; // cast a ImTextureID into a ID3D11ShaderResourceView*
 ```
 Finally, you may call `ImGui::ShowMetricsWindow()` to explore/visualize/understand how the ImDrawList are generated.
 
@@ -426,10 +458,18 @@ Finally, you may call `ImGui::ShowMetricsWindow()` to explore/visualize/understa
 
 ---
 
-### Q: How can I use my own math types instead of ImVec2/ImVec4?
+### Q: How can I use maths operators with ImVec2?
 
-You can edit [imconfig.h](https://github.com/ocornut/imgui/blob/master/imconfig.h) and setup the `IM_VEC2_CLASS_EXTRA`/`IM_VEC4_CLASS_EXTRA` macros to add implicit type conversions.
-This way you'll be able to use your own types everywhere, e.g. passing `MyVector2` or `glm::vec2` to ImGui functions instead of `ImVec2`.
+We do not export maths operators by default in imgui.h in order to not conflict with the use of your own maths types and maths operators. As a convenience, you may use `#define IMGUI_DEFINE_MATH_OPERATORS` + `#include "imgui.h"` to access our basic maths operators.
+
+##### [Return to Index](#index)
+
+---
+
+### Q: How can I use my own maths types instead of ImVec2/ImVec4?
+
+You can setup your [imconfig.h](https://github.com/ocornut/imgui/blob/master/imconfig.h) file with `IM_VEC2_CLASS_EXTRA`/`IM_VEC4_CLASS_EXTRA` macros to add implicit type conversions to our own maths types.
+This way you will be able to use your own types everywhere, e.g. passing `MyVector2` or `glm::vec2` to ImGui functions instead of `ImVec2`.
 
 ##### [Return to Index](#index)
 
@@ -471,7 +511,7 @@ ImDrawList* draw_list = ImGui::GetWindowDrawList();
 ImVec2 p = ImGui::GetCursorScreenPos();
 
 // Draw a red circle
-draw_list->AddCircleFilled(ImVec2(p.x + 50, p.y + 50), 30.0f, IM_COL32(255, 0, 0, 255), 16);
+draw_list->AddCircleFilled(ImVec2(p.x + 50, p.y + 50), 30.0f, IM_COL32(255, 0, 0, 255));
 
 // Draw a 3 pixel thick yellow line
 draw_list->AddLine(ImVec2(p.x, p.y), ImVec2(p.x + 100.0f, p.y + 100.0f), IM_COL32(255, 255, 0, 255), 3.0f);
@@ -485,7 +525,7 @@ ImGui::End();
 
 - Refer to "Demo > Examples > Custom Rendering" in the demo window and read the code of `ShowExampleAppCustomRendering()` in `imgui_demo.cpp` from more examples.
 - To generate colors: you can use the macro `IM_COL32(255,255,255,255)` to generate them at compile time, or use `ImGui::GetColorU32(IM_COL32(255,255,255,255))` or `ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,1.0f))` to generate a color that is multiplied by the current value of `style.Alpha`.
-- Math operators: if you have setup `IM_VEC2_CLASS_EXTRA` in `imconfig.h` to bind your own math types, you can use your own math types and their natural operators instead of ImVec2. ImVec2 by default doesn't export any math operators in the public API. You may use `#define IMGUI_DEFINE_MATH_OPERATORS` `#include "imgui_internal.h"` to use the internally defined math operators, but instead prefer using your own math library and set it up in `imconfig.h`.
+- Math operators: if you have setup `IM_VEC2_CLASS_EXTRA` in `imconfig.h` to bind your own math types, you can use your own math types and their natural operators instead of ImVec2. ImVec2 by default doesn't export any math operators in the public API. You may use `#define IMGUI_DEFINE_MATH_OPERATORS` `#include "imgui.h"` to use our math operators, but instead prefer using your own math library and set it up in `imconfig.h`.
 - You can use `ImGui::GetBackgroundDrawList()` or `ImGui::GetForegroundDrawList()` to access draw lists which will be displayed behind and over every other Dear ImGui window (one bg/fg drawlist per viewport). This is very convenient if you need to quickly display something on the screen that is not associated with a Dear ImGui window.
 - You can also create your own empty window and draw inside it. Call Begin() with the NoBackground | NoDecoration | NoSavedSettings | NoInputs flags (The `ImGuiWindowFlags_NoDecoration` flag itself is a shortcut for NoTitleBar | NoResize | NoScrollbar | NoCollapse). Then you can retrieve the ImDrawList* via `GetWindowDrawList()` and draw to it in any way you like.
 - You can create your own ImDrawList instance. You'll need to initialize them with `ImGui::GetDrawListSharedData()`, or create your own instancing `ImDrawListSharedData`, and then call your renderer function with your own ImDrawList or ImDrawData data.
@@ -519,7 +559,7 @@ This approach is relatively easy and functional but comes with two issues:
 - Style override may be lost during the `Begin()` call crossing monitor boundaries. You may need to do some custom scaling mumbo-jumbo if you want your `OnChangedViewport()` handler to preserve style overrides.
 
 Please note that if you are not using multi-viewports with multi-monitors using different DPI scales, you can ignore that and use the simpler technique recommended at the top.
-    
+
 On Windows, in addition to scaling the font size (make sure to round to an integer) and using `style.ScaleAllSizes()`, you will need to inform Windows that your application is DPI aware. If this is not done, Windows will scale the application window and the UI text will be blurry. Potential solutions to indicate DPI awareness on Windows are:
 
 - For SDL: the flag `SDL_WINDOW_ALLOW_HIGHDPI` needs to be passed to `SDL_CreateWindow()``.
@@ -548,7 +588,7 @@ backslash \ within a string literal, you need to write it double backslash "\\":
 
 ```cpp
 io.Fonts->AddFontFromFileTTF("MyFolder\MyFont.ttf", size);  // WRONG (you are escaping the M here!)
-io.Fonts->AddFontFromFileTTF("MyFolder\\MyFont.ttf", size;  // CORRECT (Windows only)
+io.Fonts->AddFontFromFileTTF("MyFolder\\MyFont.ttf", size); // CORRECT (Windows only)
 io.Fonts->AddFontFromFileTTF("MyFolder/MyFont.ttf", size);  // ALSO CORRECT
 ```
 
@@ -559,44 +599,15 @@ io.Fonts->AddFontFromFileTTF("MyFolder/MyFont.ttf", size);  // ALSO CORRECT
 ### Q: How can I easily use icons in my application?
 The most convenient and practical way is to merge an icon font such as FontAwesome inside your
 main font. Then you can refer to icons within your strings.
-You may want to see `ImFontConfig::GlyphMinAdvanceX` to make your icon look monospace to facilitate alignment.
-(Read the [docs/FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) file for more details about icons font loading.)
-With some extra effort, you may use colorful icons by registering custom rectangle space inside the font atlas,
-and copying your own graphics data into it. See docs/FONTS.md about using the AddCustomRectFontGlyph API.
+Read the [docs/FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) file for more details about icons font loading.
 
 ##### [Return to Index](#index)
 
 ---
 
 ### Q: How can I load multiple fonts?
-Use the font atlas to pack them into a single texture:
-(Read the [docs/FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) file and the code in ImFontAtlas for more details.)
 
-```cpp
-ImGuiIO& io = ImGui::GetIO();
-ImFont* font0 = io.Fonts->AddFontDefault();
-ImFont* font1 = io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_in_pixels);
-ImFont* font2 = io.Fonts->AddFontFromFileTTF("myfontfile2.ttf", size_in_pixels);
-io.Fonts->GetTexDataAsRGBA32() or GetTexDataAsAlpha8()
-// the first loaded font gets used by default
-// use ImGui::PushFont()/ImGui::PopFont() to change the font at runtime
-
-// Options
-ImFontConfig config;
-config.OversampleH = 2;
-config.OversampleV = 1;
-config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixel up
-config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
-io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_pixels, &config);
-
-// Combine multiple fonts into one (e.g. for icon fonts)
-static ImWchar ranges[] = { 0xf000, 0xf3ff, 0 };
-ImFontConfig config;
-config.MergeMode = true;
-io.Fonts->AddFontDefault();
-io.Fonts->AddFontFromFileTTF("fontawesome-webfont.ttf", 16.0f, &config, ranges); // Merge icon font
-io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_pixels, NULL, &config, io.Fonts->GetGlyphRangesJapanese()); // Merge japanese glyphs
-```
+Use the font atlas to pack them into a single texture. Read [docs/FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) for more details.
 
 ##### [Return to Index](#index)
 
@@ -607,7 +618,7 @@ When loading a font, pass custom Unicode ranges to specify the glyphs to load.
 
 ```cpp
 // Add default Japanese ranges
-io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_in_pixels, NULL, io.Fonts->GetGlyphRangesJapanese());
+io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_in_pixels, nullptr, io.Fonts->GetGlyphRangesJapanese());
 
 // Or create your own custom ranges (e.g. for a game you can feed your entire game script and only build the characters the game need)
 ImVector<ImWchar> ranges;
@@ -616,20 +627,21 @@ builder.AddText("Hello world");                        // Add a string (here "He
 builder.AddChar(0x7262);                               // Add a specific character
 builder.AddRanges(io.Fonts->GetGlyphRangesJapanese()); // Add one of the default ranges
 builder.BuildRanges(&ranges);                          // Build the final result (ordered ranges with all the unique characters submitted)
-io.Fonts->AddFontFromFileTTF("myfontfile.ttf", 16.0f, NULL, ranges.Data);
+io.Fonts->AddFontFromFileTTF("myfontfile.ttf", 16.0f, nullptr, ranges.Data);
 ```
 
-All your strings need to use UTF-8 encoding. In C++11 you can encode a string literal in UTF-8
-by using the u8"hello" syntax. Specifying literal in your source code using a local code page
-(such as CP-923 for Japanese or CP-1251 for Cyrillic) will NOT work!
-Otherwise, you can convert yourself to UTF-8 or load text data from a file already saved as UTF-8.
+All your strings need to use UTF-8 encoding.
+You need to tell your compiler to use UTF-8, or in C++11 you can encode a string literal in UTF-8 by using the u8"hello" syntax.
+Specifying literal in your source code using a local code page (such as CP-923 for Japanese or CP-1251 for Cyrillic) will NOT work!
+See [About UTF-8 Encoding](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md#about-utf-8-encoding) section
+of [FONTS.md](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) for details about UTF-8 Encoding.
 
 Text input: it is up to your application to pass the right character code by calling `io.AddInputCharacter()`.
 The applications in examples/ are doing that.
 Windows: you can use the WM_CHAR or WM_UNICHAR or WM_IME_CHAR message (depending if your app is built using Unicode or MultiByte mode).
 You may also use `MultiByteToWideChar()` or `ToUnicode()` to retrieve Unicode codepoints from MultiByte characters or keyboard state.
 Windows: if your language is relying on an Input Method Editor (IME), you can write your HWND to ImGui::GetMainViewport()->PlatformHandleRaw
-for the default implementation of io.SetPlatformImeDataFn() to set your Microsoft IME position correctly.
+for the default implementation of GetPlatformIO().Platform_SetImeDataFn() to set your Microsoft IME position correctly.
 
 ##### [Return to Index](#index)
 
@@ -643,8 +655,8 @@ You may take a look at:
 
 - [Quotes](https://github.com/ocornut/imgui/wiki/Quotes)
 - [Software using Dear ImGui](https://github.com/ocornut/imgui/wiki/Software-using-dear-imgui)
-- [Sponsors](https://github.com/ocornut/imgui/wiki/Sponsors)
-- [Gallery](https://github.com/ocornut/imgui/issues/5886)
+- [Funding & Sponsors](https://github.com/ocornut/imgui/wiki/Funding)
+- [Gallery](https://github.com/ocornut/imgui/issues?q=label%3Agallery)
 
 ##### [Return to Index](#index)
 
@@ -656,7 +668,7 @@ Yes. People have written game editors, data browsers, debuggers, profilers, and 
 
 Dear ImGui is very programmer centric and the immediate-mode GUI paradigm might require you to readjust some habits before you can realize its full potential. Dear ImGui is about making things that are simple, efficient, and powerful.
 
-Dear ImGui is built to be efficient and scalable toward the needs for AAA-quality applications running all day. The IMGUI paradigm offers different opportunities for optimization that the more typical RMGUI paradigm.
+Dear ImGui is built to be efficient and scalable toward the needs for AAA-quality applications running all day. The IMGUI paradigm offers different opportunities for optimization than the more typical RMGUI paradigm.
 
 ##### [Return to Index](#index)
 
@@ -664,7 +676,7 @@ Dear ImGui is built to be efficient and scalable toward the needs for AAA-qualit
 
 ### Q: Can you reskin the look of Dear ImGui?
 
-Somehow. You can alter the look of the interface to some degree: changing colors, sizes, padding, rounding, and fonts. However, as Dear ImGui is designed and optimized to create debug tools, the amount of skinning you can apply is limited. There is only so much you can stray away from the default look and feel of the interface. Dear ImGui is NOT designed to create a user interface for games, although with ingenious use of the low-level API you can do it.
+Somewhat. You can alter the look of the interface to some degree: changing colors, sizes, padding, rounding, and fonts. However, as Dear ImGui is designed and optimized to create debug tools, the amount of skinning you can apply is limited. There is only so much you can stray away from the default look and feel of the interface. Dear ImGui is NOT designed to create a user interface for games, although with ingenious use of the low-level API you can do it.
 
 A reasonably skinned application may look like (screenshot from [#2529](https://github.com/ocornut/imgui/issues/2529#issuecomment-524281119)):
 ![minipars](https://user-images.githubusercontent.com/314805/63589441-d9794f00-c5b1-11e9-8d96-cfc1b93702f7.png)
@@ -686,11 +698,11 @@ There is an auto-generated [c-api for Dear ImGui (cimgui)](https://github.com/ci
 # Q&A: Community
 
 ### Q: How can I help?
-- Businesses: please reach out to `contact AT dearimgui.com` if you work in a place using Dear ImGui! We can discuss ways for your company to fund development via invoiced technical support, maintenance, or sponsoring contacts. This is among the most useful thing you can do for Dear ImGui. With increased funding, we can hire more people to work on this project.
+- Businesses: please reach out to `omar AT dearimgui.com` if you work in a place using Dear ImGui! We can discuss ways for your company to fund development via invoiced technical support, maintenance, or sponsoring contacts. This is among the most useful thing you can do for Dear ImGui. With increased funding, we can hire more people to work on this project. Please see [Funding](https://github.com/ocornut/imgui/wiki/Funding) page.
 - Individuals: you can support continued maintenance and development via PayPal donations. See [README](https://github.com/ocornut/imgui/blob/master/docs/README.md).
 - If you are experienced with Dear ImGui and C++, look at [GitHub Issues](https://github.com/ocornut/imgui/issues), [GitHub Discussions](https://github.com/ocornut/imgui/discussions), the [Wiki](https://github.com/ocornut/imgui/wiki), read [docs/TODO.txt](https://github.com/ocornut/imgui/blob/master/docs/TODO.txt), and see how you want to help and can help!
 - Disclose your usage of Dear ImGui via a dev blog post, a tweet, a screenshot, a mention somewhere, etc.
-You may post screenshots or links in the [gallery threads](https://github.com/ocornut/imgui/issues/5886). Visuals are ideal as they inspire other programmers. Disclosing your use of Dear ImGui helps the library grow credibility, and helps other teams and programmers with taking decisions.
+You may post screenshots or links in the [gallery threads](https://github.com/ocornut/imgui/issues?q=label%3Agallery). Visuals are ideal as they inspire other programmers. Disclosing your use of Dear ImGui helps the library grow credibility, and helps other teams and programmers with taking decisions.
 - If you have issues or if you need to hack into the library, even if you don't expect any support it is useful that you share your issues or sometimes incomplete PR.
 
 ##### [Return to Index](#index)

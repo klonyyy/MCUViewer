@@ -128,7 +128,7 @@ void Gui::mainThread(std::string externalPath)
 		ImGui_ImplGlfw_NewFrame();
 
 		ImGui::NewFrame();
-		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_None);
 
 		if (showDemoWindow)
 			ImPlot::ShowDemoWindow();

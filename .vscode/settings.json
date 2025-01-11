@@ -88,7 +88,8 @@
         "future": "cpp",
         "codecvt": "cpp",
         "complex": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "*.rh": "cpp"
     },
     "docwriter.style": "Doxygen"
 }
