@@ -79,6 +79,7 @@ void Gui::mainThread(std::string externalPath)
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.Fonts->AddFontDefault(&cfg);
 	io.FontGlobalScale = 1.0f;
+	ImGui::GetPlatformIO().Platform_LocaleDecimalPoint = *localeconv()->decimal_point;
 
 	ImGui::StyleColorsDark();
 	ImPlot::StyleColorsDark();

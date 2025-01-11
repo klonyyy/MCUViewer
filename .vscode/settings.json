@@ -89,7 +89,16 @@
         "codecvt": "cpp",
         "complex": "cpp",
         "queue": "cpp",
-        "*.rh": "cpp"
+        "*.rh": "cpp",
+        "cwctype": "cpp",
+        "*.tcc": "cpp",
+        "memory_resource": "cpp",
+        "string_view": "cpp",
+        "numbers": "cpp",
+        "ranges": "cpp",
+        "semaphore": "cpp",
+        "cinttypes": "cpp",
+        "typeindex": "cpp"
     },
     "docwriter.style": "Doxygen"
 }
