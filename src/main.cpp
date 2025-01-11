@@ -25,7 +25,6 @@ void prepareCLIParser(bool& debug, std::string& projectPath);
 int main(int argc, char** argv)
 {
 	std::setlocale(LC_ALL, "");
-    std::locale::global(std::locale(std::setlocale(LC_ALL, nullptr)));
 	bool debug = false;
 	std::string projectPath = "";
 	prepareCLIParser(debug, projectPath);
