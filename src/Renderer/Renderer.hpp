@@ -75,13 +75,14 @@ class Renderer
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_None);
-		;
+		
 	}
 
 	void stepExit()
 	{
 		ImGui::Render();
 		backend.stepExit();
+		glfwSwapBuffers(window);
 	}
 
 	void deinit()

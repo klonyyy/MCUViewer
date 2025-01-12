@@ -24,52 +24,74 @@ static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
 void MetalRenderer::init(GLFWwindow* window)
 {
+    this->window = window;
     device = MTLCreateSystemDefaultDevice();
     commandQueue = [device newCommandQueue];
 
     ImGui_ImplMetal_Init(device);
 
     nswin = glfwGetCocoaWindow(window);
-    CAMetalLayer *layer = [CAMetalLayer layer];
+    layer = [CAMetalLayer layer];
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    layer.contentsScale = nswin.backingScaleFactor;
+
+    // Ensure the layer is attached to the NSWindow's contentView
     nswin.contentView.layer = layer;
     nswin.contentView.wantsLayer = YES;
 
     renderPassDescriptor = [MTLRenderPassDescriptor new];
-    float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 }
 
 void MetalRenderer::stepEnter()
 {
-    @autoreleasepool
-    {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
+
+        if (width == 0 || height == 0) 
+        {
+            NSLog(@"Window width or height set to zero!");
+            return; // Skip rendering
+        }
+
         layer.drawableSize = CGSizeMake(width, height);
         drawable = [layer nextDrawable];
 
+        if (!drawable) 
+        {
+            NSLog(@"Failed to get a valid drawable.");
+            return; // Early exit if no drawable is available
+        }
+
+        // Continue with the normal rendering flow
         commandBuffer = [commandQueue commandBuffer];
+
+        if (!commandBuffer) {
+            NSLog(@"Failed to create command buffer.");
+            return; // Early exit if commandBuffer creation failed
+        }
+
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(clear_color[0] * clear_color[3], clear_color[1] * clear_color[3], clear_color[2] * clear_color[3], clear_color[3]);
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
         renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
         renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-        renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-        [renderEncoder pushDebugGroup:@"ImGui demo"];
-
         // Start the Dear ImGui frame
         ImGui_ImplMetal_NewFrame(renderPassDescriptor);
-    }
+
 }
 
 void MetalRenderer::stepExit()
 {
     @autoreleasepool
     {
-        ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, renderEncoder);
-
-        [renderEncoder popDebugGroup];
-        [renderEncoder endEncoding];
+        id<MTLRenderCommandEncoder> localRenderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+        @try {
+            [localRenderEncoder pushDebugGroup:@"ImGui demo"];
+            ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, localRenderEncoder);
+        } @finally {
+            [localRenderEncoder popDebugGroup];
+            [localRenderEncoder endEncoding];
+        }
 
         [commandBuffer presentDrawable:drawable];
         [commandBuffer commit];
