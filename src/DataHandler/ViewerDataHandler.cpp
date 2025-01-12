@@ -167,6 +167,8 @@ void ViewerDataHandler::dataHandler()
 			stateChangeOrdered = false;
 		}
 	}
+
+	logger->info("Exiting viewer plot handler thread");
 }
 
 void ViewerDataHandler::createSampleList()

@@ -19,7 +19,7 @@ static MTLRenderPassDescriptor* renderPassDescriptor = nil;
 static id <MTLRenderCommandEncoder> renderEncoder = nil;
 static id<CAMetalDrawable> drawable = nil;
 static CAMetalLayer* layer = nil;
-static NSWindow* nswin = nil; // Window from GLFW
+static NSWindow* nswin = nil; 
 static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
 void MetalRenderer::init(GLFWwindow* window)
@@ -43,7 +43,7 @@ void MetalRenderer::init(GLFWwindow* window)
     renderPassDescriptor = [MTLRenderPassDescriptor new];
 }
 
-void MetalRenderer::stepEnter()
+void MetalRenderer::stepEnter(bool shouldIncreaseFramerate)
 {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -51,7 +51,7 @@ void MetalRenderer::stepEnter()
         if (width == 0 || height == 0) 
         {
             NSLog(@"Window width or height set to zero!");
-            return; // Skip rendering
+            return; 
         }
 
         layer.drawableSize = CGSizeMake(width, height);
@@ -60,15 +60,14 @@ void MetalRenderer::stepEnter()
         if (!drawable) 
         {
             NSLog(@"Failed to get a valid drawable.");
-            return; // Early exit if no drawable is available
+            return;
         }
 
-        // Continue with the normal rendering flow
         commandBuffer = [commandQueue commandBuffer];
 
         if (!commandBuffer) {
             NSLog(@"Failed to create command buffer.");
-            return; // Early exit if commandBuffer creation failed
+            return;
         }
 
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(clear_color[0] * clear_color[3], clear_color[1] * clear_color[3], clear_color[2] * clear_color[3], clear_color[3]);
@@ -77,7 +76,6 @@ void MetalRenderer::stepEnter()
         renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
         // Start the Dear ImGui frame
         ImGui_ImplMetal_NewFrame(renderPassDescriptor);
-
 }
 
 void MetalRenderer::stepExit()

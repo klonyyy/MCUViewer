@@ -79,10 +79,8 @@ void Gui::init(std::string externalPath)
 
 void Gui::spin()
 {
-	renderer.stepEnter((traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
-
-	if (showDemoWindow)
-		ImPlot::ShowDemoWindow();
+	if(!renderer.stepEnter((traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN)))
+		return;
 
 	if (glfwWindowShouldClose(window))
 	{
@@ -95,6 +93,10 @@ void Gui::spin()
 			done = true;
 	}
 	glfwSetWindowShouldClose(window, done);
+
+	if (showDemoWindow)
+		ImPlot::ShowDemoWindow();
+
 	checkShortcuts();
 
 	drawMenu();

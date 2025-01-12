@@ -6,7 +6,7 @@ class OpenGLRenderer
 {
    public:
 	void init(GLFWwindow* window);
-	void stepEnter();
+	void stepEnter(bool shouldIncreaseFramerate);
 	void stepExit();
 	void deinit();
 

@@ -37,12 +37,18 @@ class Renderer
 		glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit())
 			return false;
+			
+		#ifdef __APPLE__
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		#endif
 
 		window = glfwCreateWindow(1500, 1000, windowName.c_str(), NULL, NULL);
 		if (window == NULL)
 			return false;
 
-		glfwMakeContextCurrent(window);
+		#ifndef __APPLE__
+			glfwMakeContextCurrent(window);
+		#endif
 		glfwMaximizeWindow(window);
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -54,35 +60,30 @@ class Renderer
 		return true;
 	}
 
-	void stepEnter(bool shouldIncreaseFramerate)
+	bool stepEnter(bool shouldIncreaseFramerate)
 	{
 		if (glfwGetWindowAttrib(window, GLFW_ICONIFIED))
 		{
 			glfwWaitEvents();
-			return;
+			return false;
 		}
-
-		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || shouldIncreaseFramerate)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(4);
 
 		glfwSetWindowTitle(window, windowName.c_str());
 		glfwPollEvents();
 
-		backend.stepEnter();
+		backend.stepEnter(shouldIncreaseFramerate);
 
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_None);
-		
+
+		return true;
 	}
 
 	void stepExit()
 	{
 		ImGui::Render();
 		backend.stepExit();
-		glfwSwapBuffers(window);
 	}
 
 	void deinit()
@@ -90,8 +91,12 @@ class Renderer
 		backend.deinit();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
-		glfwDestroyWindow(window);
-		glfwTerminate();
+		
+		if (window) 
+		{
+            glfwDestroyWindow(window);
+            glfwTerminate();
+        }
 	}
 
    private:

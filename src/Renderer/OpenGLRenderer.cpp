@@ -15,9 +15,14 @@ void OpenGLRenderer::init(GLFWwindow* window)
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
-void OpenGLRenderer::stepEnter()
+void OpenGLRenderer::stepEnter(bool shouldIncreaseFramerate)
 {
 	ImGui_ImplOpenGL3_NewFrame();
+
+	if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || shouldIncreaseFramerate)
+		glfwSwapInterval(1);
+	else
+		glfwSwapInterval(4);
 }
 
 void OpenGLRenderer::stepExit()
@@ -26,6 +31,7 @@ void OpenGLRenderer::stepExit()
 	glfwGetFramebufferSize(window, &display_w, &display_h);
 	glViewport(0, 0, display_w, display_h);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	glfwSwapBuffers(window);
 }
 
 void OpenGLRenderer::deinit()
