@@ -15,7 +15,7 @@ class SelectVariableWindow
 {
    public:
 	SelectVariableWindow(VariableHandler* variableHandler, std::set<std::string>* selection, int id)
-		: variableHandler(variableHandler), selection(selection), id(id)
+		: variableHandler(variableHandler), selection(selection)
 	{
 		popupName = "Select Variables##" + std::to_string(id);	// Unique name
 	}
@@ -130,5 +130,4 @@ class SelectVariableWindow
 	std::set<std::string>* selection;
 	std::string popupName;
 	bool show = false;
-	int id;
 };

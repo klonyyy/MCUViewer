@@ -366,7 +366,6 @@ void Gui::handleDragRect(uint32_t id, Plot::DragRect& dragRect, ImPlotRect plotL
 			dragRect.setValueX1(markerPosX1);
 		}
 
-		static ImPlotRect rect(0.0025, 0.0045, 0, 0.5);
 		ImPlot::DragRect(id, &markerPosX0, &plotLimits.Y.Min, &markerPosX1, &plotLimits.Y.Max, ImVec4(0.15, 0.96, 0.9, 0.45), ImPlotDragToolFlags_NoFit);
 		dragRect.setValueX0(markerPosX0);
 		dragRect.setValueX1(markerPosX1);

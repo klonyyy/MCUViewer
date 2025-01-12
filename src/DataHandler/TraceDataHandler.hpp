@@ -15,7 +15,7 @@
 class TraceDataHandler : public DataHandlerBase
 {
    public:
-	typedef struct
+	struct Settings
 	{
 		uint32_t coreFrequency = 160000;
 		uint32_t tracePrescaler = 10;
@@ -27,7 +27,7 @@ class TraceDataHandler : public DataHandlerBase
 		uint32_t timeout = 2;
 		bool shouldLog = false;
 		std::string logFilePath = "";
-	} Settings;
+	};
 
 	TraceDataHandler(PlotGroupHandler* plotGroupHandler, VariableHandler* variableHandler, PlotHandler* plotHandler, PlotHandler* tracePlotHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger);
 	~TraceDataHandler();

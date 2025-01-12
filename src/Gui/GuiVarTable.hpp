@@ -21,6 +21,7 @@ class VariableTableWindow
 		parser = std::make_shared<GdbParser>(variableHandler, logger);
 		variableEditWindow = std::make_shared<VariableEditWindow>(variableHandler);
 		importVariablesWindow = std::make_shared<ImportVariablesWindow>(parser.get(), projectElfPath, projectConfigPath, variableHandler);
+		logger->debug("Variable table window created!");
 	}
 
 	void draw()
@@ -133,6 +134,8 @@ class VariableTableWindow
 				for (std::shared_ptr<Plot> plt : *plotHandler)
 					plt->removeSeries(varNameToDelete.value_or(""));
 				variableHandler->erase(varNameToDelete.value_or(""));
+
+				logger->debug("Removing variable {}", varNameToDelete.value());
 			}
 			ImGui::EndTable();
 		}

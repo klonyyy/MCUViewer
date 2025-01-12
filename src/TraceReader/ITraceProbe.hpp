@@ -8,14 +8,14 @@
 class ITraceProbe
 {
    public:
-	typedef struct
+	struct TraceProbeSettings
 	{
 		uint32_t debugProbe = 0;
 		std::string serialNumber = "";
 		std::string device = "";
 		uint32_t speedkHz = 10000;
 
-	} TraceProbeSettings;
+	};
 
 	virtual ~ITraceProbe() = default;
 	virtual bool startTrace(const TraceProbeSettings& probeSettings, uint32_t coreFrequency, uint32_t tracePrescaler, uint32_t activeChannelMask, bool shouldReset) = 0;

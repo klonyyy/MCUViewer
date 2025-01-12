@@ -15,7 +15,7 @@
 class ConfigHandler
 {
    public:
-	typedef struct
+	typedef struct GlobalSettings
 	{
 		uint32_t version = 1;
 	} GlobalSettings;
