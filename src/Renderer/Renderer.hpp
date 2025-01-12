@@ -37,18 +37,20 @@ class Renderer
 		glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit())
 			return false;
-			
-		#ifdef __APPLE__
+
+#ifdef __APPLE__
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		#endif
+#else
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+#endif
 
 		window = glfwCreateWindow(1500, 1000, windowName.c_str(), NULL, NULL);
 		if (window == NULL)
 			return false;
 
-		#ifndef __APPLE__
-			glfwMakeContextCurrent(window);
-		#endif
+#ifndef __APPLE__
+		glfwMakeContextCurrent(window);
+#endif
 		glfwMaximizeWindow(window);
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -91,12 +93,12 @@ class Renderer
 		backend.deinit();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
-		
-		if (window) 
+
+		if (window)
 		{
-            glfwDestroyWindow(window);
-            glfwTerminate();
-        }
+			glfwDestroyWindow(window);
+			glfwTerminate();
+		}
 	}
 
    private:

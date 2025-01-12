@@ -13,6 +13,7 @@ void OpenGLRenderer::init(GLFWwindow* window)
 {
 	this->window = window;
 	ImGui_ImplOpenGL3_Init("#version 130");
+	glfwShowWindow(window);
 }
 
 void OpenGLRenderer::stepEnter(bool shouldIncreaseFramerate)
