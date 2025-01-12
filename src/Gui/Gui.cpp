@@ -13,8 +13,6 @@
 #include "Statistics.hpp"
 #include "StlinkDebugProbe.hpp"
 #include "glfw3.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -40,11 +38,6 @@ Gui::~Gui()
 		threadHandle.join();
 }
 
-static void glfw_error_callback(int error, const char* description)
-{
-	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
-}
-
 static float getContentScale(GLFWwindow* window)
 {
 	float xscale;
@@ -55,19 +48,8 @@ static float getContentScale(GLFWwindow* window)
 
 void Gui::mainThread(std::string externalPath)
 {
-	glfwSetErrorCallback(glfw_error_callback);
-	if (!glfwInit())
-		return;
-
-	GLFWwindow* window = glfwCreateWindow(1500, 1000, (std::string("MCUViewer | ") + projectConfigPath).c_str(), NULL, NULL);
-	if (window == NULL)
-		return;
-	glfwMakeContextCurrent(window);
-	glfwMaximizeWindow(window);
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImPlot::CreateContext();
+	renderer.init(std::string("MCUViewer | ") + projectConfigPath);
+	GLFWwindow* window = renderer.window;
 
 	GuiHelper::contentScale = getContentScale(window);
 
@@ -86,11 +68,6 @@ void Gui::mainThread(std::string externalPath)
 
 	ImGui::GetStyle().ScaleAllSizes(GuiHelper::contentScale);
 	ImGui::GetStyle().Colors[ImGuiCol_PopupBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 130");
 
 	ImGuiWindowClass window_class;
 	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
@@ -112,24 +89,7 @@ void Gui::mainThread(std::string externalPath)
 
 	while (!done)
 	{
-		if (glfwGetWindowAttrib(window, GLFW_ICONIFIED))
-		{
-			glfwWaitEvents();
-			continue;
-		}
-
-		if (glfwGetWindowAttrib(window, GLFW_FOCUSED) || (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN))
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(4);
-
-		glfwSetWindowTitle(window, (std::string("MCUViewer - ") + projectConfigPath).c_str());
-		glfwPollEvents();
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-
-		ImGui::NewFrame();
-		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_None);
+		renderer.stepEnter((traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
 
 		if (showDemoWindow)
 			ImPlot::ShowDemoWindow();
@@ -183,23 +143,11 @@ void Gui::mainThread(std::string externalPath)
 
 		popup.handle();
 
-		// Rendering
-		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		glfwSwapBuffers(window);
+		renderer.stepExit();
 	}
 
+	renderer.deinit();
 	logger->info("Exiting GUI main thread");
-
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
 	fileHandler->deinit();
 }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.20)
 
 if(MAKE_TESTS)
     add_subdirectory(test)
@@ -110,6 +110,7 @@ endif()
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/commons.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/OpenGLRenderer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
@@ -185,6 +186,7 @@ target_compile_definitions(${EXECUTABLE}
 )
 
 target_include_directories(${EXECUTABLE} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MemoryReader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Plot

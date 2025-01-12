@@ -28,6 +28,7 @@
 #include "ViewerDataHandler.hpp"
 #include "imgui.h"
 #include "implot.h"
+#include "Renderer.hpp"
 
 class Gui
 {
@@ -39,6 +40,8 @@ class Gui
 	static constexpr bool showDemoWindow = false;
 
 	const std::map<DataHandlerBase::State, std::string> viewerStateMap{{DataHandlerBase::State::RUN, "RUNNING"}, {DataHandlerBase::State::STOP, "STOPPED"}};
+
+	Renderer renderer;
 
 	std::thread threadHandle;
 	PlotHandler* plotHandler;
