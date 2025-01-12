@@ -9,8 +9,9 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 
-void OpenGLRenderer::init()
+void OpenGLRenderer::init(GLFWwindow* window)
 {
+	this->window = window;
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
@@ -21,7 +22,11 @@ void OpenGLRenderer::stepEnter()
 
 void OpenGLRenderer::stepExit()
 {
+	int display_w, display_h;
+	glfwGetFramebufferSize(window, &display_w, &display_h);
+	glViewport(0, 0, display_w, display_h);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	glfwSwapBuffers(window);
 }
 
 void OpenGLRenderer::deinit()

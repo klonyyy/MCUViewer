@@ -28,6 +28,10 @@ class Renderer
 
 	bool init(const std::string windowName)
 	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImPlot::CreateContext();
+
 		this->windowName = windowName;
 
 		glfwSetErrorCallback(glfw_error_callback);
@@ -41,15 +45,11 @@ class Renderer
 		glfwMakeContextCurrent(window);
 		glfwMaximizeWindow(window);
 
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImPlot::CreateContext();
-
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 
-		backend.init();
+		backend.init(window);
 
 		return true;
 	}
@@ -81,11 +81,7 @@ class Renderer
 	void stepExit()
 	{
 		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
 		backend.stepExit();
-		glfwSwapBuffers(window);
 	}
 
 	void deinit()
