@@ -111,8 +111,6 @@ endif()
 set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/commons.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/OpenGLRenderer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MetalRenderer.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/Gui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiPlots.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/GuiSwoPlots.cpp
@@ -139,6 +137,11 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/ViewerDataHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/TraceDataHandler.cpp)
 
+if(APPLE)
+    list(APPEND PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MetalRenderer.mm)
+else()
+    list(APPEND PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/OpenGLRenderer.cpp)
+endif()
 
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -229,9 +232,17 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/inc/)
 
 if(APPLE)
-    include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
+    include_directories(${OPENGL_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
     target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${OPENGL_LIBRARIES} ${JLINK_MACOS} 
     "-framework Metal"
+    "-framework MetalKit"
+    "-framework Cocoa"
+    "-framework IOKit"
+    "-framework CoreVideo"
+    "-framework QuartzCore"
+    "-framework AppKit"
+    "-framework UniformTypeIdentifiers"
+    "-framework Security"
     spdlog::spdlog pthread dl glfw nfd)
 elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${JLINK_LINUX} spdlog::spdlog pthread dl GL glfw nfd)

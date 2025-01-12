@@ -10,89 +10,73 @@
 
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
+#include "MetalRenderer.hpp"
 
-// Global Metal objects
 static id<MTLDevice> device = nil;
 static id<MTLCommandQueue> commandQueue = nil;
-static id<MTLRenderPassDescriptor> renderPassDescriptor = nil;
+static id<MTLCommandBuffer> commandBuffer = nil;
+static MTLRenderPassDescriptor* renderPassDescriptor = nil;
+static id <MTLRenderCommandEncoder> renderEncoder = nil;
+static id<CAMetalDrawable> drawable = nil;
 static CAMetalLayer* layer = nil;
 static NSWindow* nswin = nil; // Window from GLFW
 static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
-void init(GLFWwindow* window)
+void MetalRenderer::init(GLFWwindow* window)
 {
-    @autoreleasepool
-    {
-        // Create Metal device and command queue
-        device = MTLCreateSystemDefaultDevice();
-        if (!device) {
-            printf("Metal is not supported on this device.\n");
-            return;
-        }
-        commandQueue = [device newCommandQueue];
-        if (!commandQueue) {
-            printf("Failed to create command queue.\n");
-            return;
-        }
+    device = MTLCreateSystemDefaultDevice();
+    commandQueue = [device newCommandQueue];
 
-        // Initialize ImGui Metal binding
-        ImGui_ImplMetal_Init(device);
+    ImGui_ImplMetal_Init(device);
 
-        // Get GLFW window and set up Metal layer
-        nswin = glfwGetCocoaWindow(window);
-        layer = [CAMetalLayer layer];
-        layer.device = device;
-        layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-        nswin.contentView.layer = layer;
-        nswin.contentView.wantsLayer = YES;
+    nswin = glfwGetCocoaWindow(window);
+    CAMetalLayer *layer = [CAMetalLayer layer];
+    layer.device = device;
+    layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    nswin.contentView.layer = layer;
+    nswin.contentView.wantsLayer = YES;
 
-        // Create a render pass descriptor
-        renderPassDescriptor = [MTLRenderPassDescriptor new];
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(clear_color[0] * clear_color[3], clear_color[1] * clear_color[3], clear_color[2] * clear_color[3], clear_color[3]);
-        renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-        renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-    }
+    renderPassDescriptor = [MTLRenderPassDescriptor new];
+    float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 }
 
-void stepEntry(GLFWwindow* window)
+void MetalRenderer::stepEnter()
 {
     @autoreleasepool
     {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         layer.drawableSize = CGSizeMake(width, height);
-        id<CAMetalDrawable> drawable = [layer nextDrawable];
+        drawable = [layer nextDrawable];
 
-        id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
-
+        commandBuffer = [commandQueue commandBuffer];
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(clear_color[0] * clear_color[3], clear_color[1] * clear_color[3], clear_color[2] * clear_color[3], clear_color[3]);
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
-
-        id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+        renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+        renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         [renderEncoder pushDebugGroup:@"ImGui demo"];
 
-        // Start the ImGui frame
+        // Start the Dear ImGui frame
         ImGui_ImplMetal_NewFrame(renderPassDescriptor);
     }
 }
 
-void stepExit()
+void MetalRenderer::stepExit()
 {
     @autoreleasepool
     {
-        ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandQueue, renderPassDescriptor);
-        [renderPassDescriptor.colorAttachments[0].texture endEncoding];
+        ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, renderEncoder);
+
+        [renderEncoder popDebugGroup];
+        [renderEncoder endEncoding];
+
+        [commandBuffer presentDrawable:drawable];
+        [commandBuffer commit];
     }
 }
 
-void deinit()
+void MetalRenderer::deinit()
 {
-    @autoreleasepool
-    {
-        ImGui_ImplMetal_Shutdown();
-        device = nil;
-        commandQueue = nil;
-        renderPassDescriptor = nil;
-        layer = nil;
-        nswin = nil;
-    }
+    ImGui_ImplMetal_Shutdown();
 }

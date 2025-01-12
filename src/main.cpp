@@ -17,17 +17,17 @@
 std::atomic<bool> done = false;
 std::mutex mtx;
 std::shared_ptr<spdlog::logger> logger;
-CLI::App app{"MCUViewer"};
 
 void prepareLogger();
-void prepareCLIParser(bool& debug, std::string& projectPath);
+void prepareCLIParser(CLI::App& app, bool& debug, std::string& projectPath);
 
 int main(int argc, char** argv)
 {
+	CLI::App app{"MCUViewer"};
 	std::setlocale(LC_ALL, "");
 	bool debug = false;
 	std::string projectPath = "";
-	prepareCLIParser(debug, projectPath);
+	prepareCLIParser(app, debug, projectPath);
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -56,11 +56,12 @@ int main(int argc, char** argv)
 	NFDFileHandler fileHandler;
 
 	Gui gui(&plotHandler, &variableHandler, &configHandler, &plotGroupHandler, &fileHandler, &tracePlotHandler, &viewerDataHandler, &traceDataHandler, done, &mtx, loggerPtr, projectPath);
+	gui.init(projectPath);
 
 	while (!done)
-	{
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
+		gui.spin();
+	
+	gui.deinit();
 	logger->info("Closing MCUViewer!");
 	logger->flush();
 	spdlog::shutdown();
@@ -83,7 +84,7 @@ void prepareLogger()
 	spdlog::register_logger(logger);
 }
 
-void prepareCLIParser(bool& debug, std::string& projectPath)
+void prepareCLIParser(CLI::App& app, bool& debug, std::string& projectPath)
 {
 	app.fallthrough();
 	app.ignore_case();

@@ -20,7 +20,6 @@
 
 Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), viewerDataHandler(viewerDataHandler), traceDataHandler(traceDataHandler), done(done), mtx(mtx), logger(logger)
 {
-	threadHandle = std::thread(&Gui::mainThread, this, projectPath);
 	plotEditWindow = std::make_shared<PlotEditWindow>(plotHandler, plotGroupHandler, variableHandler);
 	plotsTree = std::make_shared<PlotsTree>(viewerDataHandler, plotHandler, plotGroupHandler, variableHandler, plotEditWindow, fileHandler, logger);
 	variableTable = std::make_shared<VariableTableWindow>(viewerDataHandler, plotHandler, variableHandler, &projectElfPath, &projectConfigPath, logger);
@@ -32,12 +31,6 @@ Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandl
 	};
 }
 
-Gui::~Gui()
-{
-	if (threadHandle.joinable())
-		threadHandle.join();
-}
-
 static float getContentScale(GLFWwindow* window)
 {
 	float xscale;
@@ -46,14 +39,12 @@ static float getContentScale(GLFWwindow* window)
 	return (xscale + yscale) / 2.0f;
 }
 
-void Gui::mainThread(std::string externalPath)
+void Gui::init(std::string externalPath)
 {
 	renderer.init(std::string("MCUViewer | ") + projectConfigPath);
-	GLFWwindow* window = renderer.window;
+	window = renderer.window;
 
 	GuiHelper::contentScale = getContentScale(window);
-
-	ImFontConfig cfg;
 	cfg.SizePixels = 13.0f * GuiHelper::contentScale;
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -68,8 +59,6 @@ void Gui::mainThread(std::string externalPath)
 
 	ImGui::GetStyle().ScaleAllSizes(GuiHelper::contentScale);
 	ImGui::GetStyle().Colors[ImGuiCol_PopupBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-
-	ImGuiWindowClass window_class;
 	window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 	fileHandler->init();
@@ -86,66 +75,69 @@ void Gui::mainThread(std::string externalPath)
 
 	if (!externalPath.empty())
 		openProject(externalPath);
+}
 
-	while (!done)
+void Gui::spin()
+{
+	renderer.stepEnter((traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
+
+	if (showDemoWindow)
+		ImPlot::ShowDemoWindow();
+
+	if (glfwWindowShouldClose(window))
 	{
-		renderer.stepEnter((traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
+		viewerDataHandler->setState(DataHandlerBase::State::STOP);
+		traceDataHandler->setState(DataHandlerBase::State::STOP);
 
-		if (showDemoWindow)
-			ImPlot::ShowDemoWindow();
-
-		if (glfwWindowShouldClose(window))
-		{
-			viewerDataHandler->setState(DataHandlerBase::State::STOP);
-			traceDataHandler->setState(DataHandlerBase::State::STOP);
-
-			if (configHandler->isSavingRequired(projectElfPath))
-				askShouldSaveOnExit(glfwWindowShouldClose(window));
-			else
-				done = true;
-		}
-		glfwSetWindowShouldClose(window, done);
-		checkShortcuts();
-
-		drawMenu();
-		drawAboutWindow();
-		drawPreferencesWindow();
-
-		if (ImGui::Begin("Trace Viewer"))
-		{
-			activeView = ActiveViewType::TraceViewer;
-			drawAcqusitionSettingsWindow(activeView);
-			ImGui::SetNextWindowClass(&window_class);
-			if (ImGui::Begin("Trace Plots"))
-				drawPlotsSwo();
-			ImGui::End();
-			drawStartButton(traceDataHandler);
-			drawSettingsSwo();
-			drawIndicatorsSwo();
-			drawPlotsTreeSwo();
-		}
-		ImGui::End();
-
-		if (ImGui::Begin("Var Viewer"))
-		{
-			activeView = ActiveViewType::VarViewer;
-			drawAcqusitionSettingsWindow(activeView);
-			drawStartButton(viewerDataHandler);
-			variableTable->draw();
-			plotsTree->draw();
-			plotEditWindow->draw();
-			ImGui::SetNextWindowClass(&window_class);
-			if (ImGui::Begin("Plots"))
-				drawPlots();
-			ImGui::End();
-		}
-		ImGui::End();
-
-		popup.handle();
-
-		renderer.stepExit();
+		if (configHandler->isSavingRequired(projectElfPath))
+			askShouldSaveOnExit(glfwWindowShouldClose(window));
+		else
+			done = true;
 	}
+	glfwSetWindowShouldClose(window, done);
+	checkShortcuts();
 
+	drawMenu();
+	drawAboutWindow();
+	drawPreferencesWindow();
+
+	if (ImGui::Begin("Trace Viewer"))
+	{
+		activeView = ActiveViewType::TraceViewer;
+		drawAcqusitionSettingsWindow(activeView);
+		ImGui::SetNextWindowClass(&window_class);
+		if (ImGui::Begin("Trace Plots"))
+			drawPlotsSwo();
+		ImGui::End();
+		drawStartButton(traceDataHandler);
+		drawSettingsSwo();
+		drawIndicatorsSwo();
+		drawPlotsTreeSwo();
+	}
+	ImGui::End();
+
+	if (ImGui::Begin("Var Viewer"))
+	{
+		activeView = ActiveViewType::VarViewer;
+		drawAcqusitionSettingsWindow(activeView);
+		drawStartButton(viewerDataHandler);
+		variableTable->draw();
+		plotsTree->draw();
+		plotEditWindow->draw();
+		ImGui::SetNextWindowClass(&window_class);
+		if (ImGui::Begin("Plots"))
+			drawPlots();
+		ImGui::End();
+	}
+	ImGui::End();
+
+	popup.handle();
+
+	renderer.stepExit();
+}
+
+void Gui::deinit()
+{
 	renderer.deinit();
 	logger->info("Exiting GUI main thread");
 	fileHandler->deinit();

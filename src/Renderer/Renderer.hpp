@@ -7,7 +7,7 @@
 #include "imgui_impl_glfw.h"
 #include "implot.h"
 
-#ifdef APPLE
+#if defined(__APPLE__)
 #include "MetalRenderer.hpp"
 using RendererBackend = MetalRenderer;
 #else

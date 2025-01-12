@@ -34,7 +34,13 @@ class Gui
 {
    public:
 	Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath);
-	~Gui();
+	void init(std::string externalPath);
+	void spin();
+	void deinit();
+
+	GLFWwindow* window;
+	ImFontConfig cfg;
+	ImGuiWindowClass window_class;
 
    private:
 	static constexpr bool showDemoWindow = false;
@@ -42,8 +48,6 @@ class Gui
 	const std::map<DataHandlerBase::State, std::string> viewerStateMap{{DataHandlerBase::State::RUN, "RUNNING"}, {DataHandlerBase::State::STOP, "STOPPED"}};
 
 	Renderer renderer;
-
-	std::thread threadHandle;
 	PlotHandler* plotHandler;
 	VariableHandler* variableHandler;
 	ConfigHandler* configHandler;
@@ -93,7 +97,6 @@ class Gui
 	std::shared_ptr<PlotsTree> plotsTree;
 
    private:
-	void mainThread(std::string externalPath);
 	void drawMenu();
 	void drawStartButton(DataHandlerBase* activeDataHandler);
 	void drawDebugProbes();
