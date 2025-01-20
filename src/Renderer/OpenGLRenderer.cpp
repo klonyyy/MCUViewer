@@ -12,10 +12,13 @@
 void OpenGLRenderer::init(GLFWwindow* window)
 {
 	this->window = window;
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
-void OpenGLRenderer::stepEnter(bool shouldIncreaseFramerate)
+void OpenGLRenderer::step(std::function<void()> guiFunction, bool shouldIncreaseFramerate)
 {
 	ImGui_ImplOpenGL3_NewFrame();
 
@@ -23,10 +26,9 @@ void OpenGLRenderer::stepEnter(bool shouldIncreaseFramerate)
 		glfwSwapInterval(1);
 	else
 		glfwSwapInterval(4);
-}
 
-void OpenGLRenderer::stepExit()
-{
+	guiFunction();
+
 	int display_w, display_h;
 	glfwGetFramebufferSize(window, &display_w, &display_h);
 	glViewport(0, 0, display_w, display_h);

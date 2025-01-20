@@ -12,15 +12,12 @@
 #import <QuartzCore/QuartzCore.h>
 #include "MetalRenderer.hpp"
 
-static id<MTLDevice> device = nil;
-static id<MTLCommandQueue> commandQueue = nil;
-static id<MTLCommandBuffer> commandBuffer = nil;
-static MTLRenderPassDescriptor* renderPassDescriptor = nil;
-static id <MTLRenderCommandEncoder> renderEncoder = nil;
-static id<CAMetalDrawable> drawable = nil;
-static CAMetalLayer* layer = nil;
-static NSWindow* nswin = nil; 
-static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
+id<MTLDevice> device = nil;
+id<MTLCommandQueue> commandQueue = nil;
+MTLRenderPassDescriptor* renderPassDescriptor = nil;
+CAMetalLayer* layer = nil;
+NSWindow* nswin = nil; 
+float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
 void MetalRenderer::init(GLFWwindow* window)
 {
@@ -28,6 +25,7 @@ void MetalRenderer::init(GLFWwindow* window)
     device = MTLCreateSystemDefaultDevice();
     commandQueue = [device newCommandQueue];
 
+    ImGui_ImplGlfw_InitForOther(window, true);
     ImGui_ImplMetal_Init(device);
 
     nswin = glfwGetCocoaWindow(window);
@@ -35,17 +33,17 @@ void MetalRenderer::init(GLFWwindow* window)
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     layer.contentsScale = nswin.backingScaleFactor;
-
-    // Ensure the layer is attached to the NSWindow's contentView
     nswin.contentView.layer = layer;
     nswin.contentView.wantsLayer = YES;
 
     renderPassDescriptor = [MTLRenderPassDescriptor new];
 }
 
-void MetalRenderer::stepEnter(bool shouldIncreaseFramerate)
+void MetalRenderer::step(std::function<void()> guiFunction, bool shouldIncreaseFramerate)
 {
-        int width, height;
+    @autoreleasepool
+    {
+        int width = 0, height = 0;
         glfwGetFramebufferSize(window, &width, &height);
 
         if (width == 0 || height == 0) 
@@ -55,7 +53,7 @@ void MetalRenderer::stepEnter(bool shouldIncreaseFramerate)
         }
 
         layer.drawableSize = CGSizeMake(width, height);
-        drawable = [layer nextDrawable];
+        id<CAMetalDrawable> drawable = [layer nextDrawable];
 
         if (!drawable) 
         {
@@ -63,7 +61,7 @@ void MetalRenderer::stepEnter(bool shouldIncreaseFramerate)
             return;
         }
 
-        commandBuffer = [commandQueue commandBuffer];
+        id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
 
         if (!commandBuffer) {
             NSLog(@"Failed to create command buffer.");
@@ -74,22 +72,22 @@ void MetalRenderer::stepEnter(bool shouldIncreaseFramerate)
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
         renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
         renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+        [renderEncoder pushDebugGroup:@"ImGui demo"];
         // Start the Dear ImGui frame
         ImGui_ImplMetal_NewFrame(renderPassDescriptor);
-}
 
-void MetalRenderer::stepExit()
-{
-    @autoreleasepool
-    {
-        id<MTLRenderCommandEncoder> localRenderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-        @try {
-            [localRenderEncoder pushDebugGroup:@"ImGui demo"];
-            ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, localRenderEncoder);
-        } @finally {
-            [localRenderEncoder popDebugGroup];
-            [localRenderEncoder endEncoding];
-        }
+        ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_None);
+
+        guiFunction();
+
+        ImGui::Render();
+        ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, renderEncoder);
+
+        [renderEncoder popDebugGroup];
+        [renderEncoder endEncoding];
 
         [commandBuffer presentDrawable:drawable];
         [commandBuffer commit];

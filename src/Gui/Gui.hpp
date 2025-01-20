@@ -97,6 +97,9 @@ class Gui
 	std::shared_ptr<PlotsTree> plotsTree;
 
    private:
+
+	void guiStep();
+
 	void drawMenu();
 	void drawStartButton(DataHandlerBase* activeDataHandler);
 	void drawDebugProbes();

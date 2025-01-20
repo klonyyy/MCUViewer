@@ -1,12 +1,12 @@
 #pragma once
 #include "glfw3.h"
+#include <functional>
 
 class MetalRenderer
 {
    public:
 	void init(GLFWwindow* window);
-	void stepEnter(bool shouldIncreaseFramerate);
-	void stepExit();
+	void step(std::function<void()> guiFunction, bool shouldIncreaseFramerate);
 	void deinit();
 
    private:

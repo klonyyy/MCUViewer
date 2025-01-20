@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "implot.h"
+#include <functional>
 
 #if defined(__APPLE__)
 #include "MetalRenderer.hpp"
@@ -28,11 +29,11 @@ class Renderer
 
 	bool init(const std::string windowName)
 	{
+		this->windowName = windowName;
+
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImPlot::CreateContext();
-
-		this->windowName = windowName;
 
 		glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit())
@@ -42,25 +43,24 @@ class Renderer
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		#endif
 
-		window = glfwCreateWindow(1500, 1000, windowName.c_str(), NULL, NULL);
-		if (window == NULL)
+		window = glfwCreateWindow(1500, 1000, windowName.c_str(), nullptr, nullptr);
+		if (window == nullptr)
 			return false;
 
-		#ifndef __APPLE__
-			glfwMakeContextCurrent(window);
-		#endif
-		glfwMaximizeWindow(window);
+// #ifndef __APPLE__
+// 		glfwMakeContextCurrent(window);
+// #endif
 
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
+
+
 
 		backend.init(window);
-
+		glfwMaximizeWindow(window);
+		
 		return true;
 	}
 
-	bool stepEnter(bool shouldIncreaseFramerate)
+	bool step(std::function<void()> guiFunction, bool shouldIncreaseFramerate)
 	{
 		if (glfwGetWindowAttrib(window, GLFW_ICONIFIED))
 		{
@@ -71,19 +71,8 @@ class Renderer
 		glfwSetWindowTitle(window, windowName.c_str());
 		glfwPollEvents();
 
-		backend.stepEnter(shouldIncreaseFramerate);
-
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_None);
-
+		backend.step(guiFunction, shouldIncreaseFramerate);
 		return true;
-	}
-
-	void stepExit()
-	{
-		ImGui::Render();
-		backend.stepExit();
 	}
 
 	void deinit()
@@ -91,12 +80,8 @@ class Renderer
 		backend.deinit();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
-		
-		if (window) 
-		{
-            glfwDestroyWindow(window);
-            glfwTerminate();
-        }
+		glfwDestroyWindow(window);
+		glfwTerminate();
 	}
 
    private:

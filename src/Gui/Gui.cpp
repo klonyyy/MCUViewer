@@ -79,9 +79,11 @@ void Gui::init(std::string externalPath)
 
 void Gui::spin()
 {
-	if(!renderer.stepEnter((traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN)))
-		return;
+	renderer.step([&](){this->guiStep();}, (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
+}
 
+void Gui::guiStep()
+{
 	if (glfwWindowShouldClose(window))
 	{
 		viewerDataHandler->setState(DataHandlerBase::State::STOP);
@@ -134,8 +136,6 @@ void Gui::spin()
 	ImGui::End();
 
 	popup.handle();
-
-	renderer.stepExit();
 }
 
 void Gui::deinit()
