@@ -92,6 +92,7 @@ if(UNIX)
         find_package(GLUT REQUIRED)
         set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
         set(JLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/macos/libjlinkarm.dylib)
+        set(INSTALL_PATH /Applications/${PROJECT_NAME}/)
     endif()
 endif()
 
@@ -172,7 +173,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
-add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+if(APPLE)
+    add_executable(${EXECUTABLE} MACOSX_BUNDLE ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+endif()
 
 set(GIT_VERSION_HPP ${CMAKE_CURRENT_SOURCE_DIR}/src/gitversion.hpp)
 
@@ -277,7 +280,7 @@ add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
     ${CMAKE_BINARY_DIR}/imgui.ini)
 
-install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
+
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
 
@@ -286,6 +289,7 @@ if(WIN32)
         set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
     endif()
 
+    install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
     install(FILES ${LIBUSB_WINDOWS} ${GLFW3_WINDOWS} ${GDB_WINDOWS} ${JLINK_WINDOWS} DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
@@ -296,7 +300,28 @@ if(WIN32)
     Delete \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\"")
 endif()
 
-if(UNIX)
+if(APPLE)
+    install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION /Applications/${PROJECT_NAME}.app COMPONENT applications)
+    install(FILES ${JLINK_MACOS}
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION /Applications/${PROJECT_NAME}/libjlinkarm.dylib)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION /Applications/${PROJECT_NAME}/icon.png)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop DESTINATION /Applications/${PROJECT_NAME}/MCUViewer.desktop)
+
+    configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/MacOS/Info.plist.in
+    ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
+
+    set(CPACK_GENERATOR "DragNDrop")
+    set(CPACK_PACKAGE_DIRECTORY "/Applications")
+    set(CPACK_APP_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}.app")
+    set(CPACK_APP_BUNDLE_EXECUTABLE_NAME ${EXECUTABLE})
+    set(CPACK_APP_BUNDLE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/launch/install/MacOS/icon.png")
+    set(CPACK_APP_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist) 
+    set(CPACK_PACKAGE_DEPENDENCIES "libusb-1.0-0, glfw3, libstdc++")
+
+elseif(UNIX)
+    install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
@@ -311,12 +336,6 @@ if(UNIX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
 
-if(APPLE)
-    install(FILES ${JLINK_LINUX}
-        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        DESTINATION ${LIB_INSTALL_PATH})
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
-endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})

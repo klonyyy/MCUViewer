@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>CFBundleName</key>
+        <string>@PROJECT_NAME@</string>
+        <key>CFBundleDisplayName</key>
+        <string>@PROJECT_NAME@</string>
+        <key>CFBundleExecutable</key>
+        <string>@EXECUTABLE@</string>
+        <key>CFBundleIdentifier</key>
+        <string>com.example.@PROJECT_NAME@</string>
+        <key>CFBundleVersion</key>
+        <string>@MCUVIEWER_VERSION@</string>
+        <key>CFBundleIconFile</key>
+        <string>icon.icns</string> 
+        <key>LSUIElement</key>
+        <true/>
+    </dict>
+</plist>
