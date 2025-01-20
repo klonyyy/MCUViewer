@@ -2,11 +2,12 @@
 
 #include <stdbool.h>
 
+#include <functional>
+
 #include "glfw3.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "implot.h"
-#include <functional>
 
 #if defined(__APPLE__)
 #include "MetalRenderer.hpp"
@@ -49,9 +50,10 @@ class Renderer
 		if (window == nullptr)
 			return false;
 
-		backend.init(window);
+		glfwMakeContextCurrent(window);
 		glfwMaximizeWindow(window);
-		
+		backend.init(window);
+
 		return true;
 	}
 

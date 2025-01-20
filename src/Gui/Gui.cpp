@@ -79,7 +79,8 @@ void Gui::init(std::string externalPath)
 
 void Gui::spin()
 {
-	renderer.step([&](){this->guiStep();}, (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
+	renderer.step([&]()
+				  { this->guiStep(); }, (traceDataHandler->getState() == DataHandlerBase::State::RUN) || (viewerDataHandler->getState() == DataHandlerBase::State::RUN));
 }
 
 void Gui::guiStep()
