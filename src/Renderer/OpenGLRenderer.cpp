@@ -16,6 +16,7 @@ void OpenGLRenderer::init(GLFWwindow* window)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
+	glfwShowWindow(window);
 }
 
 void OpenGLRenderer::step(std::function<void()> guiFunction, bool shouldIncreaseFramerate)

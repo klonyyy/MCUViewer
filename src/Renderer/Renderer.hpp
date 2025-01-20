@@ -38,21 +38,16 @@ class Renderer
 		glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit())
 			return false;
-			
-		#ifdef __APPLE__
+
+#ifdef __APPLE__
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		#endif
+#else
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+#endif
 
 		window = glfwCreateWindow(1500, 1000, windowName.c_str(), nullptr, nullptr);
 		if (window == nullptr)
 			return false;
-
-// #ifndef __APPLE__
-// 		glfwMakeContextCurrent(window);
-// #endif
-
-
-
 
 		backend.init(window);
 		glfwMaximizeWindow(window);
