@@ -33,25 +33,27 @@ jobs:
           with:
             submodules: recursive
             token: ${{ secrets.PAT }}
-          
-        - name: Set up Homebrew (x86_64)
+        
+        - name: Install Rosetta 2 (if needed)
+          run: |
+            softwareupdate --install-rosetta --agree-to-license || echo "Rosetta is already installed"
+
+        - name: Install Homebrew for x86_64
           run: |
             arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.bash_profile
+            echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zshrc
             eval "$(/usr/local/bin/brew shellenv)"
-
 
         - name: Add x86_64 Homebrew to PATH
           run: |
-            echo >> /Users/runner/.bash_profile; \
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/runner/.bash_profile; \
-            eval "$(/opt/homebrew/bin/brew shellenv)"; \
+            eval "$(/usr/local/bin/brew shellenv)"
             which brew
-          
+            brew config  # Verify Homebrew configuration
+
         - name: Install glfw and spdlog for x86_64
           run: |
-            # Install libraries under x86_64 using Homebrew
-            arch -x86_64 brew install glfw spdlog
+            arch -x86_64 /usr/local/bin/brew install glfw spdlog
 
         - name: Build Step
           shell: bash
@@ -63,6 +65,7 @@ jobs:
           with:
             name: MCUViewer_macos
             path: ./build/packages/
+
     test:
         runs-on: ubuntu-20.04
         container:
