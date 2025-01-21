@@ -36,11 +36,9 @@ jobs:
           
         - name: Set up Homebrew (x86_64)
           run: |
-            # Install Homebrew under x86_64 if needed
-            if [[ ! -d "/usr/local/Homebrew" ]]; then
-              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            fi ; \
-            which brew
+            arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.bash_profile
+            eval "$(/usr/local/bin/brew shellenv)"
 
 
         - name: Add x86_64 Homebrew to PATH
