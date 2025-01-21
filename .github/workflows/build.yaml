@@ -34,17 +34,17 @@ jobs:
             submodules: recursive
             token: ${{ secrets.PAT }}
           
-        - name: Install Rosetta (if necessary)
-          shell: bash
-          run: |
-            softwareupdate --install-rosetta --agree-to-license
-
-        - name: Install Dependencies
-          shell: bash
-          run: |
-            # Install glfw3 via Homebrew
-            arch -x86_64 brew install glfw
-            arch -x86_64 brew install spdlog
+      - name: Set up Homebrew (x86_64)
+        run: |
+          # Install Homebrew under x86_64 if needed
+          if [[ ! -d "/usr/local/Homebrew" ]]; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+          
+      - name: Install glfw and spdlog for x86_64
+        run: |
+          # Install libraries under x86_64 using Homebrew
+          arch -x86_64 brew install glfw spdlog
 
         - name: Build Step
           shell: bash
