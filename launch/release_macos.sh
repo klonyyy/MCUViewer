@@ -9,6 +9,7 @@ mkdir packages
 mkdir -p macos
 cd macos
 cmake -DPRODUCTION=TRUE ../..
-make
-cp MCUViewer* ../packages
+make package -j32
+cp *.dmg ../packages
+cp *.app ../packages
 cd - 

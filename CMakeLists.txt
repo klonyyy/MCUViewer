@@ -90,7 +90,7 @@ if(UNIX)
         enable_language(OBJCXX)
         set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
         set(JLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/macos/libjlinkarm.dylib)
-        set(INSTALL_PATH /Applications/${PROJECT_NAME}/)
+        set(INSTALL_PATH /Applications/${PROJECT_NAME}.app)
     endif()
 endif()
 
@@ -236,7 +236,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
 
 if(APPLE)
     include_directories(${OPENGL_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
-    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${OPENGL_LIBRARIES} ${JLINK_MACOS} 
+    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${JLINK_MACOS} 
     "-framework Metal"
     "-framework MetalKit"
     "-framework Cocoa"
@@ -246,7 +246,7 @@ if(APPLE)
     "-framework AppKit"
     "-framework UniformTypeIdentifiers"
     "-framework Security"
-    spdlog::spdlog pthread dl glfw nfd)
+    spdlog::spdlog pthread glfw nfd)
 elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${JLINK_LINUX} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
@@ -298,27 +298,26 @@ if(WIN32)
     set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
     Delete \\\"$SMPROGRAMS\\\\$START_MENU\\\\${EXECUTABLE}.lnk\\\"
     Delete \\\"$DESKTOP\\\\${EXECUTABLE}.lnk\\\"")
-endif()
 
-if(APPLE)
-    install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION /Applications/${PROJECT_NAME}.app COMPONENT applications)
-    install(FILES ${JLINK_MACOS}
-        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        DESTINATION /Applications/${PROJECT_NAME}/libjlinkarm.dylib)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION /Applications/${PROJECT_NAME}/icon.png)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop DESTINATION /Applications/${PROJECT_NAME}/MCUViewer.desktop)
+elseif(APPLE)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/launch/install/MacOS/Info.plist.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 
-    configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/MacOS/Info.plist.in
-    ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
+    install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION ${INSTALL_PATH} COMPONENT applications)
+    install(FILES ${JLINK_MACOS} PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${INSTALL_PATH}/Frameworks/)
+
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH}/Contents/Resources)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop DESTINATION ${INSTALL_PATH}/Contents)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Info.plist DESTINATION ${INSTALL_PATH}/Contents)
 
     set(CPACK_GENERATOR "DragNDrop")
-    set(CPACK_PACKAGE_DIRECTORY "/Applications")
+    set(CPACK_PACKAGE_FILES "${INSTALL_PATH}")
+    set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/package")
     set(CPACK_APP_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}.app")
     set(CPACK_APP_BUNDLE_EXECUTABLE_NAME ${EXECUTABLE})
     set(CPACK_APP_BUNDLE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/launch/install/MacOS/icon.png")
     set(CPACK_APP_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist) 
-    set(CPACK_PACKAGE_DEPENDENCIES "libusb-1.0-0, glfw3, libstdc++")
 
 elseif(UNIX)
     install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
@@ -336,14 +335,13 @@ elseif(UNIX)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglfw3 | libglfw3-wayland, libgl1, libglib2.0-0, libgtk-3-0, libstdc++6, libusb-1.0-0, gdb")
 endif()
 
-
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})
 set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")
 set(CPACK_PACKAGE_VENDOR "klonyyy")
-set(CPACK_PACKAGE_DESCRIPTION "STM32 no-overhead realtime variable viewer.")
+set(CPACK_PACKAGE_DESCRIPTION "Realtime embedded variable viewer")
 set(CPACK_NSIS_CREATE_UNINSTALLER ON)
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set(CPACK_NSIS_MODIFY_PATH ON)

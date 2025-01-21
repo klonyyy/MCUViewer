@@ -50,7 +50,10 @@ class Renderer
 		if (window == nullptr)
 			return false;
 
+#ifndef __APPLE__
 		glfwMakeContextCurrent(window);
+#endif
+
 		glfwMaximizeWindow(window);
 		backend.init(window);
 
