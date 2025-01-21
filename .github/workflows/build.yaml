@@ -40,6 +40,11 @@ jobs:
             if [[ ! -d "/usr/local/Homebrew" ]]; then
               /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             fi
+            
+        - name: Add x86_64 Homebrew to PATH
+          run: |
+            # Add /usr/local/bin to the front of the PATH to ensure x86_64 Homebrew is used
+            echo "/usr/local/bin:$PATH" >> $GITHUB_ENV   
           
         - name: Install glfw and spdlog for x86_64
           run: |
