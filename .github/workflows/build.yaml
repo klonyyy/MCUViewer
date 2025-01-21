@@ -43,9 +43,8 @@ jobs:
           shell: bash
           run: |
             # Install glfw3 via Homebrew
-            brew install glfw
-            brew install gdb
-            brew install spdlog
+            arch -x86_64 brew install glfw
+            arch -x86_64 brew install spdlog
 
         - name: Build Step
           shell: bash
