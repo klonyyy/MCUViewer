@@ -53,7 +53,7 @@ jobs:
 
         - name: Install glfw and spdlog for x86_64
           run: |
-            arch -x86_64 /usr/local/bin/brew install glfw spdlog
+            arch -x86_64 /usr/local/bin/brew install glfw spdlog libusb
 
         - name: Build Step
           shell: bash
