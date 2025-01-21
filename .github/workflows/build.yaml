@@ -39,13 +39,16 @@ jobs:
             # Install Homebrew under x86_64 if needed
             if [[ ! -d "/usr/local/Homebrew" ]]; then
               /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            fi
+            fi ; \
+            which brew
+
 
         - name: Add x86_64 Homebrew to PATH
           run: |
-            echo >> /Users/runner/.bash_profile
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/runner/.bash_profile
-            eval "$(/opt/homebrew/bin/brew shellenv)"
+            echo >> /Users/runner/.bash_profile; \
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/runner/.bash_profile; \
+            eval "$(/opt/homebrew/bin/brew shellenv)"; \
+            which brew
           
         - name: Install glfw and spdlog for x86_64
           run: |
