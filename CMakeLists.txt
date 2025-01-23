@@ -90,7 +90,8 @@ if(UNIX)
         enable_language(OBJCXX)
         set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
         set(JLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/macos/libjlinkarm.dylib)
-        set(INSTALL_PATH /Applications/${PROJECT_NAME}.app)
+        set(INSTALL_PATH ${PROJECT_NAME}.app)
+        set(RESOURCES_PATH ${PROJECT_NAME}.app/Contents/Resources)
     endif()
 endif()
 
@@ -281,8 +282,6 @@ add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
     ${CMAKE_BINARY_DIR}/imgui.ini)
 
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
 
 if(WIN32)
     if(PRODUCTION)
@@ -291,6 +290,8 @@ if(WIN32)
 
     install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
     install(FILES ${LIBUSB_WINDOWS} ${GLFW3_WINDOWS} ${GDB_WINDOWS} ${JLINK_WINDOWS} DESTINATION ${INSTALL_PATH})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     SetOutPath \\\"$INSTDIR\\\\bin\\\"
     CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${EXECUTABLE}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${EXECUTABLE}.exe\\\"
@@ -303,13 +304,12 @@ elseif(APPLE)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/launch/install/MacOS/Info.plist.in
                    ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 
-    install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION ${INSTALL_PATH} COMPONENT applications)
-    install(FILES ${JLINK_MACOS} PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        DESTINATION ${INSTALL_PATH}/Frameworks/)
-
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH}/Contents/Resources)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop DESTINATION ${INSTALL_PATH}/Contents)
+    install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION . RUNTIME DESTINATION "${PROJECT_NAME}.app/Contents/MacOS")
+    install(FILES ${JLINK_MACOS} PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE DESTINATION ${INSTALL_PATH}/Contents/Frameworks/)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${RESOURCES_PATH})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Info.plist DESTINATION ${INSTALL_PATH}/Contents)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${RESOURCES_PATH})
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${RESOURCES_PATH})
 
     set(CPACK_GENERATOR "DragNDrop")
     set(CPACK_PACKAGE_FILES "${INSTALL_PATH}")
@@ -322,6 +322,8 @@ elseif(APPLE)
 elseif(UNIX)
     install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH})
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.desktop
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${DESKTOP_FILE_PATH})
