@@ -10,6 +10,5 @@ mkdir -p macos
 cd macos
 cmake -DPRODUCTION=TRUE ../..
 make package -j32
-cp *.dmg ../packages
-cp *.app ../packages
+cp package/*.dmg ../packages
 cd - 
