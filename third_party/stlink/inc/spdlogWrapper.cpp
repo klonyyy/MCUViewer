@@ -27,7 +27,7 @@ int spdlogLog(int level, const char* str, ...)
 	char buf[1000];
 	int n = vsnprintf(buf, sizeof(buf), str, args);
 
-	if (n >= sizeof(buf))
+	if (n >= (int)sizeof(buf))
 		buf[sizeof(buf) - 1] = '\0';
 
 	switch (level)
