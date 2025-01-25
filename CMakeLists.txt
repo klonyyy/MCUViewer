@@ -222,18 +222,6 @@ if(WIN32)
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
 endif()
 
-# Check if it was found
-message(STATUS "GLFW: ${glfw3_FOUND}")
-if (TARGET glfw)
-  message(STATUS "Target exists")
-else ()
-  message(STATUS "Target does not exist")
-endif()
-
-if(UNIX)
-    target_include_directories(${EXECUTABLE} SYSTEM PRIVATE ${LIBUSB_INCLUDE_DIR})
-endif()
-
 if(APPLE)
     target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${JLINK_MACOS} 
     "-framework Metal"
@@ -252,7 +240,20 @@ elseif(WIN32)
     target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} ${JLINK_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
 
+
+
+
+add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
+    ${CMAKE_BINARY_DIR}/imgui.ini)
+
+
 if(WIN32)
+    if(PRODUCTION)
+        set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif()
+
     add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${GLFW3_WINDOWS}
@@ -272,19 +273,6 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy
         ${JLINK_WINDOWS}
         ${CMAKE_BINARY_DIR})
-endif()
-
-add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini
-    ${CMAKE_BINARY_DIR}/imgui.ini)
-
-
-
-if(WIN32)
-    if(PRODUCTION)
-        set_target_properties(${EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
-    endif()
 
     install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
     install(FILES ${LIBUSB_WINDOWS} ${GLFW3_WINDOWS} ${GDB_WINDOWS} ${JLINK_WINDOWS} DESTINATION ${INSTALL_PATH})
