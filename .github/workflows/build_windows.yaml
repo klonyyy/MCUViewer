@@ -1,0 +1,28 @@
+name: build
+on:
+    push
+
+jobs:
+    build:
+        runs-on: ubuntu-20.04
+        container:
+            image: klonyyy/mingw-w64-x86-64:2
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                submodules: recursive
+                token: ${{ secrets.PAT }}
+              
+            - name: Install dependencies
+              shell: bash
+              run: |
+                apt update
+                apt install -y libfmt-dev
+
+            - name: build_step
+              shell: bash
+              run: git config --global --add safe.directory /__w/MCUViewer/ && ./launch/release_windows.sh
+            - uses: actions/upload-artifact@v4
+              with:
+                name: MCUViewer_installer
+                path: /__w/MCUViewer/MCUViewer/build/packages
