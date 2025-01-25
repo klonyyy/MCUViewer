@@ -27,7 +27,7 @@ jobs:
                 name: MCUViewer_installer
                 path: /__w/MCUViewer/MCUViewer/build/packages
     build_macos:
-      runs-on: macos-latest
+      runs-on: macos-11
       steps:
         - uses: actions/checkout@v4
           with:
