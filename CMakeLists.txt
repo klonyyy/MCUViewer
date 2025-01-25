@@ -60,34 +60,39 @@ FetchContent_MakeAvailable(spdlog)
 
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
-if(UNIX)
+if(APPLE)
+    message("===== BUILDING FOR APPLE =====")
+    enable_language(OBJCXX)
+    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+    include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
-    set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
-    set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.8)
+    set(STLINK ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
+    set(JLINK ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/macos/libjlinkarm.dylib)
+    set(INSTALL_PATH ${PROJECT_NAME}.app)
+    set(RESOURCES_PATH ${PROJECT_NAME}.app/Contents/Resources)
+
+elseif(UNIX)
+    message("===== BUILDING FOR LINUX =====")
+    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+    include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
+    find_package(libusb REQUIRED)
+    find_package(glfw3 REQUIRED)
+    set(STLINK ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
+    set(JLINK ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.8)
     set(INSTALL_PATH /usr/local/MCUViewer)
     set(LIB_INSTALL_PATH /usr/local/lib)
     set(DESKTOP_FILE_PATH /usr/share/applications)
-
     set(LIB_CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/MCUViewer.conf)
     set(LIB_CONF_FILE_PATH /etc/ld.so.conf.d/)
 
-    if(APPLE)
-        message("Building for APPLE")
-        enable_language(OBJCXX)
-        set(STLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/macos/libstlink.a)
-        set(JLINK_MACOS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/macos/libjlinkarm.dylib)
-        set(INSTALL_PATH ${PROJECT_NAME}.app)
-        set(RESOURCES_PATH ${PROJECT_NAME}.app/Contents/Resources)
-    endif()
-endif()
-
-if(WIN32)
+elseif(WIN32)
+    message("===== BUILDING FOR WINDOWS =====")
     enable_language("RC")
     set(ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Windows/icon.rc")
     set(GLFW3_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/lib/windows/glfw3.dll)
-    set(STLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
-    set(JLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/windows/JLink_x64.dll)
+    set(STLINK ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/windows/libstlink.a)
+    set(JLINK ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/windows/JLink_x64.dll)
     set(LIBUSB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/lib/windows/libusb-1.0.dll)
     set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
     set(GDB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GDB/windows/gdb.exe)
@@ -123,12 +128,6 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/ViewerDataHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataHandler/TraceDataHandler.cpp)
 
-if(APPLE)
-    list(APPEND PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MetalRenderer.mm)
-else()
-    list(APPEND PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/OpenGLRenderer.cpp)
-endif()
-
 set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui_demo.cpp
@@ -138,8 +137,10 @@ set(IMGUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_glfw.cpp)
 
 if(APPLE)
+    list(APPEND PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MetalRenderer.mm)
     list(APPEND IMGUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_metal.mm)
 else()
+    list(APPEND PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/OpenGLRenderer.cpp)
     list(APPEND IMGUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/imgui_impl_opengl3.cpp)
 endif()
 
@@ -225,7 +226,7 @@ if(WIN32)
 endif()
 
 if(APPLE)
-    target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${JLINK_MACOS} 
+    target_link_libraries(${EXECUTABLE} ${STLINK} ${LIBUSB_LIBRARY} ${JLINK} 
     "-framework Metal"
     "-framework MetalKit"
     "-framework Cocoa"
@@ -237,9 +238,9 @@ if(APPLE)
     "-framework Security"
     spdlog::spdlog pthread glfw nfd)
 elseif(UNIX)
-    target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${JLINK_LINUX} spdlog::spdlog pthread dl GL glfw nfd)
+    target_link_libraries(${EXECUTABLE} ${STLINK} ${LIBUSB_LIBRARY} ${JLINK} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${JLINK_WINDOWS} spdlog::spdlog -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK} ${LIBUSB_WINDOWS} ${JLINK} spdlog::spdlog -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
 
 
