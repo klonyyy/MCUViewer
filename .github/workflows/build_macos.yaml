@@ -40,5 +40,5 @@ jobs:
 
         - uses: actions/upload-artifact@v4
           with:
-            name: MCUViewer_macos
+            name: MCUViewer_MacOs
             path: ./build/packages/
