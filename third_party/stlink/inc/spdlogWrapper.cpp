@@ -4,7 +4,7 @@
 
 #if defined(__APPLE__) || defined(_UNIX)
 	#include <fmt/printf.h>
-#elif _WIN32
+#elif defined(_WIN32)
 	#include <spdlog/fmt/bundled/printf.h>
 #else
 #error "Your system is not supported!"
@@ -24,9 +24,11 @@ int spdlogLog(int level, const char* str, ...)
 	va_list args;
 	va_start(args, str);
 
-	char buf[1000]{};
-	vsprintf(buf, str, args);
-	buf[strlen(buf) - 1] = '\0';
+	char buf[1000];
+	int n = vsnprintf(buf, sizeof(buf), str, args);
+
+	if (n >= sizeof(buf))
+		buf[sizeof(buf) - 1] = '\0';
 
 	switch (level)
 	{
@@ -46,6 +48,7 @@ int spdlogLog(int level, const char* str, ...)
 			logger->info(buf);
 			break;
 	}
+
 	va_end(args);
 	return 1;
 }
