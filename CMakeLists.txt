@@ -55,27 +55,13 @@ endif()
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
 if(UNIX)
-    include(FetchContent)
-    FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.13.0)
-
-    FetchContent_GetProperties(spdlog)
-
-    if(NOT spdlog_POPULATED)
-        FetchContent_Populate(spdlog)
-        add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
-    endif()
-
-    # this is to avoid warnings from spdlog
-    get_target_property(SPDLOG_IID spdlog INTERFACE_INCLUDE_DIRECTORIES)
-    set_target_properties(spdlog PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${SPDLOG_IID}")
 
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
+    find_package(spdlog REQUIRED)
+    find_package(fmt REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.8)
     set(INSTALL_PATH /usr/local/MCUViewer)
@@ -224,19 +210,34 @@ target_include_directories(${EXECUTABLE} PRIVATE
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
     ${JLINK_INCLUDE_DIR}
-    ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mINI/src/mini/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/src/include/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/inc/)
 
+if(WIN32)
+    target_include_directories(${EXECUTABLE} SYSTEM PRIVATE 
+    ${LIBUSB_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
+endif()
+
+# Check if it was found
+message(STATUS "GLFW: ${glfw3_FOUND}")
+if (TARGET glfw)
+  message(STATUS "Target exists")
+else ()
+  message(STATUS "Target does not exist")
+endif()
+
+if(UNIX)
+    target_include_directories(${EXECUTABLE} SYSTEM PRIVATE ${LIBUSB_INCLUDE_DIR})
+endif()
+
 if(APPLE)
-    include_directories(${OPENGL_INCLUDE_DIRS} ${STLINK_INCLUDE_DIRS})
     target_link_libraries(${EXECUTABLE} ${STLINK_MACOS} ${LIBUSB_LIBRARY} ${JLINK_MACOS} 
     "-framework Metal"
     "-framework MetalKit"

@@ -12,10 +12,12 @@
 #include "PlotHandler.hpp"
 #include "Statistics.hpp"
 #include "StlinkDebugProbe.hpp"
-#include "glfw3.h"
 
 #ifdef _WIN32
 #include <windows.h>
+#include "glfw3.h"
+#else
+#include <GLFW/glfw3.h>
 #endif
 
 Gui::Gui(PlotHandler* plotHandler, VariableHandler* variableHandler, ConfigHandler* configHandler, PlotGroupHandler* plotGroupHandler, IFileHandler* fileHandler, PlotHandler* tracePlotHandler, ViewerDataHandler* viewerDataHandler, TraceDataHandler* traceDataHandler, std::atomic<bool>& done, std::mutex* mtx, spdlog::logger* logger, std::string& projectPath) : plotHandler(plotHandler), variableHandler(variableHandler), configHandler(configHandler), plotGroupHandler(plotGroupHandler), fileHandler(fileHandler), tracePlotHandler(tracePlotHandler), viewerDataHandler(viewerDataHandler), traceDataHandler(traceDataHandler), done(done), mtx(mtx), logger(logger)

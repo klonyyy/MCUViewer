@@ -1,7 +1,15 @@
 #include "spdlogWrapper.h"
 // clang-format off
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/bundled/printf.h>
+
+#if defined(__APPLE__) || defined(_UNIX)
+	#include <fmt/printf.h>
+#elif _WIN32
+	#include <spdlog/fmt/bundled/printf.h>
+#else
+#error "Your system is not supported!"
+#endif
+
 // clang-format on
 #include <stdarg.h>
 

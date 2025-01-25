@@ -273,7 +273,7 @@ TraceReader::TraceState TraceReader::updateTrace(uint8_t c)
 												: TRACE_STATE_IDLE;
 
 		default:
-			logger->critical("Invalid state! {}", state);
+			logger->critical("Invalid state! {}", static_cast<int>(state));
 			return TRACE_STATE_IDLE;
 	}
 }
@@ -318,5 +318,5 @@ void TraceReader::readerThread()
 		}
 	}
 	TraceProbe->stopTrace();
-	logger->info("Closing trace thread {}", isRunning);
+	logger->info("Closing trace thread {}", static_cast<bool>(isRunning));
 }
