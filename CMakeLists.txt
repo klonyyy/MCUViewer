@@ -61,8 +61,6 @@ FetchContent_MakeAvailable(spdlog)
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
 if(UNIX)
-    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-    include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
