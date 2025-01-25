@@ -12,12 +12,6 @@ jobs:
               with:
                 submodules: recursive
                 token: ${{ secrets.PAT }}
-              
-            - name: Install dependencies
-              shell: bash
-              run: |
-                apt update
-                apt install -y libfmt-dev
 
             - name: build_step
               shell: bash
