@@ -1,16 +1,6 @@
 #include "spdlogWrapper.h"
-// clang-format off
 #include <spdlog/spdlog.h>
-
-#if defined(__APPLE__) || defined(__linux__)
-	#include <fmt/printf.h>
-#elif defined(_WIN32)
-	#include <spdlog/fmt/bundled/printf.h>
-#else
-#error "Your system is not supported!"
-#endif
-
-// clang-format on
+#include <spdlog/fmt/bundled/printf.h>
 #include <stdarg.h>
 
 #include <iostream>

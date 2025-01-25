@@ -53,12 +53,21 @@ add_compile_options(-Wall
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
 if(UNIX)
+
+    include(FetchContent)
+    FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.15.0 # Replace with the version you want
+    )
+    FetchContent_MakeAvailable(spdlog)
+
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
-    find_package(spdlog REQUIRED)
-    find_package(fmt REQUIRED)
+    # find_package(spdlog REQUIRED)
+    # find_package(fmt REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.8)
     set(INSTALL_PATH /usr/local/MCUViewer)
@@ -292,7 +301,6 @@ elseif(APPLE)
 
     install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION . RUNTIME DESTINATION "${PROJECT_NAME}.app/Contents/MacOS")
     install(FILES ${JLINK_MACOS} PERMISSIONS WORLD_READ WORLD_EXECUTE DESTINATION ${INSTALL_PATH}/Contents/Frameworks/)
-    install(FILES ${SPDLOG_LIBRARY} PERMISSIONS WORLD_READ WORLD_EXECUTE DESTINATION ${INSTALL_PATH}/Contents/Frameworks/)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${RESOURCES_PATH})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Info.plist DESTINATION ${INSTALL_PATH}/Contents)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${RESOURCES_PATH})
@@ -308,7 +316,6 @@ elseif(APPLE)
 
 elseif(UNIX)
     install(TARGETS ${EXECUTABLE} RUNTIME DESTINATION ${INSTALL_PATH} COMPONENT applications)
-    install(FILES ${SPDLOG_LIBRARY} DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${INSTALL_PATH})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${INSTALL_PATH})
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/chips DESTINATION ${INSTALL_PATH})
