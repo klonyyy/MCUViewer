@@ -2,7 +2,7 @@
 // clang-format off
 #include <spdlog/spdlog.h>
 
-#if defined(__APPLE__) || defined(_UNIX)
+#if defined(__APPLE__) || defined(__linux__)
 	#include <fmt/printf.h>
 #elif defined(_WIN32)
 	#include <spdlog/fmt/bundled/printf.h>

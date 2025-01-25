@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
 void prepareLogger()
 {
-#if defined(__APPLE__) || defined(_UNIX)
+#if defined(__APPLE__) || defined(__linux__)
 	std::string logDirectory = std::string(std::getenv("HOME")) + "/MCUViewer/logs/logfile.txt";
 #elif _WIN32
 	std::string logDirectory = std::string(std::getenv("APPDATA")) + "/MCUViewer/logs/logfile.txt";

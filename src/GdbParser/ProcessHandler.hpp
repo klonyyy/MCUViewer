@@ -118,7 +118,7 @@ using ProcessHandler = WindowsProcessHandler;
 
 #endif
 
-#if defined(__APPLE__) || defined(_UNIX)
+#if defined(__APPLE__) || defined(__linux__)
 
 #include <sys/types.h>
 #include <sys/wait.h>
