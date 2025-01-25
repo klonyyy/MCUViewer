@@ -1,14 +1,8 @@
-# Action name
 name: build
-
-# Here, this action will be enabled on all pushes.
-# Modify this to fit your needs.
 on:
     push
 
-# Jobs section
 jobs:
-    # The job that will use the container image you just pushed to ghcr.io
     build:
         runs-on: ubuntu-20.04
         container:
@@ -18,6 +12,12 @@ jobs:
               with:
                 submodules: recursive
                 token: ${{ secrets.PAT }}
+              
+            - name: Install dependencies
+              shell: bash
+              run: |
+                sudo apt update
+                sudo apt install -y libfmt-dev
 
             - name: build_step
               shell: bash
