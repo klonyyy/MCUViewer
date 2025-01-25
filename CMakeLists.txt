@@ -50,24 +50,21 @@ add_compile_options(-Wall
     -Wno-unused-parameter
     -Wno-missing-field-initializers)
 
+include(FetchContent)
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.15.0
+)
+FetchContent_MakeAvailable(spdlog)
+
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
 if(UNIX)
-
-    include(FetchContent)
-    FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.15.0 # Replace with the version you want
-    )
-    FetchContent_MakeAvailable(spdlog)
-
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
     find_package(glfw3 REQUIRED)
-    # find_package(spdlog REQUIRED)
-    # find_package(fmt REQUIRED)
     set(STLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/lib/linux/libstlink.a)
     set(JLINK_LINUX ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/linux/libjlinkarm.so.8)
     set(INSTALL_PATH /usr/local/MCUViewer)
@@ -95,7 +92,6 @@ if(WIN32)
     set(JLINK_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/lib/windows/JLink_x64.dll)
     set(LIBUSB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/lib/windows/libusb-1.0.dll)
     set(LIBUSB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libusb/inc/libusb-1.0)
-    set(SPDLOG_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/lib/windows/libspdlog.dll)
     set(GDB_WINDOWS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GDB/windows/gdb.exe)
     set(INSTALL_PATH bin)
 endif()
@@ -165,7 +161,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/nfd/)
 set(EXECUTABLE ${CMAKE_PROJECT_NAME})
 
 if(APPLE)
-    add_executable(${EXECUTABLE} MACOSX_BUNDLE ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
+    add_executable(${EXECUTABLE} MACOSX_BUNDLE ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES})
 else()
     add_executable(${EXECUTABLE} ${PROJECT_SOURCES} ${IMGUI_SOURCES} ${IMPLOT_SOURCES} ${ICON_RC})
 endif()
@@ -227,8 +223,7 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
 if(WIN32)
     target_include_directories(${EXECUTABLE} SYSTEM PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/)
 endif()
 
 if(APPLE)
@@ -246,10 +241,8 @@ if(APPLE)
 elseif(UNIX)
     target_link_libraries(${EXECUTABLE} ${STLINK_LINUX} ${LIBUSB_LIBRARY} ${JLINK_LINUX} spdlog::spdlog pthread dl GL glfw nfd)
 elseif(WIN32)
-    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${SPDLOG_WINDOWS} ${JLINK_WINDOWS} -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
+    target_link_libraries(${EXECUTABLE} ${GLFW3_WINDOWS} ${STLINK_WINDOWS} ${LIBUSB_WINDOWS} ${JLINK_WINDOWS} spdlog::spdlog -static ssp opengl32 nfd -static-libstdc++ -static-libgcc)
 endif()
-
-
 
 
 add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
@@ -302,7 +295,7 @@ elseif(APPLE)
     install(TARGETS ${EXECUTABLE} BUNDLE DESTINATION . RUNTIME DESTINATION "${PROJECT_NAME}.app/Contents/MacOS")
     install(FILES ${JLINK_MACOS} 
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE DESTINATION 
-    ${INSTALL_PATH}/Contents/Frameworks/)
+        ${INSTALL_PATH}/Contents/Frameworks/)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/launch/install/Unix/icon.png DESTINATION ${RESOURCES_PATH})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Info.plist DESTINATION ${INSTALL_PATH}/Contents)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini DESTINATION ${RESOURCES_PATH})
