@@ -18,7 +18,7 @@ endif()
 
 project(MCUViewer)
 
-set(MCUVIEWER_VERSION 1.1.0)
+set(MCUVIEWER_VERSION 1.1.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
@@ -27,6 +27,7 @@ if(PRODUCTION)
     message("Building for production!")
 else()
     set(CMAKE_BUILD_TYPE Debug)
+    message("Building for debug!")
 endif()
 
 if(WIN32 AND "${PLATFORM}" STREQUAL "native")
@@ -34,6 +35,7 @@ if(WIN32 AND "${PLATFORM}" STREQUAL "native")
     set(CMAKE_PREFIX_PATH ${LLVM_DIR} ${CMAKE_PREFIX_PATH})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
     set(CMAKE_AR "C:/msys64/mingw64/bin/llvm-ar.exe")
+    add_compile_options(-Wa,-mbig-obj)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "ReleaseWithDbg")
@@ -48,14 +50,9 @@ add_compile_options(-Wall
     -Wno-unused-parameter
     -Wno-missing-field-initializers)
 
-if(WIN32)
-    add_compile_options(-Wa,-mbig-obj)
-endif()
-
 set(JLINK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jlink/inc/)
 
 if(UNIX)
-
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
     include(${CMAKE_MODULE_PATH}/Findlibusb.cmake)
     find_package(libusb REQUIRED)
@@ -339,16 +336,17 @@ elseif(UNIX)
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})
-set(CPACK_PACKAGE_VERSION ${CPACK_PROJECT_VERSION})
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")
 set(CPACK_PACKAGE_VENDOR "klonyyy")
 set(CPACK_PACKAGE_DESCRIPTION "Realtime embedded variable viewer")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "MCUViewer")
+set(CPACK_PACKAGE_VERSION ${MCUVIEWER_VERSION})
+set(CPACK_PROJECT_VERSION ${MCUVIEWER_VERSION})
 set(CPACK_NSIS_CREATE_UNINSTALLER ON)
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set(CPACK_NSIS_MODIFY_PATH ON)
 set(CPACK_ALL_INSTALL_TYPES Full Developer)
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 set(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Full)
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/launch/install/Unix/postinst")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Piotr Wasilewski <piwasilewski@interia.pl>")
 include(CPack)
