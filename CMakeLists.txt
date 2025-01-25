@@ -207,6 +207,7 @@ target_include_directories(${EXECUTABLE} PRIVATE
 target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stlink/inc/
     ${JLINK_INCLUDE_DIR}
+    ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/backends/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/implot/
@@ -216,7 +217,6 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
 
 if(WIN32)
     target_include_directories(${EXECUTABLE} SYSTEM PRIVATE 
-    ${LIBUSB_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/GLFW/inc/GLFW/
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/inc/)
