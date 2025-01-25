@@ -16,8 +16,8 @@ jobs:
             - name: Install dependencies
               shell: bash
               run: |
-                sudo apt update
-                sudo apt install -y libfmt-dev
+                apt update
+                apt install -y libfmt-dev
 
             - name: build_step
               shell: bash
@@ -27,7 +27,7 @@ jobs:
                 name: MCUViewer_installer
                 path: /__w/MCUViewer/MCUViewer/build/packages
     build_macos:
-      runs-on: macos-11
+      runs-on: macos-13
       steps:
         - uses: actions/checkout@v4
           with:
