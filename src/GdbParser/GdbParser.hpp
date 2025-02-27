@@ -40,10 +40,10 @@ class GdbParser
 	void changeCurrentGDBCommand(const std::string& command);
 
    private:
-	void parseVariableChunk(const std::string& chunk);
-	void checkVariableType(std::string& name);
-	Variable::Type checkType(const std::string& name, std::string* output);
-	std::optional<uint32_t> checkAddress(const std::string& name);
+	void parseVariableChunk(ProcessHandler& process, const std::string& chunk);
+	void checkVariableType(ProcessHandler& process, std::string& name);
+	Variable::Type checkType(ProcessHandler& process, const std::string& name, std::string* output);
+	std::optional<uint32_t> checkAddress(ProcessHandler& process, const std::string& name);
 
    private:
 	const char* defaultGDBCommand = "gdb";
@@ -52,7 +52,6 @@ class GdbParser
 	spdlog::logger* logger;
 	std::mutex mtx;
 	std::map<std::string, VariableData> parsedData;
-	ProcessHandler process;
 
 	std::unordered_map<std::string, Variable::Type> isTrivial = {
 		{"_Bool", Variable::Type::U8},

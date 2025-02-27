@@ -36,6 +36,8 @@ bool GdbParser::updateVariableMap(const std::string& elfPath)
 	if (!std::filesystem::exists(elfPath))
 		return false;
 
+	ProcessHandler process;
+
 	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
 
@@ -48,13 +50,13 @@ bool GdbParser::updateVariableMap(const std::string& elfPath)
 		var->setIsFound(false);
 		var->setType(Variable::Type::UNKNOWN);
 
-		auto maybeAddress = checkAddress(var->getTrackedName());
+		auto maybeAddress = checkAddress(process, var->getTrackedName());
 		if (!maybeAddress.has_value())
 			continue;
 
 		var->setIsFound(true);
 		var->setAddress(maybeAddress.value());
-		var->setType(checkType(var->getTrackedName(), nullptr));
+		var->setType(checkType(process, var->getTrackedName(), nullptr));
 	}
 
 	process.closePipes();
@@ -73,6 +75,8 @@ bool GdbParser::parse(const std::string& elfPath, std::atomic<bool>& shouldStopP
 	std::unique_lock<std::mutex> lock(mtx);
 	parsedData.clear();
 	lock.unlock();
+
+	ProcessHandler process;
 
 	std::string cmd = currentGDBCommand + std::string(" --interpreter=mi ") + elfPath;
 	process.executeCmd(cmd, "(gdb)");
@@ -105,7 +109,7 @@ bool GdbParser::parse(const std::string& elfPath, std::atomic<bool>& shouldStopP
 		if (end1 != std::string::npos)
 		{
 			end = end1;
-			parseVariableChunk(out.substr(start, end - start));
+			parseVariableChunk(process, out.substr(start, end - start));
 		}
 		start = end;
 	}
@@ -115,7 +119,7 @@ bool GdbParser::parse(const std::string& elfPath, std::atomic<bool>& shouldStopP
 	return true;
 }
 
-void GdbParser::parseVariableChunk(const std::string& chunk)
+void GdbParser::parseVariableChunk(ProcessHandler& process, const std::string& chunk)
 {
 	size_t start = 0;
 
@@ -131,20 +135,20 @@ void GdbParser::parseVariableChunk(const std::string& chunk)
 
 		std::string variableName = chunk.substr(spacePos + 1, semicolonPos - spacePos - 1);
 
-		checkVariableType(variableName);
+		checkVariableType(process, variableName);
 		start = semicolonPos + 1;
 	}
 }
 
-void GdbParser::checkVariableType(std::string& name)
+void GdbParser::checkVariableType(ProcessHandler& process, std::string& name)
 {
-	auto maybeAddress = checkAddress(name);
+	auto maybeAddress = checkAddress(process, name);
 	if (!maybeAddress.has_value())
 		return;
 
 	std::string out;
 
-	if (checkType(name, &out) != Variable::Type::UNKNOWN)
+	if (checkType(process, name, &out) != Variable::Type::UNKNOWN)
 	{
 		/* trivial type */
 		std::lock_guard<std::mutex> lock(mtx);
@@ -194,14 +198,14 @@ void GdbParser::checkVariableType(std::string& name)
 			logger->debug("FULL NAME: {}", fullName);
 
 			if (fullName.size() < 100)
-				checkVariableType(fullName);
+				checkVariableType(process, fullName);
 
 			subStart = semicolonPos + 1;
 		}
 	}
 }
 
-Variable::Type GdbParser::checkType(const std::string& name, std::string* output)
+Variable::Type GdbParser::checkType(ProcessHandler& process, const std::string& name, std::string* output)
 {
 	auto out = process.executeCmd(std::string("ptype ") + name + std::string("\n"), "(gdb)");
 	if (output != nullptr)
@@ -229,7 +233,7 @@ Variable::Type GdbParser::checkType(const std::string& name, std::string* output
 	return isTrivial.at(line);
 }
 
-std::optional<uint32_t> GdbParser::checkAddress(const std::string& name)
+std::optional<uint32_t> GdbParser::checkAddress(ProcessHandler& process, const std::string& name)
 {
 	auto out = process.executeCmd(std::string("p /d &") + name + std::string("\n"), "(gdb)");
 
