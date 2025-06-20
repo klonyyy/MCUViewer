@@ -1,7 +1,11 @@
-![example workflow](https://github.com/klonyyy/MCUViewer/actions/workflows/build.yaml/badge.svg)
 
 # Downloads
-To download MCUViewer installer please proceed to the [releases page](https://github.com/klonyyy/MCUViewer/releases).
+To download MCUViewer installer please proceed to the [downloads](https://mcuviewer.com/#downloads).
+
+⚠️ **MCUViewer is now closed-source. This repo holds sources for the 1.1.0 release.** ⚠️
+
+**Feel free to start a new issue here in case of any problems or contact me directly at contact@mcuviewer.com**
+
 
 # MCUViewer 
 MCUViewer (formerly STMViewer) is an open-source GUI debug tool for microcontrollers that consists of two modules.
